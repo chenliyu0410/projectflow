@@ -403,6 +403,9 @@ const ROLES = { admin: '系統管理員', owner: '專案負責人', reviewer: '�
 const TAGS = ['市場', '配方', '試作', '製程', '品保', '檢驗', '測試', '法規', '採購', '生產', '行銷'];
 const DEPTS = ['研發', '製程', '品保', '法規', '採購', '生產', '行銷'];
 const DEPTYPE = { FS: '完成→開始', SS: '開始→開始', FF: '完成→完成' };
+const RESULT = { met: '達成', partial: '部分達成', unmet: '未達成' };
+const FIELD_TYPES = { text: '文字', number: '數字', date: '日期', select: '選項' };
+const MAX_FILE = 10 * 1024 * 1024;
 const USERS = {
   yu: { name: '力瑜', short: '瑜', role: 'owner', dept: '研發', title: '研發主管／專案負責人', color: '#B4541F' },
   ming: { name: '阿明', short: '明', role: 'member', dept: '製程', title: '製程工程師', color: '#1F5F5B' },
@@ -424,7 +427,7 @@ const PHASE_TEMPLATE = [
 
 /* ================= 種子資料 ================= */
 function seed() {
-  const db = { v: 2, nodes: {}, deps: [], gates: {}, docs: [], templates: [], overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0 };
+  const db = { v: 3, nodes: {}, deps: [], gates: {}, docs: [], templates: [], overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0, reportFields: [], reports: [], notes: [], attachments: [] };
   let ord = 0;
   const N = (id, parent, type, title, o = {}) => {
     db.nodes[id] = {
@@ -462,6 +465,9 @@ function seed() {
   N('t30121', 't3012', 'task', '設備參數設定', { tag: '製程', st: 'doing', who: 'ming', s: '2026-09-15', e: '2026-09-22', pg: 60, ln: [{ t: 'wo', id: 'WO-T2603' }] });
   N('t30122', 't3012', 'task', '品保確認', { tag: '品保', who: 'chen', s: '2026-09-23', e: '2026-09-26' });
   N('t3013', 't301', 'task', '第 2 次 F0 測試', { tag: '製程', who: 'ming', s: '2026-09-28', e: '2026-10-05' });
+  // F11：F0 測試的回報欄位與範例回報
+  ['t3011', 't3013'].forEach((id) => db.reportFields.push({ id: 'rf-' + id, node_id: id, key: 'f0', label: 'F0 值', type: 'number', unit: '', options: [], required: true, order: 0 }));
+  db.reports.push({ id: 'r1', node_id: 't3011', version: 1, result: 'unmet', summary: 'F0 = 2.6，未達目標 3.0，需調整殺菌時間', finished_on: '2026-09-12', fields: [{ key: 'f0', label: 'F0 值', value: 2.6, unit: '' }], status: 'approved', submitted_by: 'ming', submitted_at: '2026/09/12 16:20', reviewed_by: 'chen', reviewed_at: '2026/09/13 09:05', review_comment: '', self_approved: false });
   N('m301', 'p1c', 'task', '殺菌條件定案', { tag: '品保', ms: true, lock: true, who: 'chen', s: '2026-10-07' });
   N('t302', 'p1c', 'task', '加速保存試驗', { tag: '品保', who: 'ming', ai: true, s: '2026-10-08', e: '2026-12-15', ln: [F3, { t: 'po', id: 'PO-2604' }] });
   dep('t3011', 't3012'); dep('t30121', 't30122'); dep('t3012', 't3013'); dep('t301', 'm301'); dep('t301', 't302');
@@ -625,15 +631,28 @@ function freshAudit() {
     ], notes: [],
   };
 }
+// v2 → v3：補上任務紀錄的陣列、為覆寫紀錄補 kind、補範例的 F0 欄位與回報
+function upgrade(o) {
+  if (o.v === 2) {
+    const d = o.db;
+    Object.assign(d, { reportFields: d.reportFields || [], reports: d.reports || [], notes: d.notes || [], attachments: d.attachments || [] });
+    d.overrides.forEach((x) => { if (!x.kind) x.kind = x.gate ? 'gate' : 'dep'; });
+    const s = seed();
+    s.reportFields.forEach((f) => { if (d.nodes[f.node_id] && !d.reportFields.some((x) => x.id === f.id)) d.reportFields.push(f); });
+    s.reports.forEach((r) => { if (d.nodes[r.node_id] && !d.reports.some((x) => x.id === r.id)) d.reports.push(r); });
+    d.v = 3; o.v = 3;
+  }
+  return o;
+}
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const o = JSON.parse(raw); if (o && o.v === 2 && o.db && o.audit) { db = o.db; audit = o.audit; if (o.me && USERS[o.me]) ui.me = o.me; return; } }
+    if (raw) { const o = JSON.parse(raw); if (o && (o.v === 2 || o.v === 3) && o.db && o.audit) { upgrade(o); db = o.db; audit = o.audit; if (o.me && USERS[o.me]) ui.me = o.me; return; } }
   } catch (e) { /* 無法讀取時使用種子資料 */ }
   db = seed(); audit = freshAudit();
 }
 function migrate() { const t = db.nodes.t2023; if (t) t.collabs = t.collabs.filter((c) => c !== 'lin'); }
-function save() { try { localStorage.setItem(KEY, JSON.stringify({ v: 2, db, audit, me: ui.me })); } catch (e) { /* 忽略 */ } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ v: 3, db, audit, me: ui.me })); } catch (e) { /* 忽略 */ } }
 function commit(label, fn) {
   undoStack.push({ label, snap: JSON.stringify(db) });
   if (undoStack.length > 60) undoStack.shift();
@@ -909,6 +928,40 @@ function announceUnlocks(n) {
   }
 }
 function notify(text, title = '活動紀錄') { ui.chat.push({ title, text }); audit.notes.unshift({ at: nowStr(), text }); if (ui.chat.length > 80) ui.chat.shift(); renderChat(); }
+
+/* ================= 任務紀錄（F11）與跳過任務 ================= */
+// 附件檔案內容存在 IndexedDB（key = 附件 id），中繼資料存在 db.attachments
+const fileStore = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    try {
+      const rq = indexedDB.open('projectflow-files', 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore('blobs');
+      rq.onsuccess = () => res(rq.result);
+      rq.onerror = () => rej(rq.error);
+    } catch (e) { rej(e); }
+  }));
+  const tx = (mode, fn) => open().then((d) => new Promise((res, rej) => {
+    const t = d.transaction('blobs', mode);
+    const r = fn(t.objectStore('blobs'));
+    t.oncomplete = () => res(r ? r.result : undefined);
+    t.onerror = () => rej(t.error);
+  }));
+  return {
+    ok: null,
+    async check() { try { await open(); this.ok = true; } catch (e) { this.ok = false; dbp = null; } return this.ok; },
+    put: (id, blob) => tx('readwrite', (st) => st.put(blob, id)),
+    get: (id) => tx('readonly', (st) => st.get(id)),
+    clear: () => tx('readwrite', (st) => st.clear()).catch(() => {}),
+  };
+})();
+function resetAll() {
+  try { localStorage.removeItem(KEY); } catch (err) { /* 忽略 */ }
+  db = seed(); audit = freshAudit(); undoStack.length = 0;
+  Object.assign(ui, { page: 'node', node: 'p1', tab: 'board', chat: [], expanded: {}, redteam: '' });
+  render();
+  return fileStore.clear();
+}
 </script>
 <script>
 /* ================= 共用 UI ================= */
@@ -2548,7 +2601,7 @@ document.addEventListener('click', (e) => {
     return;
   }
   if ('minPreview' in ds) { const r = maskText($('minText').value); $('minPrev').innerHTML = `<b>實際送出（${routeFor('internal') === 'masked' ? `遮罩 ${r.map.length} 項` : routeFor('internal') === 'local' ? '全本地：不送出' : '允許雲端：不遮罩'}）：</b><br>${esc(routeFor('internal') === 'masked' ? r.out : $('minText').value).replace(/\n/g, '<br>')}${r.map.length && routeFor('internal') === 'masked' ? `<br><br><b>本地對照表（不送出）：</b>${r.map.map((m) => `${esc(m.k)}＝${esc(m.v)}`).join('、')}` : ''}`; return; }
-  if (t.id === 'resetBtn') { try { localStorage.removeItem(KEY); } catch (err) { /* 忽略 */ } db = seed(); audit = freshAudit(); undoStack.length = 0; Object.assign(ui, { page: 'node', node: 'p1', tab: 'board', chat: [], expanded: {}, redteam: '' }); render(); return toast('已重置 Demo 資料'); }
+  if (t.id === 'resetBtn') { resetAll(); return toast('已重置 Demo 資料'); }
   if (t.id === 'newProjectBtn') return openNewProject();
 });
 
@@ -2669,6 +2722,7 @@ load();
 migrate();
 ui.chat.push({ title: '歡迎', text: `這是依 README 規格（F1–F10）製作的完整互動 Demo，資料存在你的瀏覽器。\n\n可以試試：\n· 點卡片標題進入任一層（專案 → 階段 → 任務 → 子任務）\n· 時程拖曳移動 / 拉伸，勾選自動順延，按「關鍵路徑」\n· 用「阿明（成員）」把 🔒 任務拖到進行中 → 送出跳過申請\n· 營運資料 → ERP 同步 → 看交期延誤如何影響上市日\n· 左下角切換成「小林（行銷）」，看權限與機密欄位差異` });
 render();
+fileStore.check().then(() => render());
 </script>
 </body>
 </html>

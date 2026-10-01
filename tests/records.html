@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>任務紀錄測試</title>
+<style>
+body{font:14px/1.6 system-ui,sans-serif;margin:16px;background:#fff;color:#222}
+.pass{color:#1F5F5B}.fail{color:#B3261E;white-space:pre-wrap}
+iframe{width:100%;height:600px;border:1px solid #ccc;margin-top:12px}
+</style>
+</head>
+<body>
+<h1>任務紀錄與跳過任務 測試</h1>
+<p id="sum">執行中…</p>
+<ol id="out"></ol>
+<iframe id="app" src="../projectflow-full-demo.html"></iframe>
+<script>
+const frame = document.getElementById('app');
+frame.addEventListener('load', async () => {
+  const w = frame.contentWindow;
+  let results;
+  try {
+    const src = await (await fetch('records.test.js', { cache: 'no-store' })).text();
+    results = await w.eval(src);
+  } catch (e) {
+    results = [{ name: '載入測試', ok: false, err: String(e && e.stack || e) }];
+  }
+  const fails = results.filter((r) => !r.ok);
+  document.getElementById('sum').textContent = fails.length ? `失敗 ${fails.length}/${results.length}` : `全部通過 ${results.length}/${results.length}`;
+  document.getElementById('out').innerHTML = results.map((r) => `<li class="${r.ok ? 'pass' : 'fail'}">${r.ok ? '✓' : '✗'} ${r.name}${r.ok ? '' : '\n' + r.err.replace(/</g, '&lt;')}</li>`).join('');
+  window.__results = results;
+});
+</script>
+</body>
+</html>
