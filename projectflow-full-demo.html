@@ -61,6 +61,7 @@ a{color:var(--teal)}
 /* 主區 */
 .main{flex-grow:1;min-width:0;display:flex;flex-direction:column;padding:20px 26px;gap:16px;overflow:hidden}
 .main.scroll{overflow:auto}
+.main.vscroll{overflow-y:auto}
 .main > :not(.view){flex-shrink:0}
 .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
 .crumbs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:13px;color:var(--muted)}
@@ -1273,6 +1274,7 @@ function enter(id) {
   // 子任務預設打開「紀錄」；回到上層時從「紀錄」改回「看板」
   if (n.type === 'task' && isLeaf(n)) ui.tab = 'records'; else if (ui.tab === 'records') ui.tab = 'board';
   ui.page = 'node'; ui.node = id; ui.gsel = null; ui.connect = null; $('app').classList.remove('side-open'); render();
+  $('main').scrollTop = 0; // 紀錄等分頁可以捲動，換節點時從頁首（回報卡）開始
 }
 
 /* ================= 主渲染 ================= */
@@ -1323,6 +1325,8 @@ function mbar() {
 function renderMain() {
   const m = $('main');
   m.classList.toggle('scroll', ui.page !== 'node');
+  // 節點頁的看板、時程、相依圖在自己的區塊內捲動；紀錄、文件、資料、成員分頁讓整個主區域上下捲動
+  m.classList.toggle('vscroll', ui.page === 'node' && ['records', 'docs', 'data', 'people'].includes(ui.tab));
   const pages = { overview: pageOverview, mytasks: pageMyTasks, review: pageReview, ops: pageOps, templates: pageTemplates, aigov: pageAIGov, audit: pageAudit, node: pageNode };
   m.innerHTML = mbar() + (pages[ui.page] || pageNode)();
   afterRender();

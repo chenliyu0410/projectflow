@@ -465,6 +465,27 @@
     enter('t3012'); eq(ui.tab, 'board');
     ui.tab = 'timeline'; enter('t301'); eq(ui.tab, 'timeline', '非紀錄分頁維持不變');
   });
+  await T('節點頁：紀錄、文件、資料、成員分頁讓主區域可以上下捲動；看板、時程、相依圖不變', () => {
+    const m = document.getElementById('main');
+    for (const [tab, on] of [['records', true], ['docs', true], ['data', true], ['people', true], ['board', false], ['timeline', false], ['graph', false]]) {
+      ui.page = 'node'; ui.node = 't30121'; ui.tab = tab; render();
+      eq(m.classList.contains('vscroll'), on, tab);
+    }
+    ui.page = 'overview'; ui.tab = 'records'; render();
+    ok(!m.classList.contains('vscroll'), '非節點頁不加 vscroll');
+    const rule = [...document.styleSheets].flatMap((s) => { try { return [...s.cssRules]; } catch (e) { return []; } }).find((r) => r.selectorText === '.main.vscroll');
+    ok(rule && rule.style.overflowY === 'auto', '.main.vscroll 要讓主區域上下捲動');
+  });
+  await T('enter()：換到別的節點時，主區域捲回最上面', () => {
+    as('yu');
+    for (let i = 1; i <= 4; i++) addNote('t3011', `第 ${i} 則筆記\n` + '殺菌條件驗證紀錄。'.repeat(10));
+    const m = document.getElementById('main');
+    enter('t301'); ui.tab = 'records'; render();
+    m.scrollTop = 200;
+    ok(m.scrollTop > 0, '前置：上層的紀錄分頁要可以捲動');
+    enter('t3011');
+    eq(m.scrollTop, 0, '進入子任務後應從頁首開始');
+  });
 
   // ── 新測試加在這一行上面 ──
   return results;
