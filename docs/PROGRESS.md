@@ -13,14 +13,14 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W1 子任務置頂回報卡**（📋 已規劃，尚未開始） |
-| 下一個動作 | 照 [WORKFLOW §2 G3](WORKFLOW.md#g3-執行) 開工，依序：<br>1. 在 `main` 上做 Pre-flight 和基準測試<br>2. 把 W1 改成 🔨，共三處：本表、§2、§3 標題。另外，本表的「分支」填 `feature/w1-subtask-report-card`，「下一個動作」改成「切到該分支，照該分支的 PROGRESS 執行 Task 1」，並填寫認領<br>3. commit `Progress: start W1`<br>4. `git checkout -b feature/w1-subtask-report-card`<br>5. 執行 W1 Task 1（見 §3 W1） |
-| 分支 | `main`（目前沒有進行中的 feature 分支） |
+| 目前工作項目 | **W1 子任務置頂回報卡**（🔨 執行中） |
+| 下一個動作 | 切到 `feature/w1-subtask-report-card`，照該分支的 PROGRESS 執行 Task 1 |
+| 分支 | `feature/w1-subtask-report-card` |
 | 最新程式 commit | `aebd709`（F11 final fixes）。每個 Task 記錄時更新 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 44/44`（2026-10-01 實測） |
 | 資料版本 | `db.v = 3`；localStorage key 是 `projectflow-demo-v2` |
-| 認領中 | （無）。開工時填「執行者／開始時間」，收工時清空 |
+| 認領中 | Claude Opus 5.5（手動執行 /pf-next 流程）／2026-10-01 16:09 |
 | 阻塞／待人類 | 無。W1 不受任何 D 阻塞 |
 | 遠端 | 2026-10-01 經人類授權，已 push 到 `origin/main`，內容包括 `edf46b6`、`dfc0126` 和交接系統的 `Docs:` commit。之後的狀態用 `git log --oneline origin/main..main` 查看。每次 push 都要人類明確授權（D3） |
 
@@ -68,7 +68,7 @@
 
 | 順位 | ID | 工作項目 | 狀態 | Spec | Plan | 資料版本 | 依賴 |
 |---|---|---|---|---|---|---|---|
-| 1 | W1 | 子任務置頂回報卡 | 📋 | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
+| 1 | W1 | 子任務置頂回報卡 | 🔨 | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
 | 2 | W2 | 部門模型 | 📋 | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1） |
 | 3 | W3 | 流程控制 | ⬜ 需先寫 spec | — | — | v4 → v5 | W2 已合併；D13 甘特圖到位；brainstorming 需要人類參與（D9） |
 | 4 | W4 | F11 遺留問題清理 | ⬜ 需先寫小 plan（問題清理型，AI 可以自己寫，見 WORKFLOW G1 例外） | PROGRESS §5 | — | 維持 | 沒有進行中的分支時才能做。建議排在 W2 合併後，因為它會改到 `load()` 這類 W2 的錨點。如果提前做，W2 的預期測試數和錨點都要重新核對 |
@@ -90,7 +90,7 @@
 
 ## 3. 工作項目明細
 
-### W1 子任務置頂回報卡 — 📋
+### W1 子任務置頂回報卡 — 🔨
 
 - **目標**：打開子任務（葉任務，`n.type === 'task' && isLeaf(n)`）時，標題下方固定顯示回報卡，卡上有目前狀態和下一步動作。葉任務頁的「紀錄」分頁排第一，並且是預設分頁。
 - **分支**：`feature/w1-subtask-report-card`（從 `main` 切出）。
