@@ -38,6 +38,58 @@
     eq(await fileStore.get('x1'), undefined);
   });
 
+  // ── Task 2：完成回報 ──
+  const good = { result: 'met', summary: '參數設定完成', finished_on: '2026-09-30', values: {} };
+  await T('validateReport：必填與數字檢查', () => {
+    eq(validateReport('t3013', { result: '', summary: '', finished_on: '', values: {} }), ['請選擇結果', '請填寫成果說明', '請填寫實際完成日', '請填寫「F0 值」']);
+    eq(validateReport('t3013', { ...good, values: { f0: 'abc' } }), ['「F0 值」必須是數字']);
+    eq(validateReport('t3013', { ...good, values: { f0: '3.1' } }), []);
+  });
+  await T('成員送出回報 → 審核中，回報為 submitted', async () => {
+    as('ming');
+    const r = await submitReport('t30121', good);
+    ok(r.ok, JSON.stringify(r.errors));
+    eq(node('t30121').status, 'review');
+    eq(pendingReport('t30121').version, 1);
+    eq(pendingReport('t30121').submitted_by, 'ming');
+    ok(!canReport(node('t30121')), '待確認時不能重複送出');
+  });
+  await T('硬性前置未滿足時不能送出', async () => {
+    as('ming');
+    const r = await submitReport('t3013', { ...good, values: { f0: 3.1 } });
+    ok(!r.ok && r.blocked, '應回傳 blocked');
+    eq(node('t3013').status, 'todo'); eq(db.reports.filter((x) => x.node_id === 't3013').length, 0);
+  });
+  await T('成員不能確認；主管退回（意見必填）→ 進行中；重送 → v2；確認 → 已完成', async () => {
+    as('ming'); await submitReport('t30121', good);
+    const r1 = pendingReport('t30121');
+    ok(!decideReport(r1.id, true), '成員不能確認');
+    as('yu');
+    ok(!decideReport(r1.id, false, '  '), '退回必須有意見');
+    ok(decideReport(r1.id, false, '請附參數截圖'));
+    eq(r1.status, 'rejected'); eq(r1.review_comment, '請附參數截圖'); eq(node('t30121').status, 'doing');
+    as('ming'); await submitReport('t30121', { ...good, summary: '已附截圖' });
+    const r2 = pendingReport('t30121'); eq(r2.version, 2);
+    as('chen'); ok(decideReport(r2.id, true), '範圍內審核人可以確認');
+    eq(r2.status, 'approved'); eq(r2.reviewed_by, 'chen'); eq(node('t30121').status, 'done');
+  });
+  await T('主管送出並直接確認', async () => {
+    const r = await submitReport('t30121', good, { selfApprove: true });
+    ok(r.ok); eq(r.report.status, 'approved'); eq(r.report.self_approved, true); eq(node('t30121').status, 'done');
+  });
+  await T('拖曳防呆：有待確認回報時，成員拖到已完成被擋，主管拖到已完成視同確認', async () => {
+    as('ming'); await submitReport('t30121', good);
+    ok(!setStatus('t30121', 'done')); eq(node('t30121').status, 'review');
+    ok(!setStatus('t30121', 'doing')); eq(node('t30121').status, 'review');
+    as('yu'); setStatus('t30121', 'done');
+    eq(node('t30121').status, 'done'); eq(db.reports.find((x) => x.node_id === 't30121').status, 'approved');
+  });
+  await T('待審數量包含待確認回報', async () => {
+    const before = pendingCount();
+    as('ming'); await submitReport('t30121', good);
+    as('yu'); eq(pendingCount(), before + 1);
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()

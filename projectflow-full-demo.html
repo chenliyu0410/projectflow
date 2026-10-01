@@ -891,6 +891,13 @@ function currentPhase(p) { return kids(p.id).find((ph) => ph.type === 'phase' &&
 function setStatus(id, to, opts = {}) {
   const n = node(id);
   if (!n || n.status === to) return true;
+  const pr = !opts.system ? pendingReport(id) : null;
+  if (pr) {
+    // 有待確認的完成回報：拖到已完成＝確認（需權限），其他移動一律擋下
+    if (to === 'done' && can('override', n)) return decideReport(pr.id, true);
+    toast(to === 'done' ? `此任務有待確認的完成回報，需由 ${approversFor(n).map(uname).join('、')} 確認` : '此任務有待確認的完成回報，請到「紀錄」分頁確認或退回', 'warn');
+    render(); return false;
+  }
   if (!opts.system && !can('edit', n)) { toast('你的角色無權變更此任務', 'warn'); return false; }
   const bl = findBlockers(n, to);
   const hard = bl.filter((b) => b.hard);
@@ -962,6 +969,70 @@ function resetAll() {
   render();
   return fileStore.clear();
 }
+/* ---------- 完成回報 ---------- */
+function fieldDefs(nodeId) { return db.reportFields.filter((f) => f.node_id === nodeId).sort((a, b) => a.order - b.order); }
+function reportsOf(nodeId) { return db.reports.filter((r) => r.node_id === nodeId).sort((a, b) => b.version - a.version); }
+function pendingReport(nodeId) { return db.reports.find((r) => r.node_id === nodeId && r.status === 'submitted') || null; }
+function canReport(n) { return !!n && n.type === 'task' && isLeaf(n) && can('edit', n) && !DONE(n.status) && !pendingReport(n.id); }
+function validateReport(nodeId, data) {
+  const errors = [];
+  if (!RESULT[data.result]) errors.push('請選擇結果');
+  if (!String(data.summary || '').trim()) errors.push('請填寫成果說明');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.finished_on || '')) errors.push('請填寫實際完成日');
+  fieldDefs(nodeId).forEach((f) => {
+    const raw = (data.values || {})[f.key];
+    const empty = raw === undefined || raw === null || String(raw).trim() === '';
+    if (f.required && empty) errors.push(`請填寫「${f.label}」`);
+    else if (!empty && f.type === 'number' && !Number.isFinite(Number(raw))) errors.push(`「${f.label}」必須是數字`);
+    else if (!empty && f.type === 'select' && !f.options.includes(String(raw))) errors.push(`「${f.label}」的選項不正確`);
+  });
+  (data.files || []).forEach((x) => { if (x.size > MAX_FILE) errors.push(`「${x.name}」超過 10 MB`); });
+  return errors;
+}
+function buildReport(nodeId, data) {
+  const prev = db.reports.filter((r) => r.node_id === nodeId);
+  return {
+    id: newId('r'), node_id: nodeId, version: prev.length ? Math.max(...prev.map((r) => r.version)) + 1 : 1,
+    result: data.result, summary: String(data.summary).trim(), finished_on: data.finished_on,
+    // 標籤與單位存快照：欄位定義之後被改，舊回報仍讀得懂
+    fields: fieldDefs(nodeId).map((f) => {
+      const raw = (data.values || {})[f.key];
+      const value = raw === undefined || raw === null || String(raw).trim() === '' ? null : f.type === 'number' ? Number(raw) : String(raw);
+      return { key: f.key, label: f.label, value, unit: f.unit || '' };
+    }),
+    status: 'submitted', submitted_by: ui.me, submitted_at: nowStr(), reviewed_by: null, reviewed_at: null, review_comment: '', self_approved: false,
+  };
+}
+async function submitReport(nodeId, data, opts = {}) {
+  const n = node(nodeId);
+  if (!canReport(n)) return { ok: false, errors: ['這個任務目前不能送出完成回報'] };
+  const errors = validateReport(nodeId, data);
+  if (errors.length) return { ok: false, errors };
+  const hard = findBlockers(n, 'review').filter((b) => b.hard);
+  if (hard.length) return { ok: false, blocked: true, errors: hard.map((b) => b.text) };
+  const r = buildReport(nodeId, data);
+  commit(`送出「${n.title}」完成回報`, () => { db.reports.push(r); });
+  log(n.id, '完成回報', `送出「${n.title}」完成回報 v${r.version}：${RESULT[r.result]}`);
+  setStatus(n.id, 'review', { system: '送出完成回報' });
+  if (opts.selfApprove && can('override', n)) decideReport(r.id, true, '', { self: true });
+  else notify(`${uname(ui.me)} 送出「${n.title}」完成回報 v${r.version}（${RESULT[r.result]}），等待確認：${approversFor(n).map(uname).join('、')}`, '完成回報');
+  return { ok: true, report: r };
+}
+function decideReport(reportId, ok, comment = '', opts = {}) {
+  const r = db.reports.find((x) => x.id === reportId);
+  if (!r || r.status !== 'submitted') return false;
+  const n = node(r.node_id);
+  if (!n || !can('override', n)) { toast('你的角色無權審核此完成回報', 'warn'); return false; }
+  const why = String(comment || '').trim();
+  if (!ok && !why) { toast('退回時請填寫意見', 'warn'); return false; }
+  commit(`${ok ? '確認' : '退回'}「${n.title}」完成回報`, () => {
+    Object.assign(r, { status: ok ? 'approved' : 'rejected', reviewed_by: ui.me, reviewed_at: nowStr(), review_comment: why, self_approved: !!opts.self });
+  });
+  log(n.id, '完成回報', `${ok ? (opts.self ? '自行確認' : '確認') : '退回'}「${n.title}」完成回報 v${r.version}${why ? `，意見：${why}` : ''}`);
+  setStatus(n.id, ok ? 'done' : 'doing', { force: true, system: ok ? (opts.self ? '完成回報自行確認' : '完成回報確認') : '完成回報退回' });
+  if (!opts.self) notify(`${uname(ui.me)} ${ok ? '確認' : '退回'}了「${n.title}」的完成回報 v${r.version}${ok ? '' : `，意見：${why}`}`, '完成回報');
+  return true;
+}
 </script>
 <script>
 /* ================= 共用 UI ================= */
@@ -988,6 +1059,7 @@ function render() { renderNav(); renderProjects(); renderMe(); renderMain(); ren
 
 function pendingCount() {
   return db.overrides.filter((o) => o.status === 'pending' && can('override', node(o.node) || null)).length
+    + db.reports.filter((r) => r.status === 'submitted' && node(r.node_id) && can('override', node(r.node_id))).length
     + db.ops.formulas.flatMap((f) => f.versions).filter((v) => v.request === 'pending' && can('formula-approve')).length;
 }
 function renderNav() {
