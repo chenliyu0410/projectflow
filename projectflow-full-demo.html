@@ -953,6 +953,7 @@ const fileStore = (() => {
     const r = fn(t.objectStore('blobs'));
     t.oncomplete = () => res(r ? r.result : undefined);
     t.onerror = () => rej(t.error);
+    t.onabort = () => rej(t.error);
   }));
   return {
     ok: null,
@@ -1020,6 +1021,10 @@ async function submitReport(nodeId, data, opts = {}) {
   const mark = undoMark();
   commit(`送出「${n.title}」完成回報`, () => { db.reports.push(r); });
   log(n.id, '完成回報', `送出「${n.title}」完成回報 v${r.version}：${RESULT[r.result]}`);
+  if ((data.files || []).length) {
+    const up = await addAttachments(n.id, data.files, { reportId: r.id });
+    if (up.errors.length) toast(up.errors.join('；'), 'warn');
+  }
   setStatus(n.id, 'review', { system: '送出完成回報' });
   if (opts.selfApprove && can('override', n)) decideReport(r.id, true, '', { self: true });
   else notify(`${uname(ui.me)} 送出「${n.title}」完成回報 v${r.version}（${RESULT[r.result]}），等待確認：${approversFor(n).map(uname).join('、')}`, '完成回報');
@@ -1075,6 +1080,74 @@ function moveReportField(id) {
   const i = defs.findIndex((x) => x.id === id);
   if (i <= 0) return;
   commit('調整回報欄位順序', () => { const a = defs[i], b = defs[i - 1]; [a.order, b.order] = [b.order, a.order]; });
+}
+
+/* ---------- 筆記 ---------- */
+function canNote(n) { return !!n && can('edit', n); }
+function addNote(nodeId, body) {
+  const n = node(nodeId);
+  if (!canNote(n)) return { ok: false, error: '你的角色無權在此任務寫筆記' };
+  const b = String(body || '').trim();
+  if (!b) return { ok: false, error: '筆記內容不能空白' };
+  const note = { id: newId('nt'), node_id: nodeId, body: b, author: ui.me, created_at: nowStr(), edited_at: null };
+  commit('新增筆記', () => { db.notes.push(note); });
+  log(nodeId, '筆記', `在「${n.title}」新增筆記`);
+  return { ok: true, note };
+}
+function editNote(noteId, body) {
+  const x = db.notes.find((y) => y.id === noteId);
+  if (!x) return { ok: false, error: '找不到這則筆記' };
+  if (x.author !== ui.me) return { ok: false, error: '只有作者可以修改筆記' };
+  const b = String(body || '').trim();
+  if (!b) return { ok: false, error: '筆記內容不能空白' };
+  if (b === x.body) return { ok: true, note: x };
+  const old = x.body;
+  commit('修改筆記', () => { x.body = b; x.edited_at = nowStr(); });
+  log(x.node_id, '筆記', `修改筆記（原內容：${old}）`);
+  return { ok: true, note: x };
+}
+
+/* ---------- 附件 ---------- */
+async function sha256Hex(blob) {
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) { return ''; }
+}
+async function addAttachments(nodeId, files, link = {}) {
+  const n = node(nodeId);
+  if (!n || !can('edit', n)) return { ok: false, errors: ['你的角色無權上傳附件'], added: [] };
+  if (!(await fileStore.check())) return { ok: false, errors: ['此瀏覽器無法儲存檔案'], added: [] };
+  const errors = [], added = [];
+  for (const f of files) {
+    if (f.size > MAX_FILE) { errors.push(`「${f.name}」超過 10 MB，未上傳`); continue; }
+    const id = newId('at');
+    try { await fileStore.put(id, f); } catch (e) { errors.push(`「${f.name}」儲存失敗`); continue; }
+    added.push({ id, node_id: nodeId, report_id: link.reportId || null, note_id: link.noteId || null, filename: f.name, mime: f.type || 'application/octet-stream', size: f.size, sha256: await sha256Hex(f), storage_key: id, uploaded_by: ui.me, uploaded_at: nowStr(), deleted_at: null });
+  }
+  if (added.length) {
+    commit(`上傳 ${added.length} 個附件`, () => { db.attachments.push(...added); });
+    log(nodeId, '附件', `上傳附件：${added.map((a) => a.filename).join('、')}`);
+  }
+  return { ok: errors.length === 0, errors, added };
+}
+// 回報送出後就鎖定，所以回報的附件不能刪
+function canDeleteAttachment(a) { const n = node(a.node_id); return !!n && !a.deleted_at && !a.report_id && (a.uploaded_by === ui.me || can('delete', n)); }
+function deleteAttachment(id) {
+  const a = db.attachments.find((x) => x.id === id);
+  if (!a || !canDeleteAttachment(a)) return { ok: false, error: a && a.report_id ? '回報的附件已鎖定，不能刪除' : '你無權刪除這個附件' };
+  commit(`刪除附件「${a.filename}」`, () => { a.deleted_at = nowStr(); });
+  log(a.node_id, '附件', `刪除附件「${a.filename}」`);
+  return { ok: true };
+}
+async function openAttachment(id) {
+  const a = db.attachments.find((x) => x.id === id);
+  const blob = a && !a.deleted_at ? await fileStore.get(a.storage_key).catch(() => undefined) : undefined;
+  if (!blob) return toast('找不到檔案內容（可能是在其他瀏覽器上傳，或資料已重置）', 'warn');
+  const url = URL.createObjectURL(blob);
+  if (/^image\/|pdf$/.test(a.mime)) window.open(url, '_blank');
+  else { const el = document.createElement('a'); el.href = url; el.download = a.filename; el.click(); }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 </script>
 <script>

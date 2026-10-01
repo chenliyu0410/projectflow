@@ -159,6 +159,39 @@
     ok(db.attachments.find((a) => a.id === 'atx').deleted_at, '附件應被軟刪除');
   });
 
+  // ── Task 4：筆記與附件 ──
+  const txt = (name, s) => new File([s], name, { type: 'text/plain' });
+  await T('新增筆記；只有作者能修改，修改後標記已編輯並寫入稽核', () => {
+    as('ming');
+    eq(addNote('t30121', '   ').ok, false);
+    const r = addNote('t30121', '設備溫度校正完成');
+    ok(r.ok); eq(r.note.author, 'ming'); eq(r.note.edited_at, null);
+    as('yu'); eq(editNote(r.note.id, '改掉').error, '只有作者可以修改筆記');
+    as('ming'); ok(editNote(r.note.id, '設備溫度校正完成（121°C）').ok);
+    ok(r.note.edited_at, '應有 edited_at');
+    ok(audit.acts[0].text.includes('原內容：設備溫度校正完成'), '稽核紀錄應保留原內容');
+  });
+  await T('協作人員不能在未指派給他的任務寫筆記', () => { as('it'); ok(canNote(node('t30121'))); as('lin'); ok(!canNote(node('t30121'))); });
+  await T('上傳附件：存入 IndexedDB、記錄中繼資料；超過 10 MB 被擋', async () => {
+    as('ming');
+    const big = new File([new Uint8Array(MAX_FILE + 1)], 'big.bin');
+    const r = await addAttachments('t30121', [txt('參數.txt', '121C 30min'), big]);
+    eq(r.added.length, 1); eq(r.errors, ['「big.bin」超過 10 MB，未上傳']);
+    const a = r.added[0];
+    eq([a.filename, a.size, a.uploaded_by, a.report_id, a.note_id], ['參數.txt', 10, 'ming', null, null]);
+    eq(a.sha256.length, 64);
+    eq(await (await fileStore.get(a.id)).text(), '121C 30min');
+  });
+  await T('刪除附件為軟刪除；回報附件不能刪除', async () => {
+    as('ming');
+    const a = (await addAttachments('t30121', [txt('a.txt', 'a')])).added[0];
+    ok(deleteAttachment(a.id).ok); ok(db.attachments.find((x) => x.id === a.id).deleted_at);
+    const rep = await submitReport('t30121', { result: 'met', summary: '完成', finished_on: '2026-09-30', values: {}, files: [txt('報告.txt', 'r')] });
+    const ra = db.attachments.find((x) => x.report_id === rep.report.id);
+    eq(ra.filename, '報告.txt');
+    ok(!canDeleteAttachment(ra)); eq(deleteAttachment(ra.id).ok, false);
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
