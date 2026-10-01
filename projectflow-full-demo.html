@@ -903,6 +903,7 @@ function setStatus(id, to, opts = {}) {
     toast(to === 'done' ? `此任務有待確認的完成回報，需由 ${approversFor(n).map(uname).join('、')} 確認` : '此任務有待確認的完成回報，請到「紀錄」分頁確認或退回', 'warn');
     render(); return false;
   }
+  if (!opts.system && n.status === 'skipped') { toast('已跳過的任務請用「恢復任務」還原', 'warn'); render(); return false; }
   if (!opts.system && !can('edit', n)) { toast('你的角色無權變更此任務', 'warn'); return false; }
   const bl = findBlockers(n, to);
   const hard = bl.filter((b) => b.hard);
@@ -1378,7 +1379,7 @@ function cardHTML(c, ctx) {
   const ph = ctx.type === 'project' ? phaseOf(c) : null;
   const pc = Math.round(prog(c));
   const ex = ui.expanded['b' + c.id];
-  return `<article class="card ${late ? 'late' : ''}" draggable="${can('edit', c)}" data-id="${c.id}">
+  return `<article class="card ${late ? 'late' : ''}" draggable="${can('edit', c) && c.status !== 'skipped'}" data-id="${c.id}">
     <div class="tags">${ph ? `<span class="tag gray">${esc(ph.title)}</span>` : ''}${c.tag ? `<span class="tag">${esc(c.tag)}</span>` : ''}
       ${c.milestone ? '<span class="tag blue">◆ 里程碑</span>' : ''}${c.ai ? '<span class="tag ai">AI 建議</span>' : ''}
       ${late ? '<span class="tag warn">延遲</span>' : ''}${effLevel(c) === 'confidential' ? lvBadge('confidential') : ''}
@@ -2442,6 +2443,7 @@ function submitBlock(id, to, reason) {
 function decideOverride(oid, ok) {
   const o = db.overrides.find((x) => x.id === oid); if (!o) return;
   const n = node(o.node);
+  if (!can('override', n || null)) { toast('你的角色無權審核此申請', 'warn'); return; }
   const isTask = o.kind === 'task';
   commit(`${ok ? '核准' : '退回'}跳過申請`, () => {
     o.status = ok ? 'approved' : 'rejected'; o.decidedBy = ui.me; o.decidedAt = nowStr();

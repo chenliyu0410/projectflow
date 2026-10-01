@@ -260,6 +260,15 @@
     ok(document.querySelector('#edForm [data-skip="t30121"]'), '編輯器應有跳過按鈕');
     closeDrawer();
   });
+  await T('成員不能拖曳已跳過的卡片來恢復任務', () => {
+    skipTask('t30122', '不做');
+    as('ming'); eq(setStatus('t30122', 'doing'), false); eq(node('t30122').status, 'skipped');
+  });
+  await T('成員不能核准跳過申請', () => {
+    as('ming'); skipTask('t30122', '想跳過');
+    const o = pendingSkip('t30122'); decideOverride(o.id, true);
+    eq(o.status, 'pending'); eq(node('t30122').status, 'todo');
+  });
   await T('既有覆寫紀錄帶有 kind', () => {
     as('ming'); submitBlock('t3013', 'doing', '先開始');
     eq(db.overrides[0].kind, 'dep');
