@@ -984,7 +984,7 @@ function validateReport(nodeId, data) {
     const empty = raw === undefined || raw === null || String(raw).trim() === '';
     if (f.required && empty) errors.push(`請填寫「${f.label}」`);
     else if (!empty && f.type === 'number' && !Number.isFinite(Number(raw))) errors.push(`「${f.label}」必須是數字`);
-    else if (!empty && f.type === 'select' && !f.options.includes(String(raw))) errors.push(`「${f.label}」的選項不正確`);
+    else if (!empty && f.type === 'select' && !(f.options || []).includes(String(raw))) errors.push(`「${f.label}」的選項不正確`);
   });
   (data.files || []).forEach((x) => { if (x.size > MAX_FILE) errors.push(`「${x.name}」超過 10 MB`); });
   return errors;
@@ -1003,6 +1003,12 @@ function buildReport(nodeId, data) {
     status: 'submitted', submitted_by: ui.me, submitted_at: nowStr(), reviewed_by: null, reviewed_at: null, review_comment: '', self_approved: false,
   };
 }
+// 一次使用者操作只留一筆復原：把 mark 之後新增的復原紀錄併入第一筆（保留最早的快照與標籤）
+const undoMark = () => undoStack[undoStack.length - 1];
+function collapseUndo(mark) {
+  const i = undoStack.indexOf(mark) + 1;
+  if (undoStack.length - i > 1) undoStack.splice(i + 1);
+}
 async function submitReport(nodeId, data, opts = {}) {
   const n = node(nodeId);
   if (!canReport(n)) return { ok: false, errors: ['這個任務目前不能送出完成回報'] };
@@ -1011,11 +1017,13 @@ async function submitReport(nodeId, data, opts = {}) {
   const hard = findBlockers(n, 'review').filter((b) => b.hard);
   if (hard.length) return { ok: false, blocked: true, errors: hard.map((b) => b.text) };
   const r = buildReport(nodeId, data);
+  const mark = undoMark();
   commit(`送出「${n.title}」完成回報`, () => { db.reports.push(r); });
   log(n.id, '完成回報', `送出「${n.title}」完成回報 v${r.version}：${RESULT[r.result]}`);
   setStatus(n.id, 'review', { system: '送出完成回報' });
   if (opts.selfApprove && can('override', n)) decideReport(r.id, true, '', { self: true });
   else notify(`${uname(ui.me)} 送出「${n.title}」完成回報 v${r.version}（${RESULT[r.result]}），等待確認：${approversFor(n).map(uname).join('、')}`, '完成回報');
+  collapseUndo(mark);
   return { ok: true, report: r };
 }
 function decideReport(reportId, ok, comment = '', opts = {}) {
@@ -1025,11 +1033,13 @@ function decideReport(reportId, ok, comment = '', opts = {}) {
   if (!n || !can('override', n)) { toast('你的角色無權審核此完成回報', 'warn'); return false; }
   const why = String(comment || '').trim();
   if (!ok && !why) { toast('退回時請填寫意見', 'warn'); return false; }
+  const mark = undoMark();
   commit(`${ok ? '確認' : '退回'}「${n.title}」完成回報`, () => {
     Object.assign(r, { status: ok ? 'approved' : 'rejected', reviewed_by: ui.me, reviewed_at: nowStr(), review_comment: why, self_approved: !!opts.self });
   });
   log(n.id, '完成回報', `${ok ? (opts.self ? '自行確認' : '確認') : '退回'}「${n.title}」完成回報 v${r.version}${why ? `，意見：${why}` : ''}`);
   setStatus(n.id, ok ? 'done' : 'doing', { force: true, system: ok ? (opts.self ? '完成回報自行確認' : '完成回報確認') : '完成回報退回' });
+  collapseUndo(mark);
   if (!opts.self) notify(`${uname(ui.me)} ${ok ? '確認' : '退回'}了「${n.title}」的完成回報 v${r.version}${ok ? '' : `，意見：${why}`}`, '完成回報');
   return true;
 }

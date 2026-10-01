@@ -90,6 +90,41 @@
     as('yu'); eq(pendingCount(), before + 1);
   });
 
+  await T('送出回報只產生一筆復原，復原後狀態與回報一併還原', async () => {
+    as('ming');
+    const st0 = node('t30121').status, n0 = undoStack.length;
+    await submitReport('t30121', good);
+    eq(undoStack.length, n0 + 1);
+    undo();
+    eq(node('t30121').status, st0); eq(db.reports.filter((x) => x.node_id === 't30121').length, 0);
+  });
+  await T('送出並直接確認只產生一筆復原', async () => {
+    const st0 = node('t30121').status, n0 = undoStack.length;
+    await submitReport('t30121', good, { selfApprove: true });
+    eq(undoStack.length, n0 + 1);
+    undo();
+    eq(node('t30121').status, st0); eq(db.reports.filter((x) => x.node_id === 't30121').length, 0);
+  });
+  await T('確認／退回回報各只產生一筆復原，復原後回到待確認', async () => {
+    as('ming'); await submitReport('t30121', good);
+    const r = pendingReport('t30121');
+    as('yu');
+    let n0 = undoStack.length;
+    decideReport(r.id, true);
+    eq(undoStack.length, n0 + 1);
+    undo();
+    eq(node('t30121').status, 'review'); eq(pendingReport('t30121').id, r.id);
+    n0 = undoStack.length;
+    decideReport(r.id, false, '重做');
+    eq(undoStack.length, n0 + 1);
+    undo();
+    eq(node('t30121').status, 'review'); eq(pendingReport('t30121').id, r.id);
+  });
+  await T('validateReport：選單欄位沒有 options 時不拋錯', () => {
+    db.reportFields.push({ id: 'rfx', node_id: 't30121', key: 'sel', label: '選單', type: 'select', required: false, order: 99 });
+    eq(validateReport('t30121', { ...good, values: { sel: 'a' } }), ['「選單」的選項不正確']);
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
