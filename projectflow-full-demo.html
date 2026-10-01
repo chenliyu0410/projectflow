@@ -248,6 +248,11 @@ table.tbl{border-collapse:collapse;width:100%;font-size:13px}
 .pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .pagehead p{margin:4px 0 0;color:var(--muted);font-size:13px}
 .stack{display:flex;flex-direction:column;gap:14px}
+.records{display:grid;gap:14px;max-width:920px}
+.records h3{margin:0}
+.rec{border-top:1px solid var(--line);padding:10px 0}
+.rec:first-of-type{border-top:none}
+.rec .body{margin-top:6px;white-space:pre-wrap;line-height:1.7}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
 /* AI 副手 */
@@ -1235,7 +1240,7 @@ function pageNode() {
   const anc = ancestors(n);
   const [s, e] = span(n);
   const pc = Math.round(prog(n));
-  const tabs = [['board', '看板'], ['timeline', '時程'], ['graph', '相依圖'], ['docs', '文件'], ['data', '資料'], ['people', '成員與權限']];
+  const tabs = [['board', '看板'], ['timeline', '時程'], ['graph', '相依圖'], ['docs', '文件'], ['data', '資料'], ['people', '成員與權限'], ['records', '紀錄']];
   const lvl = effLevel(n);
   const slip = n.type === 'project' ? slipOf(n.id) : null;
   const deep = depth(n) >= 5;
@@ -1277,10 +1282,11 @@ function pageNode() {
     docs: `<label><input type="checkbox" id="docsAllChk" ${ui.docsAll ? 'checked' : ''}>含所有子層文件</label><button class="btn sm" type="button" data-new-doc="${n.id}" ${can('create', n) ? '' : 'disabled'}>＋ 新增文件</button>`,
     data: `<button class="btn sm" type="button" data-add-link="${n.id}" ${can('edit', n) ? '' : 'disabled'}>＋ 關聯營運資料</button>`,
     people: '',
+    records: '',
   };
   html += `<div class="toolbar"><div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button class="tab" role="tab" type="button" data-tab="${k}" aria-selected="${ui.tab === k}">${l}</button>`).join('')}</div>
     <div class="tools">${mineTool}${tools[ui.tab] || ''}</div></div>`;
-  const views = { board: viewBoard, timeline: viewTimeline, graph: viewGraph, docs: viewDocs, data: viewData, people: viewPeople };
+  const views = { board: viewBoard, timeline: viewTimeline, graph: viewGraph, docs: viewDocs, data: viewData, people: viewPeople, records: viewRecords };
   html += `<div class="view" id="view">${(views[ui.tab] || viewBoard)(n)}</div>`;
   return html;
 }
@@ -1325,14 +1331,15 @@ function cardHTML(c, ctx) {
       ${c.milestone ? '<span class="tag blue">◆ 里程碑</span>' : ''}${c.ai ? '<span class="tag ai">AI 建議</span>' : ''}
       ${late ? '<span class="tag warn">延遲</span>' : ''}${effLevel(c) === 'confidential' ? lvBadge('confidential') : ''}
       ${hard.length ? `<span class="tag warn" title="${esc(hard.map((b) => b.text).join('\n'))}">🔒 等待前置</span>` : ''}
-      ${soft.length ? `<span class="tag ai" title="${esc(soft.map((b) => b.text).join('\n'))}">⚠ 軟性前置</span>` : ''}</div>
+      ${soft.length ? `<span class="tag ai" title="${esc(soft.map((b) => b.text).join('\n'))}">⚠ 軟性前置</span>` : ''}
+      ${pendingReport(c.id) ? '<span class="tag blue">待確認回報</span>' : ''}</div>
     <button class="ctitle" type="button" data-enter="${c.id}">${esc(c.title)}</button>
     ${hard.length ? `<div class="small muted">等待：${esc(hard.map((b) => b.dep && b.dep.cond ? b.dep.cond.label : (b.dep ? node(b.dep.from)?.title : b.text)).join('、'))}</div>` : ''}
     ${k.length ? `<div class="mini"><span>${k.filter((x) => DONE(x.status)).length}/${k.length} 子任務</span><span class="track"><span style="width:${pc}%"></span></span><span>${pc}%</span>
       <button class="iconbtn" type="button" data-expand="${c.id}" aria-expanded="${!!ex}">${ex ? '收合' : '展開'}</button></div>` : ''}
     ${k.length && ex ? `<div class="sublist">${k.map((x) => `<button type="button" data-enter="${x.id}"><span class="dot ${x.status}"></span>${esc(x.title)}${kids(x.id).length ? `<span class="muted small">（${kids(x.id).length}）</span>` : ''}</button>`).join('')}</div>` : ''}
     <div class="cfoot"><span class="who">${av(c.owner, 22)}${esc(uname(c.owner))}${c.collabs.length ? `<span class="small">+${c.collabs.length}</span>` : ''}</span>
-      <span>${c.milestone ? md(S(s)) : `${md(S(s))}–${md(S(e))}`}<button class="iconbtn" type="button" data-edit="${c.id}" aria-label="編輯">✎</button></span></div>
+      <span>${c.milestone ? md(S(s)) : `${md(S(s))}–${md(S(e))}`}${canReport(c) && (c.status === 'todo' || c.status === 'doing') ? `<button class="iconbtn" type="button" data-report="${c.id}" title="回報完成">✓ 回報</button>` : ''}<button class="iconbtn" type="button" data-edit="${c.id}" aria-label="編輯">✎</button></span></div>
   </article>`;
 }
 function viewBoard(n) {
@@ -1813,7 +1820,12 @@ function pageReview() {
   const done = db.overrides.filter((o) => o.status !== 'pending');
   const gates = Object.entries(db.gates).filter(([id, g]) => g.status === 'pending' && node(id) && visible(node(id)));
   const fReq = db.ops.formulas.flatMap((f) => f.versions.filter((v) => v.request === 'pending').map((v) => ({ f, v })));
-  return `<div class="pagehead"><div><h1 class="serif">審核中心</h1><p>跳過申請、階段閘門、配方定案簽核。所有決定寫入不可刪除的稽核紀錄。</p></div></div>
+  const reps = db.reports.filter((r) => r.status === 'submitted' && node(r.node_id) && visible(node(r.node_id)));
+  return `<div class="pagehead"><div><h1 class="serif">審核中心</h1><p>完成回報、跳過申請、階段閘門、配方定案簽核。所有決定寫入不可刪除的稽核紀錄。</p></div></div>
+  <div class="stack" style="margin-bottom:14px"><h2>待確認的完成回報（${reps.length}）</h2>
+  ${reps.length ? reps.map((r) => { const n = node(r.node_id); const okp = can('override', n); return `<div class="panel">${reportHTML(r, true)}
+    <div class="row" style="margin-top:8px"><button class="btn sm primary" type="button" data-rep-approve="${r.id}" ${okp ? '' : 'disabled'}>確認完成</button><button class="btn sm danger" type="button" data-rep-reject="${r.id}" ${okp ? '' : 'disabled'}>退回</button>
+    ${okp ? '' : `<span class="small muted">可確認的人：${esc(approversFor(n).map(uname).join('、'))}</span>`}</div></div>`; }).join('') : '<div class="empty">沒有待確認的完成回報。試試用「阿明（成員）」到任務的「紀錄」分頁按「回報完成」。</div>'}</div>
   <div class="stack"><h2>待審核的跳過申請（${pend.length}）</h2>
   ${pend.length ? pend.map((o) => {
     const n = node(o.node); const ok = n && can('override', n);
@@ -2689,6 +2701,101 @@ function erpSync() {
   render();
 }
 
+/* ================= 任務紀錄（F11）畫面 ================= */
+const fmtSize = (b) => (b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB');
+const attLink = (a) => `<button class="iconbtn" type="button" data-att-open="${a.id}">📎 ${esc(a.filename)}</button>`;
+const srcLink = (id) => `<button class="iconbtn" type="button" data-enter="${id}">↳ ${esc(node(id).title)}</button>`;
+function attOwner(a) { if (a.report_id) { const r = db.reports.find((x) => x.id === a.report_id); return r ? `回報 v${r.version}` : '回報'; } return a.note_id ? '筆記' : '任務'; }
+function reportHTML(r, src) {
+  const st = { submitted: '<span class="tag blue">待確認</span>', approved: '<span class="tag">已確認</span>', rejected: '<span class="tag warn">已退回</span>' }[r.status];
+  const atts = db.attachments.filter((a) => a.report_id === r.id && !a.deleted_at);
+  return `<div class="rec">
+    <div class="row" style="justify-content:space-between"><div><b>v${r.version}</b> ${st} <span class="tag gray">${RESULT[r.result]}</span>${src ? ' ' + srcLink(r.node_id) : ''}</div>
+      <span class="small muted">${esc(uname(r.submitted_by))} ${esc(r.submitted_at)}・完成日 ${ymd(r.finished_on)}</span></div>
+    <div class="body">${esc(r.summary)}</div>
+    ${r.fields.length ? `<dl class="kv" style="margin-top:6px">${r.fields.map((f) => `<dt>${esc(f.label)}</dt><dd>${f.value === null ? '—' : esc(f.value)}${f.unit ? ' ' + esc(f.unit) : ''}</dd>`).join('')}</dl>` : ''}
+    ${atts.length ? `<div class="small" style="margin-top:6px">附件：${atts.map(attLink).join('、')}</div>` : ''}
+    ${r.status !== 'submitted' ? `<div class="small muted" style="margin-top:6px">${r.status === 'approved' ? (r.self_approved ? '自行確認' : '確認') : '退回'}：${esc(uname(r.reviewed_by))} ${esc(r.reviewed_at)}${r.review_comment ? `・意見：${esc(r.review_comment)}` : ''}</div>` : ''}
+  </div>`;
+}
+function noteHTML(x, src) {
+  const atts = db.attachments.filter((a) => a.note_id === x.id && !a.deleted_at);
+  return `<div class="rec">
+    <div class="row" style="justify-content:space-between"><span class="row">${av(x.author, 22)}<b>${esc(uname(x.author))}</b><span class="small muted">${esc(x.created_at)}${x.edited_at ? `・已編輯 ${esc(x.edited_at)}` : ''}</span>${src ? srcLink(x.node_id) : ''}</span>
+      ${!src && x.author === ui.me ? `<button class="iconbtn" type="button" data-note-edit="${x.id}">修改</button>` : ''}</div>
+    <div class="body">${esc(x.body)}</div>
+    ${atts.length ? `<div class="small" style="margin-top:6px">附件：${atts.map(attLink).join('、')}</div>` : ''}
+  </div>`;
+}
+function attRows(list, src) {
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>檔名</th><th>大小</th><th>上傳者</th><th>時間</th><th>所屬</th>${src ? '<th>任務</th>' : ''}<th></th></tr></thead><tbody>
+    ${list.map((a) => `<tr><td>${attLink(a)}</td><td class="small">${fmtSize(a.size)}</td><td>${esc(uname(a.uploaded_by))}</td><td class="small">${esc(a.uploaded_at)}</td><td class="small">${attOwner(a)}</td>${src ? `<td>${srcLink(a.node_id)}</td>` : ''}
+      <td>${!src && canDeleteAttachment(a) ? `<button class="iconbtn" type="button" data-att-del="${a.id}" aria-label="刪除">✕</button>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function viewRecords(n) {
+  const leaf = n.type === 'task' && isLeaf(n);
+  const scope = leaf ? [n] : [n, ...descendants(n.id)].filter(visible);
+  const ids = new Set(scope.map((x) => x.id));
+  const src = !leaf;
+  const reps = db.reports.filter((r) => ids.has(r.node_id)).sort((a, b) => b.submitted_at.localeCompare(a.submitted_at) || b.version - a.version);
+  const notes = db.notes.filter((x) => ids.has(x.node_id)).reverse();
+  const atts = db.attachments.filter((a) => ids.has(a.node_id) && !a.deleted_at).reverse();
+  const pend = leaf ? pendingReport(n.id) : null;
+  const noStore = fileStore.ok === false ? '<div class="note warn" style="margin:8px 0">此瀏覽器無法儲存檔案（IndexedDB 無法使用），回報與筆記仍可正常使用。</div>' : '';
+  const upload = fileStore.ok !== false;
+  return `<div class="records">
+    ${src ? `<div class="note">這是上層節點，以下彙總整棵子樹（${scope.length - 1} 個子任務）的紀錄，只能檢視；要新增請進入個別任務。</div>` : ''}
+    <section class="panel"><div class="row" style="justify-content:space-between"><h3>完成回報（${reps.length}）</h3>${leaf && canReport(n) ? `<button class="btn sm primary" type="button" data-report="${n.id}">回報完成</button>` : ''}</div>
+      ${leaf && n.status === 'skipped' ? '<div class="note" style="margin-top:8px">此任務已跳過，不需要完成回報。</div>' : ''}
+      ${pend ? `<div class="note" style="margin-top:8px">v${pend.version} 等待確認：${esc(approversFor(n).map(uname).join('、'))}${can('override', n) ? `<div class="row" style="margin-top:8px"><button class="btn sm primary" type="button" data-rep-approve="${pend.id}">確認完成</button><button class="btn sm danger" type="button" data-rep-reject="${pend.id}">退回</button></div>` : ''}</div>` : ''}
+      ${reps.map((r) => reportHTML(r, src)).join('') || '<div class="empty">還沒有完成回報。</div>'}</section>
+    <section class="panel"><h3>筆記（${notes.length}）</h3>
+      ${leaf && canNote(n) ? `<form id="noteForm" data-node="${n.id}" style="margin-top:10px"><div class="field"><label for="nBody">新增筆記</label><textarea id="nBody" style="min-height:70px" placeholder="進度、討論、觀察…"></textarea></div>
+        <div class="row" style="justify-content:space-between">${upload ? '<input id="nFiles" type="file" multiple aria-label="筆記附件">' : '<span></span>'}<button class="btn sm primary" type="submit">新增筆記</button></div></form>` : ''}
+      ${notes.map((x) => noteHTML(x, src)).join('') || '<div class="empty">還沒有筆記。</div>'}</section>
+    <section class="panel"><h3>附件（${atts.length}）</h3>${noStore}
+      ${leaf && can('edit', n) && upload ? `<form id="attForm" data-node="${n.id}" class="row" style="margin:10px 0"><input id="aFiles" type="file" multiple aria-label="選擇附件"><button class="btn sm" type="submit">上傳</button><span class="small muted">每個檔案 10 MB 以內</span></form>` : ''}
+      ${atts.length ? attRows(atts, src) : '<div class="empty">還沒有附件。</div>'}</section>
+  </div>`;
+}
+function openReportDialog(nodeId) {
+  const n = node(nodeId);
+  if (!canReport(n)) return toast(pendingReport(nodeId) ? '已有待確認的完成回報' : '你無法對此任務送出完成回報', 'warn');
+  const defs = fieldDefs(nodeId);
+  const last = reportsOf(nodeId)[0];
+  const redo = last && last.status === 'rejected';
+  const input = (f) => {
+    const id = 'rv_' + f.key;
+    const old = redo ? (last.fields.find((x) => x.key === f.key) || {}).value : null;
+    if (f.type === 'select') return `<select id="${id}"><option value="">—</option>${f.options.map((o) => `<option ${old === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+    return `<input id="${id}" type="${f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}" ${f.type === 'number' ? 'step="any"' : ''} value="${old === null || old === undefined ? '' : esc(old)}">`;
+  };
+  openDlg(`<form id="reportForm" data-node="${nodeId}"><h2 class="serif">回報完成：${esc(n.title)}</h2>
+    ${redo ? `<div class="note warn" style="margin-bottom:12px">上一版 v${last.version} 被 ${esc(uname(last.reviewed_by))} 退回：${esc(last.review_comment)}</div>` : ''}
+    <div class="field"><span class="lb">結果</span><div class="chips">${Object.entries(RESULT).map(([k, l]) => `<label><input type="radio" name="rResult" value="${k}" ${(redo ? last.result : 'met') === k ? 'checked' : ''}>${l}</label>`).join('')}</div></div>
+    <div class="field"><label for="rSummary">成果說明（必填）</label><textarea id="rSummary" placeholder="做了什麼、結果如何、有沒有需要後續處理的事">${redo ? esc(last.summary) : ''}</textarea></div>
+    <div class="frow"><div class="field"><label for="rDate">實際完成日</label><input id="rDate" type="date" value="${TODAY}"></div><div></div></div>
+    ${defs.length ? `<div class="frow">${defs.map((f) => `<div class="field"><label for="rv_${f.key}">${esc(f.label)}${f.unit ? `（${esc(f.unit)}）` : ''}${f.required ? '（必填）' : ''}</label>${input(f)}</div>`).join('')}</div>` : ''}
+    <div class="field"><label for="rFiles">附件（每個檔案 10 MB 以內）</label><input id="rFiles" type="file" multiple ${fileStore.ok === false ? 'disabled' : ''}></div>
+    <div class="note">送出後任務會移到「審核中」，回報內容會鎖定；由 ${esc(approversFor(n).map(uname).join('、'))} 確認完成。</div>
+    <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button>
+      ${can('override', n) ? '<button class="btn" type="submit" value="self">送出並直接確認</button>' : ''}<button class="btn primary" type="submit" value="submit">送出回報</button></div></form>`);
+}
+function openRejectReport(reportId) {
+  const r = db.reports.find((x) => x.id === reportId); if (!r) return;
+  openDlg(`<form id="rejectForm" data-report="${reportId}"><h2 class="serif">退回完成回報</h2>
+    <p class="small muted" style="margin-top:-8px">「${esc(node(r.node_id).title)}」v${r.version}，由 ${esc(uname(r.submitted_by))} 送出</p>
+    <div class="field"><label for="rjComment">退回意見（必填）</label><textarea id="rjComment" style="min-height:80px" placeholder="例如：請補上殺菌釜溫度紀錄截圖"></textarea></div>
+    <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn warn" type="submit">退回</button></div></form>`);
+}
+function openNoteEdit(noteId) {
+  const x = db.notes.find((y) => y.id === noteId); if (!x) return;
+  openDlg(`<form id="noteEditForm" data-note="${noteId}"><h2 class="serif">修改筆記</h2>
+    <div class="field"><label for="neBody">內容</label><textarea id="neBody" style="min-height:100px">${esc(x.body)}</textarea></div>
+    <p class="small muted">修改後會標示「已編輯」，原內容保留在稽核紀錄。</p>
+    <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn primary" type="submit">儲存</button></div></form>`);
+}
+
 /* ================= 事件繫結 ================= */
 document.addEventListener('click', (e) => {
   const t = e.target.closest('button, tr.click, [data-gnode], [data-enter]'); if (!t) return;
@@ -2722,6 +2829,12 @@ document.addEventListener('click', (e) => {
   if (ds.tplsrc) { const st = ui.tplState; return openApplyTpl(st.nodeId, $('tSel') ? $('tSel').value : undefined, ds.tplsrc, ''); }
   if (ds.saveTpl) return openSaveTpl(ds.saveTpl);
   if (ds.gate) return openGate(ds.gate);
+  if (ds.report) { closeDrawer(); return openReportDialog(ds.report); }
+  if (ds.repApprove) { decideReport(ds.repApprove, true); return toast('已確認完成'); }
+  if (ds.repReject) return openRejectReport(ds.repReject);
+  if (ds.noteEdit) return openNoteEdit(ds.noteEdit);
+  if (ds.attOpen) return openAttachment(ds.attOpen);
+  if (ds.attDel) { const r = deleteAttachment(ds.attDel); return r.ok ? toast('已刪除附件', null, { label: '復原', fn: undo }) : toast(r.error, 'warn'); }
   if (ds.newDoc) return openDoc(null, ds.newDoc);
   if (ds.doc) return openDoc(ds.doc);
   if (ds.docRestore) { const [id, v] = ds.docRestore.split(':'); const d = db.docs.find((x) => x.id === id); const src = d.versions.find((x) => x.v === +v); $('dBody').value = src.body; $('dPrev').innerHTML = mdHTML(src.body); return toast(`已載入 v${v} 內容，按「儲存新版本」完成還原`); }
@@ -2856,6 +2969,38 @@ document.addEventListener('submit', (e) => {
     log(id, '新增', `新增任務「${title}」，指派給 ${uname(node(id).owner)}${chain ? `，接在「${node(chain).title}」之後` : ''}`);
     if (more) { const dur = D(en) - D(s); const names = [...(ui.qaNames || []), title]; return openQuickAdd(f.dataset.parent, S(D(en) + 1), S(D(en) + 1 + dur), { prev: id, owner, tag, added: names.length, names }); }
     return toast(`已新增「${title}」`, null, { label: '復原', fn: undo });
+  }
+  if (f.id === 'reportForm') {
+    const nid = f.dataset.node; const n = node(nid);
+    const data = {
+      result: (document.querySelector('input[name="rResult"]:checked') || {}).value,
+      summary: $('rSummary').value, finished_on: $('rDate').value,
+      values: Object.fromEntries(fieldDefs(nid).map((d) => [d.key, $('rv_' + d.key).value])),
+      files: [...($('rFiles').files || [])],
+    };
+    const self = !!e.submitter && e.submitter.value === 'self';
+    submitReport(nid, data, { selfApprove: self }).then((r) => {
+      if (r.ok) { closeDlg(); return toast(self ? '已送出並確認完成' : '已送出完成回報，等待確認'); }
+      if (r.blocked) { closeDlg(); return openBlockDialog(n, 'doing', findBlockers(n, 'doing')); }
+      toast(r.errors.join('；'), 'warn');
+    });
+    return;
+  }
+  if (f.id === 'rejectForm') { if (decideReport(f.dataset.report, false, $('rjComment').value)) { closeDlg(); toast('已退回完成回報'); } return; }
+  if (f.id === 'noteForm') {
+    const files = [...($('nFiles') && $('nFiles').files || [])];
+    if (files.some((x) => x.size > MAX_FILE)) return toast('有檔案超過 10 MB，請移除後再送出', 'warn');
+    const r = addNote(f.dataset.node, $('nBody').value);
+    if (!r.ok) return toast(r.error, 'warn');
+    if (files.length) addAttachments(f.dataset.node, files, { noteId: r.note.id }).then((x) => { if (x.errors.length) toast(x.errors.join('；'), 'warn'); });
+    return toast('已新增筆記');
+  }
+  if (f.id === 'noteEditForm') { const r = editNote(f.dataset.note, $('neBody').value); if (!r.ok) return toast(r.error, 'warn'); closeDlg(); return toast('已修改筆記'); }
+  if (f.id === 'attForm') {
+    const files = [...($('aFiles').files || [])];
+    if (!files.length) return toast('請先選擇檔案', 'warn');
+    addAttachments(f.dataset.node, files).then((x) => toast(x.errors.length ? x.errors.join('；') : `已上傳 ${x.added.length} 個附件`, x.errors.length ? 'warn' : undefined));
+    return;
   }
   if (f.id === 'blockForm') { const r = $('bReason').value.trim(); if (!r) return toast('請填寫理由', 'warn'); return submitBlock(f.dataset.id, f.dataset.to, r); }
   if (f.id === 'gateForm') return submitGate(f.dataset.id, e.submitter ? e.submitter.value : 'approve');

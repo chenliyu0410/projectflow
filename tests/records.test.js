@@ -192,6 +192,36 @@
     ok(!canDeleteAttachment(ra)); eq(deleteAttachment(ra.id).ok, false);
   });
 
+  // ── Task 5：紀錄分頁與審核中心 ──
+  await T('葉節點的紀錄分頁：回報按鈕、筆記表單、附件表單', () => {
+    as('ming'); ui.page = 'node'; ui.node = 't30121'; ui.tab = 'records'; render();
+    const m = document.getElementById('main');
+    ok(m.querySelector('[data-tab="records"][aria-selected="true"]'), '應有「紀錄」分頁');
+    ok(m.querySelector('[data-report="t30121"]'), '應有回報完成按鈕');
+    ok(m.querySelector('#noteForm') && m.querySelector('#attForm'), '應有筆記與附件表單');
+  });
+  await T('上層節點的紀錄分頁彙總子樹且唯讀', () => {
+    ui.page = 'node'; ui.node = 't301'; ui.tab = 'records'; render();
+    const m = document.getElementById('main');
+    ok(m.textContent.includes('F0 = 2.6'), '應顯示子任務 t3011 的回報');
+    ok(!m.querySelector('#noteForm') && !m.querySelector('[data-report]'), '上層節點不能新增');
+  });
+  await T('回報對話框含自訂欄位；看板卡片有回報按鈕', () => {
+    as('yu'); ui.page = 'node'; ui.node = 't3012'; ui.tab = 'board'; render();
+    ok(document.querySelector('.card [data-report="t30121"]'), '進行中的卡片應有回報按鈕');
+    openReportDialog('t3013');
+    ok(document.getElementById('rv_f0'), '應有 F0 值欄位');
+    ok(document.querySelector('#reportForm button[value="self"]'), '主管應有「送出並直接確認」');
+    closeDlg();
+  });
+  await T('審核中心列出待確認回報', async () => {
+    as('ming'); await submitReport('t30121', { result: 'met', summary: '完成', finished_on: '2026-09-30', values: {} });
+    as('yu'); ui.page = 'review'; render();
+    const m = document.getElementById('main');
+    ok(m.textContent.includes('待確認的完成回報（1）'));
+    ok(m.querySelector(`[data-rep-approve="${pendingReport('t30121').id}"]:not([disabled])`));
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
