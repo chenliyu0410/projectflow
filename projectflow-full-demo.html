@@ -2101,6 +2101,19 @@ function ctxProject() { return ui.page === 'node' && node(ui.node) ? projectOf(n
 function publicSnapshot(p) {
   return descendants(p.id).filter((x) => x.type === 'task' && visible(x)).map((x) => { const [s, e] = span(x); return `- ${x.title}｜${STLBL[x.status]}｜${md(S(s))}–${md(S(e))}｜${uname(x.owner)}`; }).join('\n');
 }
+// F11：回報與筆記給 AI 引用（排除機密節點；只含使用者看得到的節點）
+function recordsSnapshot(p) {
+  return descendants(p.id).filter((x) => visible(x) && effLevel(x) !== 'confidential').flatMap((x) => [
+    ...db.reports.filter((r) => r.node_id === x.id && r.status !== 'rejected').map((r) => `[回報 ${x.title} v${r.version}｜${RESULT[r.result]}｜${r.status === 'approved' ? '已確認' : '待確認'}] ${r.summary}${r.fields.map((f) => `；${f.label}=${f.value ?? '—'}${f.unit}`).join('')}`),
+    ...db.notes.filter((nt) => nt.node_id === x.id).map((nt) => `[筆記 ${x.title}｜${uname(nt.author)} ${nt.created_at}] ${nt.body}`),
+  ]).join('\n');
+}
+function recordHits(p, q) {
+  const grams = []; for (let i = 0; i < q.length - 1; i++) grams.push(q.slice(i, i + 2));
+  return recordsSnapshot(p).split('\n').filter(Boolean)
+    .map((l) => ({ l, sc: grams.filter((g) => l.includes(g)).length }))
+    .filter((x) => x.sc > 0).sort((a, b) => b.sc - a.sc).map((x) => x.l);
+}
 function aiRun(feature, level, prompt, answer) {
   const route = routeFor(level);
   const sent = route === 'masked' ? maskText(prompt) : { out: prompt, map: [] };
@@ -2204,7 +2217,11 @@ function aiAsk(q) {
     });
     return;
   }
-  aiRun('專案問答', 'internal', `問題：${q}\n專案：${p.title}\n可引用內容：\n${publicSnapshot(p)}\n${db.docs.filter((d) => d.level !== 'confidential' && node(d.node) && projectOf(node(d.node)).id === p.id).map((d) => `[${d.title}] ${d.versions.at(-1).body}`).join('\n')}`, () => {
+  aiRun('專案問答', 'internal', `問題：${q}\n專案：${p.title}\n可引用內容：\n${publicSnapshot(p)}\n${db.docs.filter((d) => d.level !== 'confidential' && node(d.node) && projectOf(node(d.node)).id === p.id).map((d) => `[${d.title}] ${d.versions.at(-1).body}`).join('\n')}\n${recordsSnapshot(p)}`, () => {
+    if (/回報|結果|筆記|紀錄|F0|數值/.test(q)) {
+      const hits = recordHits(p, q);
+      if (hits.length) return { text: `${hits.slice(0, 3).map((h, i) => `[${i + 1}] ${h}`).join('\n')}\n\n來源：任務完成回報與筆記（只檢索你有權限、非機密的節點）` };
+    }
     if (/上市|延|影響|殺菌|重測/.test(q)) {
       const sl = slipOf(p.id);
       return { text: `${riskText(p)}\n\n影響路徑：${[...criticalPath(p.id).nodes].map(node).filter((x) => x && isLeaf(x)).sort((a, b) => span(a)[0] - span(b)[0]).map((x) => x.title).join(' → ')}\n${sl.days ? '要追回時程，可考慮：縮短保存試驗前置（先以 v3 啟動）、或與通路協調上架日。' : ''}\n\n來源：[1] 時程與相依關係　[2] 殺菌試驗紀錄` };

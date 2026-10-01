@@ -5,7 +5,7 @@
 目前的 Demo 以**寵物罐頭產品開發**為情境，用來驗證介面與核心互動：
 
 - `projectflow-petfood-demo.html`：階段 0 的原始 Demo
-- `projectflow-full-demo.html`：依本文件 F1–F10 規格製作的完整互動 Demo（多層任務樹、時程編輯、前置條件與關鍵路徑、權限與覆寫審核、模板、AI 分級路由與遮罩、研發營運資料與模擬 ERP）。資料存在瀏覽器 localStorage，左下角可切換身分體驗權限差異，也可重置資料。
+- `projectflow-full-demo.html`：依本文件 F1–F11 規格製作的完整互動 Demo（多層任務樹、時程編輯、前置條件與關鍵路徑、權限與覆寫審核、模板、AI 分級路由與遮罩、研發營運資料與模擬 ERP、任務完成回報／筆記／附件、主管跳過任務）。資料存在瀏覽器 localStorage，左下角可切換身分體驗權限差異，也可重置資料。
 
 ---
 
@@ -25,6 +25,7 @@
    - [F8 AI 專案副手](#f8-ai-專案副手)
    - [F9 資料分級與 AI 路由](#f9-資料分級與-ai-路由)
    - [F10 研發營運資料（供應商、原料、配方、採購、工單）](#f10-研發營運資料供應商原料配方採購工單)
+   - [F11 任務紀錄與完成回報](#f11-任務紀錄與完成回報)
 5. [資料模型](#5-資料模型)
 6. [系統架構](#6-系統架構)
 7. [專案結構](#7-專案結構)
@@ -198,6 +199,7 @@ python -m http.server 8000
 - 權限設在節點上，**預設繼承上層**，可在子樹覆寫（例：「檢驗」階段只有品保主管能核准）
 - **跳過流程**：成員點「申請跳過」→ 填寫理由 → 系統通知有權限的人 → 核准 / 退回 → 結果寫入稽核紀錄
 - 有權限者自己跳過也必須填理由
+- **跳過整個任務**：任務不用做時，有覆寫權限的人（專案負責人、範圍內的階段審核人）可直接標為「已跳過」，進度算 100%、後續任務解鎖；跳過上層任務時未完成的子任務一起跳過。成員只能送出跳過申請，由主管在審核中心核准。已跳過的任務可由主管「恢復任務」，回到跳過前的狀態
 - 稽核紀錄不可刪除，可匯出
 - 帳號可先用本地帳號，之後整合公司 AD / LDAP
 
@@ -398,6 +400,21 @@ python -m http.server 8000
 
 > 取代 ERP 牽涉財務、稅務與稽核，切換前需與財會單位確認，並保留完整的歷史資料與對帳機制。
 
+### F11 任務紀錄與完成回報
+
+**需求**：每個任務都有回報完成、寫筆記、上傳檔案的地方；表單資料結構化存進資料庫，之後讓 Agent 查詢。
+
+| 項目 | 規格 |
+|---|---|
+| 位置 | 任務頁「紀錄」分頁；上層節點唯讀彙總整棵子樹；看板卡片有「✓ 回報」快捷按鈕 |
+| 完成回報 | 固定欄位：結果（達成／部分達成／未達成）、成果說明、實際完成日、附件；自訂欄位：文字／數字（含單位）／日期／選項，可設必填，模板會帶著走 |
+| 流程 | 送出 → 審核中（回報鎖定）→ 專案負責人或範圍內審核人「確認完成」或「退回」（意見必填）；重送為新版本，舊版保留；主管自己送出可「送出並直接確認」 |
+| 筆記 | 時間軸、可附檔；只有作者能修改，舊內容留在稽核紀錄；不提供刪除 |
+| 附件 | 可附在任務、回報或筆記；單檔 10 MB；軟刪除；回報的附件不能刪；存 SHA-256 |
+| Agent 查詢 | 回報的自訂欄位存「標籤＋數值＋單位」快照；AI 專案問答會引用回報與筆記（排除機密節點） |
+
+> **Demo 範圍**：中繼資料存在瀏覽器 localStorage，檔案存在 IndexedDB；正式版改為 PostgreSQL ＋ 主機／NAS 檔案儲存（階段 4）。
+
 ---
 
 ## 5. 資料模型
@@ -437,6 +454,22 @@ node_collaborators          # node_id, user_id / department_id, contact_id
 
 documents, document_versions
   id, node_id, title, storage_key, version, created_by, created_at
+
+report_field_defs           # 完成回報的自訂欄位（F11）
+  id, node_id | template_id, key, label, type, unit, options, required, order
+
+task_reports                # 完成回報，每次送出一個版本
+  id, node_id, version, result, summary, finished_on
+  fields jsonb              # [{ key, label, value, unit }] 快照
+  status                    # submitted | approved | rejected
+  submitted_by, submitted_at, reviewed_by, reviewed_at, review_comment, self_approved
+
+task_notes
+  id, node_id, body, author, created_at, edited_at
+
+attachments
+  id, node_id, report_id?, note_id?, filename, mime, size, sha256
+  storage_key, uploaded_by, uploaded_at, deleted_at
 
 activities                  # 活動與稽核紀錄（只增不刪）
   id, node_id, actor_id, action, payload, created_at
@@ -543,7 +576,7 @@ sync_logs
 projectflow/
 ├─ README.md
 ├─ projectflow-petfood-demo.html   # 階段 0 單檔 Demo
-└─ projectflow-full-demo.html      # F1–F10 完整互動 Demo（單檔）
+└─ projectflow-full-demo.html      # F1–F11 完整互動 Demo（單檔）
 ```
 
 預計（階段 1 之後）：

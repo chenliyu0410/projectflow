@@ -274,6 +274,21 @@
     eq(db.overrides[0].kind, 'dep');
   });
 
+  // ── Task 7：AI 可查詢回報與筆記 ──
+  await T('recordHits 找得到 F0 回報；機密節點不會被引用', () => {
+    const hits = recordHits(node('p1'), 'F0 測試結果');
+    ok(hits.length && hits[0].includes('2.6'), JSON.stringify(hits));
+    db.notes.push({ id: 'ntc', node_id: 't1022', body: '機密配方比例 62%', author: 'yu', created_at: nowStr(), edited_at: null });
+    ok(!recordsSnapshot(node('p1')).includes('機密配方比例'), '機密節點（t1022）的筆記不能出現');
+  });
+  await T('專案問答：問回報會回答並寫入 AI 稽核', () => {
+    ui.page = 'node'; ui.node = 'p1';
+    const n0 = audit.ai.length;
+    aiAsk('第 1 次 F0 測試的回報結果是多少');
+    eq(audit.ai.length, n0 + 1);
+    ok(ui.chat.at(-1).text.includes('2.6'), ui.chat.at(-1).text);
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
