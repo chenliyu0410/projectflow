@@ -46,7 +46,7 @@
 - 改到 `db` 的動作，一律包在既有的 `commit(label, fn)` 裡，並呼叫 `log(nodeId, action, text)` 寫稽核紀錄。
 - 權限一律用既有的 `can(action, node)` 判斷。W2 之後，任務的操作權限以 plan 指定的 `canWork` 為準。
 - 輸出到 HTML 的使用者文字，一律先經過 `esc()`。
-- localStorage key 固定是 `projectflow-demo-v2`。資料結構有變動時，要升 `db.v`，並讓 `upgrade()` 能自動遷移舊版資料。目前是 v3。
+- localStorage key 固定是 `projectflow-demo-v2`。資料結構有變動時，要升 `db.v`，並讓 `upgrade()` 能自動遷移舊版資料。目前的版本看 PROGRESS「▶ 現在」。
 
 **測試**
 - 開發一律用 TDD：先寫一個會失敗的測試，記下 RED 的 `#sum` 原文，再實作到 GREEN。沒有實際跑出結果，就不能說測試通過。
@@ -55,21 +55,23 @@
 - 用明確路徑 `git add <file>`，不要用 `-A` 或 `.`。
 - 主旨照 plan 寫。trailer 寫你**實際**用的工具和模型：plan 裡寫死的 `Co-Authored-By: Claude …` 只是範例，不是 Claude 就換掉（WORKFLOW §6）。
 - 直接在主 checkout 開分支：`git checkout -b feature/<wid>-<slug>`，**不用 worktree**（PROGRESS D2；測試伺服器只服務主 checkout）。plan 或 skill 要求用 worktree 時，以這條為準。
-- feature 分支存在期間，`main` 凍結。合併只用 `git merge --ff-only`，不要 `git pull`。
+- 有 `feature/*` 分支存在期間，`main` 凍結，所有 commit 都放在該分支上（例外見 WORKFLOW §6）。同一時間只能有一個 `feature/*` 分支。合併只用 `git merge --ff-only`，不要 `git pull`。
 - **不要 push**，也不要 force、hard reset、`checkout --`、`stash drop` 這類破壞性操作。
 
 正式產品軌（React、FastAPI 等）的規則，要在 PROGRESS P0 改寫後才適用。
 
 ## 4. 跑測試（細節見 WORKFLOW §5）
 
-1. 確認 8000 埠上的伺服器是這個 repo：執行 `curl -s http://127.0.0.1:8000/AGENTS.md`，第一行應該是本文件的標題。是的話就直接沿用。
-2. 沒有伺服器就自己在背景啟動，並記下 PID：
+1. 確認 8000 埠上的伺服器是這個 repo：執行 `curl.exe -s http://127.0.0.1:8000/AGENTS.md`，第一行應該以 `# AGENTS.md` 開頭。是的話就直接沿用。
+   - 在 PowerShell 裡一定要寫 `curl.exe`。單寫 `curl` 是 Invoke-WebRequest 的別名，會報錯。
+2. 沒有伺服器就自己在背景啟動，並記下 PID。Bash 的寫法如下，PowerShell 的寫法見 WORKFLOW §5 第 1 點：
    ```bash
    python -m http.server 8000 --bind 127.0.0.1 >/dev/null 2>&1 & echo $!
    ```
-3. 打開 `http://localhost:8000/tests/records.html?t=<時間戳>`，等 `#sum` 從「執行中」變成 `全部通過 N/N`。目前的基準見 PROGRESS。
+3. 打開 `http://127.0.0.1:8000/tests/records.html?t=<時間戳>`，等 `#sum` 從「執行中」變成 `全部通過 N/N`。目前的基準見 PROGRESS。
+   - 自動化測試用 127.0.0.1。測試頁會清掉這個 origin 的 Demo 資料，這樣不會清到人類平常用 `localhost` 試用的資料。
 4. 沒有瀏覽器工具的 AI，用 WORKFLOW §11 的 headless 腳本跑。
-5. 收工時只關掉你自己啟動的伺服器。
+5. 收工時只關掉你自己啟動的伺服器，而且要用啟動它的那個 shell 關。
 
 ## 5. 什麼時候要停下來問人類（完整清單見 WORKFLOW §8）
 

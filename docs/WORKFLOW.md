@@ -29,7 +29,7 @@
 4. **一次只做一件事。**
    - 同一時間最多一個 `feature/*` 分支（暫停或取消的分支會改名為 `paused/*` 或 `cancelled/*`，不算在內，見 §2「變更與暫停」）。
    - 同一個 checkout 只能有一個會寫入的 AI（唯讀的檢查和審查不算）。
-   - 同一時間只能有一個 agent 使用瀏覽器或測試頁，因為大家共用 `localhost:8000` 的 storage。
+   - 同一時間只能有一個 agent 使用瀏覽器或測試頁，因為大家共用 `127.0.0.1:8000` 的 storage 和 Browser pane。
 
 ---
 
@@ -234,12 +234,15 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 
 1. **伺服器**
    - **確認 8000 埠**：PowerShell 執行 `Get-NetTCPConnection -LocalPort 8000 -State Listen`。出現 `ObjectNotFound` 錯誤代表沒有伺服器。也可以用 `netstat -ano | findstr :8000`。
-   - **確認是這個 repo**：`curl -s http://127.0.0.1:8000/AGENTS.md`，第一行應該是 `# AGENTS.md：接手 AI 的入口`。是的話就沿用，不是的話不要動它，改用其他埠（例如 8001），後面的網址跟著換。
+   - **確認是這個 repo**：執行 `curl.exe -s http://127.0.0.1:8000/AGENTS.md`，看第一行是否以 ASCII 的 `# AGENTS.md` 開頭。
+     - 在 PowerShell 裡一定要寫 `curl.exe`。單寫 `curl` 會變成 Invoke-WebRequest 的別名而報錯；用 Invoke-WebRequest 讀中文也會變亂碼。
+     - 符合就沿用。不符合就不要動那個伺服器，改用其他埠（例如 8001），後面所有網址都要跟著換。
    - **自己啟動**：要在背景執行，並記下 PID。
      - Bash：`python -m http.server 8000 --bind 127.0.0.1 >/dev/null 2>&1 & echo $!`
      - PowerShell：`$p = Start-Process python -ArgumentList '-m','http.server','8000','--bind','127.0.0.1' -WindowStyle Hidden -PassThru; $p.Id`
-     - Claude 可以用 `preview_start`（name `demo`），結束時用 `preview_stop`。注意 `launch.json` 沒有 `--bind`。
-2. **開測試頁**：`http://localhost:8000/tests/records.html?t=<時間戳>`。輪詢 `#sum`，直到它不再以「執行中」開頭，通常要 3–10 秒。超過 60 秒仍停在「執行中」，就當作失敗。
+     - Claude 可以用 `preview_start`（name `demo`），結束時用 `preview_stop`。注意 `launch.json` 沒有加 `--bind`。
+2. **開測試頁**：`http://127.0.0.1:8000/tests/records.html?t=<時間戳>`。輪詢 `#sum`，直到它不再以「執行中」開頭，通常要 3–10 秒。超過 60 秒仍停在「執行中」，就當作失敗。
+   - 自動化測試一律用 `127.0.0.1`。人類平常試用 Demo 用的是 `localhost`，兩者是不同的 origin，測試頁清資料時不會清到人類的資料。
 3. **讀結果**：讀 `document.getElementById('sum').textContent`。失敗明細在 `#out`，也可以讀 `window.__results`（陣列，元素是 `{name, ok, err}`）。
 4. **通過標準**：`全部通過 N/N`。把 N 記進 PROGRESS。和 plan 預期不同時，以實際數字為準，並寫明原因。
 5. **快取陷阱**
@@ -248,22 +251,32 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
    - **新測試的名稱沒有出現，或 `#sum` 是 `失敗 1/1`（「載入測試」）**：這是測試檔有語法錯誤或插入位置不對，不是快取問題。
 6. **注意**：測試頁會清掉這個 origin 的 Demo localStorage 和 IndexedDB。每個 `T(name, fn)` 開始前都會先執行 `resetAll()`，再切到 `yu`。可用的輔助函式有 `T`、`eq`、`ok`、`as` 和常數 `good`，定義在 `tests/records.test.js` 開頭。
 7. **手動 UI 測試**
-   - 打開 `http://localhost:8000/projectflow-full-demo.html`，左下角可以切換身分。資料版本有變動時，先按「重置 Demo 資料」。
+   - 打開 `http://127.0.0.1:8000/projectflow-full-demo.html`，左下角可以切換身分。資料版本有變動時，先按「重置 Demo 資料」。
    - 窄螢幕要用 375px 檢查。`.main` 設了 `overflow:hidden`，所以要用這段可以直接執行的檢查式：
      ```js
      (() => { const m = document.querySelector('main'); const c = [...document.querySelectorAll('.rcard')]; return m.scrollWidth <= m.clientWidth && c.every((e) => e.getBoundingClientRect().right <= innerWidth) && document.documentElement.scrollWidth <= innerWidth; })()
      ```
    - 測完把 viewport 設回桌面。
 8. **收尾**
-   - 只關掉你自己啟動的伺服器：照你記下的 PID 執行 `Stop-Process -Id <PID>` 或 `kill <PID>`；用 preview_start 啟動的就用 `preview_stop`。
+   - 只關掉你自己啟動的伺服器，而且要在**同一個 shell** 裡關。
+     - Bash：`kill <$! 的值>`。Git Bash 的 `$!` 是 MSYS 的 PID，不是 Windows 的 PID；要用 PowerShell 關的話，先用 `cat /proc/<pid>/winpid` 換算。
+     - PowerShell：`Stop-Process -Id $p.Id`。
+     - 用 preview_start 啟動的，就用 `preview_stop` 關。
    - **不要用「殺掉占用 8000 埠的程序」這種方式**，那可能是人類或前一個 session 的伺服器。
-9. **請人類幫忙跑測試時**：先提醒人類，測試頁會清掉該網址的 Demo 資料和附件。想保留資料的話，用無痕視窗，或用 `http://127.0.0.1:8000/…`（和 `localhost` 是不同的 origin）。
+9. **請人類幫忙跑測試時**
+   - 先提醒人類：測試頁會清掉該 origin 的 Demo 資料和附件。請用 `http://127.0.0.1:8000/…` 或無痕視窗開，不要用平常試用 Demo 的那個 `localhost`。
+   - 要分三次請人類跑，每次貼回 `#sum` 原文和失敗的測試名稱：
+     1. 開工前的基準
+     2. 加好測試、還沒實作時的 RED
+     3. 實作後的 GREEN
+   - 拿到基準之前，不要 commit `Progress: start`。拿到 GREEN 之前，不要 commit `Progress: <WID> task N done`。人類不在時，依 §8 停下來。
 10. **沒有瀏覽器工具的 AI**：做法見 §11。**不可以沒有證據就說測試通過。**
 11. **開工時基準不符**：照順序檢查。
     1. 伺服器是不是這個 repo（第 1 點）。
     2. 處理快取（第 5 點），並核對 `#out` 的測試數和名稱。
     3. 執行 `git status`，以及 `git log --oneline <最新程式 commit>..HEAD -- projectflow-full-demo.html tests`，找出沒有記錄的變更。
-    4. 仍然不符，就是真的回歸。這時：
+       - 如果找到的變更能解釋差異，例如中斷復原時 Task 已經 commit，新增的測試數也吻合，而且全部通過，就不算回歸，照實更新看板即可。
+    4. 仍然無法解釋，就是真的回歸。這時：
        - 不要開新的 Task，也不要改測試去遷就結果。
        - 在 §5 加 `BASE-<日期>-m1`，附上失敗測試名稱和 `#out` 原文。
        - 在 §6 新增一個 D，「▶ 現在」標 ⛔。
@@ -274,14 +287,16 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 
 - **分支**
   - 名稱用 `feature/<wid>-<slug>`，例如 `feature/w1-subtask-report-card`。
-  - **沒有任何 feature 分支存在時**，文件類 commit（Spec、Plan、Progress、Docs）可以直接放在 `main`。
-  - **feature 分支存在期間，`main` 凍結**：所有 commit 都放在該分支，包括 Progress、`Plan: fix`、D 的結論、新增工作項目。唯一的例外是 G3 的 `Progress: start <WID>`。
+  - **沒有任何 `feature/*` 分支存在時**，文件類 commit（Spec、Plan、Progress、Docs）可以直接放在 `main`。G3 的 `Progress: start <WID>` 是在開分支之前 commit 的，所以也屬於這一類。
+  - **有 `feature/*` 分支存在期間，`main` 凍結**：所有 commit 都放在該分支，包括 Progress、`Plan: fix`、D 的結論、新增工作項目。
+    - 例外一：G5 ff 合併之後、刪除分支之前，在 main 上做的 G6 `Progress: <WID> done`。
+    - 例外二：經人類同意的 `Progress: pause|cancel <WID>`（分支已改名，見 §2「變更與暫停」）。
   - 發現 `main` 有新 commit（例如人類加的），就停下來問人類，不要自己 rebase。
 - **commit 訊息**：英文主旨，不用 conventional-commit 前綴。
   - 規格和計畫：`Spec: <主題>`、`Spec: revise <主題>`、`Plan: <主題>`、`Plan: fix <主題> …`
   - Task：用 plan 指定的主旨。plan 沒寫的話，用 `<前綴> task N: <摘要>`
   - 修正：`<前綴> task N fix: <修了什麼>`；整體修正：`<前綴> final review fixes: <摘要>`
-  - 進度：`Progress: start <WID>`、`Progress: <WID> task N done`、`Progress: <WID> done`、`Progress: record Dn`、`Progress: reconcile <摘要>`
+  - 進度：`Progress: start <WID>`、`Progress: <WID> task N done`、`Progress: <WID> blocked`、`Progress: <WID> final review`、`Progress: <WID> awaiting merge`、`Progress: <WID> done`、`Progress: record Dn`、`Progress: reconcile <摘要>`、`Progress: release claim`、`Progress: pause <WID>`、`Progress: cancel <WID>`
   - 其他文件：`Docs: <摘要>`
 - **trailer**：寫你**實際**使用的工具和模型。
   - Claude Code 照 session 的 attribution 提示寫，例如 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。
@@ -300,6 +315,7 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 | `.superpowers/prototype/` | 畫面原型（W1 回報卡） |
 
 - superpowers SDD 開始時會讀 ledger，**標成 complete 的 Task 會被跳過**。所以開始新 plan 之前，一定要先把屬於別的 plan 的 `sdd/` 歸檔。
+- SDD skill 本身不會寫 `Plan:` 這一行。手動跑 SDD 時，開始前要先建立 `progress.md`，第一行寫 `Plan: <plan 路徑>`，這樣 `/pf-next` 才認得出它屬於哪份 plan。
 - ledger 只是單次執行的復原依據。正式進度看 `docs/PROGRESS.md`，兩邊都要更新。
 - **其他 AI 不要建立 `.superpowers/sdd/`**。RED/GREEN 證據和審查結論寫進 PROGRESS 的 Task 列和交接紀錄。
 - 暫存可能被 `git clean -fdx` 清掉，換一台機器也不會跟過去。重要的結論都要寫進 PROGRESS。
@@ -311,7 +327,7 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 遇到下列情況，先在 PROGRESS §6 記下問題（給一個新的 D 編號），「▶ 現在」標 ⛔，commit 之後再問。分支存在時，commit 放在該分支上。
 
 1. spec、plan 和現有程式碼衝突，或 plan 的指示無法照做。PROGRESS「執行注意」已經裁決過的不算。
-2. plan-mandated 問題（處理方式見 §4.1）：Critical 立即停；Important 要在整體審查前有結論。
+2. plan-mandated 問題（處理方式見 §4.1）：Critical 立即停；Important 要在改成 🟢 之前有結論。
 3. 任何 spec 沒有寫明的產品決策，包括行為、文字、資料模型。
 4. 要修改允許清單以外的產品或測試檔案、改資料版本、引入外部依賴。
 5. 要寫新的 spec（G1 本來就要和人類一起做）。
@@ -321,8 +337,10 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
    - 如果可以判斷，就直接修正看板，commit `Progress: reconcile <摘要>`，並寫進交接紀錄。
 
 **人類暫時不在時**，依 PROGRESS §2 排程規則處理：
-- 目前的工作項目已經有分支：只能做不產生 commit 的準備工作，或寫好交接紀錄後結束 session。
+- 已經有 `feature/*` 分支：只能做不產生 commit 的準備工作，或寫好交接紀錄後結束 session。
 - 還沒有分支：可以改做下一個不需要人類決定的項目。
+
+**人類回答了 D 之後**，依 PROGRESS §6 前言記錄。被這個 D 擋住的 ⛔ 要移除，然後從原本的步驟接著做（§12）。
 
 **不可以猜。**
 
@@ -337,8 +355,9 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
   - 「認領中」以**分支上的** PROGRESS 為準。`main` 上的認領要到合併時才會更新。
 - [ ] 檢查「認領中」：
   - 空白，或是你自己 → 可以繼續。
-  - 是別人，而且 4 小時內分支有新的 commit → 先問人類。
-  - 認領超過 4 小時，分支在這段時間也沒有新 commit → 視為中斷。在交接紀錄寫「接管 <原認領>」，然後依 §12 處理。
+  - 是別人，而且認領時間在 4 小時內，或分支在 4 小時內有新 commit → 還沒過期，先問人類。
+  - 其他情況 → 視為中斷。在交接紀錄寫「接管 <原認領>」，然後依 §12 處理。
+  - 人類確認原本的 session 已經停了 → 視同過期。認領改成你自己，交接紀錄寫「接管 <原認領>（人類 <日期> 確認）」，然後 commit `Progress: reconcile take over claim`。
 - [ ] 填寫認領，和下一個 Progress commit 一起提交。
 - [ ] 跑一次測試，確認結果和「▶ 現在」的測試基準一致。不一致就照 §5 第 11 點處理。
 - [ ] 讀這次要做的 plan Task 段落，以及「執行注意」。
@@ -356,10 +375,10 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 | 用途 | 做法 |
 |---|---|
 | 看現況 | `/pf-status`：唯讀檢查，核對 PROGRESS、git 和測試，並給出下一步 |
-| 推進工作 | `/pf-next` 依看板推進一步：下一個 Task（實作 → 兩位審查者 → 最多兩輪修正 → 記錄），或整體審查，或依 D2 在本地 ff 合併。`/pf-next all` 會連續做到工作項目完成或遇到阻塞。`/pf-next dry` 只預覽，不做任何變更 |
+| 推進工作 | `/pf-next` 依看板推進一步，可能是下列其中一種：<br>- 下一個 Task：實作 → 兩位審查者 → 實測「待驗證」項目 → 最多兩輪修正 → 記錄<br>- 整體審查<br>- 依 D2 在本地 ff 合併<br>`/pf-next all` 會連續做到工作項目完成或遇到阻塞。<br>`/pf-next dry` 只預覽，不改 repo，但在正確的分支上會跑一次測試頁（用 127.0.0.1） |
 | 寫規格 | `superpowers:brainstorming`，要和人類一起做。📋 以上的項目**不要**再跑 |
 | 寫計畫 | `superpowers:writing-plans`。📋 以上的項目**不要**再跑 |
-| 手動執行 plan | `superpowers:subagent-driven-development`：先依 §7 歸檔；不開 worktree（D2）；每個 Task 照 §3 第 9 步 commit PROGRESS。plan 開頭的「REQUIRED SUB-SKILL」優先改用 `/pf-next` |
+| 手動執行 plan | `superpowers:subagent-driven-development`：<br>- 先依 §7 歸檔，並建立第一行是 `Plan:` 的 ledger<br>- 不開 worktree（D2）<br>- 每個 Task 都照 §3 第 9 步 commit PROGRESS<br>- plan 開頭的「REQUIRED SUB-SKILL」優先改用 `/pf-next` |
 | 合併 | 照 G5 的步驟做，不要用 finishing-a-development-branch 的合併選項 |
 | 除錯 | `superpowers:systematic-debugging` |
 | 瀏覽器 | 內建的 Claude_Browser 工具。8000 埠已經被這個 repo 的伺服器占用時（§5 第 1 點），直接 `navigate` 過去 |
@@ -388,7 +407,8 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
   import { chromium } from 'playwright';
   const b = await chromium.launch({ channel: 'chrome' }); // 或 'msedge'，不必另外下載瀏覽器
   const p = await (await b.newContext()).newPage();
-  const errs = []; p.on('console', (m) => m.type() === 'error' && errs.push(m.text())); p.on('pageerror', (e) => errs.push(String(e)));
+  const noise = /fonts\.(googleapis|gstatic)|ERR_FAILED/; // 擋字型產生的預期雜訊，不算 Demo 的錯誤
+  const errs = []; p.on('console', (m) => m.type() === 'error' && !noise.test(m.text()) && errs.push(m.text())); p.on('pageerror', (e) => errs.push(String(e)));
   await p.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort()); // 無網路時避免卡住
   await p.goto(`http://127.0.0.1:8000/tests/records.html?t=${Date.now()}`);
   try { await p.waitForFunction(() => !document.getElementById('sum').textContent.startsWith('執行中'), null, { timeout: 60000 }); } catch { console.log('TIMEOUT = 失敗'); }
@@ -408,7 +428,7 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
   | `read_console_messages` onlyErrors | 用 `page.on('console')` 篩出 error，再加上 `page.on('pageerror')` |
   | 截圖 | `page.screenshot({ path })` |
 
-- 裝不了套件，或連不到 localhost 時：在交接紀錄標「未實測」，請人類執行（先提醒 §5 第 9 點）。
+- 裝不了套件，或連不到 127.0.0.1 時（例如在沙箱裡）：照 §5 第 9 點，分三次請人類跑。拿到證據之前不要 commit Progress。腳本只能寫到暫存目錄時，就放在系統 temp，不要放進 repo。
 
 ---
 
@@ -417,10 +437,11 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 | 現象 | 判斷 | 處理 |
 |---|---|---|
 | working tree 有沒 commit 的產品或測試改動 | 實作途中中斷 | **不要丟棄，也不要直接 commit。** 先看 `git diff --stat`。如果改動屬於「▶ 現在」的 Task，而且都在允許清單內，就接著做：<br>1. 補 RED 證據：`git stash push -m "<WID> T<N> impl" -- projectflow-full-demo.html`，把實作收起來，跑測試記下 RED，再 `git stash pop` 還原。<br>2. 跑到 GREEN，從 §3 第 5 步接著做。<br>無法判斷時列給人類看 |
-| `git log <merge-base>..HEAD` 已經有該 Task 的 commit（主旨和 plan 一樣），但看板還沒打 ✅ | 中斷在審查或記錄階段 | **不要重新實作。** BASE 取 `git rev-parse <該 Task 第一個 commit>^`，從 §3 第 8 步審查接著做 |
-| Task 是 ⛔，§6 的 D 已經有結論 | 先前修正輪用完，或等人類 | 依結論從 §3 第 8 步接著做（可以再開修正輪）。不要重新實作 |
-| main 的看板是 🔨，但分支不存在 | 中斷在 G3 的第 2 步和第 3 步之間 | 如果 main 的 HEAD 是 `Progress: start <WID>`，從 HEAD 執行 `git checkout -b <分支>` 接著做 |
-| 看板是 🟢，指向的分支不存在，但它的 commit 已經在 main 上 | 中斷在 G5 和 G6 之間 | 直接在 main 上做 G6 收尾 |
+| `git log <merge-base>..HEAD` 已經有該 Task 的 commit（主旨和 plan 一樣），但看板還沒打 ✅ | 中斷在審查或記錄階段 | **不要重新實作。** BASE 取 `git rev-parse <該 Task 第一個 commit>^`，從 §3 第 8 步審查接著做。<br>RED 證據先去 `.superpowers/sdd/task-N-report.md` 或交接紀錄找原文。找不到就在 Task 列註明「RED 證據遺失（中斷復原）」，並在交接紀錄提醒人類 |
+| Task 是 ⛔，§6 的 D 已經有結論 | 先前修正輪用完，或之前在等人類 | 先照 PROGRESS §6 前言移除 ⛔，再依結論接著做：已經有該 Task 的 commit，就從 §3 第 8 步開始（可以再開修正輪）；還沒有 commit，就從第 1 步開始 |
+| main 的看板是 🔨，但分支不存在 | 中斷在 G3 的第 2 步和第 3 步之間 | 先依 §9 檢查認領。如果 main 的 HEAD 是 `Progress: start <WID>`，從 HEAD 執行 `git checkout -b <分支>` 接著做 |
+| 看板是 🟢（包括「等待人類合併」），而分支的 commit 已經在 main 上（`git merge-base --is-ancestor <分支或最新程式 commit> main` 成立） | 中斷在 G5 和 G6 之間，或人類已經自己合併 | 在 main 上做 G6 收尾。如果分支還在，G6 commit 之後再 `git branch -d` |
+| 看板已經是 ✅，但已合併的 `feature/*` 分支還在 | 中斷在 G6 commit 之後、刪分支之前 | `git branch -d <分支>`。這個分支不算「進行中的分支」 |
 | 有 `.superpowers/` 以外的 untracked 檔案 | 前一個 session 沒有 commit | 列給人類看，不要自己 add 或刪除 |
 | 「認領中」殘留 | 前一個 session 沒收尾 | 依 §9 判斷是否過期 |
 
