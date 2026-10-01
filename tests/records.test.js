@@ -404,6 +404,24 @@
     const c = card('t30121');
     ok(!c.querySelector('.rcard b') && c.textContent.includes('<b>粗體</b>'), '摘要不能變成 HTML');
   });
+  await T('回報卡：窄螢幕時動作欄換到內容下方，寬螢幕維持同一列', async () => {
+    as('ming'); await submitReport('t30121', good);
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;left:0;top:0;visibility:hidden';
+    document.body.appendChild(box);
+    try {
+      for (const u of ['ming', 'yu']) {
+        as(u);
+        for (const [w, wrap] of [[343, true], [800, false]]) {
+          box.style.width = w + 'px';
+          box.innerHTML = reportCardHTML(node('t30121'));
+          const m = box.querySelector('.rc-main').getBoundingClientRect();
+          const a = box.querySelector('.rc-acts').getBoundingClientRect();
+          ok((a.top >= m.bottom - 1) === wrap, `${u} ${w}px：動作欄${wrap ? '應換到內容下方' : '應和內容同一列'}（內容寬 ${Math.round(m.width)}px）`);
+        }
+      }
+    } finally { box.remove(); }
+  });
 
   // ── 新測試加在這一行上面 ──
   return results;
