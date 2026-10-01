@@ -423,6 +423,49 @@
     } finally { box.remove(); }
   });
 
+  // ── 子任務置頂回報卡：任務頁整合 ──
+  const page = (id) => { ui.page = 'node'; ui.node = id; render(); return document.getElementById('main'); };
+  await T('葉任務頁：回報卡在分頁列上方，紀錄是第一個分頁', () => {
+    as('ming'); ui.tab = 'board'; const m = page('t30121');
+    const c = m.querySelector('.rcard'), bar = m.querySelector('.toolbar');
+    ok(c && bar, '應有回報卡與分頁列');
+    ok(c.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING, '回報卡在分頁列之前');
+    eq(m.querySelector('.tabs .tab').dataset.tab, 'records');
+    ok(m.querySelector('.rcard'), '切到其他分頁仍顯示回報卡');
+  });
+  await T('葉任務頁：新增子任務改成分頁列右側的次要按鈕', () => {
+    as('yu'); ui.tab = 'board'; const m = page('t30121');
+    ok(!m.querySelector('.head-actions [data-add-child]'), '標題區不再有新增子任務');
+    const b = m.querySelector('.tools [data-add-child="t30121"]');
+    ok(b && !b.classList.contains('primary') && b.classList.contains('sm'), '分頁列右側次要按鈕');
+  });
+  await T('非葉節點的任務頁不變', () => {
+    as('yu'); ui.tab = 'board'; const m = page('t3012');
+    ok(!m.querySelector('.rcard'), '上層任務沒有回報卡');
+    ok(m.querySelector('.head-actions .btn.primary[data-add-child="t3012"]'), '標題區仍有主要按鈕');
+    eq(m.querySelector('.tabs .tab').dataset.tab, 'board');
+  });
+  await T('葉任務的紀錄分頁只列回報歷史；確認按鈕只在回報卡', async () => {
+    as('ming'); await submitReport('t30121', good);
+    as('yu'); ui.tab = 'records'; const m = page('t30121');
+    ok(m.querySelector('.records').textContent.includes('回報歷史（1）'));
+    eq(m.querySelectorAll('[data-rep-approve]').length, 1, '確認按鈕只出現一次');
+    ok(m.querySelector('.rcard [data-rep-approve]'), '確認按鈕在回報卡');
+    ok(!m.querySelector('.records [data-report]'), '紀錄分頁不再有回報完成按鈕');
+  });
+  await T('已跳過的葉任務：提示與恢復按鈕只在回報卡', () => {
+    as('yu'); skipTask('t30121', '改由外包處理'); ui.tab = 'records'; const m = page('t30121');
+    eq(m.querySelectorAll('[data-restore="t30121"]').length, 1, '恢復按鈕只出現一次');
+    ok(m.querySelector('.rcard [data-restore]'));
+    ok(!m.querySelector('.head').textContent.includes('已跳過・'), '標題區不重複顯示跳過提示');
+  });
+  await T('enter()：進入葉任務預設紀錄分頁；回到上層從紀錄改回看板', () => {
+    as('yu'); ui.tab = 'timeline';
+    enter('t30121'); eq(ui.tab, 'records');
+    enter('t3012'); eq(ui.tab, 'board');
+    ui.tab = 'timeline'; enter('t301'); eq(ui.tab, 'timeline', '非紀錄分頁維持不變');
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()

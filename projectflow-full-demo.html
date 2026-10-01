@@ -1268,7 +1268,12 @@ const money = (v) => 'NT$' + Number(v).toLocaleString('en-US', { maximumFraction
 function openDlg(html, cls = '') { const d = $('dlg'); d.className = cls; d.innerHTML = html; if (!d.open) d.showModal(); return d; }
 function closeDlg() { const d = $('dlg'); if (d.open) d.close(); }
 function go(page, extra = {}) { Object.assign(ui, { page }, extra); $('app').classList.remove('side-open'); render(); $('main').scrollTop = 0; }
-function enter(id) { const n = node(id); if (!n) return; if (!can('view', n)) return toast('你沒有檢視此節點的權限', 'warn'); ui.page = 'node'; ui.node = id; ui.gsel = null; ui.connect = null; $('app').classList.remove('side-open'); render(); }
+function enter(id) {
+  const n = node(id); if (!n) return; if (!can('view', n)) return toast('你沒有檢視此節點的權限', 'warn');
+  // 子任務預設打開「紀錄」；回到上層時從「紀錄」改回「看板」
+  if (n.type === 'task' && isLeaf(n)) ui.tab = 'records'; else if (ui.tab === 'records') ui.tab = 'board';
+  ui.page = 'node'; ui.node = id; ui.gsel = null; ui.connect = null; $('app').classList.remove('side-open'); render();
+}
 
 /* ================= 主渲染 ================= */
 function render() { renderNav(); renderProjects(); renderMe(); renderMain(); renderAIHead(); renderChat(); }
@@ -1335,7 +1340,9 @@ function pageNode() {
   const anc = ancestors(n);
   const [s, e] = span(n);
   const pc = Math.round(prog(n));
+  const leafTask = n.type === 'task' && isLeaf(n);
   const tabs = [['board', '看板'], ['timeline', '時程'], ['graph', '相依圖'], ['docs', '文件'], ['data', '資料'], ['people', '成員與權限'], ['records', '紀錄']];
+  if (leafTask) tabs.unshift(tabs.pop()); // 子任務把「紀錄」放第一個
   const lvl = effLevel(n);
   const slip = n.type === 'project' ? slipOf(n.id) : null;
   const deep = depth(n) >= 5;
@@ -1352,16 +1359,17 @@ function pageNode() {
         ${deep ? '<span class="tag ai" title="README F1：超過 5 層時建議拆成獨立專案">層數較深，可考慮拆成獨立專案</span>' : ''}
       </div>
       ${n.note ? `<div class="note" style="margin-top:8px">${esc(n.note)}</div>` : ''}
-      ${n.status === 'skipped' ? `<div class="note" style="margin-top:8px">⤳ 已跳過・${esc(skipInfo(n)).replace(/\n/g, '　')}</div>` : ''}
+      ${n.status === 'skipped' && !leafTask ? `<div class="note" style="margin-top:8px">⤳ 已跳過・${esc(skipInfo(n)).replace(/\n/g, '　')}</div>` : ''}
     </div>
     <div class="head-actions">
       <div class="members">${[...new Set([n.owner, ...n.collabs])].filter(Boolean).map((u) => `<span class="avatar" title="${esc(uname(u))}">${esc(USERS[u] ? USERS[u].short : u)}</span>`).join('')}</div>
-      ${n.status === 'skipped' && can('override', n) ? `<button class="btn" type="button" data-restore="${n.id}">恢復任務</button>` : ''}
+      ${n.status === 'skipped' && can('override', n) && !leafTask ? `<button class="btn" type="button" data-restore="${n.id}">恢復任務</button>` : ''}
       ${n.type !== 'project' ? `<button class="btn" type="button" data-edit="${n.id}">編輯</button>` : ''}
       <button class="btn" type="button" data-save-tpl="${n.id}" ${isLeaf(n) || !can('create', n) ? 'disabled' : ''}>另存為模板</button>
       <button class="btn" type="button" data-apply-tpl="${n.id}" ${can('create', n) ? '' : 'disabled'}>套用模板</button>
-      <button class="btn primary" type="button" data-add-child="${n.id}" ${can('create', n) ? '' : 'disabled'}>＋ 新增子任務</button>
+      ${leafTask ? '' : `<button class="btn primary" type="button" data-add-child="${n.id}" ${can('create', n) ? '' : 'disabled'}>＋ 新增子任務</button>`}
     </div></header>`;
+  if (leafTask) html += reportCardHTML(n);
   if (n.type === 'project' && kids(n.id).some((k) => k.type === 'phase')) html += phasesStrip(n);
   if (n.type === 'phase' && db.gates[n.id]) html += gateInline(n);
   if (ui.scaleNode !== n.id) { ui.scale = autoScale(n); ui.scaleNode = n.id; }
@@ -1382,7 +1390,7 @@ function pageNode() {
     records: '',
   };
   html += `<div class="toolbar"><div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button class="tab" role="tab" type="button" data-tab="${k}" aria-selected="${ui.tab === k}">${l}</button>`).join('')}</div>
-    <div class="tools">${mineTool}${tools[ui.tab] || ''}</div></div>`;
+    <div class="tools">${leafTask ? `<button class="btn sm" type="button" data-add-child="${n.id}" ${can('create', n) ? '' : 'disabled'}>＋ 新增子任務</button>` : ''}${mineTool}${tools[ui.tab] || ''}</div></div>`;
   const views = { board: viewBoard, timeline: viewTimeline, graph: viewGraph, docs: viewDocs, data: viewData, people: viewPeople, records: viewRecords };
   html += `<div class="view" id="view">${(views[ui.tab] || viewBoard)(n)}</div>`;
   return html;
@@ -2910,15 +2918,12 @@ function viewRecords(n) {
   const reps = db.reports.filter((r) => ids.has(r.node_id)).sort((a, b) => b.submitted_at.localeCompare(a.submitted_at) || b.version - a.version);
   const notes = db.notes.filter((x) => ids.has(x.node_id)).reverse();
   const atts = db.attachments.filter((a) => ids.has(a.node_id) && !a.deleted_at).reverse();
-  const pend = leaf ? pendingReport(n.id) : null;
   const noStore = fileStore.ok === false ? '<div class="note warn" style="margin:8px 0">此瀏覽器無法儲存檔案（IndexedDB 無法使用），回報與筆記仍可正常使用。</div>' : '';
   const upload = fileStore.ok !== false;
   return `<div class="records">
     ${src ? `<div class="note">這是上層節點，以下彙總整棵子樹（${scope.length - 1} 個子任務）的紀錄，只能檢視；要新增請進入個別任務。</div>` : ''}
-    <section class="panel"><div class="row" style="justify-content:space-between"><h3>完成回報（${reps.length}）</h3>${leaf && canReport(n) ? `<button class="btn sm primary" type="button" data-report="${n.id}">回報完成</button>` : ''}</div>
-      ${leaf && n.status === 'skipped' ? '<div class="note" style="margin-top:8px">此任務已跳過，不需要完成回報。</div>' : ''}
-      ${pend ? `<div class="note" style="margin-top:8px">v${pend.version} 等待確認：${esc(approversFor(n).map(uname).join('、'))}${can('override', n) ? `<div class="row" style="margin-top:8px"><button class="btn sm primary" type="button" data-rep-approve="${pend.id}">確認完成</button><button class="btn sm danger" type="button" data-rep-reject="${pend.id}">退回</button></div>` : ''}</div>` : ''}
-      ${reps.map((r) => reportHTML(r, src)).join('') || '<div class="empty">還沒有完成回報。</div>'}</section>
+    <section class="panel"><h3>${leaf ? '回報歷史' : '完成回報'}（${reps.length}）</h3>
+      ${reps.map((r) => reportHTML(r, src)).join('') || `<div class="empty">${leaf ? '還沒有回報紀錄。' : '還沒有完成回報。'}</div>`}</section>
     <section class="panel"><h3>筆記（${notes.length}）</h3>
       ${leaf && canNote(n) ? `<form id="noteForm" data-node="${n.id}" style="margin-top:10px"><div class="field"><label for="nBody">新增筆記</label><textarea id="nBody" style="min-height:70px" placeholder="進度、討論、觀察…"></textarea></div>
         <div class="row" style="justify-content:space-between">${upload ? '<input id="nFiles" type="file" multiple aria-label="筆記附件">' : '<span></span>'}<button class="btn sm primary" type="submit">新增筆記</button></div></form>` : ''}
