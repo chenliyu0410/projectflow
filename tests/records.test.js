@@ -351,6 +351,60 @@
     eq(node('t30121').status, 'doing');
   });
 
+  // ── 子任務置頂回報卡：reportCardHTML ──
+  const card = (id) => { const d = document.createElement('div'); d.innerHTML = reportCardHTML(node(id)); return d; };
+  await T('回報卡：待辦／進行中顯示需填欄位、確認人與「回報完成」', () => {
+    as('ming');
+    const c = card('t3013');
+    ok(c.textContent.includes('完成回報'), '標題');
+    ok(c.textContent.includes('F0 值'), '應列出必填自訂欄位');
+    ok(c.textContent.includes('力瑜'), '應列出確認人');
+    const c2 = card('t30121');
+    ok(c2.querySelector('[data-report="t30121"]'), '可回報時應有「回報完成」');
+  });
+  await T('回報卡：待確認時成員看到等待，主管看到確認／退回', async () => {
+    as('ming'); await submitReport('t30121', good);
+    let c = card('t30121');
+    ok(c.querySelector('.rcard.pend'), '待確認色');
+    ok(c.textContent.includes('v1 等待確認') && c.textContent.includes('參數設定完成'));
+    ok(c.textContent.includes('等待') && !c.querySelector('[data-rep-approve]'), '成員不能確認');
+    as('yu'); c = card('t30121');
+    const id = pendingReport('t30121').id;
+    ok(c.querySelector(`[data-rep-approve="${id}"]`) && c.querySelector(`[data-rep-reject="${id}"]`), '主管有確認與退回');
+  });
+  await T('回報卡：已退回顯示意見與「重新回報」', async () => {
+    as('ming'); await submitReport('t30121', good);
+    as('yu'); decideReport(pendingReport('t30121').id, false, '溫度紀錄不完整');
+    as('ming'); const c = card('t30121');
+    ok(c.querySelector('.rcard.rej'), '退回色');
+    ok(c.textContent.includes('溫度紀錄不完整'), '應顯示退回意見');
+    ok(c.querySelector('[data-report="t30121"]') && c.textContent.includes('重新回報'));
+  });
+  await T('回報卡：已完成有回報顯示自訂欄位；沒有回報顯示未附回報', () => {
+    const c = card('t3011');
+    ok(c.textContent.includes('已完成') && c.textContent.includes('F0 值') && c.textContent.includes('2.6'));
+    ok(!c.querySelector('button'), '已完成沒有按鈕');
+    node('t30121').status = 'done';
+    ok(card('t30121').textContent.includes('已完成，未附回報'));
+  });
+  await T('回報卡：已跳過顯示理由，主管有「恢復任務」', () => {
+    skipTask('t30121', '改由外包處理');
+    const c = card('t30121');
+    ok(c.querySelector('.rcard.skip') && c.textContent.includes('改由外包處理'));
+    ok(c.querySelector('[data-restore="t30121"]'), '主管可恢復');
+    as('ming'); ok(!card('t30121').querySelector('[data-restore]'), '成員不能恢復');
+  });
+  await T('回報卡：協作人員沒有任何動作按鈕', async () => {
+    as('lin'); ok(!card('t30121').querySelector('button'), '待辦時沒有按鈕');
+    as('ming'); await submitReport('t30121', good);
+    as('lin'); ok(!card('t30121').querySelector('button'), '待確認時沒有按鈕');
+  });
+  await T('回報卡：使用者文字經過 esc()', async () => {
+    as('ming'); await submitReport('t30121', { ...good, summary: '<b>粗體</b>' });
+    const c = card('t30121');
+    ok(!c.querySelector('.rcard b') && c.textContent.includes('<b>粗體</b>'), '摘要不能變成 HTML');
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()

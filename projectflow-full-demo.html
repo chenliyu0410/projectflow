@@ -253,6 +253,15 @@ table.tbl{border-collapse:collapse;width:100%;font-size:13px}
 .rec{border-top:1px solid var(--line);padding:10px 0}
 .rec:first-of-type{border-top:none}
 .rec .body{margin-top:6px;white-space:pre-wrap;line-height:1.7}
+.rcard{border:2px solid var(--teal);margin:14px 0 6px}
+.rcard.pend{border-color:var(--blue)}
+.rcard.rej{border-color:var(--orange)}
+.rcard.skip{border-color:var(--gray)}
+.rcard .rc-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.rcard .rc-main{min-width:0;flex:1}
+.rcard h3{margin:0}
+.rcard .rc-sum{margin-top:6px;white-space:pre-wrap;line-height:1.7}
+.rcard .rc-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
 /* AI 副手 */
@@ -2828,17 +2837,56 @@ const fmtSize = (b) => (b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1
 const attLink = (a) => `<button class="iconbtn" type="button" data-att-open="${a.id}">📎 ${esc(a.filename)}</button>`;
 const srcLink = (id) => `<button class="iconbtn" type="button" data-enter="${id}">↳ ${esc(node(id).title)}</button>`;
 function attOwner(a) { if (a.report_id) { const r = db.reports.find((x) => x.id === a.report_id); return r ? `回報 v${r.version}` : '回報'; } return a.note_id ? '筆記' : '任務'; }
+function reportFieldsHTML(r) {
+  return r.fields.length ? `<dl class="kv" style="margin-top:6px">${r.fields.map((f) => `<dt>${esc(f.label)}</dt><dd>${f.value === null ? '—' : esc(f.value)}${f.unit ? ' ' + esc(f.unit) : ''}</dd>`).join('')}</dl>` : '';
+}
 function reportHTML(r, src) {
-  const st = { submitted: '<span class="tag blue">待確認</span>', approved: '<span class="tag">已確認</span>', rejected: '<span class="tag warn">已退回</span>' }[r.status];
+  const st ={ submitted: '<span class="tag blue">待確認</span>', approved: '<span class="tag">已確認</span>', rejected: '<span class="tag warn">已退回</span>' }[r.status];
   const atts = db.attachments.filter((a) => a.report_id === r.id && !a.deleted_at);
   return `<div class="rec">
     <div class="row" style="justify-content:space-between"><div><b>v${r.version}</b> ${st} <span class="tag gray">${RESULT[r.result]}</span>${src ? ' ' + srcLink(r.node_id) : ''}</div>
       <span class="small muted">${esc(uname(r.submitted_by))} ${esc(r.submitted_at)}・完成日 ${ymd(r.finished_on)}</span></div>
     <div class="body">${esc(r.summary)}</div>
-    ${r.fields.length ? `<dl class="kv" style="margin-top:6px">${r.fields.map((f) => `<dt>${esc(f.label)}</dt><dd>${f.value === null ? '—' : esc(f.value)}${f.unit ? ' ' + esc(f.unit) : ''}</dd>`).join('')}</dl>` : ''}
+    ${reportFieldsHTML(r)}
     ${atts.length ? `<div class="small" style="margin-top:6px">附件：${atts.map(attLink).join('、')}</div>` : ''}
     ${r.status !== 'submitted' ? `<div class="small muted" style="margin-top:6px">${r.status === 'approved' ? (r.self_approved ? '自行確認' : '確認') : '退回'}：${esc(uname(r.reviewed_by))} ${esc(r.reviewed_at)}${r.review_comment ? `・意見：${esc(r.review_comment)}` : ''}</div>` : ''}
   </div>`;
+}
+// 子任務置頂回報卡：目前回報狀態與下一步動作（只用在葉任務頁）
+function reportCardHTML(n) {
+  const reps = db.reports.filter((r) => r.node_id === n.id).sort((a, b) => b.version - a.version);
+  const latest = reps[0];
+  const pend = pendingReport(n.id);
+  const appr = reps.find((r) => r.status === 'approved');
+  const who = esc(approversFor(n).map(uname).join('、'));
+  const sum = (r) => `<div class="rc-sum"><span class="tag gray">${RESULT[r.result]}</span> ${esc(r.summary)}</div>${reportFieldsHTML(r)}`;
+  let tone = '', title, body = '', acts = '';
+  if (n.status === 'skipped') {
+    tone = 'skip'; title = '⤳ 已跳過';
+    body = `<div class="small muted" style="margin-top:4px">${esc(skipInfo(n)).replace(/\n/g, '　')}</div>`;
+    if (can('override', n)) acts = `<button class="btn" type="button" data-restore="${n.id}">恢復任務</button>`;
+  } else if (pend) {
+    tone = 'pend'; title = `v${pend.version} 等待確認`;
+    body = sum(pend) + `<div class="small muted" style="margin-top:6px">${esc(uname(pend.submitted_by))} 送出・${esc(pend.submitted_at)}</div>`;
+    acts = can('override', n)
+      ? `<button class="btn primary" type="button" data-rep-approve="${pend.id}">確認完成</button><button class="btn danger" type="button" data-rep-reject="${pend.id}">退回</button>`
+      : `<span class="small muted">等待 ${who} 確認</span>`;
+  } else if (n.status === 'done' && appr) {
+    title = '✓ 已完成';
+    body = sum(appr) + `<div class="small muted" style="margin-top:6px">${appr.self_approved ? '自行確認' : '確認'}：${esc(uname(appr.reviewed_by))} ${esc(appr.reviewed_at)}</div>`;
+  } else if (n.status === 'done') {
+    title = '✓ 已完成，未附回報';
+  } else if (latest && latest.status === 'rejected') {
+    tone = 'rej'; title = `v${latest.version} 已退回`;
+    body = `<div class="note warn" style="margin-top:6px">退回意見：${esc(latest.review_comment)}（${esc(uname(latest.reviewed_by))}）</div>`;
+    if (canReport(n)) acts = `<button class="btn primary" type="button" data-report="${n.id}">重新回報</button>`;
+  } else {
+    title = '完成回報';
+    const req = ['結果', '成果說明', '實際完成日', ...fieldDefs(n.id).filter((f) => f.required).map((f) => f.label)];
+    body = `<div class="small muted" style="margin-top:4px">需填：${esc(req.join('、'))}・送出後由 ${who} 確認</div>`;
+    if (canReport(n)) acts = `<button class="btn primary" type="button" data-report="${n.id}">回報完成</button>`;
+  }
+  return `<section class="panel rcard ${tone}" aria-label="完成回報"><div class="rc-row"><div class="rc-main"><h3>${title}</h3>${body}</div>${acts ? `<div class="rc-acts">${acts}</div>` : ''}</div></section>`;
 }
 function noteHTML(x, src) {
   const atts = db.attachments.filter((a) => a.note_id === x.id && !a.deleted_at);
