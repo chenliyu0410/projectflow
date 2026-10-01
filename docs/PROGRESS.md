@@ -14,14 +14,14 @@
 | 欄位 | 值 |
 |---|---|
 | 目前工作項目 | **W1 子任務置頂回報卡**（🔨 執行中） |
-| 下一個動作 | 切到 `feature/w1-subtask-report-card`，照該分支的 PROGRESS 執行 Task 1 |
+| 下一個動作 | 執行 W1 Task 2（見 §3 W1；先讀執行注意 13–15） |
 | 分支 | `feature/w1-subtask-report-card` |
-| 最新程式 commit | `aebd709`（F11 final fixes）。每個 Task 記錄時更新 |
+| 最新程式 commit | `dc50e86`（W1 Task 1 fix）。每個 Task 記錄時更新 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 44/44`（2026-10-01 實測） |
+| 測試基準 | `tests/records.html`：`全部通過 52/52`（2026-10-01 實測，W1 Task 1 完成後） |
 | 資料版本 | `db.v = 3`；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | Claude Opus 5.5（手動執行 /pf-next 流程）／2026-10-01 16:09 |
-| 阻塞／待人類 | 無。W1 不受任何 D 阻塞 |
+| 阻塞／待人類 | 目前沒有阻塞，照預設往下做。待人類：D14（W1-T1 plan-mandated，預設接受；W1 改成 🟢 之前必須有結論）、D15（F11 既有的捲動問題，預設在 W1 修） |
 | 遠端 | 2026-10-01 經人類授權，已 push 到 `origin/main`，內容包括 `edf46b6`、`dfc0126` 和交接系統的 `Docs:` commit。之後的狀態用 `git log --oneline origin/main..main` 查看。每次 push 都要人類明確授權（D3） |
 
 ---
@@ -103,12 +103,12 @@
 
 | Task | 內容 | 狀態 | commits | 測試（預期 → 實際） | plan 指定的 commit 主旨 |
 |---|---|---|---|---|---|
-| 1 | `reportCardHTML(n)` 渲染函式、共用的 `reportFieldsHTML(r)`、`.rcard` CSS。這一步還不接到畫面上 | ⬜ | — | RED `失敗 7/51` → GREEN `全部通過 51/51` | `Subtask report card: reportCardHTML renderer and styles` |
-| 2 | 把卡片接進 `pageNode()`，包括：分頁順序；`.tools` 加次要的「＋ 新增子任務」；標題區的跳過提示改由卡片顯示；`viewRecords()` 對葉任務只列回報歷史；`enter()` 預設分頁；README F11「位置」列 | ⬜ | — | RED `失敗 5/57`（plan 誤寫成 6/57）→ GREEN `全部通過 57/57` | `Subtask page: pinned report card, records tab first, secondary add-child button` |
+| 1 | `reportCardHTML(n)` 渲染函式、共用的 `reportFieldsHTML(r)`、`.rcard` CSS。這一步還不接到畫面上 | ✅ | `8aed7d6..dc50e86`（`b678dbd`；修正輪 1 `dc50e86`） | RED `失敗 7/51` → GREEN `全部通過 51/51` → 實際 RED `失敗 7/51`（7 個新測試都是 `reportCardHTML is not defined`）→ GREEN `全部通過 51/51`；修正輪 1：RED `失敗 1/52` → GREEN `全部通過 52/52`；記錄前獨立重跑 `全部通過 52/52`。<br>實測：`reportFieldsHTML` 輸出和舊寫法逐字相同；7 種狀態卡片的 class、外框色、按鈕數正確；h3 margin 0。375px 原本 `.rc-main` 只剩 118／141px（待驗證項目失敗，轉 Important，見 D14），修正後 303px，動作欄換到下方，`dl.kv` 沒有溢出；1280px 維持同一列；console 無錯誤。<br>審查：獨立（spec＋品質各 2 輪，都是 Approved） | `Subtask report card: reportCardHTML renderer and styles` |
+| 2 | 把卡片接進 `pageNode()`，包括：分頁順序；`.tools` 加次要的「＋ 新增子任務」；標題區的跳過提示改由卡片顯示；`viewRecords()` 對葉任務只列回報歷史；`enter()` 預設分頁；README F11「位置」列 | ⬜ | — | RED `失敗 5/58`（plan 寫 6/57；Task 1 修正輪多 1 個測試）→ GREEN `全部通過 58/58` | `Subtask page: pinned report card, records tab first, secondary add-child button` |
 | — | 整體審查 | ⬜ | — | — | — |
 
 **驗收**（spec §8、plan Task 2 Step 7）
-- [ ] `tests/records.html` 顯示 `全部通過 57/57`。新增的 13 個測試要涵蓋：卡片各種狀態、協作身分沒有按鈕、`enter()` 預設分頁、葉任務頁結構、非葉節點不變、`esc()` 防注入
+- [ ] `tests/records.html` 顯示 `全部通過 58/58`。新增的 14 個測試（plan 的 13 個，加上 Task 1 修正輪的窄螢幕換行測試）要涵蓋：卡片各種狀態、協作身分沒有按鈕、`enter()` 預設分頁、葉任務頁結構、非葉節點不變、`esc()` 防注入
 - [ ] 瀏覽器實測阿明的流程：打開 `t30121` 直接看到「完成回報」卡；送出後卡片變成「v1 等待確認」，只顯示「等待 … 確認」
 - [ ] 瀏覽器實測力瑜的流程：在同一張卡上按「確認完成」。退回路徑也要測一次（spec 寫的是確認，plan 測的是退回，兩條都要走）
 - [ ] `t3012`（非葉節點）沒有回報卡，版面不變
@@ -116,7 +116,7 @@
 - [ ] `db.v` 仍是 3，沒有新增事件處理
 
 **執行注意**（2026-10-01 研究結果，錨點已在 `dfc0126` 上逐一核對過）
-1. Task 2 Step 2 的 RED 實際上是 `失敗 5/57`。「非葉節點不變」那個測試在改程式之前就會通過，這是正常的。
+1. Task 2 Step 2 的 RED 實際上是 `失敗 5/58`（plan 寫 6/57；Task 1 修正輪多了 1 個測試）。「非葉節點不變」那個測試在改程式之前就會通過，這是正常的。
 2. 工作目錄是 CRLF（`core.autocrlf=true`）。多行錨點（Step 3d 有 2 行、4b 有 4 行）要用編輯器工具替換，不要用 `sed` 或 `\n` 字串比對。
 3. 375px 檢查：`.main` 設了 `overflow:hidden`，只看 `document.documentElement.scrollWidth` 會誤判通過。請用 WORKFLOW §5 第 7 點的檢查式。
 4. `t3013` 的卡片會顯示「回報完成」，但它有硬性前置，送出時會被擋下。手動測試請用 `t30121`。
@@ -128,6 +128,12 @@
 10. plan 的 commit 指令寫死了 `Co-Authored-By: Claude Opus 5.5`，請換成你實際使用的工具和模型（WORKFLOW §6）。
 11. plan 開頭寫「REQUIRED SUB-SKILL: subagent-driven-development」，plan 內的測試段落也寫了 Claude 工具的名稱。Claude 優先用 `/pf-next`。其他 AI 照 WORKFLOW §3 和 §11 的對照表做。
 12. **D3（2026-10-01）**：人類指示「完成後上傳到GIT」。W1 完成 G5 合併與 G6 收尾後，執行 `git push origin main`（不 force，也不 push 其他分支），然後更新「▶ 現在」的「遠端」列。這次授權只限 W1。
+13. **Task 1 修正輪偏離 plan（D14）**：`.rcard .rc-main` 是 `flex:1 1 240px`，不是 plan Step 3 的 `flex:1`。原本的寫法 flex-basis 是 0，`.rc-row` 的 `flex-wrap:wrap` 永遠不會換行，375px 下文字欄只剩 118–141px。Task 2 和整體審查都**不要改回去**。plan 還沒同步，等 D14 有結論後再視需要 `Plan: fix`。
+14. **Task 2 必驗**（Task 1 審查留下的待驗證項目）：
+    - 按鈕點擊流程：阿明送出；力瑜確認和退回。已列在驗收清單。
+    - 卡片在實際頁面中的位置：375px、768px，以及桌面寬度下 AI 面板開和關。
+    - **桌面高度**：節點頁的 `.main` 是 `overflow:hidden`，`.view` 不會捲動，所以 F11 的紀錄分頁本來就會被截掉（§5 W1-T1-m6）。Task 2 接上回報卡、葉任務預設進紀錄分頁之後，要在 1280×720 實測回報歷史、筆記、附件能不能完整看到或捲動得到，長摘要（約 15 行）也要測。處理方式依 D15。
+15. Task 1 審查留下的 Minor 是 W1-T1-m1–m5（§5），整體審查時判斷是否要在合併前修。m1（`const st ={` 少一個空白）是編輯工具把 new_string 結尾的空白去掉造成的，建議在整體修正時順手改回。之後用編輯工具替換時，new_string 結尾不要留空白。
 
 ### W2 部門模型 — 📋
 
@@ -142,19 +148,19 @@
 
 | Task | 內容 | 狀態 | commits | 新測試 | 預期總數（W1 先做時） |
 |---|---|---|---|---|---|
-| 1 | 部門資料、v4 升級、顯示改用部門名稱 | ⬜ | — | 5 | 62 |
-| 2 | 可見性：只有相關的人看得到；移除「顯示全部」 | ⬜ | — | 8 | 70 |
-| 3 | 操作權限 `canWork`、指派、改部門 | ⬜ | — | 5 | 75 |
-| 4 | 部門管理面板：新增、修改、刪除 | ⬜ | — | 5 | 80 |
-| 5 | 任務的負責部門和負責人：對話框、看板、我的任務、總覽 | ⬜ | — | 6 | 86 |
-| 6 | 時間軸預設收合，並可依部門篩選 | ⬜ | — | 6 | 92 |
-| 7 | 範本帶入負責部門、更新 README | ⬜ | — | 4 | 96 |
+| 1 | 部門資料、v4 升級、顯示改用部門名稱 | ⬜ | — | 5 | 63 |
+| 2 | 可見性：只有相關的人看得到；移除「顯示全部」 | ⬜ | — | 8 | 71 |
+| 3 | 操作權限 `canWork`、指派、改部門 | ⬜ | — | 5 | 76 |
+| 4 | 部門管理面板：新增、修改、刪除 | ⬜ | — | 5 | 81 |
+| 5 | 任務的負責部門和負責人：對話框、看板、我的任務、總覽 | ⬜ | — | 6 | 87 |
+| 6 | 時間軸預設收合，並可依部門篩選 | ⬜ | — | 6 | 93 |
+| 7 | 範本帶入負責部門、更新 README | ⬜ | — | 4 | 97 |
 | — | 整體審查 | ⬜ | — | — | — |
 
-預期總數是研究時推算的，plan 本身只寫「全部通過 N/N」。以實際跑出來的數字為準。
+預期總數是研究時推算的，plan 本身只寫「全部通過 N/N」。以實際跑出來的數字為準。W1 Task 1 修正輪多了 1 個測試（W1 共 14 個），上表已經加 1；W1 如果還有修正輪增加測試，要再調整。
 
 **驗收**
-- [ ] `tests/records.html` 全部通過：W1 的 13 個測試加上 departments 的 39 個測試都是綠燈
+- [ ] `tests/records.html` 全部通過：W1 的 14 個測試加上 departments 的 39 個測試都是綠燈
 - [ ] spec §7 的第 1–10 項，每一項至少對應一個測試，在 commits 欄旁列出測試名稱
 - [ ] 先按「重置 Demo 資料」，再以 yu、chen、an、ming、it 各截一次圖，確認看板、時程、我的任務、成員與權限頁都符合 spec §4、§5
 - [ ] 未指派、而且所屬部門沒有主管（製程）的任務 `t504`，只有 yu 和 it 看得到
@@ -165,7 +171,7 @@
 
 **執行注意**（W1 先做的情況）
 1. **唯一的程式衝突**在 Task 2 Step 4.3 的 `.tools` 那一行。W1 會在那裡加 `leafTask` 的次要按鈕，這一步**只刪掉 `${mineTool}`**，保留 W1 的按鈕。
-2. W1 的 13 個測試在 W2 全程都必須通過。只要有一個失敗，就是真的回歸。
+2. W1 的 14 個測試在 W2 全程都必須通過。只要有一個失敗，就是真的回歸。
 3. spec §5.4 寫的是 `ui.tlOpen`，plan 用的是既有的 `ui.expanded`，**以 plan 為準**。Task 6 要把 `tlDept` 加進 `resetAll()`，否則篩選狀態會帶到後面的測試。
 4. plan:427 對三個跳過案例失敗原因的說明不正確。這三個測試在 Task 2 時仍然通過，到 Task 3 才會失敗，原因是 `skipTask` 要求 `can('edit')`，改成 `canWork` 之後 ming 就不能送出申請。照 Task 3 Step 3 修改即可。
 5. 有兩處 RED 不會全紅，都是正常的：
@@ -279,6 +285,12 @@ full demo 定位的文字需要人類審閱（D12）。
 | F11-T7-m4 | Task 7 第 2 個測試沒有斷言「AI 稽核的 prompt 不含機密筆記」 | trivial | S | 否 | tests:284-290 |
 | F11-T4-m4 | 附件全部上傳失敗時，`submitReport` 仍然回傳 ok；回報已經鎖定，也沒有辦法補附件 | minor | S | **是（D6）** | html:1032-1042 |
 | F11-T6-m1 | 只恢復被連帶跳過的子任務時，上層任務會變成 doing，但既沒有寫稽核，也沒有 `restoredAt` | minor | M | **是（D8）** | html:1232-1240 |
+| W1-T1-m6 | （F11 既有，W1 會讓它更明顯）桌面寬度（>860px）下，節點頁的 `.main` 是 `overflow:hidden`，`.view` 也不會捲動，所以紀錄、文件、資料、成員分頁的內容超出畫面時會被截掉，而且無法捲動。1280×720 實測：t30121 紀錄分頁用種子資料時，內容底部在 749px（畫面 720px）；加 6 則長筆記後到 1721px。W1 之後葉任務預設進紀錄分頁，上方又多了回報卡 | important | S | **是（D15）** | `renderMain`、`.main`／`.view` CSS |
+| W1-T1-m3 | 測試「待確認時成員看到等待」的 `includes('等待')` 永遠成立（標題「v1 等待確認」就有「等待」），沒有驗到「等待 {確認人} 確認」。這是 plan 原文。修法：改成檢查 `.rc-acts` 含「力瑜」，並加驗沒有 `[data-rep-reject]` | minor | S | 否 | tests:370@dc50e86 |
+| W1-T1-m4 | 測試「已完成有回報顯示自訂欄位」的 `'2.6'` 會被 t3011 種子摘要「F0 = 2.6，…」滿足，沒有驗到欄位值。這是 plan 原文。修法：`eq(c.querySelector('.rcard dl.kv dd').textContent, '2.6')` | minor | S | 否 | tests:385@dc50e86 |
+| W1-T1-m5 | 回報卡缺少測試：送出者與時間、退回人、確認人與時間和「自行確認」標示、「需填」只列必填欄位、狀態優先序（例如 done 但最新版是退回、舊版已核准）。這是 plan 原文 | minor | S | 否 | tests:356-389@dc50e86 |
+| W1-T1-m1 | `reportHTML` 的 `const st = {` 被改成 `const st ={`。這是 plan 範圍外的空白變更，原因是編輯工具去掉了 new_string 結尾的空白；行為不變 | trivial | S | 否 | `reportHTML`（html:2844@dc50e86） |
+| W1-T1-m2 | `reportCardHTML` 的 `reps` 逐字重複了既有的 `reportsOf(nodeId)`，以後改排序規則要改兩個地方。這是 plan 原文 | trivial | S | 否 | `reportCardHTML`（html:2857@dc50e86） |
 
 ### BY_DESIGN（plan 或 brief 指定的行為，要改必須先經過人類同意）
 
@@ -300,6 +312,7 @@ full demo 定位的文字需要人類審閱（D12）。
 | F11-T6-m2 | FIXED `aebd709` |
 | F11-T7-m5 | FIXED `aebd709` |
 | FF-c2 | NA（port 8000 的伺服器沒關是環境狀態，相關規則已寫進 WORKFLOW §5） |
+| W1-T1-I1 | FIXED `dc50e86`（plan Step 3 的 `.rc-main{flex:1}` 讓窄螢幕無法換行；待驗證項目實測失敗後轉 Important，修正輪改成 `flex:1 1 240px`。屬於 plan-mandated，見 D14） |
 
 ---
 
@@ -328,12 +341,33 @@ full demo 定位的文字需要人類審閱（D12）。
 | D11 | Demo 軌 | 正式產品軌何時啟動，以及確認 §1 第 4 點的 Demo 軌完成條件 | 等 Demo 軌完成條件全部達成後再評估 | 待人類 |
 | D12 | W5 | W5 README 中 full demo 的定位文字 | AI 起草，人類審閱 | 待人類（W2 之後） |
 | D13 | W3 | 請提供「10 部門流程甘特圖（連接器新產品，6 階段）」的原檔或內容 | 轉寫成 `docs/reference/connector-10dept-gantt.md`，欄位：階段、工作項目、負責部門、關卡／核准人、交付物 | 待人類（W3 brainstorming 前必須到位） |
+| D14 | W1-T1 | **Important（plan-mandated，已修正）**：plan Step 3 的 `.rcard .rc-main{min-width:0;flex:1}` 讓 flex-basis 變成 0，`.rc-row` 的 `flex-wrap:wrap` 永遠不會換行。375px 下動作欄固定佔掉右半邊，文字欄只剩 118–141px，自訂欄位會溢出。已在 `dc50e86` 改成 `flex:1 1 240px`，並加 1 個版面測試，所以 W1 的測試變成 14 個 | **接受 `dc50e86` 的修正**。同意後可以視需要用 `Plan: fix` 同步 plan Step 3 和 Task 2 的預期測試數 | 待人類（W1 改成 🟢 之前必須有結論） |
+| D15 | W1-T1 | §5 W1-T1-m6：F11 原本就有的版面問題。桌面寬度下，紀錄、文件、資料、成員分頁的內容超出畫面時會被截掉，無法捲動。W1 之後葉任務預設進紀錄分頁，上方又多了回報卡，會更常發生。要在 W1 一起修，還是登記到 W4 再修？ | **在 W1 一起修**：這幾個分頁改成整個主區域可以捲動，和手機版一樣，標題和回報卡會跟著捲上去；看板、時程、相依圖維持原樣。放在 Task 2 的修正輪處理，附測試 | 待人類 |
 
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
+
+### 2026-10-01｜Claude Opus 5.5｜W1 開工、Task 1 完成
+- **做了什麼**：
+  - 在 `main` 上做 Pre-flight（抽查 Task 1 錨點和介面，基準 `全部通過 44/44`），然後開工：`8aed7d6 Progress: start W1`，開分支 `feature/w1-subtask-report-card`，建立 `.superpowers/sdd/`（ledger 第一行是 `Plan:`）。
+  - Task 1：`b678dbd`（`reportCardHTML`、`reportFieldsHTML`、`.rcard` CSS、7 個測試）。修正輪 1：`dc50e86`（`.rc-main` 改成 `flex:1 1 240px`，加 1 個窄螢幕換行測試）。
+  - 人類在對話中指示「完成後上傳到GIT」，已記進 D3（`826be0e`）和 W1 執行注意 12。
+- **驗證**：
+  - RED `失敗 7/51` → GREEN `全部通過 51/51`；修正輪 RED `失敗 1/52` → GREEN `全部通過 52/52`；記錄前獨立重跑 `全部通過 52/52`。
+  - 瀏覽器實測：`reportFieldsHTML` 和舊寫法逐字相同；7 種狀態的卡片；375px 和 1280px 的卡片版面；console 沒有錯誤。
+  - 審查：獨立（spec 和品質審查者各 2 輪，結論都是 Approved）。
+- **沒做的事／偏離 plan**：
+  - plan Step 3 的 `.rc-main` CSS 改成 `flex:1 1 240px`（D14）。plan 本身還沒同步。
+  - 這個 session 沒有載入 `/pf-next`，改成手動照同一套流程執行：實作、記錄由主 session 做，審查交給兩位獨立的唯讀子代理。
+- **下一步**：W1 Task 2（見「▶ 現在」）。
+- **注意**：
+  - D14、D15 待人類。
+  - Task 2 的預期是 RED `失敗 5/58`、GREEN `全部通過 58/58`。
+  - 測試頁跑完會在 127.0.0.1 留下待確認的回報；手動實測前先執行 `resetAll()`。
+  - port 8000 的伺服器是這個 session 用 `preview_start`（demo）啟動的。
 
 ### 2026-10-01｜Claude Opus 5.5｜建立交接系統
 - **做了什麼**：
