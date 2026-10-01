@@ -1154,6 +1154,56 @@ async function openAttachment(id) {
   else { const el = document.createElement('a'); el.href = url; el.download = a.filename; el.click(); }
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
+/* ---------- 跳過整個任務 ---------- */
+function skipTargets(n) { return [n, ...descendants(n.id)].filter((x) => !DONE(x.status)); }
+function pendingSkip(id) { return db.overrides.find((o) => o.kind === 'task' && o.node === id && o.status === 'pending') || null; }
+function skipRecordOf(id) { return db.overrides.find((x) => x.kind === 'task' && x.status === 'approved' && !x.restoredAt && x.prev && id in x.prev) || null; }
+function skipInfo(n) { const o = skipRecordOf(n.id); return o ? `理由：${o.reason}\n核准：${uname(o.decidedBy)} ${o.decidedAt}` : '已跳過'; }
+// 只在 commit 內呼叫
+function applySkip(o) {
+  const n = node(o.node); o.prev = {};
+  skipTargets(n).forEach((x) => { o.prev[x.id] = x.status; x.status = 'skipped'; });
+  db.reports.forEach((r) => { if (r.node_id in o.prev && r.status === 'submitted') Object.assign(r, { status: 'rejected', reviewed_by: o.decidedBy || ui.me, reviewed_at: nowStr(), review_comment: '任務已跳過，回報自動結案' }); });
+  for (let p = n.parent ? node(n.parent) : null; p && p.type !== 'project'; p = p.parent ? node(p.parent) : null) {
+    if (kids(p.id).every((c) => DONE(c.status)) && !DONE(p.status)) { p.status = 'review'; notify(`「${p.title}」的子任務全部完成或跳過，已移到「審核中」，請確認後標為完成。`); }
+  }
+}
+function skipTask(id, reason) {
+  const n = node(id); const why = String(reason || '').trim();
+  if (!n || n.type !== 'task' || DONE(n.status)) return { ok: false, error: '這個任務不能跳過' };
+  if (!why) return { ok: false, error: '請填寫理由' };
+  if (pendingSkip(id)) return { ok: false, error: '已有待審核的跳過申請' };
+  const tg = skipTargets(n);
+  const rec = { id: newId('o'), kind: 'task', node: id, to: 'skipped', blockers: [`跳過整個任務${tg.length > 1 ? `（含 ${tg.length - 1} 項未完成子任務）` : ''}`], depIds: [], reason: why, by: ui.me, at: nowStr() };
+  if (can('override', n)) {
+    commit(`跳過「${n.title}」`, () => { db.overrides.unshift({ ...rec, status: 'approved', decidedBy: ui.me, decidedAt: nowStr(), self: true }); applySkip(db.overrides[0]); });
+    log(id, '跳過', `跳過「${n.title}」${tg.length > 1 ? `與 ${tg.length - 1} 項子任務` : ''}，理由：${why}`);
+    announceUnlocks(n);
+    return { ok: true, mode: 'skipped' };
+  }
+  if (!can('edit', n)) return { ok: false, error: '你的角色無權跳過此任務' };
+  commit(`申請跳過「${n.title}」`, () => { db.overrides.unshift({ ...rec, status: 'pending' }); });
+  log(id, '跳過申請', `申請跳過「${n.title}」，理由：${why}`);
+  notify(`已送出跳過申請：「${n.title}」（整個任務）\n已通知：${approversFor(n).map(uname).join('、')}`, '跳過申請');
+  return { ok: true, mode: 'requested' };
+}
+function restoreTask(id) {
+  const n = node(id);
+  if (!n || n.status !== 'skipped') return { ok: false, error: '這個任務沒有被跳過' };
+  if (!can('override', n)) return { ok: false, error: '只有有覆寫權限的人可以恢復任務' };
+  const o = skipRecordOf(id);
+  // 恢復的是當初被跳過的那個任務：整批還原；只恢復連帶跳過的子任務：只動它自己
+  const prev = !o ? { [id]: 'todo' } : o.node === id ? o.prev : { [id]: o.prev[id] };
+  commit(`恢復「${n.title}」`, () => {
+    Object.entries(prev).forEach(([k, st]) => { const x = node(k); if (x && x.status === 'skipped') x.status = st; });
+    if (o && o.node === id) { o.restoredBy = ui.me; o.restoredAt = nowStr(); }
+    for (let p = n.parent ? node(n.parent) : null; p && p.type !== 'project'; p = p.parent ? node(p.parent) : null) {
+      if ((DONE(p.status) || p.status === 'review') && kids(p.id).some((c) => !DONE(c.status))) p.status = 'doing';
+    }
+  });
+  log(id, '恢復', `恢復「${n.title}」，回到跳過前的狀態`);
+  return { ok: true };
+}
 </script>
 <script>
 /* ================= 共用 UI ================= */
@@ -1257,9 +1307,11 @@ function pageNode() {
         ${deep ? '<span class="tag ai" title="README F1：超過 5 層時建議拆成獨立專案">層數較深，可考慮拆成獨立專案</span>' : ''}
       </div>
       ${n.note ? `<div class="note" style="margin-top:8px">${esc(n.note)}</div>` : ''}
+      ${n.status === 'skipped' ? `<div class="note" style="margin-top:8px">⤳ 已跳過・${esc(skipInfo(n)).replace(/\n/g, '　')}</div>` : ''}
     </div>
     <div class="head-actions">
       <div class="members">${[...new Set([n.owner, ...n.collabs])].filter(Boolean).map((u) => `<span class="avatar" title="${esc(uname(u))}">${esc(USERS[u] ? USERS[u].short : u)}</span>`).join('')}</div>
+      ${n.status === 'skipped' && can('override', n) ? `<button class="btn" type="button" data-restore="${n.id}">恢復任務</button>` : ''}
       ${n.type !== 'project' ? `<button class="btn" type="button" data-edit="${n.id}">編輯</button>` : ''}
       <button class="btn" type="button" data-save-tpl="${n.id}" ${isLeaf(n) || !can('create', n) ? 'disabled' : ''}>另存為模板</button>
       <button class="btn" type="button" data-apply-tpl="${n.id}" ${can('create', n) ? '' : 'disabled'}>套用模板</button>
@@ -1332,14 +1384,16 @@ function cardHTML(c, ctx) {
       ${late ? '<span class="tag warn">延遲</span>' : ''}${effLevel(c) === 'confidential' ? lvBadge('confidential') : ''}
       ${hard.length ? `<span class="tag warn" title="${esc(hard.map((b) => b.text).join('\n'))}">🔒 等待前置</span>` : ''}
       ${soft.length ? `<span class="tag ai" title="${esc(soft.map((b) => b.text).join('\n'))}">⚠ 軟性前置</span>` : ''}
-      ${pendingReport(c.id) ? '<span class="tag blue">待確認回報</span>' : ''}</div>
+      ${pendingReport(c.id) ? '<span class="tag blue">待確認回報</span>' : ''}
+      ${c.status === 'skipped' ? `<span class="tag gray" title="${esc(skipInfo(c))}">⤳ 已跳過</span>` : ''}
+      ${pendingSkip(c.id) ? '<span class="tag ai">跳過申請中</span>' : ''}</div>
     <button class="ctitle" type="button" data-enter="${c.id}">${esc(c.title)}</button>
     ${hard.length ? `<div class="small muted">等待：${esc(hard.map((b) => b.dep && b.dep.cond ? b.dep.cond.label : (b.dep ? node(b.dep.from)?.title : b.text)).join('、'))}</div>` : ''}
     ${k.length ? `<div class="mini"><span>${k.filter((x) => DONE(x.status)).length}/${k.length} 子任務</span><span class="track"><span style="width:${pc}%"></span></span><span>${pc}%</span>
       <button class="iconbtn" type="button" data-expand="${c.id}" aria-expanded="${!!ex}">${ex ? '收合' : '展開'}</button></div>` : ''}
     ${k.length && ex ? `<div class="sublist">${k.map((x) => `<button type="button" data-enter="${x.id}"><span class="dot ${x.status}"></span>${esc(x.title)}${kids(x.id).length ? `<span class="muted small">（${kids(x.id).length}）</span>` : ''}</button>`).join('')}</div>` : ''}
     <div class="cfoot"><span class="who">${av(c.owner, 22)}${esc(uname(c.owner))}${c.collabs.length ? `<span class="small">+${c.collabs.length}</span>` : ''}</span>
-      <span>${c.milestone ? md(S(s)) : `${md(S(s))}–${md(S(e))}`}${canReport(c) && (c.status === 'todo' || c.status === 'doing') ? `<button class="iconbtn" type="button" data-report="${c.id}" title="回報完成">✓ 回報</button>` : ''}<button class="iconbtn" type="button" data-edit="${c.id}" aria-label="編輯">✎</button></span></div>
+      <span>${c.milestone ? md(S(s)) : `${md(S(s))}–${md(S(e))}`}${canReport(c) && (c.status === 'todo' || c.status === 'doing') ? `<button class="iconbtn" type="button" data-report="${c.id}" title="回報完成">✓ 回報</button>` : ''}${c.type === 'task' && !DONE(c.status) && !pendingSkip(c.id) && (can('override', c) || can('edit', c)) ? `<button class="iconbtn" type="button" data-skip="${c.id}" title="跳過任務" aria-label="跳過任務">⤳</button>` : ''}<button class="iconbtn" type="button" data-edit="${c.id}" aria-label="編輯">✎</button></span></div>
   </article>`;
 }
 function viewBoard(n) {
@@ -1829,11 +1883,11 @@ function pageReview() {
   <div class="stack"><h2>待審核的跳過申請（${pend.length}）</h2>
   ${pend.length ? pend.map((o) => {
     const n = node(o.node); const ok = n && can('override', n);
-    return `<div class="panel"><div class="row" style="justify-content:space-between"><div><b>${esc(n?.title || '（已刪除）')}</b> → ${STLBL[o.to] || o.to}　<span class="small muted">${esc(uname(o.by))} 於 ${esc(o.at)} 申請</span></div>
+    return `<div class="panel"><div class="row" style="justify-content:space-between"><div><b>${esc(n?.title || '（已刪除）')}</b> → ${STLBL[o.to] || o.to}${o.kind === 'task' ? ' <span class="tag ai">整個任務</span>' : ''}　<span class="small muted">${esc(uname(o.by))} 於 ${esc(o.at)} 申請</span></div>
       <div class="row"><button class="btn sm primary" type="button" data-ov-approve="${o.id}" ${ok ? '' : 'disabled'}>核准</button><button class="btn sm danger" type="button" data-ov-reject="${o.id}" ${ok ? '' : 'disabled'}>退回</button></div></div>
       <div class="small" style="margin-top:6px">未滿足：${esc(o.blockers.join('；'))}</div><div class="note" style="margin-top:6px">理由：${esc(o.reason)}</div>
       ${ok ? '' : `<div class="small muted" style="margin-top:6px">可核准的人：${approversFor(n).map(uname).join('、')}</div>`}</div>`;
-  }).join('') : '<div class="empty">沒有待審核的跳過申請。試試用「阿明（成員）」身分把被 🔒 擋住的任務拖到「進行中」。</div>'}
+  }).join('') : '<div class="empty">沒有待審核的跳過申請。示範：用「阿明（成員）」在自己的任務卡片按 ⤳ 送出跳過申請，再切換成「力瑜」到這裡核准；或把被 🔒 擋住的任務拖到「進行中」。</div>'}
   <h2>待核准的階段閘門（${gates.length}）</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>專案 / 階段</th><th>閘門條件</th><th>完成標準</th><th>審核人</th><th></th></tr></thead><tbody>
   ${gates.map(([id, g]) => { const ph = node(id); return `<tr><td>${esc(projectOf(ph).title)} / <b>${esc(ph.title)}</b></td><td>${esc(g.criteria)}</td><td>${gateCriteriaMet(ph) ? '<span class="check">✓ 達成</span>' : '<span class="cross">✗ 未達成</span>'}</td><td>${esc(g.approver)}</td><td><button class="btn sm" type="button" data-gate="${id}">審核</button></td></tr>`; }).join('')}
@@ -1842,7 +1896,7 @@ function pageReview() {
   ${fReq.length ? fReq.map(({ f, v }) => `<div class="panel row" style="justify-content:space-between"><div><b>${f.id} v${v.v}</b> 申請定案　<span class="small muted">${esc(v.note)}</span></div><div class="row"><button class="btn sm primary" type="button" data-f-approve="${f.id}:${v.v}" ${can('formula-approve') ? '' : 'disabled'}>核准定案</button><button class="btn sm danger" type="button" data-f-reject="${f.id}:${v.v}" ${can('formula-approve') ? '' : 'disabled'}>退回</button></div></div>`).join('') : '<div class="empty">沒有待簽核的配方。</div>'}
   <h2>審核紀錄</h2>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>時間</th><th>項目</th><th>申請人</th><th>理由</th><th>結果</th><th>決定者</th></tr></thead><tbody>
-  ${done.map((o) => `<tr><td>${esc(o.decidedAt || o.at)}</td><td>${esc(node(o.node)?.title || o.target || '')}${o.gate ? '（閘門）' : ''}</td><td>${esc(uname(o.by))}</td><td>${esc(o.reason)}</td><td>${o.status === 'approved' ? '<span class="check">核准</span>' : '<span class="cross">退回</span>'}</td><td>${esc(uname(o.decidedBy))}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">尚無紀錄</td></tr>'}
+  ${done.map((o) => `<tr><td>${esc(o.decidedAt || o.at)}</td><td>${esc(node(o.node)?.title || o.target || '')}${o.gate ? '（閘門）' : o.kind === 'task' ? '（跳過任務）' : ''}${o.restoredAt ? ' <span class="tag gray">已恢復</span>' : ''}</td><td>${esc(uname(o.by))}</td><td>${esc(o.reason)}</td><td>${o.status === 'approved' ? '<span class="check">核准</span>' : '<span class="cross">退回</span>'}</td><td>${esc(uname(o.decidedBy))}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">尚無紀錄</td></tr>'}
   </tbody></table></div></div>`;
 }
 
@@ -2264,7 +2318,7 @@ function openEditor(id) {
     ${ed ? '' : '<div class="note warn" style="margin-bottom:12px">你的角色無權編輯此節點，以下為唯讀。</div>'}
     <div class="field"><label for="eTitle">名稱</label><input id="eTitle" value="${esc(n.title)}" ${ed ? '' : 'disabled'} required></div>
     <div class="frow"><div class="field"><label for="eTag">類別</label><select id="eTag" ${ed ? '' : 'disabled'}><option value="">—</option>${TAGS.map((t) => `<option ${t === n.tag ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-      <div class="field"><label for="eStatus">狀態</label><select id="eStatus" ${ed ? '' : 'disabled'}>${Object.entries(STLBL).map(([k, l]) => `<option value="${k}" ${k === n.status ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+      <div class="field"><label for="eStatus">狀態</label><select id="eStatus" ${ed && n.status !== 'skipped' ? '' : 'disabled'}>${Object.entries(STLBL).filter(([k]) => k !== 'skipped' || n.status === 'skipped').map(([k, l]) => `<option value="${k}" ${k === n.status ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
     <div class="frow"><div class="field"><label for="eOwner">負責人</label><select id="eOwner" ${ed && me().role !== 'collab' ? '' : 'disabled'}>${userOpts(n.owner)}</select></div>
       <div class="field"><label for="eLevel">資料等級</label><select id="eLevel" ${ed ? '' : 'disabled'}><option value="">繼承上層（${LEVELS[effLevel(node(n.parent) || n)]}）</option>${Object.entries(LEVELS).map(([k, l]) => `<option value="${k}" ${n.level === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
     <div class="frow"><div class="field"><label for="eStart">開始</label><input id="eStart" type="date" value="${S(s)}" ${sch && !(n.locked && !can('override', n)) ? '' : 'disabled'}></div>
@@ -2299,7 +2353,9 @@ function openEditor(id) {
       <button class="btn sm" type="button" data-demote="${n.id}" ${ed ? '' : 'disabled'}>↘ 降級</button>
       <select id="moveTo" ${ed ? '' : 'disabled'} style="height:32px;border:1px solid var(--line2);border-radius:8px;max-width:180px"><option value="">移動到…</option>${[pj, ...descendants(pj.id)].filter((x) => !fam.has(x.id) || x.id === pj.id).filter((x) => x.id !== n.parent && !descendants(n.id).some((d) => d.id === x.id) && x.id !== n.id).map((x) => `<option value="${x.id}">${'　'.repeat(depth(x))}${esc(x.title)}</option>`).join('')}</select>
       <button class="btn sm" type="button" data-copy="${n.id}" ${can('create', n) ? '' : 'disabled'}>複製子樹</button></div></div>
-    <div class="dlg-actions"><div class="left"><button class="btn sm danger" type="button" data-del="${n.id}" ${can('delete', n) && n.type !== 'phase' ? '' : 'disabled'}>刪除</button><button class="btn sm" type="button" data-enter="${n.id}">進入此節點</button></div>
+    <div class="dlg-actions"><div class="left"><button class="btn sm danger" type="button" data-del="${n.id}" ${can('delete', n) && n.type !== 'phase' ? '' : 'disabled'}>刪除</button><button class="btn sm" type="button" data-enter="${n.id}">進入此節點</button>
+      ${n.type === 'task' && !DONE(n.status) ? `<button class="btn sm" type="button" data-skip="${n.id}" ${can('override', n) || can('edit', n) ? '' : 'disabled'}>⤳ 跳過任務</button>` : ''}
+      ${n.status === 'skipped' && can('override', n) ? `<button class="btn sm" type="button" data-restore="${n.id}">恢復任務</button>` : ''}</div>
       <button class="btn" type="button" data-close-drawer>取消</button><button class="btn primary" type="submit" ${ed ? '' : 'disabled'}>儲存</button></div>
   </form>`;
   if (!d.open) d.showModal();
@@ -2368,7 +2424,7 @@ function openBlockDialog(n, to, bl) {
 }
 function submitBlock(id, to, reason) {
   const n = node(id); const bl = findBlockers(n, to).filter((b) => b.hard);
-  const rec = { id: newId('o'), node: id, to, blockers: bl.map((b) => b.text), depIds: bl.filter((b) => b.dep).map((b) => b.dep.id), reason, by: ui.me, at: nowStr() };
+  const rec = { id: newId('o'), kind: 'dep', node: id, to, blockers: bl.map((b) => b.text), depIds: bl.filter((b) => b.dep).map((b) => b.dep.id), reason, by: ui.me, at: nowStr() };
   closeDlg();
   if (can('override', n)) {
     db.overrides.unshift({ ...rec, status: 'approved', decidedBy: ui.me, decidedAt: nowStr(), self: true });
@@ -2386,14 +2442,17 @@ function submitBlock(id, to, reason) {
 function decideOverride(oid, ok) {
   const o = db.overrides.find((x) => x.id === oid); if (!o) return;
   const n = node(o.node);
+  const isTask = o.kind === 'task';
   commit(`${ok ? '核准' : '退回'}跳過申請`, () => {
     o.status = ok ? 'approved' : 'rejected'; o.decidedBy = ui.me; o.decidedAt = nowStr();
     if (ok && o.gate) { db.gates[o.node].status = 'overridden'; db.gates[o.node].by = ui.me; db.gates[o.node].at = nowStr(); }
-    if (ok && !o.gate) db.deps.forEach((d) => { if (o.depIds.includes(d.id)) d.overridden = true; });
+    if (ok && isTask && n) applySkip(o);
+    if (ok && !o.gate && !isTask) db.deps.forEach((d) => { if (o.depIds.includes(d.id)) d.overridden = true; });
   });
-  log(o.node, '審核', `${ok ? '核准' : '退回'} ${uname(o.by)} 的${o.gate ? '閘門' : '跳過'}申請：「${n?.title}」`);
+  log(o.node, '審核', `${ok ? '核准' : '退回'} ${uname(o.by)} 的${o.gate ? '閘門' : isTask ? '跳過任務' : '跳過'}申請：「${n?.title}」`);
   notify(`${uname(ui.me)} ${ok ? '核准' : '退回'}了 ${uname(o.by)} 的申請：「${n?.title}」${ok && !o.gate ? `，已移到「${STLBL[o.to]}」` : ''}`, '審核結果');
-  if (ok && !o.gate && n) setStatus(n.id, o.to, { force: true, system: '跳過申請核准', reason: o.reason, actor: ui.me });
+  if (ok && isTask && n) announceUnlocks(n);
+  if (ok && !o.gate && !isTask && n) setStatus(n.id, o.to, { force: true, system: '跳過申請核准', reason: o.reason, actor: ui.me });
 }
 function openGate(phId) {
   const ph = node(phId); const g = db.gates[phId]; const met = gateCriteriaMet(ph);
@@ -2415,11 +2474,11 @@ function submitGate(phId, act) {
   if ((act === 'override' || act === 'request') && !reason) return toast('請填寫理由', 'warn');
   closeDlg();
   if (act === 'request') {
-    db.overrides.unshift({ id: newId('o'), node: phId, gate: true, to: 'gate', blockers: ['閘門完成標準未達成：' + g.criteria], depIds: [], reason, by: ui.me, at: nowStr(), status: 'pending' });
+    db.overrides.unshift({ id: newId('o'), kind: 'gate', node: phId, gate: true, to: 'gate', blockers: ['閘門完成標準未達成：' + g.criteria], depIds: [], reason, by: ui.me, at: nowStr(), status: 'pending' });
     save(); log(phId, '閘門', `申請通過「${ph.title}」閘門，理由：${reason}`);
     notify(`已送出閘門申請：「${ph.title}」，已通知：${approversFor(ph).map(uname).join('、')}`, '閘門申請'); return render();
   }
-  commit(`閘門「${ph.title}」`, () => { g.status = act === 'approve' ? 'approved' : 'overridden'; g.by = ui.me; g.at = nowStr(); if (act === 'override') db.overrides.unshift({ id: newId('o'), node: phId, gate: true, to: 'gate', blockers: ['閘門完成標準未達成'], depIds: [], reason, by: ui.me, at: nowStr(), status: 'approved', decidedBy: ui.me, decidedAt: nowStr(), self: true }); });
+  commit(`閘門「${ph.title}」`, () => { g.status = act === 'approve' ? 'approved' : 'overridden'; g.by = ui.me; g.at = nowStr(); if (act === 'override') db.overrides.unshift({ id: newId('o'), kind: 'gate', node: phId, gate: true, to: 'gate', blockers: ['閘門完成標準未達成'], depIds: [], reason, by: ui.me, at: nowStr(), status: 'approved', decidedBy: ui.me, decidedAt: nowStr(), self: true }); });
   log(phId, '閘門', `${act === 'approve' ? '核准' : '覆寫通過'}「${ph.title}」階段閘門${reason ? '，理由：' + reason : ''}`);
   const nx = currentPhase(projectOf(ph));
   notify(`「${ph.title}」閘門${act === 'approve' ? '已核准' : '已覆寫通過'}。${nx ? `目前階段：${nx.title}` : '所有階段閘門皆已通過。'}`, '階段閘門');
@@ -2796,6 +2855,24 @@ function openNoteEdit(noteId) {
     <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn primary" type="submit">儲存</button></div></form>`);
 }
 
+function openSkipDialog(id) {
+  const n = node(id);
+  if (!n || n.type !== 'task' || DONE(n.status)) return toast('這個任務不能跳過', 'warn');
+  const canOv = can('override', n);
+  if (!canOv && !can('edit', n)) return toast('你的角色無權跳過此任務', 'warn');
+  if (pendingSkip(id)) return toast('已有待審核的跳過申請', 'warn');
+  const tg = skipTargets(n);
+  const fam = new Set(tg.map((x) => x.id));
+  const unlock = [...new Set(db.deps.filter((d) => fam.has(d.from) && !fam.has(d.to) && node(d.to) && !DONE(node(d.to).status)).map((d) => node(d.to).title))];
+  openDlg(`<form id="skipForm" data-id="${id}"><h2 class="serif">⤳ 跳過任務：${esc(n.title)}</h2>
+    <p style="margin-top:-6px">以下 ${tg.length} 項會標為「已跳過」，進度算 100%：</p>
+    <div class="listpick">${tg.map((x) => `<label><span class="dot ${x.status}"></span>${esc(x.title)}<span class="muted" style="margin-left:auto">${STLBL[x.status]}</span></label>`).join('')}</div>
+    ${unlock.length ? `<div class="small muted" style="margin-top:8px">可能解鎖的後續任務：${esc(unlock.join('、'))}</div>` : ''}
+    <div class="note" style="margin-top:12px">${canOv ? '你有覆寫權限，會直接跳過並寫入稽核紀錄；之後可在任務頁按「恢復任務」。' : `你的角色（${ROLES[me().role]}）無法自行跳過，會送出跳過申請給：${esc(approversFor(n).map(uname).join('、'))}。`}</div>
+    <div class="field" style="margin-top:12px"><label for="sReason">理由（必填）</label><textarea id="sReason" style="min-height:80px" placeholder="例如：客戶取消此規格，這項測試不需要做了"></textarea></div>
+    <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn ${canOv ? 'warn' : 'primary'}" type="submit">${canOv ? '跳過任務' : '送出跳過申請'}</button></div></form>`);
+}
+
 /* ================= 事件繫結 ================= */
 document.addEventListener('click', (e) => {
   const t = e.target.closest('button, tr.click, [data-gnode], [data-enter]'); if (!t) return;
@@ -2829,6 +2906,8 @@ document.addEventListener('click', (e) => {
   if (ds.tplsrc) { const st = ui.tplState; return openApplyTpl(st.nodeId, $('tSel') ? $('tSel').value : undefined, ds.tplsrc, ''); }
   if (ds.saveTpl) return openSaveTpl(ds.saveTpl);
   if (ds.gate) return openGate(ds.gate);
+  if (ds.skip) { closeDrawer(); return openSkipDialog(ds.skip); }
+  if (ds.restore) { closeDrawer(); const r = restoreTask(ds.restore); return r.ok ? toast('已恢復任務') : toast(r.error, 'warn'); }
   if (ds.report) { closeDrawer(); return openReportDialog(ds.report); }
   if (ds.repApprove) { decideReport(ds.repApprove, true); return toast('已確認完成'); }
   if (ds.repReject) return openRejectReport(ds.repReject);
@@ -2970,6 +3049,7 @@ document.addEventListener('submit', (e) => {
     if (more) { const dur = D(en) - D(s); const names = [...(ui.qaNames || []), title]; return openQuickAdd(f.dataset.parent, S(D(en) + 1), S(D(en) + 1 + dur), { prev: id, owner, tag, added: names.length, names }); }
     return toast(`已新增「${title}」`, null, { label: '復原', fn: undo });
   }
+  if (f.id === 'skipForm') { const r = skipTask(f.dataset.id, $('sReason').value); if (!r.ok) return toast(r.error, 'warn'); closeDlg(); return toast(r.mode === 'skipped' ? '已跳過任務' : '已送出跳過申請'); }
   if (f.id === 'reportForm') {
     const nid = f.dataset.node; const n = node(nid);
     const data = {
@@ -3075,7 +3155,7 @@ $('dlg').addEventListener('click', (e) => { if (e.target === $('dlg')) closeDlg(
 /* ================= 啟動 ================= */
 load();
 migrate();
-ui.chat.push({ title: '歡迎', text: `這是依 README 規格（F1–F10）製作的完整互動 Demo，資料存在你的瀏覽器。\n\n可以試試：\n· 點卡片標題進入任一層（專案 → 階段 → 任務 → 子任務）\n· 時程拖曳移動 / 拉伸，勾選自動順延，按「關鍵路徑」\n· 用「阿明（成員）」把 🔒 任務拖到進行中 → 送出跳過申請\n· 營運資料 → ERP 同步 → 看交期延誤如何影響上市日\n· 左下角切換成「小林（行銷）」，看權限與機密欄位差異` });
+ui.chat.push({ title: '歡迎', text: `這是依 README 規格（F1–F10）製作的完整互動 Demo，資料存在你的瀏覽器。\n\n可以試試：\n· 點卡片標題進入任一層（專案 → 階段 → 任務 → 子任務）\n· 時程拖曳移動 / 拉伸，勾選自動順延，按「關鍵路徑」\n· 用「阿明（成員）」把 🔒 任務拖到進行中 → 送出跳過申請\n· 任務頁「紀錄」分頁：回報完成、寫筆記、上傳附件；卡片上的 ⤳ 可以跳過整個任務\n· 營運資料 → ERP 同步 → 看交期延誤如何影響上市日\n· 左下角切換成「小林（行銷）」，看權限與機密欄位差異` });
 render();
 fileStore.check().then(() => render());
 </script>

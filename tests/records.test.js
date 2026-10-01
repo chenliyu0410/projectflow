@@ -222,6 +222,49 @@
     ok(m.querySelector(`[data-rep-approve="${pendingReport('t30121').id}"]:not([disabled])`));
   });
 
+  // ── Task 6：跳過任務 ──
+  await T('成員申請跳過 → 範圍內審核人核准 → 已跳過、進度 100%', () => {
+    as('ming');
+    eq(skipTask('t30122', '').error, '請填寫理由');
+    const r = skipTask('t30122', '品保已在現場確認');
+    eq(r.mode, 'requested'); eq(node('t30122').status, 'todo');
+    const o = pendingSkip('t30122'); eq(o.kind, 'task');
+    eq(skipTask('t30122', '再申請一次').error, '已有待審核的跳過申請');
+    as('chen'); decideOverride(o.id, true);
+    eq(node('t30122').status, 'skipped'); eq(prog(node('t30122')), 100); eq(o.prev, { t30122: 'todo' });
+  });
+  await T('主管直接跳過上層任務：未完成子任務一起跳過；恢復後回到原狀態', () => {
+    const r = skipTask('t3012', '改用新的殺菌釜，不需調整');
+    eq(r.mode, 'skipped');
+    eq(['t3012', 't30121', 't30122'].map((id) => node(id).status), ['skipped', 'skipped', 'skipped']);
+    ok(!canReport(node('t30121')), '已跳過不能送回報');
+    ok(restoreTask('t3012').ok);
+    eq(['t3012', 't30121', 't30122'].map((id) => node(id).status), ['doing', 'doing', 'todo']);
+  });
+  await T('跳過時自動結案待確認的回報', async () => {
+    as('ming'); await submitReport('t30121', { result: 'met', summary: '完成', finished_on: '2026-09-30', values: {} });
+    as('yu'); skipTask('t30121', '不需要了');
+    const rep = db.reports.find((x) => x.node_id === 't30121');
+    eq(rep.status, 'rejected'); eq(rep.review_comment, '任務已跳過，回報自動結案');
+  });
+  await T('只恢復被連帶跳過的子任務時，只動它自己', () => {
+    skipTask('t3012', '整段不做');
+    ok(restoreTask('t30122').ok);
+    eq(['t3012', 't30121', 't30122'].map((id) => node(id).status), ['doing', 'skipped', 'todo']);
+  });
+  await T('成員不能恢復；編輯器狀態選單不提供「已跳過」', () => {
+    skipTask('t30122', '不做');
+    as('ming'); eq(restoreTask('t30122').ok, false);
+    as('yu'); openEditor('t30121');
+    ok(![...document.querySelectorAll('#eStatus option')].some((o) => o.value === 'skipped'), '未跳過的任務不能從選單選「已跳過」');
+    ok(document.querySelector('#edForm [data-skip="t30121"]'), '編輯器應有跳過按鈕');
+    closeDrawer();
+  });
+  await T('既有覆寫紀錄帶有 kind', () => {
+    as('ming'); submitBlock('t3013', 'doing', '先開始');
+    eq(db.overrides[0].kind, 'dep');
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
