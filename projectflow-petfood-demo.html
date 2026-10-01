@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>專流 ProjectFlow｜寵物罐頭開發 Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+:root{
+  --ground:#F6F4EF; --side:#EFEBE3; --col:#EFEBE3; --surface:#FFFFFF;
+  --ink:#1C1B19; --ink2:#3D3A35; --muted:#5E5B55; --line:#E3DFD6; --line2:#D3CCBF;
+  --teal:#1F5F5B; --teal-soft:#E4EFEE; --orange:#B4541F; --orange-soft:#F7E6DA; --orange-ink:#8A3F16;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--ground);color:var(--ink);font-size:14px}
+button,input{font-family:inherit;font-size:14px;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.serif{font-family:"Noto Serif TC",serif}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.app{display:flex;height:100vh;min-height:640px}
+
+/* 側邊欄 */
+.side{width:248px;flex-shrink:0;background:var(--side);border-right:1px solid #E0DBD0;display:flex;flex-direction:column;padding:20px 14px;gap:24px;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand .mark{width:32px;height:32px;border-radius:8px;background:var(--teal);display:flex;align-items:center;justify-content:center}
+.brand b{font-size:19px;letter-spacing:.5px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;color:var(--ink2);text-decoration:none}
+.nav a:hover{background:#E6E1D6}
+.group-title{font-size:12px;font-weight:700;color:var(--muted);padding:0 10px;letter-spacing:1px}
+.plist{display:flex;flex-direction:column;gap:6px}
+.pbtn{display:flex;align-items:center;gap:10px;padding:10px;min-height:44px;border:none;border-radius:8px;text-align:left;width:100%;background:transparent}
+.pbtn:hover{background:#E6E1D6}
+.pbtn[aria-current="true"]{background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.pdot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.pinfo{display:flex;flex-direction:column;gap:6px;flex-grow:1;min-width:0}
+.pname{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptrack{height:4px;border-radius:2px;background:#DAD4C8;overflow:hidden}
+.ptrack span{display:block;height:100%;transition:width .3s}
+.ppct{font-size:12px;color:var(--muted)}
+.newp{display:flex;align-items:center;gap:8px;padding:10px;min-height:44px;border:1px dashed #C9C2B4;border-radius:8px;background:transparent;color:var(--muted);margin-top:4px}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:#E6E1D6}
+.avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+/* 主區 */
+.main{flex-grow:1;min-width:0;display:flex;flex-direction:column;padding:24px 28px;gap:20px;overflow:hidden}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.crumb{font-size:13px;color:var(--muted)}
+h1{margin:6px 0;font-size:30px}
+.meta{display:flex;gap:16px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.head-actions{display:flex;align-items:center;gap:10px}
+.members{display:flex;padding-left:8px}
+.members span{width:34px;height:34px;background:var(--surface);border:2px solid var(--ground);margin-left:-8px;font-size:13px;color:var(--teal)}
+.btn{height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line2);background:var(--surface);display:inline-flex;align-items:center;gap:8px}
+.btn.primary{border:none;background:var(--teal);color:#fff;font-weight:500}
+.btn.primary:hover{background:#174A47}
+
+.phases{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 20px;display:flex;gap:8px}
+.phase{flex:1 1 0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.phase .bar{height:6px;border-radius:3px;background:#E6E1D6}
+.phase .row{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.phase .nm{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phase .st{font-size:12px;color:var(--muted);white-space:nowrap}
+.phase.next .nm{color:var(--muted)}
+.phase.cur .nm{font-weight:700}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;background:#EAE6DD;padding:4px;border-radius:10px}
+.tab{height:36px;padding:0 18px;border:none;border-radius:8px;background:transparent}
+.tab[aria-selected="true"]{background:var(--surface);font-weight:700}
+.count{font-size:13px;color:var(--muted)}
+
+.view{flex-grow:1;min-height:0}
+.board{height:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.column{background:var(--col);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto;transition:background .15s}
+.column.over{background:#E2DCCF}
+.colhead{display:flex;justify-content:space-between;align-items:center;padding:2px 4px}
+.colhead b{font-size:14px}
+.colhead span{font-size:12px;color:var(--muted);background:#E0DBD0;border-radius:10px;padding:2px 8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;cursor:grab}
+.card:active{cursor:grabbing}
+.card.dragging{opacity:.4}
+.card.late{border-color:#E3B294}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12px;padding:2px 8px;border-radius:6px;background:var(--teal-soft);color:var(--teal)}
+.tag.ai{background:var(--orange-soft);color:var(--orange-ink)}
+.tag.warn{background:#FBE9E0;color:#8A2E0F}
+.ctitle{font-weight:500;line-height:1.5}
+.cfoot{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+.who{display:flex;align-items:center;gap:6px}
+.who .avatar{width:22px;height:22px;background:#EAE6DD;font-size:11px;color:var(--ink2)}
+.hint{font-size:12px;color:var(--muted);text-align:center;padding:8px}
+
+.timeline{height:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 20px;display:flex;flex-direction:column;overflow:auto}
+.trow{display:flex;gap:12px;align-items:center;min-height:40px;border-top:1px solid #F0EDE6}
+.trow.header{border-top:none;min-height:28px}
+.tlabel{width:240px;flex-shrink:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow.header .tlabel{font-size:12px;font-weight:700;color:var(--muted)}
+.months{flex-grow:1;display:grid;grid-template-columns:repeat(8,minmax(0,1fr))}
+.months span{font-size:12px;color:var(--muted);border-left:1px solid #ECE8E0;padding-left:6px}
+.ttrack{flex-grow:1;position:relative;height:24px;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(12.5% - 1px),#F0EDE6 calc(12.5% - 1px),#F0EDE6 12.5%)}
+.gbar{position:absolute;top:0;height:24px;border-radius:6px;font-size:11px;color:#fff;display:flex;align-items:center;padding-left:8px;white-space:nowrap;overflow:hidden}
+.gbar.done{background:#8A8479 !important}
+
+.docs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-content:start}
+.doc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.doc b{font-size:15px;font-weight:500}
+.doc span{font-size:12px;color:var(--muted)}
+
+/* AI 副手 */
+.ai{width:340px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--line);display:flex;flex-direction:column;padding:22px 20px;gap:16px;overflow:hidden}
+.aihead{display:flex;align-items:center;gap:10px}
+.aihead .avatar{width:32px;height:32px;background:var(--orange-soft)}
+.aihead b{font-size:17px}
+.aihead small{display:block;font-size:12px;color:var(--muted)}
+.risk{background:#FBF3EC;border:1px solid #EFD9C8;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.risk b{font-size:12px;color:var(--orange-ink)}
+.risk p{margin:0;font-size:13px;line-height:1.6}
+.actions{display:flex;flex-direction:column;gap:8px}
+.act{min-height:44px;padding:0 14px;border-radius:10px;text-align:left;border:1px solid var(--line);background:var(--surface)}
+.act:hover{border-color:var(--line2)}
+.act[aria-pressed="true"]{border-color:var(--teal);background:var(--teal-soft)}
+.chat{flex-grow:1;min-height:0;background:var(--ground);border-radius:12px;padding:14px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;flex-direction:column;gap:6px}
+.msg b{font-size:12px;color:var(--teal)}
+.msg p{margin:0;font-size:13px;line-height:1.7;white-space:pre-line}
+.msg.user p{background:var(--surface);border-radius:10px;padding:8px 12px;align-self:flex-end;max-width:90%}
+.empty{font-size:13px;color:var(--muted);line-height:1.7}
+.ask{display:flex;gap:8px}
+.ask input{flex-grow:1;min-width:0;height:44px;border:1px solid var(--line2);border-radius:10px;padding:0 12px;background:var(--surface)}
+.ask button{width:44px;height:44px;border-radius:10px;border:none;background:var(--teal);display:flex;align-items:center;justify-content:center}
+
+/* 對話框 */
+dialog{border:none;border-radius:14px;padding:24px;width:min(420px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.2)}
+dialog::backdrop{background:rgba(28,27,25,.35)}
+dialog h2{margin:0 0 16px;font-size:20px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:13px;font-weight:500}
+.field input,.field select{height:40px;border:1px solid var(--line2);border-radius:8px;padding:0 10px;background:#fff;font-family:inherit;font-size:14px}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+
+@media (max-width:1100px){.ai{display:none}}
+@media (max-width:820px){
+  .side{display:none}
+  .board{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .docs{grid-template-columns:1fr}
+  .tlabel{width:130px}
+  .main{overflow:auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="side">
+    <div class="brand">
+      <div class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M4 12h16M4 18h7"/><circle cx="18" cy="6" r="2"/></svg></div>
+      <b class="serif">專流 ProjectFlow</b>
+    </div>
+    <nav class="nav" aria-label="主要導覽">
+      <a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>所有專案總覽</a>
+      <a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>我的任務</a>
+      <a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 4h16v12H5.2L4 17.5z"/></svg>AI 收件匣</a>
+    </nav>
+    <div class="plist">
+      <div class="group-title">開發中的產品</div>
+      <div id="projectList" class="plist"></div>
+      <button class="newp" type="button" id="newProjectBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>用 AI 建立新專案</button>
+    </div>
+    <div class="me">
+      <div class="avatar" style="width:34px;height:34px;background:var(--orange);color:#fff">瑜</div>
+      <div><div style="font-weight:500">力瑜</div><div style="font-size:12px;color:var(--muted)">研發專案負責人</div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="head">
+      <div>
+        <div class="crumb" id="crumb"></div>
+        <h1 class="serif" id="pTitle"></h1>
+        <div class="meta"><span id="pGoal"></span><span id="pDue"></span></div>
+      </div>
+      <div class="head-actions">
+        <div class="members" id="members"></div>
+        <button class="btn" type="button">分享</button>
+        <button class="btn primary" type="button" id="addTaskBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>新增任務</button>
+      </div>
+    </header>
+
+    <section class="phases" id="phases" aria-label="開發階段"></section>
+
+    <div class="toolbar">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-view="board" type="button">看板</button>
+        <button class="tab" role="tab" data-view="timeline" type="button">時程</button>
+        <button class="tab" role="tab" data-view="docs" type="button">文件</button>
+      </div>
+      <div class="count" id="count"></div>
+    </div>
+
+    <div class="view" id="view"></div>
+  </main>
+
+  <aside class="ai" aria-label="AI 專案副手">
+    <div class="aihead">
+      <div class="avatar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B4541F" stroke-width="2" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></div>
+      <div><b class="serif">AI 專案副手</b><small>已讀取本專案的任務、文件與活動紀錄</small></div>
+    </div>
+    <div class="risk"><b>風險提醒</b><p id="risk"></p></div>
+    <div class="actions">
+      <div class="group-title" style="padding:0">快速指令</div>
+      <button class="act" type="button" data-act="report">產生本週進度報告</button>
+      <button class="act" type="button" data-act="risk">分析延遲風險</button>
+      <button class="act" type="button" data-act="plan">拆解下一階段任務</button>
+    </div>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <form class="ask" id="askForm">
+      <label for="askInput" class="sr">詢問 AI</label>
+      <input id="askInput" placeholder="例如：殺菌重測會影響上市日嗎？" autocomplete="off">
+      <button type="submit" aria-label="送出"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+  </aside>
+</div>
+
+<dialog id="taskDialog">
+  <form method="dialog" id="taskForm">
+    <h2 class="serif">新增任務</h2>
+    <div class="field"><label for="fTitle">任務名稱</label><input id="fTitle" required placeholder="例如：重金屬檢驗送驗"></div>
+    <div class="field"><label for="fTag">類別</label>
+      <select id="fTag"><option>配方</option><option>試作</option><option>製程</option><option>品保</option><option>檢驗</option><option>法規</option><option>採購</option><option>市場</option></select></div>
+    <div class="field"><label for="fWho">負責人</label><select id="fWho"></select></div>
+    <div class="field"><label for="fDue">截止日（月/日）</label><input id="fDue" placeholder="11/30"></div>
+    <div class="dlg-actions">
+      <button class="btn" value="cancel" type="button" id="cancelTask">取消</button>
+      <button class="btn primary" value="ok" type="submit">建立任務</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const PHASES = ['市場與配方', '小量試作', '殺菌與保存', '檢驗與適口性', '量產上市'];
+const PEOPLE = { '瑜': '力瑜', '明': '阿明', '安': '小安', '華': '阿華' };
+const COLS = [['todo', '待辦'], ['doing', '進行中'], ['review', '審核中'], ['done', '已完成']];
+
+const projects = [
+  {
+    name: '成貓主食罐・鮪魚雞肉', color: '#1F5F5B', goal: '開發符合成貓完整均衡營養標準的主食罐', due: '2027/03/31',
+    phase: 2, members: ['瑜', '明', '安', '華'],
+    risk: '「殺菌條件驗證」F0 值未達目標，需調整殺菌時間後重測。「加速保存試驗」必須等殺菌條件定案才能開始，預估上市時程會延後 2 至 3 週。',
+    tasks: [
+      { id: 1, title: '競品分析與產品定位', col: 'done', who: '安', due: '08/15', tag: '市場', s: 0, l: 1 },
+      { id: 2, title: '配方設計（營養標準比對）', col: 'done', who: '瑜', due: '09/10', tag: '配方', s: 0, l: 2 },
+      { id: 3, title: '原料供應商評估與送樣', col: 'done', who: '華', due: '09/20', tag: '採購', s: 1, l: 1 },
+      { id: 4, title: '小量試作與質地調整', col: 'review', who: '瑜', due: '10/05', tag: '試作', s: 2, l: 1 },
+      { id: 5, title: '殺菌條件驗證（F0 值）', col: 'doing', who: '明', due: '10/15', tag: '製程', s: 3, l: 1, late: true },
+      { id: 6, title: '加速保存試驗', col: 'todo', who: '明', due: '12/15', tag: '品保', s: 4, l: 2, ai: true, dep: 5 },
+      { id: 7, title: '營養成分送驗', col: 'todo', who: '瑜', due: '11/20', tag: '檢驗', s: 4, l: 1, dep: 5 },
+      { id: 8, title: '適口性測試（雙碗試驗）', col: 'todo', who: '瑜', due: '12/05', tag: '測試', s: 5, l: 1, ai: true, dep: 4 },
+      { id: 9, title: '包裝標示審查', col: 'doing', who: '安', due: '11/30', tag: '法規', s: 5, l: 2 }
+    ],
+    docs: [['配方表 v3', '力瑜編輯，2 則留言'], ['殺菌試驗紀錄', '第 2 次測試未達標'], ['10/02 研發會議紀錄', 'AI 已抽出 3 項待辦'], ['供應商評估表', '3 家通過']]
+  },
+  {
+    name: '高齡犬關節保健罐', color: '#B4541F', goal: '為高齡犬開發添加關節保健成分的副食罐', due: '2027/05/31',
+    phase: 0, members: ['瑜', '華'],
+    risk: '保健原料的供應商交期約 8 週，比配方定案時間還長，建議現在就先向供應商索取樣品。',
+    tasks: [
+      { id: 11, title: '高齡犬市場調查', col: 'done', who: '華', due: '09/30', tag: '市場', s: 0, l: 1 },
+      { id: 12, title: '保健原料文獻整理', col: 'doing', who: '瑜', due: '10/20', tag: '配方', s: 0, l: 2 },
+      { id: 13, title: '保健原料供應商詢價', col: 'todo', who: '華', due: '10/31', tag: '採購', s: 1, l: 2, ai: true },
+      { id: 14, title: '初版配方設計', col: 'todo', who: '瑜', due: '11/15', tag: '配方', s: 2, l: 1, dep: 12 }
+    ],
+    docs: [['市場調查摘要', 'AI 產生'], ['原料文獻清單', '12 篇']]
+  },
+  {
+    name: '化毛配方貓零食罐', color: '#4A5A8C', goal: '推出高纖化毛配方的貓用零食罐', due: '2026/12/31',
+    phase: 4, members: ['瑜', '明', '安'],
+    risk: '目前進度正常。第一批量產前，建議再確認一次包材庫存與封罐機排程。',
+    tasks: [
+      { id: 21, title: '配方定案', col: 'done', who: '瑜', due: '05/30', tag: '配方', s: 0, l: 1 },
+      { id: 22, title: '殺菌與保存試驗', col: 'done', who: '明', due: '08/15', tag: '品保', s: 1, l: 3 },
+      { id: 23, title: '檢驗報告與標示定稿', col: 'done', who: '安', due: '09/20', tag: '法規', s: 4, l: 1 },
+      { id: 24, title: '首批量產排程', col: 'doing', who: '明', due: '10/20', tag: '生產', s: 5, l: 1 },
+      { id: 25, title: '通路上架準備', col: 'todo', who: '安', due: '11/30', tag: '行銷', s: 6, l: 2, ai: true }
+    ],
+    docs: [['量產 SOP', '已核准'], ['上市行銷企劃', '草稿']]
+  }
+];
+
+const state = { pid: 0, view: 'board', chat: [], act: null, nextId: 100 };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const cur = () => projects[state.pid];
+const pct = (p) => Math.round(p.tasks.filter((t) => t.col === 'done').length / p.tasks.length * 100);
+
+function renderProjects() {
+  $('projectList').innerHTML = projects.map((p, i) => `
+    <button class="pbtn" type="button" data-pid="${i}" aria-current="${i === state.pid}">
+      <span class="pdot" style="background:${p.color}"></span>
+      <span class="pinfo"><span class="pname">${esc(p.name)}</span>
+      <span class="ptrack"><span style="width:${pct(p)}%;background:${p.color}"></span></span></span>
+      <span class="ppct">${pct(p)}%</span>
+    </button>`).join('');
+}
+
+function renderHeader() {
+  const p = cur();
+  $('crumb').textContent = '產品開發 / ' + p.name;
+  $('pTitle').textContent = p.name;
+  $('pGoal').textContent = '目標：' + p.goal;
+  $('pDue').textContent = '預計上市：' + p.due;
+  $('members').innerHTML = p.members.map((m) => `<span class="avatar" title="${PEOPLE[m]}">${m}</span>`).join('');
+  $('phases').innerHTML = PHASES.map((n, i) => {
+    const st = i < p.phase ? 'done' : i === p.phase ? 'cur' : 'next';
+    const bg = st === 'done' ? p.color : st === 'cur' ? '#E8A77F' : '#E6E1D6';
+    return `<div class="phase ${st}"><div class="bar" style="background:${bg}"></div>
+      <div class="row"><span class="nm">${n}</span><span class="st">${st === 'done' ? '完成' : st === 'cur' ? '進行中' : ''}</span></div></div>`;
+  }).join('');
+  const done = p.tasks.filter((t) => t.col === 'done').length;
+  $('count').textContent = `共 ${p.tasks.length} 項任務，完成 ${done} 項`;
+  $('risk').textContent = p.risk;
+  document.querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === state.view));
+}
+
+function cardHTML(t) {
+  const p = cur();
+  const dep = t.dep ? p.tasks.find((x) => x.id === t.dep) : null;
+  const blocked = dep && dep.col !== 'done' && t.col !== 'done';
+  return `<article class="card ${t.late && t.col !== 'done' ? 'late' : ''}" draggable="true" data-id="${t.id}">
+    <div class="tags"><span class="tag">${esc(t.tag)}</span>
+      ${t.ai ? '<span class="tag ai">AI 建議</span>' : ''}
+      ${t.late && t.col !== 'done' ? '<span class="tag warn">需重測</span>' : ''}
+      ${blocked ? '<span class="tag warn">等待前置任務</span>' : ''}</div>
+    <div class="ctitle">${esc(t.title)}</div>
+    <div class="cfoot"><span class="who"><span class="avatar">${t.who}</span>${PEOPLE[t.who]}</span><span>${esc(t.due)}</span></div>
+  </article>`;
+}
+
+function renderView() {
+  const p = cur();
+  const v = $('view');
+  if (state.view === 'board') {
+    v.innerHTML = `<div class="board">${COLS.map(([k, n]) => {
+      const ts = p.tasks.filter((t) => t.col === k);
+      return `<section class="column" data-col="${k}" aria-label="${n}">
+        <div class="colhead"><b>${n}</b><span>${ts.length}</span></div>
+        ${ts.map(cardHTML).join('') || '<div class="hint">把任務拖到這裡</div>'}
+      </section>`;
+    }).join('')}</div>`;
+    bindDrag();
+  } else if (state.view === 'timeline') {
+    v.innerHTML = `<div class="timeline">
+      <div class="trow header"><div class="tlabel">任務</div><div class="months">${[1,2,3,4,5,6,7,8].map((m) => `<span>第 ${m} 月</span>`).join('')}</div></div>
+      ${p.tasks.map((t) => `<div class="trow"><div class="tlabel" title="${esc(t.title)}">${esc(t.title)}</div>
+        <div class="ttrack"><div class="gbar ${t.col === 'done' ? 'done' : ''}" style="left:${t.s / 8 * 100}%;width:${t.l / 8 * 100}%;background:${p.color}">${PEOPLE[t.who]}</div></div></div>`).join('')}
+    </div>`;
+  } else {
+    v.innerHTML = `<div class="docs">${p.docs.map(([n, m]) => `<div class="doc">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5F5B" stroke-width="1.8" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
+      <b>${esc(n)}</b><span>${esc(m)}</span></div>`).join('')}</div>`;
+  }
+}
+
+function bindDrag() {
+  document.querySelectorAll('.card').forEach((c) => {
+    c.addEventListener('dragstart', (e) => { c.classList.add('dragging'); e.dataTransfer.setData('text/plain', c.dataset.id); });
+    c.addEventListener('dragend', () => c.classList.remove('dragging'));
+  });
+  document.querySelectorAll('.column').forEach((col) => {
+    col.addEventListener('dragover', (e) => { e.preventDefault(); col.classList.add('over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('over'));
+    col.addEventListener('drop', (e) => {
+      e.preventDefault(); col.classList.remove('over');
+      const id = Number(e.dataTransfer.getData('text/plain'));
+      const t = cur().tasks.find((x) => x.id === id);
+      if (t && t.col !== col.dataset.col) {
+        const from = COLS.find(([k]) => k === t.col)[1];
+        t.col = col.dataset.col;
+        const to = COLS.find(([k]) => k === t.col)[1];
+        pushAI('活動紀錄', `「${t.title}」從「${from}」移到「${to}」。` + followUp(t));
+        renderAll();
+      }
+    });
+  });
+}
+
+function followUp(t) {
+  const p = cur();
+  if (t.col !== 'done') return '';
+  const unlocked = p.tasks.filter((x) => x.dep === t.id && x.col !== 'done');
+  return unlocked.length ? `\n\n前置任務完成，以下任務現在可以開始：\n· ${unlocked.map((x) => x.title).join('\n· ')}` : '';
+}
+
+function reply(kind) {
+  const p = cur();
+  const done = p.tasks.filter((t) => t.col === 'done');
+  const open = p.tasks.filter((t) => t.col !== 'done');
+  const next = PHASES[p.phase + 1] || '結案';
+  if (kind === 'report') {
+    return ['本週進度報告', `【${p.name}】\n目前階段：${PHASES[p.phase]}\n完成度：${pct(p)}%（${done.length} / ${p.tasks.length}）\n\n已完成：\n· ${done.map((t) => t.title).join('\n· ') || '無'}\n\n下週重點：\n· ${open.slice(0, 3).map((t) => `${t.title}（${PEOPLE[t.who]}）`).join('\n· ') || '無'}`];
+  }
+  if (kind === 'risk') {
+    const blocked = open.filter((t) => { const d = p.tasks.find((x) => x.id === t.dep); return d && d.col !== 'done'; });
+    const load = {};
+    open.forEach((t) => { load[t.who] = (load[t.who] || 0) + 1; });
+    const heavy = Object.entries(load).sort((a, b) => b[1] - a[1])[0];
+    return ['風險分析', `${p.risk}\n\n被前置任務卡住：${blocked.length ? '\n· ' + blocked.map((t) => t.title).join('\n· ') : '無'}\n\n工作量最重：${heavy ? `${PEOPLE[heavy[0]]}（${heavy[1]} 項未完成）` : '無'}\n\n建議：先確認卡關原因，再把相依任務的開始日往後調整，必要時從非關鍵任務借調人力。`];
+  }
+  return [`「${next}」任務拆解草稿`, `依目前進度，建議下一階段新增：\n· 定義「${next}」的完成標準與驗收項目\n· 確認所需設備、原料與檢驗單位排程\n· 安排一次階段檢討會議\n\n（Demo：接上 LLM 後，會依配方表與試驗紀錄產生具體任務）`];
+}
+
+function pushAI(title, text, user) {
+  if (user) state.chat.push({ user: true, text: user });
+  state.chat.push({ title, text });
+  renderChat();
+}
+
+function renderChat() {
+  const c = $('chat');
+  c.innerHTML = state.chat.length
+    ? state.chat.map((m) => m.user ? `<div class="msg user"><p>${esc(m.text)}</p></div>` : `<div class="msg"><b>${esc(m.title)}</b><p>${esc(m.text)}</p></div>`).join('')
+    : '<div class="empty">選一個快速指令、拖動看板上的任務，或直接問我關於這個專案的任何事。</div>';
+  c.scrollTop = c.scrollHeight;
+  document.querySelectorAll('.act').forEach((b) => b.setAttribute('aria-pressed', b.dataset.act === state.act));
+}
+
+function renderAll() { renderProjects(); renderHeader(); renderView(); renderChat(); }
+
+// 事件
+$('projectList').addEventListener('click', (e) => {
+  const b = e.target.closest('.pbtn'); if (!b) return;
+  state.pid = Number(b.dataset.pid); state.chat = []; state.act = null; renderAll();
+});
+document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => { state.view = b.dataset.view; renderHeader(); renderView(); }));
+document.querySelectorAll('.act').forEach((b) => b.addEventListener('click', () => {
+  state.act = b.dataset.act; const [t, x] = reply(b.dataset.act); pushAI(t, x);
+}));
+$('askForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const q = $('askInput').value.trim(); if (!q) return;
+  $('askInput').value = ''; state.act = null;
+  pushAI('AI 副手', `這是 Demo 畫面。接上 LLM 與專案 RAG 後，我會根據「${cur().name}」的任務相依關係、試驗紀錄與會議紀錄回答這個問題。`, q);
+});
+
+const dlg = $('taskDialog');
+$('addTaskBtn').addEventListener('click', () => {
+  $('fWho').innerHTML = cur().members.map((m) => `<option value="${m}">${PEOPLE[m]}</option>`).join('');
+  $('taskForm').reset(); dlg.showModal(); $('fTitle').focus();
+});
+$('cancelTask').addEventListener('click', () => dlg.close());
+$('taskForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const title = $('fTitle').value.trim(); if (!title) return;
+  const t = { id: state.nextId++, title, col: 'todo', who: $('fWho').value, due: $('fDue').value.trim() || '未定', tag: $('fTag').value, s: cur().phase + 1, l: 1 };
+  cur().tasks.push(t);
+  dlg.close();
+  pushAI('活動紀錄', `已新增任務「${title}」，指派給 ${PEOPLE[t.who]}。`);
+  renderAll();
+});
+$('newProjectBtn').addEventListener('click', () => pushAI('AI 副手', '（Demo）這裡之後會開啟 AI 精靈：輸入產品類型、目標寵物與上市時間，自動產生開發階段與初版任務清單。'));
+
+renderAll();
+</script>
+</body>
+</html>
