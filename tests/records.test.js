@@ -125,6 +125,40 @@
     eq(validateReport('t30121', { ...good, values: { sel: 'a' } }), ['「選單」的選項不正確']);
   });
 
+  // ── Task 3：自訂回報欄位 ──
+  await T('新增、上移、移除回報欄位', () => {
+    eq(addReportField('t30121', { label: '', type: 'text', extra: '', required: false }).ok, false);
+    eq(addReportField('t30121', { label: '結果', type: 'select', extra: '只有一個', required: false }).error, '選項欄位至少要有 2 個選項');
+    ok(addReportField('t30121', { label: '溫度', type: 'number', extra: '°C', required: true }).ok);
+    ok(addReportField('t30121', { label: '設備', type: 'select', extra: 'R-1, R-2，R-3', required: false }).ok);
+    let d = fieldDefs('t30121');
+    eq(d.map((x) => x.label), ['溫度', '設備']); eq(d[0].unit, '°C'); eq(d[1].options, ['R-1', 'R-2', 'R-3']);
+    moveReportField(d[1].id);
+    eq(fieldDefs('t30121').map((x) => x.label), ['設備', '溫度']);
+    removeReportField(d[1].id);
+    eq(fieldDefs('t30121').map((x) => x.label), ['溫度']);
+  });
+  await T('另存模板與套用模板會帶著回報欄位', () => {
+    const t = nodeToTemplate('t301');
+    const withF = t.nodes.filter((x) => (x.fields || []).length);
+    eq(withF.length, 2); eq(withF[0].fields[0].label, 'F0 值');
+    const before = db.reportFields.filter((f) => f.label === 'F0 值').length;
+    applyTemplate(t, 'p1c', { start: TODAY, vars: {}, structure: true, deps: false, owners: false, dates: true, docs: false });
+    eq(db.reportFields.filter((f) => f.label === 'F0 值').length, before + 2);
+  });
+  await T('複製子樹帶欄位；刪除節點清掉欄位、回報、筆記並軟刪除附件', () => {
+    const nid = copySubtree('t301');
+    const copied = descendants(nid).map((x) => x.id);
+    eq(db.reportFields.filter((f) => copied.includes(f.node_id)).length, 2);
+    db.notes.push({ id: 'ntx', node_id: 't3011', body: 'x', author: 'yu', created_at: nowStr(), edited_at: null });
+    db.attachments.push({ id: 'atx', node_id: 't3011', report_id: null, note_id: null, filename: 'a.txt', mime: 'text/plain', size: 1, sha256: '', storage_key: 'atx', uploaded_by: 'yu', uploaded_at: nowStr(), deleted_at: null });
+    deleteNode('t301');
+    eq(db.reportFields.filter((f) => ['t3011', 't3013'].includes(f.node_id)).length, 0);
+    eq(db.reports.filter((r) => r.node_id === 't3011').length, 0);
+    eq(db.notes.filter((x) => x.id === 'ntx').length, 0);
+    ok(db.attachments.find((a) => a.id === 'atx').deleted_at, '附件應被軟刪除');
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()

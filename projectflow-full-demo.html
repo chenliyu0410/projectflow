@@ -1043,6 +1043,39 @@ function decideReport(reportId, ok, comment = '', opts = {}) {
   if (!opts.self) notify(`${uname(ui.me)} ${ok ? '確認' : '退回'}了「${n.title}」的完成回報 v${r.version}${ok ? '' : `，意見：${why}`}`, '完成回報');
   return true;
 }
+
+/* ---------- 自訂回報欄位 ---------- */
+function pushField(nodeId, f, order) {
+  const d = { id: newId('rf'), node_id: nodeId, key: newId('f'), label: f.label, type: f.type, unit: f.unit || '', options: [...(f.options || [])], required: !!f.required, order };
+  db.reportFields.push(d);
+  return d;
+}
+function addReportField(nodeId, { label, type, extra, required }) {
+  const n = node(nodeId);
+  if (!n || !can('edit', n)) return { ok: false, error: '你的角色無權編輯此任務' };
+  const lb = String(label || '').trim();
+  if (!lb) return { ok: false, error: '請輸入欄位名稱' };
+  if (!FIELD_TYPES[type]) return { ok: false, error: '欄位類型不正確' };
+  const options = type === 'select' ? String(extra || '').split(/[,，、]/).map((s) => s.trim()).filter(Boolean) : [];
+  if (type === 'select' && options.length < 2) return { ok: false, error: '選項欄位至少要有 2 個選項' };
+  const unit = type === 'number' ? String(extra || '').trim() : '';
+  const defs = fieldDefs(nodeId);
+  let field;
+  commit(`新增回報欄位「${lb}」`, () => { field = pushField(nodeId, { label: lb, type, unit, options, required }, defs.length ? defs[defs.length - 1].order + 1 : 0); });
+  log(nodeId, '回報欄位', `「${n.title}」新增回報欄位「${lb}」（${FIELD_TYPES[type]}${required ? '，必填' : ''}）`);
+  return { ok: true, field };
+}
+function removeReportField(id) {
+  const f = db.reportFields.find((x) => x.id === id); if (!f) return;
+  commit(`移除回報欄位「${f.label}」`, () => { db.reportFields = db.reportFields.filter((x) => x.id !== id); });
+  log(f.node_id, '回報欄位', `移除回報欄位「${f.label}」`);
+}
+function moveReportField(id) {
+  const defs = fieldDefs((db.reportFields.find((x) => x.id === id) || {}).node_id);
+  const i = defs.findIndex((x) => x.id === id);
+  if (i <= 0) return;
+  commit('調整回報欄位順序', () => { const a = defs[i], b = defs[i - 1]; [a.order, b.order] = [b.order, a.order]; });
+}
 </script>
 <script>
 /* ================= 共用 UI ================= */
@@ -2101,6 +2134,7 @@ function copySubtree(id) {
     const walk = (src, parent) => {
       const nid = newId('n'); map[src.id] = nid;
       db.nodes[nid] = { ...clone(src), id: nid, parent, title: src.id === id ? src.title + '（複本）' : src.title, status: 'todo', progress: null, order: src.order + 0.5 };
+      fieldDefs(src.id).forEach((f, i) => pushField(nid, f, i));
       kids(src.id).forEach((c) => walk(c, nid));
     };
     walk(n, n.parent);
@@ -2116,6 +2150,10 @@ function deleteNode(id) {
     fam.forEach((x) => delete db.nodes[x]);
     db.deps = db.deps.filter((d) => !fam.has(d.from) && !fam.has(d.to));
     db.docs = db.docs.filter((d) => !fam.has(d.node));
+    db.reportFields = db.reportFields.filter((f) => !fam.has(f.node_id));
+    db.reports = db.reports.filter((r) => !fam.has(r.node_id));
+    db.notes = db.notes.filter((x) => !fam.has(x.node_id));
+    db.attachments.forEach((a) => { if (fam.has(a.node_id) && !a.deleted_at) a.deleted_at = nowStr(); });
   });
   log(parent, '刪除', `刪除「${n.title}」與 ${fam.size - 1} 個子任務`);
   if (fam.has(ui.node)) ui.node = parent;
@@ -2153,6 +2191,14 @@ function openEditor(id) {
     <div class="field"><span class="lb">協作人員</span><div class="chips">${Object.entries(USERS).filter(([id]) => id !== 'it' && id !== n.owner).map(([id, u]) => `<label><input type="checkbox" class="eCo" value="${id}" ${n.collabs.includes(id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${u.name}</label>`).join('')}</div></div>
     <div class="field"><span class="lb">協作部門</span><div class="chips">${DEPTS.map((x) => `<label><input type="checkbox" class="eDp" value="${x}" ${n.depts.includes(x) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${x}</label>`).join('')}</div></div>
     <div class="field"><label for="eNote">備註</label><textarea id="eNote" style="min-height:60px" ${ed ? '' : 'disabled'}>${esc(n.note)}</textarea></div>
+    ${leaf && n.type === 'task' ? `<div class="field"><span class="lb">回報欄位（完成回報時要填的自訂欄位）</span>
+      ${fieldDefs(n.id).map((f) => `<div class="deprow"><span style="flex-grow:1">${esc(f.label)} <span class="tag gray">${FIELD_TYPES[f.type]}${f.unit ? '・' + esc(f.unit) : ''}</span>${f.required ? ' <span class="tag warn">必填</span>' : ''}${f.type === 'select' ? ` <span class="small muted">${esc((f.options || []).join('、'))}</span>` : ''}</span>
+        <button class="iconbtn" type="button" data-rf-up="${f.id}" ${ed ? '' : 'disabled'} aria-label="上移">↑</button><button class="iconbtn" type="button" data-rf-del="${f.id}" ${ed ? '' : 'disabled'} aria-label="移除">✕</button></div>`).join('') || '<div class="small muted">無（只填固定欄位：結果、成果說明、完成日、附件）</div>'}
+      ${ed ? `<div class="deprow"><input id="rfLabel" placeholder="欄位名稱，例如 F0 值" style="flex-grow:1;min-width:120px">
+        <select id="rfType">${Object.entries(FIELD_TYPES).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select>
+        <input id="rfExtra" placeholder="單位，或選項（逗號分隔）" style="width:170px">
+        <label class="small"><input type="checkbox" id="rfReq">必填</label>
+        <button class="btn sm" type="button" data-rf-add="${n.id}">加入</button></div>` : ''}</div>` : ''}
     <div class="field"><span class="lb">前置條件（${inc.length}）</span>
       ${inc.map((x) => `<div class="deprow"><span style="flex-grow:1">${depMet(x) ? '<span class="check">✓</span>' : '<span class="cross">●</span>'} ${esc(x.cond ? x.cond.label : node(x.from)?.title)}${x.overridden ? ' <span class="tag ai">已覆寫</span>' : ''}</span>
         ${x.cond ? '<span class="tag erp">條件型</span>' : `<select data-dep-type="${x.id}" ${dp ? '' : 'disabled'}>${Object.entries(DEPTYPE).map(([k, l]) => `<option value="${k}" ${x.type === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
@@ -2301,7 +2347,8 @@ function nodeToTemplate(id, name) {
   const walk = (x, pk) => {
     const k = 'k' + nodes.length; keys[x.id] = k;
     const [a, b] = span(x);
-    nodes.push({ k: pk === null ? 'r' : k, p: pk, title: x.title, tag: x.tag, off: a - r0, dur: b - a, who: x.owner, dp: x.depts, ms: x.milestone });
+    nodes.push({ k: pk === null ? 'r' : k, p: pk, title: x.title, tag: x.tag, off: a - r0, dur: b - a, who: x.owner, dp: x.depts, ms: x.milestone,
+      fields: fieldDefs(x.id).map(({ label, type, unit, options, required }) => ({ label, type, unit, options, required })) });
     if (pk === null) keys[x.id] = 'r';
     kids(x.id).forEach((c) => walk(c, keys[x.id]));
   };
@@ -2318,6 +2365,7 @@ function applyTemplate(t, parentId, opt) {
     const par = x.p === null ? parentId : map[x.p];
     const s = opt.dates ? start + x.off : start, e = opt.dates ? s + x.dur : start;
     map[x.k] = addNode(par, { title: sub(x.title), tag: x.tag, start: S(s), end: S(Math.max(s, e)), owner: opt.owners && x.who ? x.who : ui.me, depts: opt.owners ? (x.dp || []) : [], milestone: !!x.ms });
+    (x.fields || []).forEach((f, i) => pushField(map[x.k], f, i));
   });
   if (opt.deps && opt.structure) t.deps.forEach((d) => { if (map[d.f] && map[d.t] && d.f !== 'r' && d.t !== 'r') db.deps.push({ id: newId('d'), from: map[d.f], to: map[d.t], type: d.type, lag: d.lag, enf: 'hard', cond: null, overridden: false }); });
   if (opt.docs) (t.docs || []).forEach((title) => db.docs.push({ id: newId('doc'), node: map.r || map[t.nodes[0].k], title: sub(title), level: 'internal', versions: [{ v: 1, by: ui.me, at: ymd(TODAY), body: `# ${sub(title)}\n\n（由模板「${t.name}」建立的文件範本）` }] }));
@@ -2620,6 +2668,13 @@ document.addEventListener('click', (e) => {
     log(ds.depAdd, '前置', `新增前置：「${node(from).title}」→「${node(ds.depAdd).title}」`);
     return openEditor(ds.depAdd);
   }
+  if (ds.rfAdd) {
+    const r = addReportField(ds.rfAdd, { label: $('rfLabel').value, type: $('rfType').value, extra: $('rfExtra').value, required: $('rfReq').checked });
+    if (!r.ok) return toast(r.error, 'warn');
+    return openEditor(ds.rfAdd);
+  }
+  if (ds.rfUp) { const f = db.reportFields.find((x) => x.id === ds.rfUp); moveReportField(ds.rfUp); return openEditor(f.node_id); }
+  if (ds.rfDel) { const f = db.reportFields.find((x) => x.id === ds.rfDel); removeReportField(ds.rfDel); return openEditor(f.node_id); }
   if (ds.depDel) { const d = db.deps.find((x) => x.id === ds.depDel); commit('移除前置', () => { db.deps = db.deps.filter((x) => x.id !== ds.depDel); }); log(d.to, '前置', `移除前置：${depLabel(d)}`); return openEditor(d.to); }
   if (ds.promote) { const n = node(ds.promote); closeDrawer(); return moveNode(n.id, node(n.parent).parent); }
   if (ds.demote) { const n = node(ds.demote); const sib = kids(n.parent).filter((x) => x.order < n.order).pop(); closeDrawer(); if (!sib) return toast('上方沒有同層任務可以放入', 'warn'); return moveNode(n.id, sib.id); }
