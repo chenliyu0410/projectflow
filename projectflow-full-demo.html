@@ -1023,6 +1023,10 @@ async function submitReport(nodeId, data, opts = {}) {
   if (errors.length) return { ok: false, errors };
   const hard = findBlockers(n, 'review').filter((b) => b.hard);
   if (hard.length) return { ok: false, blocked: true, errors: hard.map((b) => b.text) };
+  if (opts.selfApprove && can('override', n)) {
+    const hd = doneBlockers(n);
+    if (hd.length) return { ok: false, errors: ['前置未滿足，不能直接確認完成：' + hd.join('；')] };
+  }
   const r = buildReport(nodeId, data);
   const mark = undoMark();
   commit(`送出「${n.title}」完成回報`, () => { db.reports.push(r); });
@@ -1037,6 +1041,16 @@ async function submitReport(nodeId, data, opts = {}) {
   collapseUndo(mark);
   return { ok: true, report: r };
 }
+// 標為已完成的硬性阻擋（前置、未完成子任務），回傳說明文字
+function doneBlockers(n) { return findBlockers(n, 'done').filter((b) => b.hard).map((b) => b.text); }
+// 任務不再是葉節點時，待確認的回報自動結案（只在 commit 內呼叫）
+function closePendingReport(nodeId, why) {
+  const r = pendingReport(nodeId); if (!r) return null;
+  Object.assign(r, { status: 'rejected', reviewed_by: ui.me, reviewed_at: nowStr(), review_comment: why });
+  const n = node(nodeId);
+  log(nodeId, '完成回報', `「${n ? n.title : nodeId}」完成回報 v${r.version} 自動結案：${why}`);
+  return r;
+}
 function decideReport(reportId, ok, comment = '', opts = {}) {
   const r = db.reports.find((x) => x.id === reportId);
   if (!r || r.status !== 'submitted') return false;
@@ -1044,12 +1058,18 @@ function decideReport(reportId, ok, comment = '', opts = {}) {
   if (!n || !can('override', n)) { toast('你的角色無權審核此完成回報', 'warn'); return false; }
   const why = String(comment || '').trim();
   if (!ok && !why) { toast('退回時請填寫意見', 'warn'); return false; }
+  if (ok && !isLeaf(n)) { toast('此任務已有子任務，不能用完成回報確認完成', 'warn'); return false; }
+  if (ok) {
+    const hd = doneBlockers(n);
+    if (hd.length) { toast('前置未滿足，不能確認完成：' + hd.join('；'), 'warn'); return false; }
+  }
   const mark = undoMark();
   commit(`${ok ? '確認' : '退回'}「${n.title}」完成回報`, () => {
     Object.assign(r, { status: ok ? 'approved' : 'rejected', reviewed_by: ui.me, reviewed_at: nowStr(), review_comment: why, self_approved: !!opts.self });
   });
   log(n.id, '完成回報', `${ok ? (opts.self ? '自行確認' : '確認') : '退回'}「${n.title}」完成回報 v${r.version}${why ? `，意見：${why}` : ''}`);
-  setStatus(n.id, ok ? 'done' : 'doing', { force: true, system: ok ? (opts.self ? '完成回報自行確認' : '完成回報確認') : '完成回報退回' });
+  // 不用 force：確認前已重新檢查硬性前置；退回（審核中 → 進行中）不會遇到硬性前置
+  setStatus(n.id, ok ? 'done' : 'doing', { system: ok ? (opts.self ? '完成回報自行確認' : '完成回報確認') : '完成回報退回' });
   collapseUndo(mark);
   if (!opts.self) notify(`${uname(ui.me)} ${ok ? '確認' : '退回'}了「${n.title}」的完成回報 v${r.version}${ok ? '' : `，意見：${why}`}`, '完成回報');
   return true;
@@ -1078,11 +1098,14 @@ function addReportField(nodeId, { label, type, extra, required }) {
 }
 function removeReportField(id) {
   const f = db.reportFields.find((x) => x.id === id); if (!f) return;
+  if (!can('edit', node(f.node_id))) return toast('你的角色無權編輯此任務', 'warn');
   commit(`移除回報欄位「${f.label}」`, () => { db.reportFields = db.reportFields.filter((x) => x.id !== id); });
   log(f.node_id, '回報欄位', `移除回報欄位「${f.label}」`);
 }
 function moveReportField(id) {
-  const defs = fieldDefs((db.reportFields.find((x) => x.id === id) || {}).node_id);
+  const f = db.reportFields.find((x) => x.id === id); if (!f) return;
+  if (!can('edit', node(f.node_id))) return toast('你的角色無權編輯此任務', 'warn');
+  const defs = fieldDefs(f.node_id);
   const i = defs.findIndex((x) => x.id === id);
   if (i <= 0) return;
   commit('調整回報欄位順序', () => { const a = defs[i], b = defs[i - 1]; [a.order, b.order] = [b.order, a.order]; });
@@ -1164,7 +1187,19 @@ function skipInfo(n) { const o = skipRecordOf(n.id); return o ? `理由：${o.re
 function applySkip(o) {
   const n = node(o.node); o.prev = {};
   skipTargets(n).forEach((x) => { o.prev[x.id] = x.status; x.status = 'skipped'; });
-  db.reports.forEach((r) => { if (r.node_id in o.prev && r.status === 'submitted') Object.assign(r, { status: 'rejected', reviewed_by: o.decidedBy || ui.me, reviewed_at: nowStr(), review_comment: '任務已跳過，回報自動結案' }); });
+  db.reports.forEach((r) => {
+    if (!(r.node_id in o.prev) || r.status !== 'submitted') return;
+    Object.assign(r, { status: 'rejected', reviewed_by: o.decidedBy || ui.me, reviewed_at: nowStr(), review_comment: '任務已跳過，回報自動結案' });
+    // 回報結案後恢復任務不該停在審核中
+    if (o.prev[r.node_id] === 'review') o.prev[r.node_id] = 'doing';
+    log(r.node_id, '完成回報', `「${node(r.node_id).title}」已跳過，完成回報 v${r.version} 自動結案`);
+  });
+  // 被跳過的任務上其他待審核申請（前置跳過、子任務跳過）一併結案，避免之後核准時改回原狀態
+  db.overrides.forEach((x) => {
+    if (x === o || x.status !== 'pending' || x.gate || !(x.node in o.prev)) return;
+    Object.assign(x, { status: 'rejected', decidedBy: o.decidedBy || ui.me, decidedAt: nowStr(), note: '任務已跳過，申請自動結案' });
+    log(x.node, '審核', `「${node(x.node).title}」已跳過，${uname(x.by)} 的${x.kind === 'task' ? '跳過任務' : '跳過'}申請自動結案`);
+  });
   for (let p = n.parent ? node(n.parent) : null; p && p.type !== 'project'; p = p.parent ? node(p.parent) : null) {
     if (kids(p.id).every((c) => DONE(c.status)) && !DONE(p.status)) { p.status = 'review'; notify(`「${p.title}」的子任務全部完成或跳過，已移到「審核中」，請確認後標為完成。`); }
   }
@@ -2264,7 +2299,7 @@ function addNode(parent, o) {
   const k = kids(parent);
   // 已完成（或審核中）的任務加入新子任務：連同上層一起改回進行中
   for (let p = node(parent); p && p.type === 'task'; p = p.parent ? node(p.parent) : null) {
-    if (p.id === parent && !k.length) p.progress = null;
+    if (p.id === parent && !k.length) { p.progress = null; closePendingReport(p.id, '任務已加入子任務，回報自動結案'); }
     if (DONE(p.status) || p.status === 'review') { const from = STLBL[p.status]; p.status = 'doing'; audit.acts.unshift({ at: nowStr(), actor: ui.me, node: p.id, action: '狀態', text: `「${p.title}」加入新子任務，從「${from}」改回「進行中」` }); toast(`「${p.title}」加入新子任務，已從「${from}」改回「進行中」`); }
   }
   db.nodes[id] = { id, parent, type: 'task', title: o.title, tag: o.tag || '', status: 'todo', progress: null, weight: 1, start: o.start || TODAY, end: o.end || o.start || S(T0 + 6), milestone: !!o.milestone, locked: false, owner: o.owner || ui.me, collabs: o.collabs || [], depts: o.depts || [], level: o.level || null, ai: !!o.ai, note: o.note || '', links: o.links || [], order: (k.length ? Math.max(...k.map((x) => x.order)) : node(parent).order) + 1 };
@@ -2277,7 +2312,9 @@ function moveNode(id, np) {
   if (!can('edit', n)) return toast('你的角色無權移動此任務', 'warn');
   if (depth(p) + 1 >= 5) toast('層數超過 5 層，建議考慮拆成獨立專案', 'warn');
   const from = n.parent ? node(n.parent).title : '';
+  const wasLeaf = isLeaf(p);
   commit(`移動「${n.title}」`, () => {
+    if (wasLeaf && closePendingReport(np, '任務已移入子任務，回報自動結案') && p.status === 'review' && !DONE(n.status)) p.status = 'doing';
     n.parent = np; n.order = Math.max(0, ...kids(np).map((x) => x.order)) + 1;
     const fam = new Set([id, ...descendants(id).map((d) => d.id)]);
     db.deps = db.deps.filter((d) => !(d.from && ((fam.has(d.to) && ancestors(node(d.to)).some((a) => a.id === d.from)) || (fam.has(d.from) && node(d.to) && ancestors(node(d.from)).some((a) => a.id === d.to)))));
@@ -2458,10 +2495,17 @@ function submitBlock(id, to, reason) {
   }
 }
 function decideOverride(oid, ok) {
-  const o = db.overrides.find((x) => x.id === oid); if (!o) return;
+  const o = db.overrides.find((x) => x.id === oid); if (!o || o.status !== 'pending') return;
   const n = node(o.node);
   if (!can('override', n || null)) { toast('你的角色無權審核此申請', 'warn'); return; }
   const isTask = o.kind === 'task';
+  if (ok && !o.gate && n && DONE(n.status)) {
+    // 任務已完成或已跳過：申請不再適用，直接結案，不改狀態
+    commit('跳過申請自動結案', () => { Object.assign(o, { status: 'rejected', decidedBy: ui.me, decidedAt: nowStr(), note: `任務已${STLBL[n.status]}，申請自動結案` }); });
+    log(o.node, '審核', `「${n.title}」已${STLBL[n.status]}，${uname(o.by)} 的申請自動結案`);
+    toast(`「${n.title}」已${STLBL[n.status]}，此申請已自動結案`, 'warn');
+    return;
+  }
   commit(`${ok ? '核准' : '退回'}跳過申請`, () => {
     o.status = ok ? 'approved' : 'rejected'; o.decidedBy = ui.me; o.decidedAt = nowStr();
     if (ok && o.gate) { db.gates[o.node].status = 'overridden'; db.gates[o.node].by = ui.me; db.gates[o.node].at = nowStr(); }
@@ -2928,7 +2972,7 @@ document.addEventListener('click', (e) => {
   if (ds.skip) { closeDrawer(); return openSkipDialog(ds.skip); }
   if (ds.restore) { closeDrawer(); const r = restoreTask(ds.restore); return r.ok ? toast('已恢復任務') : toast(r.error, 'warn'); }
   if (ds.report) { closeDrawer(); return openReportDialog(ds.report); }
-  if (ds.repApprove) { decideReport(ds.repApprove, true); return toast('已確認完成'); }
+  if (ds.repApprove) { if (decideReport(ds.repApprove, true)) toast('已確認完成'); return; }
   if (ds.repReject) return openRejectReport(ds.repReject);
   if (ds.noteEdit) return openNoteEdit(ds.noteEdit);
   if (ds.attOpen) return openAttachment(ds.attOpen);
@@ -2957,8 +3001,8 @@ document.addEventListener('click', (e) => {
     if (!r.ok) return toast(r.error, 'warn');
     return openEditor(ds.rfAdd);
   }
-  if (ds.rfUp) { const f = db.reportFields.find((x) => x.id === ds.rfUp); moveReportField(ds.rfUp); return openEditor(f.node_id); }
-  if (ds.rfDel) { const f = db.reportFields.find((x) => x.id === ds.rfDel); removeReportField(ds.rfDel); return openEditor(f.node_id); }
+  if (ds.rfUp) { const f = db.reportFields.find((x) => x.id === ds.rfUp); if (!f) return; moveReportField(ds.rfUp); return openEditor(f.node_id); }
+  if (ds.rfDel) { const f = db.reportFields.find((x) => x.id === ds.rfDel); if (!f) return; removeReportField(ds.rfDel); return openEditor(f.node_id); }
   if (ds.depDel) { const d = db.deps.find((x) => x.id === ds.depDel); commit('移除前置', () => { db.deps = db.deps.filter((x) => x.id !== ds.depDel); }); log(d.to, '前置', `移除前置：${depLabel(d)}`); return openEditor(d.to); }
   if (ds.promote) { const n = node(ds.promote); closeDrawer(); return moveNode(n.id, node(n.parent).parent); }
   if (ds.demote) { const n = node(ds.demote); const sib = kids(n.parent).filter((x) => x.order < n.order).pop(); closeDrawer(); if (!sib) return toast('上方沒有同層任務可以放入', 'warn'); return moveNode(n.id, sib.id); }

@@ -69,6 +69,11 @@ python -m http.server 8000
 | 新增任務 | 名稱、類別、負責人、截止日 | ✅ 可用 |
 | AI 副手 | 風險提醒、週報、風險分析、任務拆解 | 🟡 規則產生，未接 LLM |
 | AI 副手 | 拖曳後記錄活動、提示解鎖的後續任務 | ✅ 可用 |
+| 任務紀錄（F11） | 「紀錄」分頁：完成回報、筆記、附件與歷次紀錄 | ✅ 可用 |
+| 任務紀錄（F11） | 完成回報（結果、成果說明、自訂欄位）→ 審核人確認或退回 | ✅ 可用 |
+| 任務紀錄（F11） | 筆記（作者可修改，保留修改紀錄） | ✅ 可用 |
+| 任務紀錄（F11） | 附件上傳（存在瀏覽器 IndexedDB，單檔 10 MB） | 🟡 只存在本機瀏覽器 |
+| 任務紀錄（F11） | 主管跳過整個任務（直接跳過或申請核准、可恢復） | ✅ 可用 |
 | 其他 | 分享、總覽、我的任務、AI 收件匣 | ⬜ 未實作 |
 
 **已知限制**：資料寫死在 JS，重新整理會重置；任務只有一層；相依只能設一個且沒有強制；沒有權限與後端。
@@ -442,6 +447,8 @@ gates                       # 階段閘門
 overrides                   # 跳過申請與稽核
   id, target_type, target_id   # dependency | gate | status
   requested_by, reason, approved_by, status, created_at, decided_at
+  kind                      # dep | gate | task（task = 跳過整個任務）
+  prev                      # 跳過任務時記錄各節點原狀態 { node_id: status }，恢復時還原
 
 templates / template_versions
   id, name, scope           # system | org | personal

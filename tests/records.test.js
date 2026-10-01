@@ -289,6 +289,68 @@
     ok(ui.chat.at(-1).text.includes('2.6'), ui.chat.at(-1).text);
   });
 
+  // ── 最終審查修正 ──
+  await T('確認回報時重新檢查硬性前置（FF）：前置未完成不能確認', async () => {
+    node('t4031').status = 'done';
+    as('an'); const r = await submitReport('t4032', good);
+    ok(r.ok, JSON.stringify(r.errors));
+    as('yu'); eq(decideReport(r.report.id, true), false);
+    eq(node('t4032').status, 'review'); eq(r.report.status, 'submitted');
+    eq(db.overrides.filter((o) => o.node === 't4032').length, 0);
+  });
+  await T('自行確認時也重新檢查硬性前置（FF）', async () => {
+    node('t4031').status = 'done';
+    const r = await submitReport('t4032', good, { selfApprove: true });
+    ok(!r.ok, '應拒絕自行確認');
+    ok(node('t4032').status !== 'done', '不能變成已完成');
+  });
+  await T('待確認回報的任務加入子任務：回報自動結案，之後不能確認', async () => {
+    as('ming'); await submitReport('t30121', good);
+    const rep = pendingReport('t30121');
+    as('yu'); commit('新增', () => addNode('t30121', { title: '補測' }));
+    eq(rep.status, 'rejected'); ok(rep.review_comment, '應有說明');
+    eq(pendingReport('t30121'), null);
+    eq(decideReport(rep.id, true), false); ok(node('t30121').status !== 'done', '不能變成已完成');
+    ok(audit.acts.some((a) => a.node === 't30121' && a.action === '完成回報' && a.text.includes('結案')), '應寫入稽核紀錄');
+  });
+  await T('待確認回報的任務被移入子任務：回報自動結案', async () => {
+    as('ming'); await submitReport('t30121', good);
+    const rep = pendingReport('t30121');
+    as('yu'); moveNode('t30122', 't30121');
+    eq(rep.status, 'rejected'); eq(pendingReport('t30121'), null);
+    ok(node('t30121').status !== 'review', '不能停在審核中');
+  });
+  await T('非葉節點的回報不能確認', async () => {
+    as('ming'); await submitReport('t30121', good);
+    const rep = pendingReport('t30121');
+    db.nodes.zz = { ...clone(node('t30122')), id: 'zz', parent: 't30121', status: 'todo' };
+    as('yu'); eq(decideReport(rep.id, true), false); ok(node('t30121').status !== 'done', '不能變成已完成');
+  });
+  await T('跳過任務時結案其上的前置跳過申請；核准舊申請不會改回進行中', () => {
+    as('ming'); submitBlock('t3013', 'doing', '先開始');
+    const o = db.overrides[0]; eq(o.status, 'pending');
+    as('yu'); skipTask('t3013', '不做了');
+    eq(o.status, 'rejected');
+    ok(audit.acts.some((a) => a.node === 't3013' && a.text.includes('結案')), '應寫入稽核紀錄');
+    decideOverride(o.id, true); eq(node('t3013').status, 'skipped');
+    o.status = 'pending'; decideOverride(o.id, true); eq(node('t3013').status, 'skipped');
+  });
+  await T('跳過上層任務時結案子任務的跳過申請；恢復後子任務回到原狀態', () => {
+    as('ming'); skipTask('t30122', '想跳過');
+    const o = pendingSkip('t30122');
+    as('yu'); skipTask('t3012', '整段不做');
+    eq(o.status, 'rejected');
+    decideOverride(o.id, true);
+    ok(restoreTask('t3012').ok);
+    eq(node('t30122').status, 'todo');
+  });
+  await T('待確認回報時被跳過，恢復後回到進行中', async () => {
+    as('ming'); await submitReport('t30121', good);
+    as('yu'); skipTask('t30121', '不需要了');
+    ok(restoreTask('t30121').ok);
+    eq(node('t30121').status, 'doing');
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
