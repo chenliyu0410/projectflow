@@ -1,0 +1,4 @@
+# 本機暫存：SDD 執行工作區、原型、歸檔（見 docs/WORKFLOW.md §7）
+.superpowers/
+# Claude Code 本機設定（權限提示「不再詢問」會寫入）
+.claude/settings.local.json
