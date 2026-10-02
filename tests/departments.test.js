@@ -369,6 +369,20 @@
       const main = document.getElementById('main');
       eq(main.querySelectorAll('img').length, 0, '任務頁標題裡不應該出現 img 元素');
       ok(main.textContent.includes('<img'), '任務頁標題要顯示部門名稱的原字串');
+      // 已指派的分支：負責人名稱旁的部門名稱
+      node('t404').owner = 'an'; ui.node = 'p1d'; render();
+      const card2 = document.querySelector('[data-id="t404"]');
+      ok(card2.querySelector('.who').textContent.includes('小安'), '卡片顯示負責人');
+      eq(card2.querySelectorAll('img').length, 0, '已指派的卡片上不應該出現 img 元素');
+      ok(card2.querySelector('.who').textContent.includes('<img'), '已指派的卡片要顯示部門名稱的原字串');
+      ui.node = 't404'; render();
+      eq(document.getElementById('main').querySelectorAll('img').length, 0, '已指派的任務頁標題不應該出現 img 元素');
+      ok(document.querySelector('.meta').textContent.includes('<img'), '已指派的任務頁標題要顯示部門名稱的原字串');
+      // 任務對話框的負責部門下拉
+      openEditor('t404');
+      eq($('drawer').querySelectorAll('img').length, 0, '對話框裡不應該出現 img 元素');
+      ok([...$('eDept').options].find((o) => o.value === 'd-qa').text.includes('<img'), '負責部門選項要顯示部門名稱的原字串');
+      closeDrawer();
       ok(window.__xss === undefined, '不應執行部門名稱裡的腳本');
     } finally { delete window.__xss; }
   });
@@ -461,6 +475,65 @@
     as('yu'); ui.page = 'overview'; render();
     const m = document.getElementById('main').textContent;
     ok(m.includes('製造'), '列出所有部門'); ok(!m.includes('null'), '不應出現 null');
+  });
+
+  // ── Task 5 修正輪 1 ──
+  await T('F1 ERP 同步：證照到期任務的負責人是阿華、部門是採購，異動文字與事實一致', () => {
+    as('yu'); erpSync();
+    const c = Object.values(db.nodes).find((n) => n.certFor);
+    ok(c, '應該建立證照更新任務');
+    eq([c.dept, c.owner], ['d-pur', 'hua']);
+    ok(audit.acts.some((a) => a.action === 'ERP 同步' && a.text.includes('已自動建立更新任務給阿華')), '異動文字要寫給阿華');
+  });
+  await T('F1 配方改版重做任務：保留原任務的負責人與部門', () => {
+    as('yu'); ui.page = 'ops'; ui.opsTab = 'formulas'; render();
+    const boxes = [...document.querySelectorAll('.impact')];
+    boxes.forEach((b) => { b.checked = ['t301', 't403'].includes(b.value); });
+    ok(boxes.filter((b) => b.checked).length === 2, '影響分析要列出 t301 與 t403');
+    document.querySelector('[data-impact]').click();
+    const redo = (src) => Object.values(db.nodes).find((n) => n.title === `【配方 v4 重做】${node(src).title}`);
+    ok(redo('t301') && redo('t403'), '要建立兩個重做任務');
+    eq([redo('t301').dept, redo('t301').owner], ['d-pe', 'ming']);
+    eq([redo('t403').dept, redo('t403').owner], ['d-qa', 'an']);
+  });
+  await T('F1 會議記錄建立待辦：待辦的負責人與部門照負責人', () => {
+    as('yu'); ui.page = 'node'; ui.node = 'p1d'; ui.tab = 'board'; render();
+    runMinutes('待辦：阿華 10/20 前確認供應商證照\n待辦：小安 10/22 前補測試報告');
+    runAIAction(ui.chat.length - 1, 0);
+    $('minParent').value = 'p1d';
+    $('minConfirm').requestSubmit();
+    const t = (title) => Object.values(db.nodes).find((n) => n.title === title);
+    ok(t('確認供應商證照') && t('補測試報告'), '兩項待辦都要建立');
+    eq([t('確認供應商證照').parent, t('確認供應商證照').dept, t('確認供應商證照').owner], ['p1d', 'd-pur', 'hua']);
+    eq([t('補測試報告').dept, t('補測試報告').owner], ['d-qa', 'an']);
+  });
+  await T('F2 儲存任務：沒有 can(dept)／can(assign) 時，欄位被改也不會改部門或負責人', () => {
+    as('ming'); openEditor('t30121');
+    $('eDept').disabled = false; $('eDept').value = 'd-qa'; $('eOwner').disabled = false; $('eOwner').value = '';
+    saveEditor('t30121'); closeDrawer();
+    eq([node('t30121').dept, node('t30121').owner], ['d-pe', 'ming'], '成員不能改部門與負責人');
+    as('chen'); openEditor('t404');
+    $('eDept').disabled = false; $('eDept').value = 'd-pe'; $('eOwner').value = 'an';
+    saveEditor('t404'); closeDrawer();
+    eq([node('t404').dept, node('t404').owner], ['d-qa', 'an'], '部門主管可以指派，但不能改部門');
+  });
+  await T('F3 快速新增：預設負責人是自己（階段負責人不在部門時）；繼續新增會保留未指派', () => {
+    as('ming'); ui.page = 'node'; ui.node = 'p1d'; ui.tab = 'board'; render();
+    openQuickAdd('p1d'); eq($('qWho').value, 'ming', '阿明在階段底下新增，預設是自己'); closeDlg();
+    as('yu'); openQuickAdd('t404'); eq($('qWho').value, '', '未指派的品保任務底下，力瑜不屬於品保，預設未指派'); closeDlg();
+    openQuickAdd('p1d'); eq($('qWho').value, 'yu');
+    $('qTitle').value = 'F3 測試'; $('qWho').value = '';
+    document.getElementById('qaForm').requestSubmit([...document.querySelectorAll('#qaForm button[type="submit"]')].find((b) => b.value === 'more'));
+    eq(node(Object.keys(db.nodes).find((id) => node(id).title === 'F3 測試')).owner, null);
+    eq($('qWho').value, '', '建立並繼續新增：保留未指派');
+    closeDlg();
+  });
+  await T('F5 未指派的任務底下新增第一個子任務：提示寫「未指派・部門」而不是「—」', () => {
+    as('yu'); openQuickAdd('t404');
+    const note = document.querySelector('#qaForm .note').textContent;
+    ok(note.includes('負責人仍是') && note.includes('未指派・品保'), note);
+    ok(!note.includes('仍是 —'), note);
+    closeDlg();
   });
 
   // ── 新測試加在這一行上面 ──

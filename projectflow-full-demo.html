@@ -2583,9 +2583,9 @@ function saveEditor(id) {
   if (D(e) < D(s)) return toast('結束日不能早於開始日', 'warn');
   const status = v('eStatus');
   const isTask = n.type === 'task';
-  const newDept = isTask ? v('eDept') : null;
+  const newDept = isTask ? (can('dept', n) ? v('eDept') : n.dept) : null;
   if (isTask && !dept(newDept)) return toast('請選擇負責部門', 'warn');
-  let newOwner = isTask ? (v('eOwner') || null) : v('eOwner');
+  let newOwner = isTask ? (can('assign', n) ? (v('eOwner') || null) : n.owner) : v('eOwner');
   if (isTask && newOwner && (!USERS[newOwner] || USERS[newOwner].dept !== newDept)) { newOwner = null; toast('負責人不屬於所選部門，已改為未指派', 'warn'); }
   const oldS = n.start, oldE = n.end, oldOwner = n.owner, oldDept = n.dept;
   commit(`編輯「${n.title}」`, () => {
@@ -2617,13 +2617,15 @@ function openQuickAdd(parent, s, e, opt = {}) {
   de = de || S(D(ds) + 6);
   const prev = opt.prev ? node(opt.prev) : k.slice().sort((a, b) => span(a)[1] - span(b)[1]).pop();
   const becomesParent = !k.length && p.type === 'task';
+  // 預設負責人：沿用上層負責人，不屬於這個部門就改用自己，都不屬於則未指派；「建立並繼續新增」保留上一筆的選擇（含未指派）
+  const qaWho = me().role === 'collab' ? ui.me : 'owner' in opt ? opt.owner : [p.owner, ui.me].find((x) => x && deptMembers(qaDept).includes(x));
   openDlg(`<form id="qaForm" data-parent="${parent}" data-prev="${prev ? prev.id : ''}"><h2 class="serif">新增子任務</h2>
     <p class="small muted" style="margin-top:-8px">位置：${esc([...ancestors(p), p].map((x) => x.title).join(' / '))}${depth(p) + 1 >= 5 ? '　<span class="tag ai">超過 5 層，建議拆成獨立專案</span>' : ''}</p>
-    ${becomesParent ? `<div class="note" style="margin-bottom:12px">「${esc(p.title)}」目前沒有子任務。新增後它會變成上層任務：<b>進度與狀態改由子任務彙總</b>，負責人仍是 ${esc(uname(p.owner))}，原本的期間 ${md(S(ps))}–${md(S(pe))} 保留為計畫範圍。${DONE(p.status) || p.status === 'review' ? `<br>它目前是「${STLBL[p.status]}」，加入未完成的子任務後會改回「進行中」。` : ''}</div>` : ''}
+    ${becomesParent ? `<div class="note" style="margin-bottom:12px">「${esc(p.title)}」目前沒有子任務。新增後它會變成上層任務：<b>進度與狀態改由子任務彙總</b>，負責人仍是 ${whoHTML(p)}，原本的期間 ${md(S(ps))}–${md(S(pe))} 保留為計畫範圍。${DONE(p.status) || p.status === 'review' ? `<br>它目前是「${STLBL[p.status]}」，加入未完成的子任務後會改回「進行中」。` : ''}</div>` : ''}
     ${opt.added ? `<div class="note" style="margin-bottom:12px">✓ 已建立 ${opt.added} 項：${esc(opt.names.join('、'))}</div>` : ''}
     <div class="field"><label for="qTitle">任務名稱</label><input id="qTitle" required placeholder="例如：重金屬檢驗送驗"></div>
     <div class="frow"><div class="field"><label for="qTag">類別</label><select id="qTag">${TAGS.map((t) => `<option ${t === (opt.tag || p.tag) ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-    <div class="field"><label for="qWho">負責人（${esc(deptName(qaDept))}）</label><select id="qWho">${ownerOpts(qaDept, me().role === 'collab' ? ui.me : opt.owner || p.owner || ui.me)}</select></div></div>
+    <div class="field"><label for="qWho">負責人（${esc(deptName(qaDept))}）</label><select id="qWho">${ownerOpts(qaDept, qaWho)}</select></div></div>
     <div class="frow"><div class="field"><label for="qS">開始</label><input id="qS" type="date" value="${ds}"></div><div class="field"><label for="qE">結束</label><input id="qE" type="date" value="${de}"></div></div>
     <p class="small muted" style="margin:-4px 0 10px">上層期間：${md(S(ps))}–${md(S(pe))}</p>
     <div class="chips"><label><input type="checkbox" id="qMs">里程碑</label>
@@ -2975,7 +2977,7 @@ function erpSync() {
     db.ops.suppliers.forEach((s) => {
       s.synced = s.source === 'erp' ? nowStr() : s.synced;
       if (D(s.cert) - T0 < 60 && !Object.values(db.nodes).some((n) => n.certFor === s.id)) {
-        const id = addNode('p4', { title: `更新證照：${s.short}（${md(s.cert)} 到期）`, tag: '採購', owner: 'hua', start: TODAY, end: S(D(s.cert) - 14), links: [{ t: 'supplier', id: s.id }] });
+        const id = addNode('p4', { title: `更新證照：${s.short}（${md(s.cert)} 到期）`, tag: '採購', owner: 'hua', dept: USERS.hua.dept, start: TODAY, end: S(D(s.cert) - 14), links: [{ t: 'supplier', id: s.id }] });
         db.nodes[id].certFor = s.id;
         changes.push(`${s.short} 證照 ${md(s.cert)} 到期，已自動建立更新任務給阿華`);
       }
@@ -3248,7 +3250,7 @@ document.addEventListener('click', (e) => {
   if (ds.bomPush) { audit.sync.unshift({ at: nowStr(), module: `BOM ${ds.bomPush.replace(':', ' v')}`, dir: 'push', records: 9, errors: 0, status: '成功，ERP BOM 核對一致' }); save(); log(null, 'ERP', `推送 ${ds.bomPush.replace(':', ' v')} 為 ERP 正式 BOM`); render(); return toast('已推送到 ERP，雙方 BOM 核對一致'); }
   if ('impact' in ds) {
     const ids = [...document.querySelectorAll('.impact:checked')].map((x) => x.value); if (!ids.length) return toast('請勾選要重做的任務', 'warn');
-    commit('產生配方改版重做任務', () => ids.forEach((id) => { const n = node(id); const [s, e] = span(n); const st = Math.max(T0 + 1, s); addNode(n.parent, { title: `【配方 v4 重做】${n.title}`, tag: n.tag, owner: n.owner, ai: true, start: S(st), end: S(st + (e - s)), links: [{ t: 'formula', id: 'F-CAT-01', v: 4 }] }); }));
+    commit('產生配方改版重做任務', () => ids.forEach((id) => { const n = node(id); const [s, e] = span(n); const st = Math.max(T0 + 1, s); addNode(n.parent, { title: `【配方 v4 重做】${n.title}`, tag: n.tag, owner: n.owner, dept: n.dept, ai: true, start: S(st), end: S(st + (e - s)), links: [{ t: 'formula', id: 'F-CAT-01', v: 4 }] }); }));
     log('p1', '配方', `配方 v3 → v4 變更影響：產生 ${ids.length} 項重做任務`);
     return toast(`已產生 ${ids.length} 項重做任務（標示 AI 建議）`, null, { label: '查看', fn: () => enter('p1') });
   }
@@ -3362,7 +3364,7 @@ document.addEventListener('submit', (e) => {
   if (f.id === 'minConfirm') {
     const { items, done } = ui.minItems; const par = $('minParent').value; const pick = [...document.querySelectorAll('.minItem:checked')].map((x) => items[+x.value]);
     closeDlg();
-    commit('建立會議待辦', () => pick.forEach((x) => addNode(par, { title: x.title, owner: x.owner, start: S(Math.min(T0 + 1, D(x.due))), end: x.due, ai: true })));
+    commit('建立會議待辦', () => pick.forEach((x) => addNode(par, { title: x.title, owner: x.owner, dept: USERS[x.owner] ? USERS[x.owner].dept : undefined, start: S(Math.min(T0 + 1, D(x.due))), end: x.due, ai: true })));
     log(par, 'AI', `從會議紀錄建立 ${pick.length} 項待辦`); done(); return toast(`已建立 ${pick.length} 項子任務`, null, { label: '查看', fn: () => enter(par) });
   }
   if (f.id === 'impForm') {
