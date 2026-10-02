@@ -17,6 +17,40 @@
 - 流程：[docs/WORKFLOW.md](docs/WORKFLOW.md)
 - AI 入口：[AGENTS.md](AGENTS.md)
 
+### 目前進度（2026-10-02 交接）
+
+> 這一段是給組員的摘要。最新、最完整的狀態以 [docs/PROGRESS.md](docs/PROGRESS.md) 的「▶ 現在」為準。
+
+| 工作項目 | 狀態 | 說明 |
+|---|---|---|
+| W1 子任務置頂回報卡 | ✅ 完成 | 已合併進 `main` |
+| W2 部門模型 | 🔨 進行中 | 程式都在分支 **`feature/w2-departments`**。進行期間 `main` 凍結（`main` 上只多一個 `Progress: start W2`） |
+| W3 流程控制 | ⬜ 未開始 | 要等 W2 合併，並且要和人類一起寫 spec（PROGRESS D9、D13） |
+
+**W2 做到哪裡**（[spec](docs/superpowers/specs/2026-10-01-department-model-design.md)、[plan](docs/superpowers/plans/2026-10-01-department-model.md)）
+
+- ✅ Task 1：部門資料（10 個部門）、資料版本升到 v4、畫面改顯示部門名稱
+- ✅ Task 2：只有相關的人看得到任務，拿掉「顯示全部」
+- ✅ Task 3：操作權限 `canWork`、指派負責人、改負責部門
+- ✅ Task 4：「成員與權限」頁的部門管理面板（新增、修改、刪除）
+- ✅ Task 5：任務的負責部門與負責人（對話框、看板、我的任務的「待我指派」、總覽）
+- ⬜ **Task 6：時間軸預設收合，並可依部門篩選**（下一步）
+- ⬜ Task 7：範本帶入負責部門、更新 README 的 F6／功能表／資料模型
+- ⬜ 整體審查與整體修正，要一起實作人類已決定的 D25（連動順延遇到沒權限的任務就停）、D26（部門主管排除協作人員與唯讀）
+- 測試：`tests/records.html` 目前 `全部通過 123/123`
+
+**和 plan 不同、已由人類決定的地方**：PROGRESS §6 的 D19–D27，以及 §3 W2「執行注意」第 20–32 點。例如 D23：任務的時程只有負責人、負責部門主管、專案負責人和系統管理員能改。接手前請先讀這些條目，不要照 plan 的舊寫法改回去。
+
+**組員怎麼接著做**
+
+1. 取得分支：
+   ```bash
+   git fetch origin
+   git checkout feature/w2-departments
+   ```
+2. 照下面「用 Claude Code」或「用其他 AI」的方式開新的 session。AI 會讀 PROGRESS「▶ 現在」，從 Task 6 接著做。
+3. 每個 Task 做完，AI 會更新 PROGRESS 並 commit。要 push 時，請在對話中明確說「推上 git」。
+
 ### 用 Claude Code（建議）
 
 在專案資料夾開一個**新的** session，輸入下面的指令：
