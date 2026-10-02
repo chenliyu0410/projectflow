@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W1 子任務置頂回報卡**（🟢 可合併） |
-| 下一個動作 | 依 D2 在本地把 `feature/w1-subtask-report-card` 用 `git merge --ff-only` 合併進 `main`，然後做 G6 收尾（WORKFLOW G5、G6）。整體審查第 2 輪結論 Ready to merge: Yes，報告見 `.superpowers/sdd/review-44df43a..a5e2b7c-final-r1.md` |
-| 分支 | `feature/w1-subtask-report-card` |
-| 最新程式 commit | `26ea8eb`（W1 整體修正）。每個 Task 記錄時更新 |
+| 目前工作項目 | **W2 部門模型**（📋 已規劃） |
+| 下一個動作 | W2 開工（WORKFLOW G3）：在 `main` 上做 Pre-flight（基準測試應為 `全部通過 64/64`，對照 §3 W2 的「執行注意」，特別是第 1 點 `.tools` 那一行），宣告開工 `Progress: start W2`，再開分支 `feature/w2-departments` |
+| 分支 | `main`（`feature/w1-subtask-report-card` 已 ff 合併並刪除） |
+| 最新程式 commit | `26ea8eb`（W1 整體修正）。W1 合併後的 HEAD 是 `2d2c785` |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 整體修正後；iframe 0、343、1393px 各一次） |
+| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過） |
 | 資料版本 | `db.v = 3`；localStorage key 是 `projectflow-demo-v2` |
-| 認領中 | Claude Opus 5.5（手動執行 /pf-next 流程）／2026-10-02 09:08（接管 2026-10-01 16:09 的認領，前一個 session 已中斷） |
+| 認領中 | 無 |
 | 阻塞／待人類 | 無阻塞。D14–D18 都已決定（§6） |
-| 遠端 | 2026-10-01 經人類授權，已 push 到 `origin/main`，內容包括 `edf46b6`、`dfc0126` 和交接系統的 `Docs:` commit。之後的狀態用 `git log --oneline origin/main..main` 查看。每次 push 都要人類明確授權（D3） |
+| 遠端 | 2026-10-01 經人類授權，已 push 到 `origin/main`，內容包括 `edf46b6`、`dfc0126` 和交接系統的 `Docs:` commit。W1 的 16 個 commit（`8aed7d6` 到 `Progress: W1 done`）還沒有 push，用 `git log --oneline origin/main..main` 查看。每次 push 都要人類明確授權（D3） |
 
 ---
 
@@ -68,7 +68,7 @@
 
 | 順位 | ID | 工作項目 | 狀態 | Spec | Plan | 資料版本 | 依賴 |
 |---|---|---|---|---|---|---|---|
-| 1 | W1 | 子任務置頂回報卡 | 🟢 | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
+| 1 | W1 | 子任務置頂回報卡 | ✅ | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
 | 2 | W2 | 部門模型 | 📋 | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1） |
 | 3 | W3 | 流程控制 | ⬜ 需先寫 spec | — | — | v4 → v5 | W2 已合併；D13 甘特圖到位；brainstorming 需要人類參與（D9） |
 | 4 | W4 | F11 遺留問題清理 | ⬜ 需先寫小 plan（問題清理型，AI 可以自己寫，見 WORKFLOW G1 例外） | PROGRESS §5 | — | 維持 | 沒有進行中的分支時才能做。建議排在 W2 合併後，因為它會改到 `load()` 這類 W2 的錨點。如果提前做，W2 的預期測試數和錨點都要重新核對 |
@@ -90,7 +90,7 @@
 
 ## 3. 工作項目明細
 
-### W1 子任務置頂回報卡 — 🟢
+### W1 子任務置頂回報卡 — ✅
 
 - **目標**：打開子任務（葉任務，`n.type === 'task' && isLeaf(n)`）時，標題下方固定顯示回報卡，卡上有目前狀態和下一步動作。葉任務頁的「紀錄」分頁排第一，並且是預設分頁。
 - **分支**：`feature/w1-subtask-report-card`（從 `main` 切出）。
@@ -245,6 +245,7 @@ full demo 定位的文字需要人類審閱（D12）。
 | 階段 0 | petfood 互動 Demo（`projectflow-petfood-demo.html`） | README §8 階段 0 已打勾 ✅；早於 git 歷史，包含在 `9fdcc64` 裡 |
 | F1–F10 | full demo 的多層任務樹、模板、時程編輯、前置條件與關鍵路徑、權限與覆寫、協作、文件與版本、AI 副手（規則式）、分級路由與遮罩（模擬）、研發營運資料（模擬 ERP） | 早於 git 歷史，包含在 `9fdcc64` 裡。F6 的部門目前是寫死的，由 W2 處理 |
 | F11 | 任務紀錄與完成回報：回報與審核、自訂回報欄位、筆記、附件（IndexedDB）、主管跳過整個任務、AI 引用紀錄 | [spec](superpowers/specs/2026-09-30-task-records-and-skip-design.md)、[plan](superpowers/plans/2026-09-30-task-records-and-skip.md)；commits `9fdcc64..aebd709`（從 `2fc8f10` 到 `aebd709` 共 10 個：7 個 Task、2 輪修正、1 次整體修正），以 fast-forward 合併進 `main`；測試 44/44。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-09-30-f11-task-records/`（不在 git 裡；重要內容已整理到本看板 §5） |
+| W1 | 子任務置頂回報卡：葉任務頁標題下方固定顯示回報卡（狀態與下一步動作），「紀錄」分頁排第一並作為預設；D15 桌面版紀錄等分頁可捲動，D16 卡片摘要最多約 6 行，D17 新增第一個子任務後切到看板 | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)、[plan](superpowers/plans/2026-10-01-subtask-report-card.md)；commits `8aed7d6..2d2c785`（2 個 Task、2 輪 Task 修正、D15、1 次整體修正），以 fast-forward 合併進 `main`；測試 64/64；`db.v` 維持 3。審查全部獨立（每個 Task spec＋品質各 2 輪，整體審查 2 輪）。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-10-01-subtask-report-card/`（不在 git 裡；重要內容已整理到本看板 §3 W1、§5、§6） |
 | 規劃文件 | W1 的 spec 和 plan、W2 的 spec 和 plan | `3a24c52`、`ed3e24f`、`edf46b6`、`dfc0126` |
 | 交接系統 | `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、本看板、`docs/WORKFLOW.md`、`.claude/workflows/pf-status.js`、`.claude/workflows/pf-next.js`、`.gitignore` | 2026-10-01 建立；commit 用 `git log --grep "Docs: handoff system"` 查 |
 
@@ -370,6 +371,18 @@ full demo 定位的文字需要人類審閱（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-02｜Claude Opus 5.5｜W1 完成並合併
+- **做了什麼**：
+  - 人類回覆「D18 維持現狀」，記在 `1978dde`；W1-T2-m9 改列 BY_DESIGN。
+  - 獨立的整體審查第 2 輪（`44df43a..a5e2b7c`）結論是 Ready to merge: Yes，只有 2 項 trivial（W1-F-m3、m4），在 `2d2c785` 修正並把 W1 標成 🟢。報告在 `.superpowers/sdd/review-44df43a..a5e2b7c-final-r1.md`，已隨 SDD 歸檔。
+  - 依 D2 在本地 `git merge --ff-only`（`8aed7d6..2d2c785`），然後在 `main` 上做這筆 G6 收尾，並刪除分支。
+- **驗證**：第 2 輪的 Verify 都實測過：CSS zoom 0.9–1.5 倍時 `scrollTop` 的精確比較是穩的；375px 下 15 行摘要沒有橫向捲軸；合併前在 `1978dde` 上獨立重跑 `全部通過 64/64`，console 無錯誤。審查：獨立。
+- **沒做的事／偏離 plan**：長網址會把紀錄分頁的回報歷史撐出主區域。這是 F11 原本就有的問題，`main` 上也一樣，登記為 §5 W1-F-m5，歸 W4。
+- **下一步**：W2 開工（見「▶ 現在」）。
+- **注意**：
+  - 8000 埠仍被另一個不是這個 repo 的伺服器占用。8001 上是前一個 session 啟動的這個 repo 的伺服器（Windows PID 24024），這個 session 都是用它跑測試。這個 session 也試著在 8001 啟動伺服器，但因為埠已被占用，一啟動就結束了。24024 不是這個 session 啟動的，所以沒有關（WORKFLOW §5 第 8 點），要不要關由人類決定。
+  - W1 的 commit 都還沒有 push，push 需要人類授權（D3）。
+
 ### 2026-10-02｜Claude Opus 5.5｜W1 整體審查第 1 輪與整體修正
 - **做了什麼**：
   - 驗收清單 6 項都在瀏覽器實測通過（`44df43a`）。
@@ -382,7 +395,7 @@ full demo 定位的文字需要人類審閱（D12）。
   - 審查報告寫的 (b)「需填」用 t30121，實作改用 t30122，因為 t30121 在同一個測試的 (a) 已經自行確認完成了。
 - **下一步**：W1 整體審查第 2 輪，範圍 `44df43a..HEAD`（見「▶ 現在」）。
 - **注意**：
-  - 8000 埠仍被另一個不是這個 repo 的伺服器占用。這次在 8001 自己啟動了伺服器。
+  - 8000 埠仍被另一個不是這個 repo 的伺服器占用。測試用的是 8001 上前一個 session 留下的伺服器（PID 24024）。
   - 新的 D16 下限斷言用的是 `clientHeight`。iframe 寬 0 時會多出橫向捲軸，所以這個測試也先把 iframe 撐到 1200px。
   - D18 待人類，不擋合併。
 
