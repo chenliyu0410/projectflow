@@ -2858,7 +2858,7 @@ function reportFieldsHTML(r) {
   return r.fields.length ? `<dl class="kv" style="margin-top:6px">${r.fields.map((f) => `<dt>${esc(f.label)}</dt><dd>${f.value === null ? '—' : esc(f.value)}${f.unit ? ' ' + esc(f.unit) : ''}</dd>`).join('')}</dl>` : '';
 }
 function reportHTML(r, src) {
-  const st ={ submitted: '<span class="tag blue">待確認</span>', approved: '<span class="tag">已確認</span>', rejected: '<span class="tag warn">已退回</span>' }[r.status];
+  const st = { submitted: '<span class="tag blue">待確認</span>', approved: '<span class="tag">已確認</span>', rejected: '<span class="tag warn">已退回</span>' }[r.status];
   const atts = db.attachments.filter((a) => a.report_id === r.id && !a.deleted_at);
   return `<div class="rec">
     <div class="row" style="justify-content:space-between"><div><b>v${r.version}</b> ${st} <span class="tag gray">${RESULT[r.result]}</span>${src ? ' ' + srcLink(r.node_id) : ''}</div>
@@ -2871,7 +2871,7 @@ function reportHTML(r, src) {
 }
 // 子任務置頂回報卡：目前回報狀態與下一步動作（只用在葉任務頁）
 function reportCardHTML(n) {
-  const reps = db.reports.filter((r) => r.node_id === n.id).sort((a, b) => b.version - a.version);
+  const reps = reportsOf(n.id);
   const latest = reps[0];
   const pend = pendingReport(n.id);
   const appr = reps.find((r) => r.status === 'approved');

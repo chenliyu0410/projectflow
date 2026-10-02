@@ -367,7 +367,10 @@
     let c = card('t30121');
     ok(c.querySelector('.rcard.pend'), '待確認色');
     ok(c.textContent.includes('v1 等待確認') && c.textContent.includes('參數設定完成'));
-    ok(c.textContent.includes('等待') && !c.querySelector('[data-rep-approve]'), '成員不能確認');
+    ok(c.textContent.includes('阿明 送出') && c.textContent.includes(pendingReport('t30121').submitted_at), '顯示送出者與時間');
+    const acts = c.querySelector('.rc-acts').textContent;
+    ok(acts.includes('等待') && acts.includes('力瑜'), `成員看到「等待 … 確認」（${acts}）`);
+    ok(!c.querySelector('[data-rep-approve]') && !c.querySelector('[data-rep-reject]'), '成員不能確認或退回');
     as('yu'); c = card('t30121');
     const id = pendingReport('t30121').id;
     ok(c.querySelector(`[data-rep-approve="${id}"]`) && c.querySelector(`[data-rep-reject="${id}"]`), '主管有確認與退回');
@@ -377,12 +380,14 @@
     as('yu'); decideReport(pendingReport('t30121').id, false, '溫度紀錄不完整');
     as('ming'); const c = card('t30121');
     ok(c.querySelector('.rcard.rej'), '退回色');
-    ok(c.textContent.includes('溫度紀錄不完整'), '應顯示退回意見');
+    ok(c.textContent.includes('溫度紀錄不完整') && c.textContent.includes('（力瑜）'), '應顯示退回意見與退回人');
     ok(c.querySelector('[data-report="t30121"]') && c.textContent.includes('重新回報'));
   });
   await T('回報卡：已完成有回報顯示自訂欄位；沒有回報顯示未附回報', () => {
     const c = card('t3011');
     ok(c.textContent.includes('已完成') && c.textContent.includes('F0 值') && c.textContent.includes('2.6'));
+    eq(c.querySelector('.rcard dl.kv dd').textContent, '2.6', '自訂欄位的值');
+    ok(c.textContent.includes('確認：陳主管 2026/09/13 09:05'), '顯示確認人與時間');
     ok(!c.querySelector('button'), '已完成沒有按鈕');
     node('t30121').status = 'done';
     ok(card('t30121').textContent.includes('已完成，未附回報'));
@@ -470,6 +475,8 @@
     for (const [tab, on] of [['records', true], ['docs', true], ['data', true], ['people', true], ['board', false], ['timeline', false], ['graph', false]]) {
       ui.page = 'node'; ui.node = 't30121'; ui.tab = tab; render();
       eq(m.classList.contains('vscroll'), on, tab);
+      ok(m.querySelector('.rcard'), `${tab}：顯示回報卡`);
+      ok(m.querySelector('.tools [data-add-child="t30121"]'), `${tab}：分頁列有新增子任務`);
     }
     ui.page = 'overview'; ui.tab = 'records'; render();
     ok(!m.classList.contains('vscroll'), '非節點頁不加 vscroll');
@@ -497,6 +504,9 @@
       for (const t of ['board', 'timeline', 'graph']) {
         tab('records'); m.scrollTop = m.scrollHeight;
         ok(m.scrollTop > 0, '前置：紀錄分頁要可以捲動');
+        eq(getComputedStyle(m).overflowY, 'auto', '桌面版面的紀錄分頁可以捲動主區域');
+        const y = m.scrollTop; render();
+        eq(m.scrollTop, y, '可以捲動的分頁重新渲染時維持位置');
         tab(t);
         eq(getComputedStyle(m).overflowY, 'hidden', `前置：桌面版面的 ${t} 分頁不能捲動主區域`);
         eq(m.scrollTop, 0, `${t}：主區域不能捲動時應回到頁首`);
@@ -505,12 +515,17 @@
   });
   await T('回報卡：成果說明最多顯示約 6 行，超過的在卡片內捲動；完整內容在回報歷史（D16）', async () => {
     as('ming'); await submitReport('t30121', { ...good, summary: Array.from({ length: 15 }, (_, i) => `第 ${i + 1} 行：設備參數調整紀錄。`).join('\n') });
-    as('yu'); ui.tab = 'records'; const m = page('t30121');
-    const s = m.querySelector('.rcard .rc-sum'), lh = parseFloat(getComputedStyle(s).lineHeight);
-    ok(s.clientHeight <= lh * 6 + 1, `卡片上最多約 6 行（高 ${s.clientHeight}px，行高 ${lh}px）`);
-    ok(s.scrollHeight > s.clientHeight + lh, '超過的部分在卡片內捲動');
-    eq(getComputedStyle(s).overflowY, 'auto');
-    ok(m.querySelector('.records').textContent.includes('第 15 行'), '回報歷史有完整內容');
+    const fr = window.frameElement, w = fr && fr.style.width;
+    if (fr) { fr.style.width = '1200px'; fr.getBoundingClientRect(); } // 寬度太窄時會多出橫向捲軸，量不到真正的行數
+    try {
+      as('yu'); ui.tab = 'records'; const m = page('t30121');
+      const s = m.querySelector('.rcard .rc-sum'), lh = parseFloat(getComputedStyle(s).lineHeight);
+      ok(s.clientHeight <= lh * 6 + 1, `卡片上最多約 6 行（高 ${s.clientHeight}px，行高 ${lh}px）`);
+      ok(s.clientHeight >= lh * 6 - 1, `卡片上至少顯示約 6 行（高 ${s.clientHeight}px）`);
+      ok(s.scrollHeight > s.clientHeight + lh, '超過的部分在卡片內捲動');
+      eq(getComputedStyle(s).overflowY, 'auto');
+      ok(m.querySelector('.records').textContent.includes('第 15 行'), '回報歷史有完整內容');
+    } finally { if (fr) fr.style.width = w; }
   });
   await T('子任務頁新增第一個子任務或套用模板後，從紀錄分頁改到看板（D17）', () => {
     as('yu'); enter('t30121'); eq(ui.tab, 'records', '前置：子任務預設紀錄分頁');
@@ -519,6 +534,7 @@
     document.getElementById('qTitle').value = '設備儀表校正'; document.getElementById('qaForm').requestSubmit();
     ok(!isLeaf(node('t30121')), '前置：已變成上層任務');
     eq(ui.tab, 'board', '新增後切到看板');
+    ok(!m.classList.contains('vscroll'), '切到看板後主區域不再捲動');
     ok(document.getElementById('view').textContent.includes('設備儀表校正'), '看板上看得到新的子任務');
     ui.tab = 'records'; render();
     m.querySelector('[data-add-child="t30121"]').click();
@@ -528,6 +544,23 @@
     openApplyTpl('t30122', null, 'tpl'); document.getElementById('tplForm').requestSubmit();
     ok(!isLeaf(node('t30122')), '前置：套用模板後變成上層任務');
     eq(ui.tab, 'board', '套用模板後也切到看板');
+    enter('t3013'); ui.tab = 'timeline'; render();
+    m.querySelector('.tools [data-add-child="t3013"]').click();
+    document.getElementById('qTitle').value = '時程上新增'; document.getElementById('qaForm').requestSubmit();
+    ok(!isLeaf(node('t3013')), '前置：t3013 已變成上層任務');
+    eq(ui.tab, 'timeline', '不在紀錄分頁時維持原分頁');
+  });
+  await T('回報卡：自行確認、「需填」只列必填欄位、已完成優先於最新一版退回', async () => {
+    as('yu'); await submitReport('t30121', good, { selfApprove: true });
+    ok(card('t30121').textContent.includes('自行確認：力瑜'), '自行確認要標示');
+    ok(addReportField('t30122', { label: '備註', type: 'text', required: false }).ok, '前置：加選填欄位');
+    ok(addReportField('t30122', { label: '殘留量', type: 'number', required: true }).ok, '前置：加必填欄位');
+    const need = card('t30122').textContent;
+    ok(need.includes('殘留量') && !need.includes('備註'), `「需填」只列必填欄位（${need}）`);
+    const r1 = db.reports.find((r) => r.node_id === 't3011');
+    db.reports.push({ ...r1, id: 'r-t3011-v2', version: 2, status: 'rejected', review_comment: '請補數據', reviewed_by: 'yu', reviewed_at: '2026/09/20 10:00' });
+    const c = card('t3011');
+    ok(c.textContent.includes('確認：陳主管') && !c.textContent.includes('未附回報') && !c.querySelector('.rcard.rej'), '已完成而且有核准版本時，顯示核准的那一版，不因最新一版退回而顯示退回');
   });
 
   // ── 新測試加在這一行上面 ──
