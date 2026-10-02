@@ -22,7 +22,7 @@
 | 資料版本 | `db.v = 3`；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | 無 |
 | 阻塞／待人類 | 無阻塞。D14–D18 都已決定（§6） |
-| 遠端 | 2026-10-02 經人類授權（D3：執行注意 W1-12，以及人類 2026-10-02 指示「推上 git」），把 `main` push 到 `origin/main`，內容包括 W1 全部 commit 和 `Progress: W1 handoff summary`。push 之後 `git log --oneline origin/main..main` 應該是空的。之後每次 push 都要人類明確授權（D3） |
+| 遠端 | 2026-10-02 經人類授權（D3：執行注意 W1-12，以及人類 2026-10-02 指示「推上 git」），把 `main` push 到 `origin/main`，內容包括 W1 全部 commit、`Progress: W1 handoff summary`，以及之後的 `Docs: README section on how to direct AI agents`（同一天第二次指示「推上 git」）。push 之後 `git log --oneline origin/main..main` 應該是空的。之後每次 push 都要人類明確授權（D3） |
 
 ---
 
@@ -283,6 +283,7 @@ README 有幾處還停留在階段 0 或 F11 之前的內容，W2 合併後一�
 - §7 專案結構缺少 `docs/`、`tests/`、`AGENTS.md`、`.claude/`。
 - §8 沒有說明 full demo 和正式產品軌的關係。
 - §5 `overrides` 的 `target_type` 和 `kind` 語意重疊，而且沒有記載 `restoredBy`、`restoredAt`、`note`。
+- 目錄前面的「給接手的人：怎麼請 AI 繼續開發」是 2026-10-02 照人類指示新增的。這段不加編號，所以 AGENTS.md 引用的 §4、§5、§6、§9 編號不變。W5 整理時要一併檢查這段和 AGENTS、WORKFLOW 是否一致。
 
 full demo 定位的文字需要人類審閱（D12）。
 
@@ -428,6 +429,7 @@ full demo 定位的文字需要人類審閱（D12）。
   - 在 §3 W2 的執行注意加了第 14–19 點：W1 合併後的基準、行號位移、W1 改到而 W2 可能碰到的程式、測試環境、編輯陷阱、變異 RED。
   - D7 補上 W1 整體審查的觀察。
   - 依 D3 把 `main` push 到 `origin`。
+  - 人類接著要求把「怎麼請 AI 繼續開發」寫進 README，然後推上 git。這段放在 README 目錄前面，不加編號，內容是給人類的操作說明：Claude Code 的 `/pf-status`、`/pf-next`、`all`／`dry`，其他 AI 的開場提示，AI 什麼時候會停下來問、人類怎麼回答 D，以及測試會清掉 127.0.0.1 的資料。W5 段落已登記要一併檢查。
 - **驗證**：push 後 `git log --oneline origin/main..main` 是空的。這次只改文件，沒有重跑測試，基準仍是 W1 合併前的 `全部通過 64/64`。
 - **沒做的事／偏離 plan**：沒有開始 W2，也沒有做 W2 的 Pre-flight。
 - **下一步**：W2 開工（見「▶ 現在」）。
