@@ -354,16 +354,22 @@
   });
 
   // ── Task 4 修正輪 1 ──
-  await T('XSS：部門改名後，「我的任務」標題不會把部門名稱當成 HTML', () => {
+  // Task 5 移除了「我部門被指派的」群組（spec §5.3），部門名稱改由看板卡片與任務頁標題的 whoHTML 顯示，所以這個測試改檢查這兩處
+  await T('XSS：部門改名後，看板卡片與任務頁標題不會把部門名稱當成 HTML', () => {
     as('it');
     const evil = '<img src=x onerror="window.__xss=1">';
     try {
       ok(updateDept('d-qa', { name: evil, head: 'chen' }).ok);
-      as('an'); go('mytasks'); render();
+      ui.page = 'node'; ui.node = 'p1d'; ui.tab = 'board'; render();
+      const card = document.querySelector('[data-id="t404"]');
+      ok(card, '看板上有 t404 的卡片');
+      eq(card.querySelectorAll('img').length, 0, '卡片上不應該出現 img 元素');
+      ok(card.textContent.includes('<img'), '卡片要顯示部門名稱的原字串');
+      ui.node = 't404'; render();
       const main = document.getElementById('main');
-      eq(main.querySelectorAll('img').length, 0, '標題裡不應該出現 img 元素');
+      eq(main.querySelectorAll('img').length, 0, '任務頁標題裡不應該出現 img 元素');
+      ok(main.textContent.includes('<img'), '任務頁標題要顯示部門名稱的原字串');
       ok(window.__xss === undefined, '不應執行部門名稱裡的腳本');
-      ok(main.textContent.includes('<img'), '標題要顯示部門名稱的原字串');
     } finally { delete window.__xss; }
   });
   await T('部門管理：新增、修改、刪除成功後都寫稽核紀錄', () => {
@@ -409,6 +415,52 @@
     eq(document.querySelectorAll('[data-dept-del]').length, 0);
     as('it'); render();
     ok(document.querySelector('[data-dept-del="d-fin"]'), '管理員看得到財務的刪除按鈕');
+  });
+
+  // ── Task 5：負責部門與負責人 ──
+  await T('addNode：預設上層任務的部門；負責人不在部門時為未指派', () => {
+    as('yu'); const a = commit('t', () => addNode('t3012', { title: 'A' }));
+    eq(node(a).dept, 'd-pe'); eq(node(a).owner, null);
+    as('ming'); const b = commit('t', () => addNode('t3012', { title: 'B' }));
+    eq(node(b).owner, 'ming');
+    as('yu'); const c = commit('t', () => addNode('p1a', { title: 'C' }));
+    eq(node(c).dept, 'd-rd'); eq(node(c).owner, 'yu');
+    const d = commit('t', () => addNode('p1a', { title: 'D', dept: 'd-qa', owner: 'ming' }));
+    eq(node(d).owner, null, '負責人不屬於部門時清空');
+  });
+  await T('任務對話框：負責人只列出部門成員；換部門會清空不屬於新部門的負責人', () => {
+    as('yu'); openEditor('t404');
+    eq([...$('eOwner').options].map((o) => o.value), ['', 'an', 'chen']);
+    closeDrawer();
+    openEditor('t30121');
+    $('eDept').value = 'd-qa'; $('eDept').dispatchEvent(new Event('change', { bubbles: true }));
+    eq($('eOwner').value, '');
+    $('eOwner').value = 'an'; saveEditor('t30121');
+    eq(node('t30121').dept, 'd-qa'); eq(node('t30121').owner, 'an');
+  });
+  await T('任務對話框：部門主管可以指派但不能改部門', () => {
+    as('chen'); openEditor('t404');
+    ok($('eDept').disabled, '部門欄停用'); ok(!$('eOwner').disabled, '負責人欄可用');
+    $('eOwner').value = 'an'; saveEditor('t404');
+    eq(node('t404').owner, 'an');
+  });
+  await T('看板：未指派卡片顯示「未指派・部門」', () => {
+    as('yu'); ui.page = 'node'; ui.node = 'p1d'; ui.tab = 'board'; render();
+    ok(document.querySelector('[data-id="t404"]').textContent.includes('未指派・品保'));
+  });
+  await T('我的任務：部門主管有「待我指派」，成員沒有', () => {
+    as('chen'); ui.page = 'mytasks'; render();
+    const m = document.getElementById('main');
+    ok(m.textContent.includes('待我指派（1）'), m.textContent.slice(0, 200));
+    ok(m.querySelector('[data-edit="t404"]'), '有指派按鈕');
+    ok(!m.textContent.includes('被指派的'), '移除部門被指派的群組');
+    as('an'); render();
+    ok(!document.getElementById('main').textContent.includes('待我指派'));
+  });
+  await T('總覽：部門負載依負責部門統計，未指派不算進人員負載', () => {
+    as('yu'); ui.page = 'overview'; render();
+    const m = document.getElementById('main').textContent;
+    ok(m.includes('製造'), '列出所有部門'); ok(!m.includes('null'), '不應出現 null');
   });
 
   // ── 新測試加在這一行上面 ──

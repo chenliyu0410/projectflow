@@ -1418,7 +1418,7 @@ function pageNode() {
       <nav class="crumbs" aria-label="麵包屑">${anc.map((a) => `<button type="button" data-enter="${a.id}">${esc(a.title)}</button><span>/</span>`).join('')}<span class="cur">${esc(n.title)}</span></nav>
       <h1 class="serif">${n.milestone ? '◆ ' : ''}${esc(n.title)}</h1>
       <div class="meta">
-        ${n.type === 'project' ? `<span>目標：${esc(n.goal || '—')}</span><span>預計上市：${ymd(n.due)}</span>` : `<span>負責人：${esc(uname(n.owner))}</span>`}
+        ${n.type === 'project' ? `<span>目標：${esc(n.goal || '—')}</span><span>預計上市：${ymd(n.due)}</span>` : n.type === 'task' ? `<span>負責：${whoHTML(n)}</span>` : `<span>負責人：${esc(uname(n.owner))}</span>`}
         <span>期間：${md(S(s))} – ${md(S(e))}</span>
         <span class="progress"><span class="track"><span style="width:${pc}%;background:${p.color}"></span></span><b>${pc}%</b></span>
         ${lvBadge(lvl)}
@@ -1512,7 +1512,7 @@ function cardHTML(c, ctx) {
     ${k.length ? `<div class="mini"><span>${k.filter((x) => DONE(x.status)).length}/${k.length} 子任務</span><span class="track"><span style="width:${pc}%"></span></span><span>${pc}%</span>
       <button class="iconbtn" type="button" data-expand="${c.id}" aria-expanded="${!!ex}">${ex ? '收合' : '展開'}</button></div>` : ''}
     ${k.length && ex ? `<div class="sublist">${k.map((x) => `<button type="button" data-enter="${x.id}"><span class="dot ${x.status}"></span>${esc(x.title)}${kids(x.id).length ? `<span class="muted small">（${kids(x.id).length}）</span>` : ''}</button>`).join('')}</div>` : ''}
-    <div class="cfoot"><span class="who">${av(c.owner, 22)}${esc(uname(c.owner))}${c.collabs.length ? `<span class="small">+${c.collabs.length}</span>` : ''}</span>
+    <div class="cfoot"><span class="who">${c.owner ? av(c.owner, 22) : ''}${whoHTML(c)}${c.collabs.length ? `<span class="small">+${c.collabs.length}</span>` : ''}</span>
       <span>${c.milestone ? md(S(s)) : `${md(S(s))}–${md(S(e))}`}${canReport(c) && (c.status === 'todo' || c.status === 'doing') ? `<button class="iconbtn" type="button" data-report="${c.id}" title="回報完成">✓ 回報</button>` : ''}${c.type === 'task' && !DONE(c.status) && !pendingSkip(c.id) && (can('override', c) || can('edit', c)) ? `<button class="iconbtn" type="button" data-skip="${c.id}" title="跳過任務" aria-label="跳過任務">⤳</button>` : ''}<button class="iconbtn" type="button" data-edit="${c.id}" aria-label="編輯">✎</button></span></div>
   </article>`;
 }
@@ -2003,8 +2003,7 @@ function pageOverview() {
   const load = {};
   open.forEach((x) => { if (!x.owner) return; load[x.owner] = load[x.owner] || { n: 0, late: 0, ps: new Set() }; load[x.owner].n++; if (isLate(x)) load[x.owner].late++; load[x.owner].ps.add(projectOf(x).title); });
   const max = Math.max(1, ...Object.values(load).map((v) => v.n));
-  const deptLoad = {};
-  open.forEach((x) => { const d = deptName(x.dept); deptLoad[d] = (deptLoad[d] || 0) + 1; });
+  const deptLoad = db.departments.map((d) => [d.name, open.filter((x) => x.dept === d.id).length]);
   return `<div class="pagehead"><div><h1 class="serif">所有專案總覽</h1><p>跨專案進度、預估上市與人員負載（Demo 基準日 ${ymd(TODAY)}）</p></div></div>
   <div class="grid3">
     <div class="panel stat"><b>${ps.length}</b><span>進行中專案</span></div>
@@ -2024,7 +2023,7 @@ function pageOverview() {
       ${Object.entries(load).sort((a, b) => b[1].n - a[1].n).map(([u, v]) => `<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span class="row">${av(u)} ${esc(uname(u))} <span class="small muted">${esc(USERS[u] ? deptName(USERS[u].dept) : '')}</span></span><span class="small">${v.n} 項${v.late ? `，<span style="color:var(--orange)">${v.late} 項延遲</span>` : ''}</span></div>
       <div class="bar-h" title="${esc([...v.ps].join('、'))}"><span class="${v.n === max ? 'hot' : ''}" style="width:${v.n / max * 100}%"></span></div></div>`).join('')}
       <p class="small muted">工作量最重的人以橘色標示，可在任務編輯中改派負責人或加入協作人員。</p></div>
-    <div class="panel"><h3>部門負載</h3>${Object.entries(deptLoad).sort((a, b) => b[1] - a[1]).map(([d, c]) => `<div class="row" style="justify-content:space-between;padding:4px 0"><span>${esc(d)}</span><span>${c} 項</span></div>`).join('')}
+    <div class="panel"><h3>部門負載</h3>${deptLoad.slice().sort((a, b) => b[1] - a[1]).map(([d, c]) => `<div class="row" style="justify-content:space-between;padding:4px 0"><span>${esc(d)}</span><span>${c} 項</span></div>`).join('')}
       <h3 style="margin-top:16px">內網部署狀態（F7 示意）</h3>
       <dl class="kv"><dt>主機</dt><dd>projectflow.company.local（內部 CA 憑證）</dd><dt>對外連線</dt><dd>僅 AI 閘道可送出公開／遮罩後內容（政策：${{ local_only: '全本地', hybrid: '混合', cloud_allowed: '允許雲端' }[db.policy]}）</dd><dt>上次備份</dt><dd>${ymd(TODAY)} 02:00 → NAS（成功）</dd><dt>還原演練</dt><dd>2026/09/15（成功）</dd><dt>ERP 同步</dt><dd>${esc(audit.sync[0]?.at || '')}・${esc(audit.sync[0]?.status || '')}</dd></dl></div>
   </div>`;
@@ -2034,19 +2033,20 @@ function pageOverview() {
 function pageMyTasks() {
   const u = me();
   const all = Object.values(db.nodes).filter((n) => n.type === 'task' && !DONE(n.status) && can('view', n));
+  const heads = db.departments.filter((d) => d.head === u.id).map((d) => d.id);
   const groups = [
+    ...(heads.length ? [['待我指派', all.filter((n) => n.owner === null && heads.includes(n.dept)), true]] : []),
     ['我負責的', all.filter((n) => n.owner === u.id)],
     ['我協作的', all.filter((n) => n.owner !== u.id && n.collabs.includes(u.id))],
-    [`我部門（${deptName(u.dept)}）被指派的`, all.filter((n) => n.owner !== u.id && !n.collabs.includes(u.id) && n.depts.includes(u.dept))],
   ];
-  const row = (n) => {
+  const row = (n, assign) => {
     const bl = blockersFor(n).filter((b) => b.hard);
     const [s, e] = span(n);
     return `<tr class="click" data-enter="${n.id}"><td><span class="dot ${n.status}" style="display:inline-block"></span> ${esc(n.title)}${bl.length ? ' <span class="tag warn">🔒 等待前置</span>' : ''}${isLate(n) ? ' <span class="tag warn">延遲</span>' : ''}</td>
-      <td class="small muted">${esc(projectOf(n).title)} / ${esc(ancestors(n).slice(1).map((a) => a.title).join(' / '))}</td><td>${STLBL[n.status]}</td><td>${md(S(s))}–${md(S(e))}</td></tr>`;
+      <td class="small muted">${esc(projectOf(n).title)} / ${esc(ancestors(n).slice(1).map((a) => a.title).join(' / '))}</td><td>${STLBL[n.status]}</td><td>${md(S(s))}–${md(S(e))}</td>${assign ? `<td><button class="btn sm" type="button" data-edit="${n.id}">指派</button></td>` : ''}</tr>`;
   };
-  return `<div class="pagehead"><div><h1 class="serif">我的任務</h1><p>${esc(u.name)}・跨專案、跨層級（含我負責、我協作、部門被指派）</p></div></div>
-  ${groups.map(([t, list]) => `<div class="stack"><h2>${esc(t)}（${list.length}）</h2>${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>任務</th><th>位置</th><th>狀態</th><th>期間</th></tr></thead><tbody>${list.sort((a, b) => span(a)[1] - span(b)[1]).map(row).join('')}</tbody></table></div>` : '<div class="empty">沒有項目。</div>'}</div>`).join('')}
+  return `<div class="pagehead"><div><h1 class="serif">我的任務</h1><p>${esc(u.name)}・跨專案、跨層級（含我負責、我協作${heads.length ? '、待我指派' : ''}）</p></div></div>
+  ${groups.map(([t, list, assign]) => `<div class="stack"><h2>${esc(t)}（${list.length}）</h2>${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>任務</th><th>位置</th><th>狀態</th><th>期間</th>${assign ? '<th></th>' : ''}</tr></thead><tbody>${list.sort((a, b) => span(a)[1] - span(b)[1]).map((n) => row(n, assign)).join('')}</tbody></table></div>` : '<div class="empty">沒有項目。</div>'}</div>`).join('')}
   <div class="panel"><h3>通知</h3>${audit.notes.slice(0, 8).map((x) => `<div class="small" style="padding:4px 0;border-bottom:1px solid #F0EDE6"><span class="muted">${esc(x.at)}</span>　${esc(x.text).replace(/\n/g, ' ')}</div>`).join('') || '<div class="empty">目前沒有通知。拖動任務、完成前置或工單完工時會出現在這裡。</div>'}</div>`;
 }
 
@@ -2444,13 +2444,17 @@ function runAIAction(i, j) {
 /* ================= 節點操作 ================= */
 function addNode(parent, o) {
   const id = newId('n');
+  const pt = node(parent);
+  const dpt = o.dept || (pt && pt.type === 'task' ? pt.dept : null) || (USERS[ui.me] && USERS[ui.me].dept) || 'd-rd';
+  const want = o.owner !== undefined ? (o.owner || null) : ui.me;
+  const own = want && USERS[want] && USERS[want].dept === dpt ? want : null;
   const k = kids(parent);
   // 已完成（或審核中）的任務加入新子任務：連同上層一起改回進行中
   for (let p = node(parent); p && p.type === 'task'; p = p.parent ? node(p.parent) : null) {
     if (p.id === parent && !k.length) { p.progress = null; closePendingReport(p.id, '任務已加入子任務，回報自動結案'); }
     if (DONE(p.status) || p.status === 'review') { const from = STLBL[p.status]; p.status = 'doing'; audit.acts.unshift({ at: nowStr(), actor: ui.me, node: p.id, action: '狀態', text: `「${p.title}」加入新子任務，從「${from}」改回「進行中」` }); toast(`「${p.title}」加入新子任務，已從「${from}」改回「進行中」`); }
   }
-  db.nodes[id] = { id, parent, type: 'task', title: o.title, tag: o.tag || '', status: 'todo', progress: null, weight: 1, start: o.start || TODAY, end: o.end || o.start || S(T0 + 6), milestone: !!o.milestone, locked: false, owner: o.owner || ui.me, collabs: o.collabs || [], depts: o.depts || [], level: o.level || null, ai: !!o.ai, note: o.note || '', links: o.links || [], order: (k.length ? Math.max(...k.map((x) => x.order)) : node(parent).order) + 1 };
+  db.nodes[id] = { id, parent, type: 'task', title: o.title, tag: o.tag || '', status: 'todo', progress: null, weight: 1, start: o.start || TODAY, end: o.end || o.start || S(T0 + 6), milestone: !!o.milestone, locked: false, owner: own, dept: dpt, collabs: o.collabs || [], depts: o.depts || [], level: o.level || null, ai: !!o.ai, note: o.note || '', links: o.links || [], order: (k.length ? Math.max(...k.map((x) => x.order)) : node(parent).order) + 1 };
   return id;
 }
 function moveNode(id, np) {
@@ -2506,6 +2510,10 @@ function deleteNode(id) {
 /* ================= 對話框 ================= */
 function closeDrawer() { const d = $('drawer'); if (d.open) d.close(); }
 function userOpts(sel) { return Object.entries(USERS).filter(([id]) => id !== 'it').map(([id, u]) => `<option value="${id}" ${id === sel ? 'selected' : ''}>${esc(u.name)}（${esc(deptName(u.dept))}）</option>`).join(''); }
+function deptOpts(sel) { return db.departments.map((d) => `<option value="${d.id}" ${d.id === sel ? 'selected' : ''}>${esc(d.name)}</option>`).join(''); }
+function ownerOpts(deptId, sel) { return '<option value="">未指派</option>' + deptMembers(deptId).map((u) => `<option value="${u}" ${u === sel ? 'selected' : ''}>${esc(USERS[u].name)}</option>`).join(''); }
+// 任務的負責人顯示：已指派顯示人名與部門，未指派顯示「未指派・部門」
+function whoHTML(n) { return n.owner ? `${esc(uname(n.owner))}<span class="small muted">・${esc(deptName(n.dept))}</span>` : `<span class="tag warn">未指派・${esc(deptName(n.dept))}</span>`; }
 function openEditor(id) {
   const n = node(id); if (!n) return;
   const d = $('drawer');
@@ -2522,7 +2530,9 @@ function openEditor(id) {
     <div class="field"><label for="eTitle">名稱</label><input id="eTitle" value="${esc(n.title)}" ${ed ? '' : 'disabled'} required></div>
     <div class="frow"><div class="field"><label for="eTag">類別</label><select id="eTag" ${ed ? '' : 'disabled'}><option value="">—</option>${TAGS.map((t) => `<option ${t === n.tag ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
       <div class="field"><label for="eStatus">狀態</label><select id="eStatus" ${ed && n.status !== 'skipped' ? '' : 'disabled'}>${Object.entries(STLBL).filter(([k]) => k !== 'skipped' || n.status === 'skipped').map(([k, l]) => `<option value="${k}" ${k === n.status ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
-    <div class="frow"><div class="field"><label for="eOwner">負責人</label><select id="eOwner" ${ed && me().role !== 'collab' ? '' : 'disabled'}>${userOpts(n.owner)}</select></div>
+    ${n.type === 'task' ? `<div class="frow"><div class="field"><label for="eDept">負責部門</label><select id="eDept" ${can('dept', n) ? '' : 'disabled'}>${deptOpts(n.dept)}</select></div>
+      <div class="field"><label for="eOwner">負責人</label><select id="eOwner" ${can('assign', n) ? '' : 'disabled'}>${ownerOpts(n.dept, n.owner)}</select></div></div>
+    <div class="frow">` : `<div class="frow"><div class="field"><label for="eOwner">負責人</label><select id="eOwner" ${ed && me().role !== 'collab' ? '' : 'disabled'}>${userOpts(n.owner)}</select></div>`}
       <div class="field"><label for="eLevel">資料等級</label><select id="eLevel" ${ed ? '' : 'disabled'}><option value="">繼承上層（${LEVELS[effLevel(node(n.parent) || n)]}）</option>${Object.entries(LEVELS).map(([k, l]) => `<option value="${k}" ${n.level === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
     <div class="frow"><div class="field"><label for="eStart">開始</label><input id="eStart" type="date" value="${S(s)}" ${sch && !(n.locked && !can('override', n)) ? '' : 'disabled'}></div>
       <div class="field"><label for="eEnd">結束</label><input id="eEnd" type="date" value="${S(e)}" ${sch && !n.milestone && !(n.locked && !can('override', n)) ? '' : 'disabled'}></div></div>
@@ -2572,9 +2582,15 @@ function saveEditor(id) {
   if ($('eMs').checked) e = s;
   if (D(e) < D(s)) return toast('結束日不能早於開始日', 'warn');
   const status = v('eStatus');
-  const oldS = n.start, oldE = n.end, oldOwner = n.owner;
+  const isTask = n.type === 'task';
+  const newDept = isTask ? v('eDept') : null;
+  if (isTask && !dept(newDept)) return toast('請選擇負責部門', 'warn');
+  let newOwner = isTask ? (v('eOwner') || null) : v('eOwner');
+  if (isTask && newOwner && (!USERS[newOwner] || USERS[newOwner].dept !== newDept)) { newOwner = null; toast('負責人不屬於所選部門，已改為未指派', 'warn'); }
+  const oldS = n.start, oldE = n.end, oldOwner = n.owner, oldDept = n.dept;
   commit(`編輯「${n.title}」`, () => {
-    Object.assign(n, { title, tag: v('eTag'), owner: v('eOwner'), level: v('eLevel') || null, weight: +v('eWeight') || 0, note: v('eNote'), milestone: $('eMs').checked, locked: $('eLock').checked });
+    Object.assign(n, { title, tag: v('eTag'), owner: newOwner, level: v('eLevel') || null, weight: +v('eWeight') || 0, note: v('eNote'), milestone: $('eMs').checked, locked: $('eLock').checked });
+    if (isTask) n.dept = newDept;
     const [os, oe] = span(n);
     if (!$('eStart').disabled && (leaf || n.start || s !== S(os) || e !== S(oe))) { n.start = s; n.end = e; }
     if (n.status === 'doing' && leaf) n.progress = Math.max(0, Math.min(100, +v('eProg') || 0));
@@ -2582,12 +2598,13 @@ function saveEditor(id) {
     n.depts = [...document.querySelectorAll('.eDp:checked')].map((x) => x.value);
     if (ui.cascade && (n.start !== oldS || n.end !== oldE)) cascadeFrom(n.id, [], 0);
   });
-  log(n.id, '編輯', `更新「${title}」${oldOwner !== n.owner ? `，負責人改為 ${uname(n.owner)}（已通知）` : ''}${oldS !== n.start || oldE !== n.end ? `，時程 ${md(n.start)}–${md(n.end)}` : ''}`);
+  log(n.id, '編輯', `更新「${title}」${oldOwner !== n.owner ? `，負責人改為 ${n.owner ? uname(n.owner) : '未指派'}（已通知）` : ''}${isTask && oldDept !== n.dept ? `，負責部門改為 ${deptName(n.dept)}` : ''}${oldS !== n.start || oldE !== n.end ? `，時程 ${md(n.start)}–${md(n.end)}` : ''}`);
   closeDrawer();
   if (status !== n.status) setStatus(n.id, status);
 }
 function openQuickAdd(parent, s, e, opt = {}) {
   const p = node(parent);
+  const qaDept = (p.type === 'task' && p.dept) || (USERS[ui.me] && USERS[ui.me].dept) || 'd-rd';
   if (!can('create', p)) return toast('你的角色無權在這裡新增任務', 'warn');
   const k = kids(parent);
   const [ps, pe] = span(p);
@@ -2606,7 +2623,7 @@ function openQuickAdd(parent, s, e, opt = {}) {
     ${opt.added ? `<div class="note" style="margin-bottom:12px">✓ 已建立 ${opt.added} 項：${esc(opt.names.join('、'))}</div>` : ''}
     <div class="field"><label for="qTitle">任務名稱</label><input id="qTitle" required placeholder="例如：重金屬檢驗送驗"></div>
     <div class="frow"><div class="field"><label for="qTag">類別</label><select id="qTag">${TAGS.map((t) => `<option ${t === (opt.tag || p.tag) ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-    <div class="field"><label for="qWho">負責人</label><select id="qWho">${userOpts(me().role === 'collab' ? ui.me : opt.owner || p.owner || ui.me)}</select></div></div>
+    <div class="field"><label for="qWho">負責人（${esc(deptName(qaDept))}）</label><select id="qWho">${ownerOpts(qaDept, me().role === 'collab' ? ui.me : opt.owner || p.owner || ui.me)}</select></div></div>
     <div class="frow"><div class="field"><label for="qS">開始</label><input id="qS" type="date" value="${ds}"></div><div class="field"><label for="qE">結束</label><input id="qE" type="date" value="${de}"></div></div>
     <p class="small muted" style="margin:-4px 0 10px">上層期間：${md(S(ps))}–${md(S(pe))}</p>
     <div class="chips"><label><input type="checkbox" id="qMs">里程碑</label>
@@ -3262,6 +3279,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('change', (e) => {
   const t = e.target;
   if (t.id === 'meSel') { ui.me = t.value; save(); if (ui.page === 'node' && node(ui.node) && !visible(node(ui.node))) { const p = projects().find(visible); if (p) ui.node = p.id; } ui.chat.push({ title: '切換身分', text: `目前身分：${me().name}（${ROLES[me().role]}・${deptName(me().dept)}）。畫面、可操作的按鈕與可見的機密欄位都會跟著改變。` }); return render(); }
+  if (t.id === 'eDept') { const cur = $('eOwner').value; $('eOwner').innerHTML = ownerOpts(t.value, deptMembers(t.value).includes(cur) ? cur : ''); return; }
   if (t.id === 'cascadeChk') { ui.cascade = t.checked; return; }
   if (t.id === 'docsAllChk') { ui.docsAll = t.checked; return render(); }
   if (t.id === 'fvA' || t.id === 'fvB') { ui.fv = [+$('fvA').value, +$('fvB').value]; return render(); }
@@ -3290,14 +3308,14 @@ document.addEventListener('submit', (e) => {
     let s = $('qS').value || TODAY, en = $('qE').value || s; if (D(en) < D(s)) en = s; if ($('qMs').checked) en = s;
     const chain = $('qChain') && $('qChain').checked ? f.dataset.prev : null;
     const more = e.submitter && e.submitter.value === 'more';
-    const tag = $('qTag').value, owner = $('qWho').value, ms = $('qMs').checked;
+    const tag = $('qTag').value, owner = $('qWho').value || null, ms = $('qMs').checked;
     closeDlg();
     const id = commit(`新增「${title}」`, () => {
       const nid = addNode(f.dataset.parent, { title, tag, owner, start: s, end: en, milestone: ms });
       if (chain && node(chain)) db.deps.push({ id: newId('d'), from: chain, to: nid, type: 'FS', lag: 0, enf: 'hard', cond: null, overridden: false });
       return nid;
     });
-    log(id, '新增', `新增任務「${title}」，指派給 ${uname(node(id).owner)}${chain ? `，接在「${node(chain).title}」之後` : ''}`);
+    log(id, '新增', `新增任務「${title}」，${node(id).owner ? `指派給 ${uname(node(id).owner)}` : '未指派'}${chain ? `，接在「${node(chain).title}」之後` : ''}`);
     if (more) { const dur = D(en) - D(s); const names = [...(ui.qaNames || []), title]; return openQuickAdd(f.dataset.parent, S(D(en) + 1), S(D(en) + 1 + dur), { prev: id, owner, tag, added: names.length, names }); }
     return toast(`已新增「${title}」`, null, { label: '復原', fn: undo });
   }
