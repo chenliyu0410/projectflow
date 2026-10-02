@@ -2046,7 +2046,7 @@ function pageMyTasks() {
       <td class="small muted">${esc(projectOf(n).title)} / ${esc(ancestors(n).slice(1).map((a) => a.title).join(' / '))}</td><td>${STLBL[n.status]}</td><td>${md(S(s))}–${md(S(e))}</td></tr>`;
   };
   return `<div class="pagehead"><div><h1 class="serif">我的任務</h1><p>${esc(u.name)}・跨專案、跨層級（含我負責、我協作、部門被指派）</p></div></div>
-  ${groups.map(([t, list]) => `<div class="stack"><h2>${t}（${list.length}）</h2>${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>任務</th><th>位置</th><th>狀態</th><th>期間</th></tr></thead><tbody>${list.sort((a, b) => span(a)[1] - span(b)[1]).map(row).join('')}</tbody></table></div>` : '<div class="empty">沒有項目。</div>'}</div>`).join('')}
+  ${groups.map(([t, list]) => `<div class="stack"><h2>${esc(t)}（${list.length}）</h2>${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>任務</th><th>位置</th><th>狀態</th><th>期間</th></tr></thead><tbody>${list.sort((a, b) => span(a)[1] - span(b)[1]).map(row).join('')}</tbody></table></div>` : '<div class="empty">沒有項目。</div>'}</div>`).join('')}
   <div class="panel"><h3>通知</h3>${audit.notes.slice(0, 8).map((x) => `<div class="small" style="padding:4px 0;border-bottom:1px solid #F0EDE6"><span class="muted">${esc(x.at)}</span>　${esc(x.text).replace(/\n/g, ' ')}</div>`).join('') || '<div class="empty">目前沒有通知。拖動任務、完成前置或工單完工時會出現在這裡。</div>'}</div>`;
 }
 

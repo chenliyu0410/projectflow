@@ -353,6 +353,64 @@
     ok(document.getElementById('main').textContent.includes('未設主管'));
   });
 
+  // ── Task 4 修正輪 1 ──
+  await T('XSS：部門改名後，「我的任務」標題不會把部門名稱當成 HTML', () => {
+    as('it');
+    const evil = '<img src=x onerror="window.__xss=1">';
+    try {
+      ok(updateDept('d-qa', { name: evil, head: 'chen' }).ok);
+      as('an'); go('mytasks'); render();
+      const main = document.getElementById('main');
+      eq(main.querySelectorAll('img').length, 0, '標題裡不應該出現 img 元素');
+      ok(window.__xss === undefined, '不應執行部門名稱裡的腳本');
+      ok(main.textContent.includes('<img'), '標題要顯示部門名稱的原字串');
+    } finally { delete window.__xss; }
+  });
+  await T('部門管理：新增、修改、刪除成功後都寫稽核紀錄', () => {
+    as('it');
+    const r = addDept('倉儲'); ok(r.ok);
+    eq(audit.acts[0].action, '部門'); ok(audit.acts[0].text.includes('倉儲'), audit.acts[0].text);
+    ok(updateDept(r.id, { name: '倉庫', head: null }).ok);
+    eq(audit.acts[0].action, '部門'); ok(audit.acts[0].text.includes('倉儲') && audit.acts[0].text.includes('倉庫'), audit.acts[0].text);
+    ok(deleteDept(r.id).ok);
+    eq(audit.acts[0].action, '部門'); ok(audit.acts[0].text.includes('倉庫'), audit.acts[0].text);
+  });
+  await T('修改部門：非管理員被拒且名稱不變；管理員可以清除主管', () => {
+    as('yu');
+    eq(updateDept('d-qa', { name: 'x', head: null }).error, '只有系統管理員可以管理部門');
+    eq(deptName('d-qa'), '品保'); eq(dept('d-qa').head, 'chen');
+    as('it');
+    ok(updateDept('d-qa', { name: '品保', head: null }).ok);
+    eq(dept('d-qa').head, null);
+  });
+  await T('刪除部門：只被協作部門、只被模板、只有人員時，分別拒絕', () => {
+    as('it');
+    eq(deptUsage('d-fin'), { tasks: 0, users: 0 }, '財務一開始沒有任何引用');
+    eq(deptUsage('d-it'), { tasks: 0, users: 1 }, '資訊只有人員（資訊室）');
+    node('t301').depts.push('d-fin');
+    eq(deptUsage('d-fin'), { tasks: 1, users: 0 });
+    eq(deleteDept('d-fin').error, '部門還有 1 件任務、0 位人員，請先移轉');
+    node('t301').depts.pop();
+    const tn = db.templates[0].nodes[1];
+    tn.dp.push('d-fin');
+    eq(deleteDept('d-fin').error, '部門還有 1 件任務、0 位人員，請先移轉');
+    tn.dp.pop();
+    const old = tn.dept; tn.dept = 'd-fin';
+    eq(deleteDept('d-fin').error, '部門還有 1 件任務、0 位人員，請先移轉');
+    tn.dept = old;
+    eq(deleteDept('d-it').error, '部門還有 0 件任務、1 位人員，請先移轉');
+    ok(dept('d-fin') && dept('d-it'), '被拒絕時部門都還在');
+    ok(deleteDept('d-fin').ok, '引用都移除後可以刪除');
+  });
+  await T('部門面板：成員看不到編輯與刪除按鈕，管理員看得到刪除', () => {
+    ui.page = 'node'; ui.node = 'p1'; ui.tab = 'people';
+    as('ming'); render();
+    eq(document.querySelectorAll('[data-dept-edit]').length, 0);
+    eq(document.querySelectorAll('[data-dept-del]').length, 0);
+    as('it'); render();
+    ok(document.querySelector('[data-dept-del="d-fin"]'), '管理員看得到財務的刪除按鈕');
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
