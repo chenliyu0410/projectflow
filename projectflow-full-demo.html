@@ -684,7 +684,7 @@ function upgrade(o) {
     });
     d.templates.forEach((t) => t.nodes.forEach((x) => {
       x.dp = ids(x.dp);
-      x.dept = (x.who && USERS[x.who] && USERS[x.who].dept) || TAG_DEPT[x.tag] || x.dp[0] || 'd-rd';
+      x.dept = (x.who && USERS[x.who] && USERS[x.who].dept) || x.dp[0] || 'd-rd';
     }));
     merged.forEach((nm) => o.audit.acts.unshift({ at: nowStr(), actor: 'it', node: null, action: '部門', text: `部門「${nm}」已併入研發` }));
     d.v = 4; o.v = 4;
@@ -2264,7 +2264,7 @@ function aiAction(kind) {
       const cp = criticalPath(p.id);
       const pathList = [...cp.nodes].map(node).filter((x) => x && isLeaf(x)).sort((a, b) => span(a)[0] - span(b)[0]);
       const blocked = descendants(p.id).filter((x) => x.status === 'todo' && findBlockers(x, 'doing').some((b) => b.hard));
-      const load = {}; descendants(p.id).filter((x) => isLeaf(x) && !DONE(x.status)).forEach((x) => { load[x.owner] = (load[x.owner] || 0) + 1; });
+      const load = {}; descendants(p.id).filter((x) => isLeaf(x) && !DONE(x.status)).forEach((x) => { if (!x.owner) return; load[x.owner] = (load[x.owner] || 0) + 1; });
       const heavy = Object.entries(load).sort((a, b) => b[1] - a[1])[0];
       return { text: `${riskText(p)}\n\n關鍵路徑（延誤就會影響上市日）：\n· ${pathList.map((x) => x.title).join('\n→ ')}\n\n被硬性前置卡住：${blocked.length ? '\n· ' + blocked.map((x) => x.title).join('\n· ') : '無'}\n\n工作量最重：${heavy ? `${uname(heavy[0])}（${heavy[1]} 項未完成）` : '無'}\n\n建議：優先排除關鍵路徑上的延遲項目；非關鍵任務可借調人力；外部交期請採購確認是否能提前。`, actions: [{ label: '在時程上顯示關鍵路徑', kind: 'showCrit', payload: p.id }] };
     });
@@ -2324,7 +2324,7 @@ function aiAsk(q) {
       return { text: `${riskText(p)}\n\n影響路徑：${[...criticalPath(p.id).nodes].map(node).filter((x) => x && isLeaf(x)).sort((a, b) => span(a)[0] - span(b)[0]).map((x) => x.title).join(' → ')}\n${sl.days ? '要追回時程，可考慮：縮短保存試驗前置（先以 v3 啟動）、或與通路協調上架日。' : ''}\n\n來源：[1] 時程與相依關係　[2] 殺菌試驗紀錄` };
     }
     if (/誰|負責|工作量|人力/.test(q)) {
-      const load = {}; descendants(p.id).filter((x) => isLeaf(x) && !DONE(x.status)).forEach((x) => { load[x.owner] = (load[x.owner] || 0) + 1; });
+      const load = {}; descendants(p.id).filter((x) => isLeaf(x) && !DONE(x.status)).forEach((x) => { if (!x.owner) return; load[x.owner] = (load[x.owner] || 0) + 1; });
       return { text: `未完成任務分布：\n${Object.entries(load).sort((a, b) => b[1] - a[1]).map(([u, c]) => `· ${uname(u)}：${c} 項`).join('\n')}\n\n來源：[1] 任務指派` };
     }
     // 簡易 RAG：依字詞重疊檢索使用者看得到的文件
@@ -3124,7 +3124,7 @@ document.addEventListener('click', (e) => {
   if (ds.poTask) {
     const po = db.ops.pos.find((p) => p.id === ds.poTask);
     const host = linkedNodes('po', po.id)[0]; const parent = host ? host.parent : 'p1';
-    const t = { name: '到貨驗收', nodes: [{ k: 'r', p: null, title: `到貨驗收：${po.id}`, tag: '品保', off: 0, dur: 0 }, ...['核對數量與外觀', '抽樣檢驗', 'COA / 規格書核對', '入庫與批號登錄'].map((x, i) => ({ k: 'k' + i, p: 'r', title: x, tag: '品保', off: i, dur: 0, dp: ['品保'] }))], deps: [0, 1, 2].map((i) => ({ f: 'k' + i, t: 'k' + (i + 1), type: 'FS', lag: 0 })), docs: [] };
+    const t = { name: '到貨驗收', nodes: [{ k: 'r', p: null, title: `到貨驗收：${po.id}`, tag: '品保', off: 0, dur: 0, dp: [], dept: 'd-qa' }, ...['核對數量與外觀', '抽樣檢驗', 'COA / 規格書核對', '入庫與批號登錄'].map((x, i) => ({ k: 'k' + i, p: 'r', title: x, tag: '品保', off: i, dur: 0, dp: ['d-qa'], dept: 'd-qa' }))], deps: [0, 1, 2].map((i) => ({ f: 'k' + i, t: 'k' + (i + 1), type: 'FS', lag: 0 })), docs: [] };
     const res = commit(`建立 ${po.id} 驗收任務`, () => { const r = applyTemplate(t, parent, { start: po.expected, vars: {}, structure: true, deps: true, owners: true, dates: true, docs: false }); db.nodes[r.root].links = [{ t: 'po', id: po.id }]; return r; });
     log(res.root, '模板', `從採購單 ${po.id} 建立驗收任務（${res.count} 項）`);
     return toast(`已建立「到貨驗收：${po.id}」（${res.count} 項）`, null, { label: '開啟', fn: () => enter(res.root) });

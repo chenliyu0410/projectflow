@@ -52,6 +52,53 @@
     ok(!document.getElementById('meSel').textContent.includes('d-qa'), '不應顯示部門 id');
   });
 
+  await T('AI 問答：工作量不把未指派任務算成「null」', () => {
+    ui.page = 'node'; ui.node = 'p1'; render();
+    aiAsk('誰負責最多工作？');
+    const t = ui.chat.at(-1).text;
+    ok(t.includes('未完成任務分布') && t.includes('阿明'), t);
+    ok(!t.includes('null'), '回答不應出現 null：' + t);
+  });
+  await T('AI 風險分析：工作量最重排除未指派任務', () => {
+    ui.page = 'node'; ui.node = 'p1'; render();
+    descendants('p1').filter((x) => isLeaf(x) && x.type === 'task' && x.status !== 'done').forEach((x) => { x.owner = null; });
+    aiAction('risk');
+    const t = ui.chat.at(-1).text;
+    ok(t.includes('工作量最重：無'), '全部未指派時應顯示「無」：' + t);
+    ok(!t.includes('null'), '回答不應出現 null');
+  });
+  await T('採購單建立驗收任務：協作部門存 id，模板節點都有負責部門', () => {
+    const po = db.ops.pos[0];
+    const orig = window.applyTemplate; let tpl = null;
+    window.applyTemplate = (t, ...rest) => { tpl = t; return orig(t, ...rest); };
+    const btn = document.createElement('button'); btn.type = 'button'; btn.dataset.poTask = po.id; document.body.appendChild(btn);
+    try { btn.click(); } finally { window.applyTemplate = orig; btn.remove(); }
+    ok(tpl, '應該呼叫 applyTemplate');
+    ok(tpl.nodes.every((x) => x.dept === 'd-qa'), '模板根節點與子節點的負責部門都是品保');
+    eq(tpl.nodes.filter((x) => x.p === 'r').map((x) => x.dp), [['d-qa'], ['d-qa'], ['d-qa'], ['d-qa']]);
+    eq(tpl.nodes[0].dp, []);
+    const root = Object.values(db.nodes).find((n) => n.title === `到貨驗收：${po.id}`);
+    ok(root, '應該建立驗收任務');
+    const subs = kids(root.id);
+    eq(subs.length, 4);
+    ok(subs.every((n) => JSON.stringify(n.depts) === JSON.stringify(['d-qa'])), '子任務的協作部門應該是 ["d-qa"]');
+    ok(subs.every((n) => deptName(n.depts[0]) === '品保'));
+  });
+  await T('upgrade：模板節點負責部門依序取負責人、第一個協作部門、研發', () => {
+    const d = seed(); d.v = 3; delete d.departments;
+    Object.values(d.nodes).forEach((n) => { delete n.dept; if (n.owner === null) n.owner = 'yu'; });
+    d.templates.forEach((t) => t.nodes.forEach((x) => { delete x.dept; delete x.who; x.dp = []; }));
+    const ns = d.templates[0].nodes;
+    ns[1].who = 'hua'; ns[1].tag = '檢驗'; ns[1].dp = [];
+    ns[2].tag = '採購'; ns[2].dp = ['法規'];
+    ns[3].tag = '採購'; ns[3].dp = [];
+    const o = upgrade({ v: 3, db: d, audit: freshAudit() });
+    const out = o.db.templates[0].nodes;
+    eq(out[1].dept, 'd-pur', '有負責人時取負責人的部門');
+    eq(out[2].dept, 'd-qa', '沒有負責人時取第一個協作部門');
+    eq(out[3].dept, 'd-rd', '都沒有時用研發，不看類別');
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
