@@ -99,6 +99,43 @@
     eq(out[3].dept, 'd-rd', '都沒有時用研發，不看類別');
   });
 
+  // ── Task 2：可見性 ──
+  const see = (u, id) => { as(u); return visible(node(id)); };
+  const who = (id) => USERS_ALL.filter((u) => see(u, id));
+  await T('未指派任務：只有部門主管、專案負責人、系統管理員看得到', () => {
+    eq(who('t404'), ['yu', 'chen', 'it']);
+  });
+  await T('未指派且部門沒有主管：只有專案負責人與系統管理員', () => {
+    eq(who('t504'), ['yu', 'it']);
+  });
+  await T('已指派：負責人、部門主管、協作人員、協作部門主管、範圍內審核人', () => {
+    eq(who('t30121'), ['yu', 'ming', 'chen', 'it']);
+    eq(who('t403'), ['yu', 'an', 'chen', 'lin', 'it']);
+    eq(who('t802'), ['yu', 'hua', 'chen', 'it']);
+  });
+  await T('同部門成員看不到已指派給別人的任務', () => {
+    eq(see('an', 't30122'), false);
+  });
+  await T('路徑：負責子任務的人看得到上層與專案的所有階段；負責上層的人看得到子任務', () => {
+    node('t30122').owner = 'an';
+    ok(see('an', 't3012'), '看得到上層任務'); ok(see('an', 'p1'), '看得到專案'); ok(see('an', 'p1a'), '看得到同專案的其他階段');
+    ok(!see('an', 't3013'), '看不到旁支任務');
+    ok(see('ming', 't30122'), '負責上層任務的人看得到子任務');
+  });
+  await T('未指派的子任務：負責上層任務的人也看不到', () => {
+    db.nodes['t-un'] = { ...clone(node('t30122')), id: 't-un', owner: null, dept: 'd-pe', collabs: [], depts: [] };
+    eq(see('ming', 't-un'), false); eq(see('yu', 't-un'), true);
+  });
+  await T('唯讀角色看得到全部；看不到任何任務的專案不顯示', () => {
+    ok(seeNode(node('t504'), { id: 'x', role: 'readonly', dept: 'd-it' }));
+    eq(see('lin', 'p2'), false);
+  });
+  await T('拿掉「顯示全部任務」開關', () => {
+    as('ming'); ui.page = 'node'; ui.node = 'p1'; ui.tab = 'board'; render();
+    ok(!document.getElementById('showAllChk'), '不應有顯示全部開關');
+    ok(!document.querySelector('[data-id="t404"]'), '看板不應出現看不到的任務');
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()

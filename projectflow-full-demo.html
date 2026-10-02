@@ -758,25 +758,32 @@ function boardItems(n) {
 }
 
 /* ================= 權限（F5 / F6） ================= */
-function assigned(n, u) { return n.owner === u.id || n.collabs.includes(u.id) || n.depts.includes(u.dept); }
-function visible(n) {
-  const u = me();
-  if (u.role !== 'collab') return true;
-  if (assigned(n, u) || ancestors(n).some((a) => a.type !== 'project' && assigned(a, u))) return true;
-  return descendants(n.id).some((d) => assigned(d, u));
+/* 可見性：只有相關的人看得到任務 */
+function inScopeOf(n, u) { const ph = phaseOf(n); return u.role === 'reviewer' && !!ph && (u.scope || []).includes(ph.title); }
+function inReviewerScope(n) { return inScopeOf(n, me()); }
+// 直接相關：未指派時只有部門主管；已指派時是負責人、協作人員、負責部門或協作部門的主管、範圍內的審核人
+function directSee(n, u) {
+  if (!n || n.type !== 'task') return false;
+  if (n.owner === null) return isHead(u.id, n.dept);
+  return n.owner === u.id || n.collabs.includes(u.id) || isHead(u.id, n.dept) || n.depts.some((d) => isHead(u.id, d)) || inScopeOf(n, u);
 }
-// 與目前使用者相關：自己負責／協作／部門被指派的任務，這些任務底下的子任務，以及為了顯示路徑的上層
-// 專案負責人與系統管理員看全部；審核人另外看得到自己負責審核的階段；成員與審核人可切換「顯示全部」
-function relSelf(n) { const u = me(); return n.type !== 'project' && (assigned(n, u) || (u.role === 'reviewer' && inReviewerScope(n))); }
-function related(n) {
-  const u = me();
-  if (u.role === 'admin' || u.role === 'owner') return true;
-  if (n.type === 'project') return descendants(n.id).some(relSelf);
-  return relSelf(n) || ancestors(n).some(relSelf) || descendants(n.id).some(relSelf);
+const SEE_ALL = ['admin', 'owner', 'readonly'];
+// 任務：直接相關；或上層任務直接相關（未指派任務除外）；或下層任務直接相關（顯示路徑）
+function seeTask(n, u = me()) {
+  if (SEE_ALL.includes(u.role)) return true;
+  if (directSee(n, u)) return true;
+  if (n.owner !== null && ancestors(n).some((a) => directSee(a, u))) return true;
+  return descendants(n.id).some((d) => directSee(d, u) || (d.owner !== null && ancestors(d).some((a) => directSee(a, u))));
 }
-function fullViewAllowed() { return ['member', 'reviewer'].includes(me().role); }
-function shown(n) { if (!visible(n)) return false; return (ui.showAll && fullViewAllowed()) ? true : related(n); }
-function inReviewerScope(n) { const u = me(); if (u.role !== 'reviewer') return false; const ph = phaseOf(n); return !!ph && (u.scope || []).includes(ph.title); }
+// 專案與階段：專案底下有任何看得到的任務，就看得到專案與它的所有階段
+function seeNode(n, u = me()) {
+  if (!n) return false;
+  if (SEE_ALL.includes(u.role)) return true;
+  if (n.type === 'task') return seeTask(n, u);
+  const p = n.type === 'project' ? n : projectOf(n);
+  return descendants(p.id).some((d) => d.type === 'task' && seeTask(d, u));
+}
+function visible(n) { return seeNode(n); }
 function can(a, n) {
   const u = me(), r = u.role;
   if (r === 'admin') return true;
@@ -1338,7 +1345,7 @@ function renderNav() {
 }
 function renderProjects() {
   const cur = ui.page === 'node' && node(ui.node) ? projectOf(node(ui.node)).id : null;
-  $('projectList').innerHTML = projects().filter(shown).map((p) => {
+  $('projectList').innerHTML = projects().filter(visible).map((p) => {
     const pc = Math.round(prog(p));
     return `<button class="pbtn" type="button" data-enter="${p.id}" aria-current="${p.id === cur}">
       <span class="pdot" style="background:${p.color}"></span>
@@ -1377,7 +1384,7 @@ function afterRender() {
 /* ================= 節點頁 ================= */
 function pageNode() {
   let n = node(ui.node);
-  if (!n || !can('view', n) || !shown(n)) { n = projects().find(shown) || projects().find(visible); ui.node = n.id; }
+  if (!n || !can('view', n)) { n = projects().find(visible) || projects()[0]; ui.node = n.id; }
   const p = projectOf(n);
   const anc = ancestors(n);
   const [s, e] = span(n);
@@ -1418,7 +1425,6 @@ function pageNode() {
   if (n.type === 'project' && kids(n.id).some((k) => k.type === 'phase')) html += phasesStrip(n);
   if (n.type === 'phase' && db.gates[n.id]) html += gateInline(n);
   if (ui.scaleNode !== n.id) { ui.scale = autoScale(n); ui.scaleNode = n.id; }
-  const mineTool = ['board', 'timeline', 'graph'].includes(ui.tab) ? (fullViewAllowed() ? `<label title="預設只顯示與你相關的任務"><input type="checkbox" id="showAllChk" ${ui.showAll ? 'checked' : ''}>顯示全部任務</label>` : me().role === 'collab' ? '<span class="tag gray">只顯示指派給你的任務</span>' : '') : '';
   const tools = {
     board: `<span>拖曳卡片改狀態；拖到另一張卡片上 = 變成它的子任務</span>`,
     timeline: `${n.parent ? `<button class="btn sm" type="button" data-enter="${n.parent}" title="回到上一層">↑ 上一層：${esc(node(n.parent).title)}</button>` : '<span class="tag">總覽圖</span>'}
@@ -1435,7 +1441,7 @@ function pageNode() {
     records: '',
   };
   html += `<div class="toolbar"><div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button class="tab" role="tab" type="button" data-tab="${k}" aria-selected="${ui.tab === k}">${l}</button>`).join('')}</div>
-    <div class="tools">${leafTask ? `<button class="btn sm" type="button" data-add-child="${n.id}" ${can('create', n) ? '' : 'disabled'}>＋ 新增子任務</button>` : ''}${mineTool}${tools[ui.tab] || ''}</div></div>`;
+    <div class="tools">${leafTask ? `<button class="btn sm" type="button" data-add-child="${n.id}" ${can('create', n) ? '' : 'disabled'}>＋ 新增子任務</button>` : ''}${tools[ui.tab] || ''}</div></div>`;
   const views = { board: viewBoard, timeline: viewTimeline, graph: viewGraph, docs: viewDocs, data: viewData, people: viewPeople, records: viewRecords };
   html += `<div class="view" id="view">${(views[ui.tab] || viewBoard)(n)}</div>`;
   return html;
@@ -1468,7 +1474,7 @@ function gateInline(ph) {
 /* ---------- 看板 ---------- */
 function blockersFor(c) { return c.status === 'todo' ? findBlockers(c, 'doing') : []; }
 function cardHTML(c, ctx) {
-  const k = kids(c.id).filter(shown);
+  const k = kids(c.id).filter(visible);
   const bl = blockersFor(c);
   const hard = bl.filter((b) => b.hard), soft = bl.filter((b) => !b.hard);
   const late = isLate(c);
@@ -1495,8 +1501,8 @@ function cardHTML(c, ctx) {
   </article>`;
 }
 function viewBoard(n) {
-  const items = boardItems(n).filter(shown);
-  if (!items.length && boardItems(n).length) return `<div class="panel empty">這裡沒有與你（${esc(me().name)}）相關的任務。${fullViewAllowed() ? '可勾選右上方「顯示全部任務」查看其他人的任務。' : ''}</div>`;
+  const items = boardItems(n).filter(visible);
+  if (!items.length && boardItems(n).length) return `<div class="panel empty">這裡沒有與你（${esc(me().name)}）相關的任務。</div>`;
   if (!items.length) return `<div class="panel empty">這個節點還沒有子任務。按「＋ 新增子任務」或「套用模板」開始拆解——每個節點都能再往下拆，並擁有自己的看板、時程與文件。</div>`;
   return `<div class="board">${STATUS.map(([k, l]) => {
     const ts = items.filter((t) => (k === 'done' ? DONE(t.status) : t.status === k));
@@ -1512,7 +1518,7 @@ let TL = null; // 目前時程的排版資訊，給連線與拖曳使用
 function tlOpen(x) { const k = ui.expanded['t' + x.id]; if (k !== undefined) return k; const n = node(ui.node); return n.type === 'project' && x.parent === n.id; }
 function tlRows(n) {
   const rows = [];
-  const walk = (x, lvl) => kids(x.id).filter(shown).forEach((c) => {
+  const walk = (x, lvl) => kids(x.id).filter(visible).forEach((c) => {
     rows.push({ n: c, lvl });
     if (kids(c.id).length && tlOpen(c)) walk(c, lvl + 1);
   });
@@ -1758,7 +1764,7 @@ function cascadeFrom(id, moved, lvl) {
 // 只放葉節點；掛在上層任務的相依，轉成「上層最晚結束的子任務 → 下層最早開始的子任務」
 const GW = 200, GH = 58, GCOL = 260, GROW = 80;
 function graphLayout(n) {
-  const leaves = descendants(n.id).filter((x) => shown(x) && isLeaf(x));
+  const leaves = descendants(n.id).filter((x) => visible(x) && isLeaf(x));
   const L = new Set(leaves.map((x) => x.id));
   const sub = new Set(descendants(n.id).map((x) => x.id));
   const ends = (id, first) => {
@@ -3170,9 +3176,8 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('change', (e) => {
   const t = e.target;
-  if (t.id === 'meSel') { ui.me = t.value; ui.showAll = false; save(); if (ui.page === 'node' && node(ui.node) && !shown(node(ui.node))) { const p = projects().find(shown); if (p) ui.node = p.id; } ui.chat.push({ title: '切換身分', text: `目前身分：${me().name}（${ROLES[me().role]}・${deptName(me().dept)}）。畫面、可操作的按鈕與可見的機密欄位都會跟著改變。` }); return render(); }
+  if (t.id === 'meSel') { ui.me = t.value; save(); if (ui.page === 'node' && node(ui.node) && !visible(node(ui.node))) { const p = projects().find(visible); if (p) ui.node = p.id; } ui.chat.push({ title: '切換身分', text: `目前身分：${me().name}（${ROLES[me().role]}・${deptName(me().dept)}）。畫面、可操作的按鈕與可見的機密欄位都會跟著改變。` }); return render(); }
   if (t.id === 'cascadeChk') { ui.cascade = t.checked; return; }
-  if (t.id === 'showAllChk') { ui.showAll = t.checked; return render(); }
   if (t.id === 'docsAllChk') { ui.docsAll = t.checked; return render(); }
   if (t.id === 'fvA' || t.id === 'fvB') { ui.fv = [+$('fvA').value, +$('fvB').value]; return render(); }
   if (t.name === 'policy') { commit('AI 政策', () => { db.policy = t.value; }); return log(null, 'AI 政策', `AI 政策改為「${{ local_only: '全本地', hybrid: '混合', cloud_allowed: '允許雲端' }[t.value]}」`); }
