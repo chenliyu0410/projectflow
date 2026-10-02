@@ -416,19 +416,25 @@ const STLBL = { todo: '待辦', doing: '進行中', review: '審核中', done: '
 const LEVELS = { public: '公開', internal: '內部', confidential: '機密' };
 const ROLES = { admin: '系統管理員', owner: '專案負責人', reviewer: '階段審核人', member: '成員', collab: '協作人員', readonly: '唯讀' };
 const TAGS = ['市場', '配方', '試作', '製程', '品保', '檢驗', '測試', '法規', '採購', '生產', '行銷'];
-const DEPTS = ['研發', '製程', '品保', '法規', '採購', '生產', '行銷'];
+// 部門：id、名稱、預設主管（可在「成員與權限」由系統管理員維護，存在 db.departments）
+const DEFAULT_DEPTS = [['d-rd', '研發', 'yu'], ['d-pe', '製程', null], ['d-qa', '品保', 'chen'], ['d-sales', '業務', null], ['d-pc', '生管', null], ['d-pur', '採購', 'hua'], ['d-adm', '管理', null], ['d-it', '資訊', null], ['d-fin', '財務', null], ['d-mfg', '製造', null]];
+const defaultDepts = () => DEFAULT_DEPTS.map(([id, name, head]) => ({ id, name, head }));
+// v3 以前的部門名稱 → 部門 id
+const OLD_DEPT = { 研發: 'd-rd', 製程: 'd-pe', 品保: 'd-qa', 法規: 'd-qa', 採購: 'd-pur', 生產: 'd-mfg', 行銷: 'd-sales', 資訊: 'd-it' };
+// 任務類別 → 預設負責部門（模板與升級時使用）
+const TAG_DEPT = { 市場: 'd-sales', 配方: 'd-rd', 試作: 'd-rd', 製程: 'd-pe', 品保: 'd-qa', 檢驗: 'd-qa', 測試: 'd-qa', 法規: 'd-qa', 採購: 'd-pur', 生產: 'd-mfg', 行銷: 'd-sales' };
 const DEPTYPE = { FS: '完成→開始', SS: '開始→開始', FF: '完成→完成' };
 const RESULT = { met: '達成', partial: '部分達成', unmet: '未達成' };
 const FIELD_TYPES = { text: '文字', number: '數字', date: '日期', select: '選項' };
 const MAX_FILE = 10 * 1024 * 1024;
 const USERS = {
-  yu: { name: '力瑜', short: '瑜', role: 'owner', dept: '研發', title: '研發主管／專案負責人', color: '#B4541F' },
-  ming: { name: '阿明', short: '明', role: 'member', dept: '製程', title: '製程工程師', color: '#1F5F5B' },
-  an: { name: '小安', short: '安', role: 'member', dept: '法規', title: '法規專員', color: '#4A5A8C' },
-  hua: { name: '阿華', short: '華', role: 'member', dept: '採購', title: '採購主管', color: '#6B7A3A' },
-  chen: { name: '陳主管', short: '陳', role: 'reviewer', dept: '品保', title: '品保主管（階段審核人）', color: '#7A4A8C', scope: ['殺菌與保存', '檢驗與適口性'] },
-  lin: { name: '小林', short: '林', role: 'collab', dept: '行銷', title: '行銷企劃（協作人員）', color: '#A0522D' },
-  it: { name: '資訊室', short: 'IT', role: 'admin', dept: '資訊', title: '系統管理員', color: '#555' },
+  yu: { name: '力瑜', short: '瑜', role: 'owner', dept: 'd-rd', title: '研發主管／專案負責人', color: '#B4541F' },
+  ming: { name: '阿明', short: '明', role: 'member', dept: 'd-pe', title: '製程工程師', color: '#1F5F5B' },
+  an: { name: '小安', short: '安', role: 'member', dept: 'd-qa', title: '法規專員', color: '#4A5A8C' },
+  hua: { name: '阿華', short: '華', role: 'member', dept: 'd-pur', title: '採購主管', color: '#6B7A3A' },
+  chen: { name: '陳主管', short: '陳', role: 'reviewer', dept: 'd-qa', title: '品保主管（階段審核人）', color: '#7A4A8C', scope: ['殺菌與保存', '檢驗與適口性'] },
+  lin: { name: '小林', short: '林', role: 'collab', dept: 'd-sales', title: '行銷企劃（協作人員）', color: '#A0522D' },
+  it: { name: '資訊室', short: 'IT', role: 'admin', dept: 'd-it', title: '系統管理員', color: '#555' },
 };
 // F10 欄位層級權限：機密欄位誰看得到
 const FIELD_ACCESS = { ratio: ['yu', 'chen', 'it'], price: ['yu', 'hua', 'it'], cost: ['yu', 'hua', 'it'] };
@@ -442,12 +448,14 @@ const PHASE_TEMPLATE = [
 
 /* ================= 種子資料 ================= */
 function seed() {
-  const db = { v: 3, nodes: {}, deps: [], gates: {}, docs: [], templates: [], overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0, reportFields: [], reports: [], notes: [], attachments: [] };
+  const db = { v: 4, departments: defaultDepts(), nodes: {}, deps: [], gates: {}, docs: [], templates: [], overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0, reportFields: [], reports: [], notes: [], attachments: [] };
   let ord = 0;
   const N = (id, parent, type, title, o = {}) => {
     db.nodes[id] = {
       id, parent, type, title, tag: o.tag || '', status: o.st || 'todo', progress: o.pg ?? null, weight: o.w || 1,
-      start: o.s || null, end: o.e || o.s || null, milestone: !!o.ms, locked: !!o.lock, owner: o.who || 'yu',
+      start: o.s || null, end: o.e || o.s || null, milestone: !!o.ms, locked: !!o.lock,
+      owner: 'who' in o ? o.who : 'yu',
+      dept: type === 'task' ? (o.dept || USERS['who' in o && o.who ? o.who : 'yu'].dept) : null,
       collabs: o.co || [], depts: o.dp || [], level: o.lv || null, ai: !!o.ai, note: o.note || '', links: o.ln || [],
       order: ord++, color: o.color, goal: o.goal, due: o.due,
     };
@@ -474,7 +482,7 @@ function seed() {
   dep('t103', 't201'); dep('t201', 't2021'); dep('t2021', 't2022'); dep('t2022', 't2023');
 
   N('p1c', 'p1', 'phase', '殺菌與保存', { s: '2026-09-08', e: '2026-12-15', st: 'doing' });
-  N('t301', 'p1c', 'task', '殺菌條件驗證（F0 值）', { tag: '製程', st: 'doing', who: 'ming', co: ['chen'], dp: ['品保'], ln: [F3, { t: 'wo', id: 'WO-T2603' }] });
+  N('t301', 'p1c', 'task', '殺菌條件驗證（F0 值）', { tag: '製程', st: 'doing', who: 'ming', co: ['chen'], dp: ['d-qa'], ln: [F3, { t: 'wo', id: 'WO-T2603' }] });
   N('t3011', 't301', 'task', '第 1 次 F0 測試', { tag: '製程', st: 'done', who: 'ming', s: '2026-09-08', e: '2026-09-12', note: 'F0 = 2.6，未達目標 3.0，需調整殺菌時間' });
   N('t3012', 't301', 'task', '調整殺菌時間', { tag: '製程', st: 'doing', who: 'ming' });
   N('t30121', 't3012', 'task', '設備參數設定', { tag: '製程', st: 'doing', who: 'ming', s: '2026-09-15', e: '2026-09-22', pg: 60, ln: [{ t: 'wo', id: 'WO-T2603' }] });
@@ -491,16 +499,19 @@ function seed() {
   N('p1d', 'p1', 'phase', '檢驗與適口性', { s: '2026-09-21', e: '2026-11-27', st: 'doing' });
   N('t401', 'p1d', 'task', '營養成分送驗', { tag: '檢驗', who: 'yu', s: '2026-10-12', e: '2026-11-06', ln: [F3] });
   N('t402', 'p1d', 'task', '適口性測試（雙碗試驗）', { tag: '測試', who: 'yu', ai: true, co: ['lin'], s: '2026-11-02', e: '2026-11-27', ln: [F3] });
-  N('t403', 'p1d', 'task', '包裝標示審查', { tag: '法規', st: 'doing', who: 'an', co: ['lin'], dp: ['行銷'], ln: [F3] });
+  N('t403', 'p1d', 'task', '包裝標示審查', { tag: '法規', st: 'doing', who: 'an', co: ['lin'], dp: ['d-sales'], ln: [F3] });
   N('t4031', 't403', 'task', '標示文案草稿', { tag: '行銷', st: 'doing', who: 'lin', s: '2026-09-21', e: '2026-10-09' });
   N('t4032', 't403', 'task', '營養標示與法規比對', { tag: '法規', who: 'an', s: '2026-10-12', e: '2026-11-20' });
+  // 未指派：只有部門主管（與專案負責人、系統管理員）看得到
+  N('t404', 'p1d', 'task', '檢驗報告判讀與宣稱比對', { tag: '品保', who: null, dept: 'd-qa', s: '2026-11-09', e: '2026-11-20' });
   dep('t301', 't401'); dep('t202', 't402', { enf: 'soft' }); dep('t4031', 't4032'); dep('t401', 't4032', { type: 'FF' });
 
   N('p1e', 'p1', 'phase', '量產上市', { s: '2026-12-01', e: '2027-03-31' });
   N('t501', 'p1e', 'task', '包材與設備確認', { tag: '生產', who: 'ming', s: '2026-12-01', e: '2027-01-08' });
   N('t502', 'p1e', 'task', '首批量產', { tag: '生產', who: 'ming', s: '2027-01-15', e: '2027-02-24' });
-  N('t503', 'p1e', 'task', '通路上架', { tag: '行銷', who: 'lin', dp: ['行銷'], s: '2027-02-26', e: '2027-03-29' });
+  N('t503', 'p1e', 'task', '通路上架', { tag: '行銷', who: 'lin', dp: ['d-sales'], s: '2027-02-26', e: '2027-03-29' });
   N('m501', 'p1e', 'task', '上市', { tag: '行銷', ms: true, lock: true, who: 'yu', s: '2027-03-31' });
+  N('t504', 'p1e', 'task', '量產製程參數確認', { tag: '製程', who: null, dept: 'd-pe', s: '2026-12-01', e: '2026-12-18' });
   dep('t302', 't502', { lag: 30 }); dep('t501', 't502'); dep('t401', 't502'); dep('t502', 't503'); dep('t403', 't503'); dep('t503', 'm501');
 
   db.gates.p1a = { criteria: '配方定案；主要原料至少 1 家供應商通過', approver: '研發主管', status: 'approved', by: 'yu', at: '2026/09/05' };
@@ -517,6 +528,7 @@ function seed() {
   N('t602', 'p2a', 'task', '保健原料文獻整理', { tag: '配方', st: 'doing', who: 'yu', s: '2026-09-10', e: '2026-10-20' });
   N('t603', 'p2a', 'task', '保健原料供應商詢價', { tag: '採購', who: 'hua', ai: true, s: '2026-10-01', e: '2026-10-31' });
   N('t604', 'p2a', 'task', '初版配方設計', { tag: '配方', who: 'yu', s: '2026-10-21', e: '2026-11-15' });
+  N('t605', 'p2a', 'task', '關節保健成分功效評估', { tag: '配方', who: null, dept: 'd-rd', s: '2026-10-05', e: '2026-10-30' });
   dep('t602', 't604'); dep('t603', 't604', { enf: 'soft' });
 
   // ── 專案 3：化毛零食罐 ──
@@ -534,7 +546,7 @@ function seed() {
   // ── 專案 4：供應商例行管理 ──
   N('p4', null, 'project', '供應商與原料例行管理', { color: '#6B7A3A', goal: '供應商評估、證照追蹤與原料核准', due: '2026-12-31', s: '2026-09-01', e: '2026-12-31', lv: 'internal', who: 'hua' });
   N('t801', 'p4', 'task', '年度供應商稽核排程', { tag: '採購', st: 'doing', who: 'hua', co: ['chen'], s: '2026-09-01', e: '2026-10-31' });
-  N('t802', 'p4', 'task', '南瓜泥供應商評估（綠野農產）', { tag: '採購', st: 'doing', who: 'hua', dp: ['品保'], ln: [{ t: 'supplier', id: 'S-003' }, { t: 'po', id: 'PO-2605' }] });
+  N('t802', 'p4', 'task', '南瓜泥供應商評估（綠野農產）', { tag: '採購', st: 'doing', who: 'hua', dp: ['d-qa'], ln: [{ t: 'supplier', id: 'S-003' }, { t: 'po', id: 'PO-2605' }] });
   N('t8021', 't802', 'task', '索取公司資料與證照', { tag: '採購', st: 'done', who: 'hua', s: '2026-09-14', e: '2026-09-18' });
   N('t8022', 't802', 'task', '樣品送驗', { tag: '品保', st: 'doing', who: 'chen', s: '2026-09-21', e: '2026-10-09' });
   N('t8023', 't802', 'task', '現場稽核', { tag: '品保', who: 'chen', s: '2026-10-12', e: '2026-10-16' });
@@ -551,9 +563,10 @@ function seed() {
   doc('doc6', 't403', '標示草稿 v2', 'internal', 'lin', '2026/09/28', '# 標示草稿 v2\n\n- 品名：成貓主食罐・鮪魚雞肉\n- 宣稱：完整均衡、高蛋白\n- 待確認：營養成分數值（等送驗報告）');
 
   // ── 模板 ──
-  const chain = (arr) => arr.map((a, i) => ({ k: 'k' + i, p: 'r', title: a[0], tag: a[1], off: a[2], dur: a[3], dp: a[4] || [] }));
+  const toIds = (arr) => [...new Set((arr || []).map((x) => OLD_DEPT[x] || x))];
+  const chain = (arr) => arr.map((a, i) => ({ k: 'k' + i, p: 'r', title: a[0], tag: a[1], off: a[2], dur: a[3], dp: toIds(a[4]), dept: TAG_DEPT[a[1]] || 'd-rd' }));
   const mkTpl = (id, name, scope, desc, rootTag, list, extra = {}) => {
-    const nodes = [{ k: 'r', p: null, title: name + '：{產品名}', tag: rootTag, off: 0, dur: 0 }, ...chain(list)];
+    const nodes = [{ k: 'r', p: null, title: name + '：{產品名}', tag: rootTag, off: 0, dur: 0, dp: [], dept: TAG_DEPT[rootTag] || 'd-rd' }, ...chain(list)];
     const deps = list.slice(1).map((_, i) => ({ f: 'k' + i, t: 'k' + (i + 1), type: 'FS', lag: 0 }));
     return { id, name, scope, desc, version: extra.version || 1, history: extra.history || [], nodes, deps, docs: extra.docs || [] };
   };
@@ -657,17 +670,36 @@ function upgrade(o) {
     s.reports.forEach((r) => { if (d.nodes[r.node_id] && !d.reports.some((x) => x.id === r.id)) d.reports.push(r); });
     d.v = 3; o.v = 3;
   }
+  // v3 → v4：部門改為可設定的資料；任務補上負責部門；部門名稱改存 id
+  if (o.v === 3) {
+    const d = o.db;
+    d.departments = d.departments || defaultDepts();
+    const known = new Set(d.departments.map((x) => x.id));
+    const merged = new Set();
+    const toId = (x) => { if (known.has(x)) return x; if (OLD_DEPT[x]) return OLD_DEPT[x]; merged.add(x); return 'd-rd'; };
+    const ids = (arr) => [...new Set((arr || []).map(toId))];
+    Object.values(d.nodes).forEach((n) => {
+      n.depts = ids(n.depts);
+      n.dept = n.type === 'task' ? ((USERS[n.owner] && USERS[n.owner].dept) || 'd-rd') : null;
+    });
+    d.templates.forEach((t) => t.nodes.forEach((x) => {
+      x.dp = ids(x.dp);
+      x.dept = (x.who && USERS[x.who] && USERS[x.who].dept) || TAG_DEPT[x.tag] || x.dp[0] || 'd-rd';
+    }));
+    merged.forEach((nm) => o.audit.acts.unshift({ at: nowStr(), actor: 'it', node: null, action: '部門', text: `部門「${nm}」已併入研發` }));
+    d.v = 4; o.v = 4;
+  }
   return o;
 }
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const o = JSON.parse(raw); if (o && (o.v === 2 || o.v === 3) && o.db && o.audit) { upgrade(o); db = o.db; audit = o.audit; if (o.me && USERS[o.me]) ui.me = o.me; return; } }
+    if (raw) { const o = JSON.parse(raw); if (o && [2, 3, 4].includes(o.v) && o.db && o.audit) { upgrade(o); db = o.db; audit = o.audit; if (o.me && USERS[o.me]) ui.me = o.me; return; } }
   } catch (e) { /* 無法讀取時使用種子資料 */ }
   db = seed(); audit = freshAudit();
 }
 function migrate() { const t = db.nodes.t2023; if (t) t.collabs = t.collabs.filter((c) => c !== 'lin'); }
-function save() { try { localStorage.setItem(KEY, JSON.stringify({ v: 3, db, audit, me: ui.me })); } catch (e) { /* 忽略 */ } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ v: 4, db, audit, me: ui.me })); } catch (e) { /* 忽略 */ } }
 function commit(label, fn) {
   undoStack.push({ label, snap: JSON.stringify(db) });
   if (undoStack.length > 60) undoStack.shift();
@@ -688,6 +720,10 @@ function log(node, action, text, actor) { audit.acts.unshift({ at: nowStr(), act
 const node = (id) => db.nodes[id];
 const me = () => ({ id: ui.me, ...USERS[ui.me] });
 const uname = (id) => (USERS[id] ? USERS[id].name : id || '—');
+const dept = (id) => (id && db.departments.find((d) => d.id === id)) || null;
+const deptName = (id) => (dept(id) ? dept(id).name : '—');
+const deptMembers = (id) => Object.keys(USERS).filter((u) => USERS[u].dept === id);
+const isHead = (uid, id) => !!dept(id) && dept(id).head === uid;
 function kids(id) { return Object.values(db.nodes).filter((n) => n.parent === id).sort((a, b) => a.order - b.order); }
 function ancestors(n) { const a = []; let p = n && n.parent ? node(n.parent) : null; while (p) { a.unshift(p); p = p.parent ? node(p.parent) : null; } return a; }
 function projectOf(n) { return n.parent ? ancestors(n)[0] : n; }
@@ -1316,7 +1352,7 @@ function renderMe() {
   const u = me();
   $('me').innerHTML = `<div class="row">${av(u.id, 34)}<div style="min-width:0"><div style="font-weight:500">${esc(u.name)}</div><div class="small muted">${esc(u.title)}</div></div></div>
     <label class="small muted" for="meSel">切換身分（Demo，用來體驗權限差異）</label>
-    <select id="meSel">${Object.entries(USERS).map(([id, x]) => `<option value="${id}" ${id === ui.me ? 'selected' : ''}>${x.name}｜${ROLES[x.role]}｜${x.dept}</option>`).join('')}</select>
+    <select id="meSel">${Object.entries(USERS).map(([id, x]) => `<option value="${id}" ${id === ui.me ? 'selected' : ''}>${x.name}｜${ROLES[x.role]}｜${esc(deptName(x.dept))}</option>`).join('')}</select>
     <button class="reset" type="button" id="resetBtn">重置 Demo 資料</button>`;
 }
 function mbar() {
@@ -1863,7 +1899,7 @@ function viewPeople(n) {
     <div class="panel"><h3>此節點的成員</h3><dl class="kv">
       <dt>負責人</dt><dd class="row">${av(n.owner)} ${esc(uname(n.owner))}</dd>
       <dt>協作人員</dt><dd class="row">${n.collabs.map((c) => av(c) + ' ' + esc(uname(c))).join('　') || '—'}</dd>
-      <dt>協作部門</dt><dd>${n.depts.map((d) => `<span class="tag gray">${esc(d)}</span>`).join(' ') || '—'}</dd>
+      <dt>協作部門</dt><dd>${n.depts.map((d) => `<span class="tag gray">${esc(deptName(d))}</span>`).join(' ') || '—'}</dd>
       <dt>資料等級</dt><dd>${lvBadge(effLevel(n))} ${n.level ? '（本節點設定）' : '（繼承上層）'}</dd></dl>
       ${n.type !== 'project' ? `<button class="btn sm" type="button" data-edit="${n.id}" style="margin-top:10px" ${can('edit', n) ? '' : 'disabled'}>編輯成員與等級</button>` : ''}
       <p class="small muted">協作人員只看得到被指派的節點（及必要的上層摘要）。權限預設繼承上層，可在子樹覆寫。</p></div>
@@ -1881,10 +1917,10 @@ function pageOverview() {
   const leaves = ps.flatMap((p) => descendants(p.id).filter((x) => isLeaf(x) && x.type === 'task'));
   const open = leaves.filter((x) => !DONE(x.status));
   const load = {};
-  open.forEach((x) => { load[x.owner] = load[x.owner] || { n: 0, late: 0, ps: new Set() }; load[x.owner].n++; if (isLate(x)) load[x.owner].late++; load[x.owner].ps.add(projectOf(x).title); });
+  open.forEach((x) => { if (!x.owner) return; load[x.owner] = load[x.owner] || { n: 0, late: 0, ps: new Set() }; load[x.owner].n++; if (isLate(x)) load[x.owner].late++; load[x.owner].ps.add(projectOf(x).title); });
   const max = Math.max(1, ...Object.values(load).map((v) => v.n));
   const deptLoad = {};
-  open.forEach((x) => { const d = USERS[x.owner]?.dept || '—'; deptLoad[d] = (deptLoad[d] || 0) + 1; });
+  open.forEach((x) => { const d = deptName(x.dept); deptLoad[d] = (deptLoad[d] || 0) + 1; });
   return `<div class="pagehead"><div><h1 class="serif">所有專案總覽</h1><p>跨專案進度、預估上市與人員負載（Demo 基準日 ${ymd(TODAY)}）</p></div></div>
   <div class="grid3">
     <div class="panel stat"><b>${ps.length}</b><span>進行中專案</span></div>
@@ -1901,7 +1937,7 @@ function pageOverview() {
   }).join('')}</tbody></table></div>
   <div class="grid2">
     <div class="panel"><h3>人員負載（未完成任務數）</h3>
-      ${Object.entries(load).sort((a, b) => b[1].n - a[1].n).map(([u, v]) => `<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span class="row">${av(u)} ${esc(uname(u))} <span class="small muted">${esc(USERS[u]?.dept || '')}</span></span><span class="small">${v.n} 項${v.late ? `，<span style="color:var(--orange)">${v.late} 項延遲</span>` : ''}</span></div>
+      ${Object.entries(load).sort((a, b) => b[1].n - a[1].n).map(([u, v]) => `<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span class="row">${av(u)} ${esc(uname(u))} <span class="small muted">${esc(USERS[u] ? deptName(USERS[u].dept) : '')}</span></span><span class="small">${v.n} 項${v.late ? `，<span style="color:var(--orange)">${v.late} 項延遲</span>` : ''}</span></div>
       <div class="bar-h" title="${esc([...v.ps].join('、'))}"><span class="${v.n === max ? 'hot' : ''}" style="width:${v.n / max * 100}%"></span></div></div>`).join('')}
       <p class="small muted">工作量最重的人以橘色標示，可在任務編輯中改派負責人或加入協作人員。</p></div>
     <div class="panel"><h3>部門負載</h3>${Object.entries(deptLoad).sort((a, b) => b[1] - a[1]).map(([d, c]) => `<div class="row" style="justify-content:space-between;padding:4px 0"><span>${esc(d)}</span><span>${c} 項</span></div>`).join('')}
@@ -1917,7 +1953,7 @@ function pageMyTasks() {
   const groups = [
     ['我負責的', all.filter((n) => n.owner === u.id)],
     ['我協作的', all.filter((n) => n.owner !== u.id && n.collabs.includes(u.id))],
-    [`我部門（${u.dept}）被指派的`, all.filter((n) => n.owner !== u.id && !n.collabs.includes(u.id) && n.depts.includes(u.dept))],
+    [`我部門（${deptName(u.dept)}）被指派的`, all.filter((n) => n.owner !== u.id && !n.collabs.includes(u.id) && n.depts.includes(u.dept))],
   ];
   const row = (n) => {
     const bl = blockersFor(n).filter((b) => b.hard);
@@ -1973,7 +2009,7 @@ function pageTemplates() {
       ${t.scope === 'personal' ? `<button class="btn sm" type="button" data-publish="${t.id}" ${can('templates') ? '' : 'disabled'} title="需系統管理員">發布為組織模板</button>` : ''}</div>
       <h3 style="margin-top:8px">${esc(t.name)}</h3><p class="small muted" style="margin:0 0 8px">${esc(t.desc || '')}</p>
       <div class="small">${nodes.length} 個子任務・約 ${days} 天・${t.deps.length} 條前置${t.docs.length ? `・文件範本：${esc(t.docs.join('、'))}` : ''}</div>
-      <details style="margin-top:8px"><summary class="small">預覽結構</summary><ol class="small" style="padding-left:20px;margin:6px 0">${nodes.map((x) => `<li>${esc(x.title)} <span class="muted">（第 ${x.off} 天起，${x.dur} 天${x.dp && x.dp.length ? '，' + x.dp.join('/') : ''}）</span></li>`).join('')}</ol></details>
+      <details style="margin-top:8px"><summary class="small">預覽結構</summary><ol class="small" style="padding-left:20px;margin:6px 0">${nodes.map((x) => `<li>${esc(x.title)} <span class="muted">（第 ${x.off} 天起，${x.dur} 天${x.dp && x.dp.length ? '，' + esc(x.dp.map(deptName).join('/')) : ''}）</span></li>`).join('')}</ol></details>
       <button class="btn sm primary" type="button" data-apply-tpl="${ui.node}" data-tpl="${t.id}" style="margin-top:8px">套用到目前節點（${esc(node(ui.node)?.title || '')}）</button></div>`;
   }).join('')}</div>`;
 }
@@ -2249,7 +2285,7 @@ function aiAction(kind) {
     openMinutes();
   } else if (kind === 'cost') {
     aiRun('配方成本比較', 'confidential', '比較 F-CAT-01 v3 與 v4 的成本與營養（含配方比例與原料單價）', () => {
-      if (!seeField('cost')) return { text: `依欄位權限，${me().name}（${me().dept}）無法查詢配方成本與比例。\n此請求在本地處理，未送出任何資料。` };
+      if (!seeField('cost')) return { text: `依欄位權限，${me().name}（${deptName(me().dept)}）無法查詢配方成本與比例。\n此請求在本地處理，未送出任何資料。` };
       const f = db.ops.formulas[0]; const a = fCalc(f.versions[2]), b = fCalc(f.versions[3]);
       return { text: `（本地模型 + 本地計算，數值未離開內網）\n\nv3：每公斤原料成本 ${money(a.cost.toFixed(2))}，粗蛋白 ${a.protein.toFixed(1)}%\nv4：每公斤原料成本 ${money(b.cost.toFixed(2))}，粗蛋白 ${b.protein.toFixed(1)}%\n\n成本 ${((b.cost / a.cost - 1) * 100).toFixed(1)}%，粗蛋白 ${(b.protein - a.protein).toFixed(1)} 個百分點。\n主因：鮪魚比例下降、加入南瓜泥。若改版，需重做殺菌驗證、保存試驗、營養送驗與標示審查（見「變更影響分析」）。`, actions: [{ label: '開啟變更影響分析', kind: 'goOps', payload: 'formulas' }] };
     });
@@ -2258,10 +2294,10 @@ function aiAction(kind) {
     aiRun('推薦模板與協作部門', 'public', `依任務名稱推薦模板與協作部門：${n.title}\n子任務：${kids(n.id).map((x) => x.title).join('、')}`, () => {
       const t = n.title;
       const tpl = /送驗|檢驗/.test(t) ? 'tp1' : /試作/.test(t) ? 'tp2' : /供應商/.test(t) ? 'tp3' : /標示/.test(t) ? 'tp4' : null;
-      const deptMap = { 檢驗: ['品保'], 法規: ['行銷', '品保'], 試作: ['生產', '品保'], 製程: ['品保', '生產'], 採購: ['品保'], 品保: ['製程'], 行銷: ['法規'], 測試: ['行銷'], 生產: ['製程', '採購'], 配方: ['採購', '品保'] };
-      const depts = deptMap[n.tag] || ['品保'];
+      const deptMap = { 檢驗: ['d-qa'], 法規: ['d-sales', 'd-qa'], 試作: ['d-mfg', 'd-qa'], 製程: ['d-qa', 'd-mfg'], 採購: ['d-qa'], 品保: ['d-pe'], 行銷: ['d-qa'], 測試: ['d-sales'], 生產: ['d-pe', 'd-pur'], 配方: ['d-pur', 'd-qa'] };
+      const depts = deptMap[n.tag] || ['d-qa'];
       const T = db.templates.find((x) => x.id === tpl);
-      return { text: `「${t}」\n\n推薦模板：${T ? `${T.name}（${T.nodes.length - 1} 個子任務）` : '沒有高度相符的模板，可從相似的過去任務複製'}\n推薦協作部門：${depts.join('、')}${n.depts.length ? `（目前已有：${n.depts.join('、')}）` : ''}`, actions: [T ? { label: `套用「${T.name}」`, kind: 'applyTpl', payload: { node: n.id, tpl } } : { label: '搜尋過去任務', kind: 'applyTpl', payload: { node: n.id } }, { label: `加入協作部門`, kind: 'addDepts', payload: { node: n.id, depts } }] };
+      return { text: `「${t}」\n\n推薦模板：${T ? `${T.name}（${T.nodes.length - 1} 個子任務）` : '沒有高度相符的模板，可從相似的過去任務複製'}\n推薦協作部門：${depts.map(deptName).join('、')}${n.depts.length ? `（目前已有：${n.depts.map(deptName).join('、')}）` : ''}`, actions: [T ? { label: `套用「${T.name}」`, kind: 'applyTpl', payload: { node: n.id, tpl } } : { label: '搜尋過去任務', kind: 'applyTpl', payload: { node: n.id } }, { label: `加入協作部門`, kind: 'addDepts', payload: { node: n.id, depts } }] };
     });
   }
 }
@@ -2315,7 +2351,7 @@ function runAIAction(i, j) {
   else if (a.kind === 'addDepts') {
     const n = node(a.payload.node); if (!can('edit', n)) return toast('你的角色無權編輯此節點', 'warn');
     commit('加入協作部門', () => { n.depts = [...new Set([...n.depts, ...a.payload.depts])]; });
-    log(n.id, '協作', `加入協作部門：${a.payload.depts.join('、')}`); a.used = true; renderChat();
+    log(n.id, '協作', `加入協作部門：${a.payload.depts.map(deptName).join('、')}`); a.used = true; renderChat();
   } else if (a.kind === 'minutesCreate') { openMinutesConfirm(a.payload, () => { a.used = true; renderChat(); }); }
 }
 
@@ -2383,7 +2419,7 @@ function deleteNode(id) {
 
 /* ================= 對話框 ================= */
 function closeDrawer() { const d = $('drawer'); if (d.open) d.close(); }
-function userOpts(sel) { return Object.entries(USERS).filter(([id]) => id !== 'it').map(([id, u]) => `<option value="${id}" ${id === sel ? 'selected' : ''}>${u.name}（${u.dept}）</option>`).join(''); }
+function userOpts(sel) { return Object.entries(USERS).filter(([id]) => id !== 'it').map(([id, u]) => `<option value="${id}" ${id === sel ? 'selected' : ''}>${esc(u.name)}（${esc(deptName(u.dept))}）</option>`).join(''); }
 function openEditor(id) {
   const n = node(id); if (!n) return;
   const d = $('drawer');
@@ -2409,7 +2445,7 @@ function openEditor(id) {
       <div class="field"><label for="eProg">進度 %（進行中時可手填）</label><input id="eProg" type="number" min="0" max="100" value="${leaf ? Math.round(prog(n)) : Math.round(prog(n))}" ${leaf && ed && n.status === 'doing' ? '' : 'disabled'}></div></div>
     <div class="chips" style="margin-bottom:12px"><label><input type="checkbox" id="eMs" ${n.milestone ? 'checked' : ''} ${ed && leaf ? '' : 'disabled'}>里程碑</label><label><input type="checkbox" id="eLock" ${n.locked ? 'checked' : ''} ${can('override', n) ? '' : 'disabled'}>鎖定（需權限才能改時程）</label></div>
     <div class="field"><span class="lb">協作人員</span><div class="chips">${Object.entries(USERS).filter(([id]) => id !== 'it' && id !== n.owner).map(([id, u]) => `<label><input type="checkbox" class="eCo" value="${id}" ${n.collabs.includes(id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${u.name}</label>`).join('')}</div></div>
-    <div class="field"><span class="lb">協作部門</span><div class="chips">${DEPTS.map((x) => `<label><input type="checkbox" class="eDp" value="${x}" ${n.depts.includes(x) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${x}</label>`).join('')}</div></div>
+    <div class="field"><span class="lb">協作部門</span><div class="chips">${db.departments.map((x) => `<label><input type="checkbox" class="eDp" value="${x.id}" ${n.depts.includes(x.id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${esc(x.name)}</label>`).join('')}</div></div>
     <div class="field"><label for="eNote">備註</label><textarea id="eNote" style="min-height:60px" ${ed ? '' : 'disabled'}>${esc(n.note)}</textarea></div>
     ${leaf && n.type === 'task' ? `<div class="field"><span class="lb">回報欄位（完成回報時要填的自訂欄位）</span>
       ${fieldDefs(n.id).map((f) => `<div class="deprow"><span style="flex-grow:1">${esc(f.label)} <span class="tag gray">${FIELD_TYPES[f.type]}${f.unit ? '・' + esc(f.unit) : ''}</span>${f.required ? ' <span class="tag warn">必填</span>' : ''}${f.type === 'select' ? ` <span class="small muted">${esc((f.options || []).join('、'))}</span>` : ''}</span>
@@ -3134,7 +3170,7 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('change', (e) => {
   const t = e.target;
-  if (t.id === 'meSel') { ui.me = t.value; ui.showAll = false; save(); if (ui.page === 'node' && node(ui.node) && !shown(node(ui.node))) { const p = projects().find(shown); if (p) ui.node = p.id; } ui.chat.push({ title: '切換身分', text: `目前身分：${me().name}（${ROLES[me().role]}・${me().dept}）。畫面、可操作的按鈕與可見的機密欄位都會跟著改變。` }); return render(); }
+  if (t.id === 'meSel') { ui.me = t.value; ui.showAll = false; save(); if (ui.page === 'node' && node(ui.node) && !shown(node(ui.node))) { const p = projects().find(shown); if (p) ui.node = p.id; } ui.chat.push({ title: '切換身分', text: `目前身分：${me().name}（${ROLES[me().role]}・${deptName(me().dept)}）。畫面、可操作的按鈕與可見的機密欄位都會跟著改變。` }); return render(); }
   if (t.id === 'cascadeChk') { ui.cascade = t.checked; return; }
   if (t.id === 'showAllChk') { ui.showAll = t.checked; return render(); }
   if (t.id === 'docsAllChk') { ui.docsAll = t.checked; return render(); }

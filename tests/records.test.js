@@ -10,8 +10,8 @@
   };
 
   // ── Task 1：資料版本與儲存 ──
-  await T('種子資料為 v3 且含四個新陣列', () => {
-    eq(db.v, 3);
+  await T('種子資料為 v4 且含四個新陣列', () => {
+    eq(db.v, 4);
     ['reportFields', 'reports', 'notes', 'attachments'].forEach((k) => ok(Array.isArray(db[k]), k + ' 應為陣列'));
   });
   await T('種子資料：F0 測試有「F0 值」欄位，t3011 有已核准回報', () => {
@@ -20,12 +20,12 @@
     const r = db.reports.find((x) => x.node_id === 't3011');
     eq(r.status, 'approved'); eq(r.fields[0].value, 2.6);
   });
-  await T('upgrade：v2 資料轉成 v3', () => {
+  await T('upgrade：v2 資料轉成 v4', () => {
     const d = seed(); d.v = 2;
     delete d.reportFields; delete d.reports; delete d.notes; delete d.attachments;
     d.overrides = [{ id: 'o1', gate: true, node: 'p1b', status: 'approved' }, { id: 'o2', node: 't302', status: 'pending' }];
     const o = upgrade({ v: 2, db: d, audit: freshAudit() });
-    eq(o.v, 3); eq(o.db.v, 3);
+    eq(o.v, 4); eq(o.db.v, 4);
     eq(o.db.overrides.map((x) => x.kind), ['gate', 'dep']);
     eq(o.db.reportFields.length, 2); eq(o.db.reports.length, 1);
     eq(o.db.notes, []); eq(o.db.attachments, []);
