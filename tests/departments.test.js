@@ -317,6 +317,42 @@
     finally { USERS.lin.role = bak; }
   });
 
+  // ── Task 4：部門管理 ──
+  await T('部門管理只限系統管理員', () => {
+    as('yu'); eq(addDept('品管').error, '只有系統管理員可以管理部門');
+    eq(deleteDept('d-fin').ok, false);
+  });
+  await T('新增部門：名稱必填、不可重複', () => {
+    as('it');
+    eq(addDept('  ').error, '請填寫部門名稱');
+    eq(addDept('研發').error, '已有同名部門');
+    const r = addDept('倉儲'); ok(r.ok); eq(dept(r.id).name, '倉儲'); eq(dept(r.id).head, null);
+  });
+  await T('修改部門：主管必須是部門成員、名稱不可重複', () => {
+    as('it');
+    eq(updateDept('d-qa', { name: '品保', head: 'ming' }).error, '主管必須是部門成員');
+    eq(updateDept('d-qa', { name: '研發', head: null }).error, '已有同名部門');
+    ok(updateDept('d-qa', { name: '品質保證', head: 'an' }).ok);
+    eq(deptName('d-qa'), '品質保證'); eq(dept('d-qa').head, 'an');
+  });
+  await T('刪除部門：有任務或人員時拒絕；空部門可以刪除且可復原', () => {
+    as('it');
+    const u = deptUsage('d-qa');
+    eq(u.users, 2); ok(u.tasks > 0);
+    eq(deleteDept('d-qa').error, `部門還有 ${u.tasks} 件任務、2 位人員，請先移轉`);
+    ok(deleteDept('d-fin').ok); eq(dept('d-fin'), null);
+    undo(); ok(dept('d-fin'), '復原後部門回來');
+  });
+  await T('部門面板：管理員有編輯按鈕，其他人唯讀；標示未設主管', () => {
+    ui.page = 'node'; ui.node = 'p1'; ui.tab = 'people';
+    as('it'); render();
+    ok(document.querySelector('[data-dept-add]'), '管理員看得到新增部門');
+    ok(document.querySelector('[data-dept-edit="d-qa"]'));
+    as('ming'); render();
+    ok(!document.querySelector('[data-dept-add]'), '成員看不到新增部門');
+    ok(document.getElementById('main').textContent.includes('未設主管'));
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
