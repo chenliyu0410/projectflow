@@ -14,7 +14,7 @@
 | 欄位 | 值 |
 |---|---|
 | 目前工作項目 | **W2 部門模型**（📋 已規劃） |
-| 下一個動作 | W2 開工（WORKFLOW G3）：在 `main` 上做 Pre-flight（基準測試應為 `全部通過 64/64`，對照 §3 W2 的「執行注意」，特別是第 1 點 `.tools` 那一行），宣告開工 `Progress: start W2`，再開分支 `feature/w2-departments` |
+| 下一個動作 | W2 開工（WORKFLOW G3），照 W2 plan 執行：先讀 §3 W2 的「執行注意」（第 14–19 點是 W1 合併後的影響），在 `main` 上做 Pre-flight（基準測試應為 `全部通過 64/64`，對照 §3 W2 的「執行注意」，特別是第 1 點 `.tools` 那一行），宣告開工 `Progress: start W2`，再開分支 `feature/w2-departments` |
 | 分支 | `main`（`feature/w1-subtask-report-card` 已 ff 合併並刪除） |
 | 最新程式 commit | `26ea8eb`（W1 整體修正）。W1 合併後的 HEAD 是 `2d2c785` |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
@@ -22,7 +22,7 @@
 | 資料版本 | `db.v = 3`；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | 無 |
 | 阻塞／待人類 | 無阻塞。D14–D18 都已決定（§6） |
-| 遠端 | 2026-10-01 經人類授權，已 push 到 `origin/main`，內容包括 `edf46b6`、`dfc0126` 和交接系統的 `Docs:` commit。W1 的 16 個 commit（`8aed7d6` 到 `Progress: W1 done`）還沒有 push，用 `git log --oneline origin/main..main` 查看。每次 push 都要人類明確授權（D3） |
+| 遠端 | 2026-10-02 經人類授權（D3：執行注意 W1-12，以及人類 2026-10-02 指示「推上 git」），把 `main` push 到 `origin/main`，內容包括 W1 全部 commit 和 `Progress: W1 handoff summary`。push 之後 `git log --oneline origin/main..main` 應該是空的。之後每次 push 都要人類明確授權（D3） |
 
 ---
 
@@ -91,6 +91,36 @@
 ## 3. 工作項目明細
 
 ### W1 子任務置頂回報卡 — ✅
+
+> **W1 完成摘要（2026-10-02，給接手者）**：W1 已經合併進 `main`。接手時只需要讀這一段，下面的 Task 表、驗收和執行注意是過程紀錄。
+>
+> **改了哪裡**（`8aed7d6..a9890e1`；產品 +76／−14，測試 +212，README 1 列）
+> - `projectflow-full-demo.html`
+>   - CSS：新增 `.main.vscroll{overflow-y:auto}`（D15），以及 `.rcard` 系列共 9 行：外框、pend／rej／skip 三種狀態色、`.rc-row`、`.rc-main{flex:1 1 240px}`（D14）、`.rc-sum{max-height:10.2em;overflow:auto}`（D16，約 6 行）、`.rc-acts`。
+>   - `enter(id)`：進入葉任務時預設 `ui.tab = 'records'`；回到上層時，如果停在「紀錄」就改成「看板」；換節點時把 `#main` 捲回頁首。
+>   - `renderMain()`：改成**先產生內容、再切換 class**（因為 `pageNode` 可能改 `ui.tab`，D17）；節點頁的紀錄、文件、資料、成員分頁加 `.vscroll`；主區域不能捲動時把 `scrollTop` 歸零。
+>   - `pageNode()`：新增 `leafTask` 和 `ui.leafPage`。葉任務的「紀錄」分頁排第一；標題下方插入 `reportCardHTML(n)`；標題區的「＋ 新增子任務」主按鈕、跳過提示、恢復按鈕只在非葉節點顯示；葉任務改在 `.tools` 放次要按鈕 `btn sm`「＋ 新增子任務」；子任務變成上層任務、而且停在紀錄分頁時，切到看板（D17）。
+>   - 新函式 `reportFieldsHTML(r)`：自訂欄位的 `dl.kv`，由 `reportHTML` 和回報卡共用。
+>   - 新函式 `reportCardHTML(n)`：純渲染函式，依序判斷 6 種狀態：已跳過 → 待確認 → 已完成而且有已核准回報 → 已完成但沒有回報 → 最新一版被退回 → 待回報。按鈕只用既有的 `data-restore`、`data-rep-approve`、`data-rep-reject`、`data-report`，沿用既有的委派處理。
+>   - `viewRecords(n)`：葉任務的區塊標題改成「回報歷史（N）」，只列歷史。原本的回報按鈕、待確認提示、確認／退回按鈕、跳過提示都移到回報卡。
+> - `tests/records.test.js`：新增 20 個測試（44 → 64），涵蓋卡片 6 種狀態、協作身分沒有按鈕、`esc()` 防注入、窄螢幕換行、`enter()` 預設分頁、葉任務頁結構、非葉節點不變、D15 捲動、D16 行數上下限、D17 切到看板與反向案例。和寬度有關的測試會用 `window.frameElement` 暫時把 iframe 撐到 1200px，並在 `finally` 還原。
+> - `README.md`：F11 的「位置」列（README.md:414）照 plan Task 2 Step 8 更新。
+>
+> **刻意沒改的地方**（spec §7，或人類決定維持現狀）
+> - 資料結構：`db.v` 仍是 3，沒有升級，舊的 localStorage 原樣可用。
+> - 狀態轉換：`submitReport`、`decideReport`、`skipTask`、`restoreTask`、`approversFor`、`canReport` 都沒動。
+> - 其他畫面：看板卡片的「✓ 回報」快捷按鈕、審核中心沒動。沒有新增事件處理，diff 裡沒有 `addEventListener`，也沒有 inline `on*`。
+> - 非葉節點：上層任務、階段、專案的頁面版面不變。唯一的外觀差異是 W1-T2-m1（第一筆回報上方的分隔線），列為 BY_DESIGN。
+> - plan 檔沒有同步 D14–D17 的偏離，以本段和下面的執行注意 13、16、17 為準。
+> - README §2 仍寫「紀錄分頁：完成回報…」。§2 屬於 W5 的範圍，W1 不動。
+>
+> **留到之後的問題**（都不擋後續工作）
+> - 歸 W4（§5 OPEN）：W1-T2-m3（捲到底沒有留白）、W1-T2-m4（Windows 切換分頁時寬度差 15px）、W1-T2-m8（相依圖圖例被截掉，W1 之前就有）、W1-F-m5（長網址把回報歷史和筆記撐出主區域，W1 之前就有）。
+> - W1-T2-m7（新增第一個子任務後按「復原」，分頁停在看板的空狀態）：OPEN，之後處理，或改列 BY_DESIGN。
+> - BY_DESIGN：W1-T2-m1、W1-T2-m5、W1-T2-m9（D18 維持現狀）。
+> - 給 D7 的觀察：W1 之後，有硬性前置的葉任務（例如 `t3013`）在卡片上就看得到醒目的「回報完成」，送出時被擋下會遺失草稿，所以 D7 的情況會更常發生。人類決定 D7 時可以列入考量。
+>
+> **下一個 AI 照計畫要做的事**：W2 部門模型，照 [plan](superpowers/plans/2026-10-01-department-model.md) 執行，先讀 §3 W2 的「執行注意」，特別是第 1、2、14–19 點。Claude 用 `/pf-next`；其他 AI 照 WORKFLOW G3 和 §3 手動做。
 
 - **目標**：打開子任務（葉任務，`n.type === 'task' && isLeaf(n)`）時，標題下方固定顯示回報卡，卡上有目前狀態和下一步動作。葉任務頁的「紀錄」分頁排第一，並且是預設分頁。
 - **分支**：`feature/w1-subtask-report-card`（從 `main` 切出）。
@@ -198,6 +228,26 @@
 11. plan:23 要求用 `superpowers:using-git-worktrees` 開 worktree，plan:1164 要求用 `finishing-a-development-branch` 決定合併方式，**這兩點一律以 D2 為準**：在主 checkout 執行 `git checkout -b feature/w2-departments`，不開 worktree；合併照 WORKFLOW G5 用 ff-only。這已經裁決過，不算 Pre-flight 衝突，不需要再問人類。
 12. plan 的 Global Constraints 寫死了 Claude 的 trailer，但各 Task 的 `git commit` 指令又沒有附 trailer。一律寫你實際使用的工具和模型（WORKFLOW §6）。
 13. plan「如何執行測試」那一段缺少 `?t=` 和快取處理，**以 WORKFLOW §5 為準**。
+14. **W1 已合併（2026-10-02，`a9890e1 Progress: W1 done`）**：Pre-flight 的基準測試應該是 `全部通過 64/64`。不符時照 WORKFLOW §5 第 11 點處理，不要開工。
+15. **W1 讓行號往後移了**：本節第 10 點和 plan 的行號都以 `dfc0126` 為準。目前大約是：`load`／`upgrade`／`shown`／`can` 一帶 +10（例如 `load` 652→662、`can` 734→744），`resetAll` +10（972→982），`pageNode` +20（1322→1342），`pageNode` 之後到 `viewRecords` 之前 +26（例如 `graphLayout` 1698→1724、`viewGraph` 1732→1758、`openEditor` 2361→2387、`applyTemplate` 2566→2592），`reportCardHTML` 之後 +62。請用函式名或程式片段搜尋，不要依賴行號。
+16. **W1 改到、W2 可能碰到的地方**：
+    - `.tools` 那一行（目前是 html:1402）開頭是 W1 的 `${leafTask ? …＋ 新增子任務… : ''}`，接著才是 `${mineTool}${tools[ui.tab] || ''}`。Task 2 Step 4.3 照第 1 點只刪 `${mineTool}`。這顆次要按鈕和標題區的主按鈕用的是同一個 `can('create', n)`。W2 如果改了主按鈕的權限判斷，要一起檢查這顆按鈕。
+    - `renderMain()` 要維持「先產生內容、再切換 `scroll`／`vscroll` class」的順序，有測試保護（D17）。
+    - `pageNode()` 開頭的 `leafTask` 和 `ui.leafPage` 不要拿掉。`resetAll()` 沒有明確清除 `ui.leafPage`，是靠畫 p1 時順便清成 null；Task 6 改 `resetAll()` 時可以順手加上 `leafPage: null`，但不是必要的。
+    - 回報卡的確認人名單來自 `approversFor(n)`，它依賴 `can('override', n)`。W1 的測試會斷言 t30121 的卡片寫著「等待 … 力瑜 … 確認」、t3011 寫著「確認：陳主管 2026/09/13 09:05」。W2 改寫權限後，如果這些斷言失敗：
+      - spec 沒有要求改變確認人，就是回歸，要修程式。
+      - spec 確實要求改變確認人，就是 spec 和測試衝突，依 WORKFLOW §8 停下來問人類。不要直接改 W1 的測試。
+17. **測試環境**（2026-10-02 的狀態）：
+    - 8000 埠被另一個不是這個 repo 的 python 伺服器占用（回應 `{"detail":"Not Found"}`），不要動它。
+    - 8001 埠有前一個 session 留下的這個 repo 的伺服器（Windows PID 24024）。先用 `curl.exe -s http://127.0.0.1:8001/AGENTS.md` 確認第一行是 `# AGENTS.md`，符合就直接沿用；不符合就換別的埠。
+    - Browser pane 隱藏時，測試頁的 iframe 寬度會是 0。要測桌面或 375px，用 `resize_window` 設定 viewport；W1 和寬度有關的測試會自己撐開 iframe。
+18. **編輯陷阱**：
+    - 工作目錄是 CRLF。用 python 讀寫檔案時要加 `newline=''`，否則換行會被改掉。
+    - 編輯工具會把 new_string 結尾的空白去掉，W1-T1-m1 就是這樣造成的。
+    - 改完用 `git diff -w --stat` 和 `--stat` 比對，確認沒有意外的空白變更。
+19. **補強測試時沒有自然的 RED**：例如整體修正時補的斷言。可以用「變異 RED」證明測試有鑑別力，W1 整體修正就是這樣做的：
+    - 先備份檔案，暫時把程式改壞，記下 `#sum`。
+    - 改回後用 `cmp` 確認和備份逐位元組相同，**不要 commit 變異**。
 
 ### W3 流程控制 — ⬜（需先寫 spec）
 
@@ -348,11 +398,11 @@ full demo 定位的文字需要人類審閱（D12）。
 |---|---|---|---|---|
 | D1 | W1、W2 | W1 和 W2 的執行順序 | **先做 W1，再做 W2。** 理由：W1 的測試數（44→51→57）和「db.v 維持 3」只有先做才成立；W2 只需要調整一個片段；W1 的測試可以當作 W2 改寫權限時的回歸網 | 採預設 |
 | D2 | 流程 | 分支與合併方式 | 每個工作項目開一個分支 `feature/<wid>-<slug>`，直接在主 checkout 開，**不用 worktree**。plan 或 skill 要求用 worktree 時，以這條為準。整體審查結論是 Ready to merge、測試全部通過，而且所有審查都是獨立進行的（不是自我審查），這時 **AI 可以在本地用 `git merge --ff-only` 合併進 `main`**，然後刪除分支（WORKFLOW G5，比照 F11 的先例）。不 push | 採預設（人類可以改成「合併前一律問我」） |
-| D3 | 流程 | 要不要 push 到 `origin` | 由人類執行，或由人類明確授權。AI 不會自己 push | 已決定 2026-10-01：人類授權 push 交接系統（連同 `edf46b6`、`dfc0126`），已完成。2026-10-01 第二次授權：人類指示「完成後上傳到GIT」，W1 完成並合併進 `main` 後，把 `main` push 到 `origin`。每次授權都只限該次，之後每次 push 仍要人類明確授權 |
+| D3 | 流程 | 要不要 push 到 `origin` | 由人類執行，或由人類明確授權。AI 不會自己 push | 已決定 2026-10-01：人類授權 push 交接系統（連同 `edf46b6`、`dfc0126`），已完成。2026-10-01 第二次授權：人類指示「完成後上傳到GIT」，W1 完成並合併進 `main` 後，把 `main` push 到 `origin`。2026-10-02：人類指示「推上 git」，W1 合併後已把 `main` push 到 `origin`（不 force，只推 `main`）。每次授權都只限該次，之後每次 push 仍要人類明確授權 |
 | D4 | F11（W4） | F11-T1-m5：重置 Demo 時要不要把角色重設回 yu | 建議重設回 yu | 待人類 |
 | D5 | F11（W4） | F11-T4-m2：SVG 附件改成下載，還是用 `<img>` 或 sandbox 顯示 | 建議排除 SVG 預覽，改成下載（安全優先） | 待人類 |
 | D6 | F11（W4） | F11-T4-m4：附件全部上傳失敗時，回報要不要整份不送出 | 建議先寫入 blob，失敗就不建立回報 | 待人類 |
-| D7 | F11（W4） | F11-T5-m2：被硬性前置擋下時，要不要保留回報草稿 | 建議把草稿暫存在 `ui`，跳過前置後自動重開回報對話框 | 待人類 |
+| D7 | F11（W4） | F11-T5-m2：被硬性前置擋下時，要不要保留回報草稿。W1 之後更常發生：有硬性前置的葉任務，在回報卡上就看得到醒目的「回報完成」（W1 整體審查的觀察） | 建議把草稿暫存在 `ui`，跳過前置後自動重開回報對話框 | 待人類 |
 | D8 | F11（W4） | F11-T6-m1：「部分恢復」要怎麼記錄 | 建議補寫稽核紀錄，並新增 `o.restoredNodes` | 待人類 |
 | D9 | W3 | W3 流程控制的 brainstorming（spec 內容） | 需要人類參與問答，AI 不可以自行定稿 | 待人類（W2 合併後） |
 | D10 | P 軌 | README §9 #5–#14（模型硬體、雲端供應商、預設分級、帳號、通知、協作部門權限、ERP 介面、工單、編碼規則、庫存與採購核准） | 正式導入前再決定。W2 會在 Demo 層級回答 #10（同部門的其他成員看不到） | 待人類 |
@@ -370,6 +420,18 @@ full demo 定位的文字需要人類審閱（D12）。
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
+
+### 2026-10-02｜Claude Opus 5.5｜W1 交接摘要、push
+- **做了什麼**：
+  - 人類要求把 W1 改了哪裡、沒改哪裡整理成文件，讓下一個 AI 能照計畫接手，然後推上 git。
+  - 在 §3 W1 開頭加了「W1 完成摘要」。
+  - 在 §3 W2 的執行注意加了第 14–19 點：W1 合併後的基準、行號位移、W1 改到而 W2 可能碰到的程式、測試環境、編輯陷阱、變異 RED。
+  - D7 補上 W1 整體審查的觀察。
+  - 依 D3 把 `main` push 到 `origin`。
+- **驗證**：push 後 `git log --oneline origin/main..main` 是空的。這次只改文件，沒有重跑測試，基準仍是 W1 合併前的 `全部通過 64/64`。
+- **沒做的事／偏離 plan**：沒有開始 W2，也沒有做 W2 的 Pre-flight。
+- **下一步**：W2 開工（見「▶ 現在」）。
+- **注意**：8001 上 PID 24024 的伺服器沒有關（不是這個 session 啟動的）。
 
 ### 2026-10-02｜Claude Opus 5.5｜W1 完成並合併
 - **做了什麼**：
@@ -432,17 +494,3 @@ full demo 定位的文字需要人類審閱（D12）。
   - Task 2 的預期是 RED `失敗 5/58`、GREEN `全部通過 58/58`。
   - 測試頁跑完會在 127.0.0.1 留下待確認的回報；手動實測前先執行 `resetAll()`。
   - port 8000 的伺服器是這個 session 用 `preview_start`（demo）啟動的。
-
-### 2026-10-01｜Claude Opus 5.5｜建立交接系統
-- **做了什麼**：
-  - 建立 `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、`docs/PROGRESS.md`、`docs/WORKFLOW.md`、`.claude/workflows/pf-status.js`、`.claude/workflows/pf-next.js`、`.gitignore`，以一個 `Docs: handoff system …` commit 提交。
-  - 用平行研究整理出路線圖、F11 的執行流程、W1 和 W2 的錨點與順序。F11 的 39 個遺留問題 ID 已逐項在程式碼中核對，整理在 §5。
-  - F11 的 SDD 暫存從 `.superpowers/sdd/` 移到 `.superpowers/archive/2026-09-30-f11-task-records/`，避免下一次執行時被誤讀成已完成而跳過 Task。
-- **驗證**：
-  - `tests/records.html` 在 `dfc0126` 實測為 `全部通過 44/44`。`/pf-status` 實跑後確認看板和 git 一致，Demo 的 console 沒有錯誤。
-  - 第一輪：文件與 workflow 經過 6 位獨立審查者檢查（事實稽核、流程稽核、Claude 冷啟動模擬、非 Claude 冷啟動模擬、腳本審查、完整性批評），共 93 項發現，已修正或納入規則。
-  - 第二輪：3 位審查者共提出 38 項（沒有 critical）。第一次 push（`abf9102`）時只修了一部分，其餘已在後續的 `Docs: handoff system round-2 fixes` commit 中全部處理，主要包括：PowerShell 的 `curl` 別名改用 `curl.exe`；自動化測試改用 127.0.0.1；⏸ 和 ✖ 解除凍結；清除 ⛔ 的規則；認領釋放；新增待驗證項目與 Verify 步驟；§6 加「來源」欄；人類合併後的 G6 路徑；一次只能有一個 `feature/*` 分支。
-  - `pf-next` 的控制流程用模擬 agent 驗證過四種模式：dry、單一 Task、修正輪、all。
-- **沒做的事**：產品程式碼完全沒有改動。W1 和 W2 都還沒開工，也沒有 push。
-- **下一步**：W1 開工（見「▶ 現在」）。新的 session 才會載入 `/pf-status` 和 `/pf-next`。
-- **注意**：port 8000 可能還有之前留下的 python 伺服器，PID 會變。照 WORKFLOW §5 第 1 點確認是這個 repo 之後，可以直接沿用。
