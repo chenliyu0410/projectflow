@@ -486,6 +486,49 @@
     enter('t3011');
     eq(m.scrollTop, 0, '進入子任務後應從頁首開始');
   });
+  await T('桌面版面：從捲動過的紀錄分頁切到看板、時程、相依圖，主區域回到頁首', () => {
+    const fr = window.frameElement, w = fr && fr.style.width;
+    if (fr) { fr.style.width = '1200px'; fr.getBoundingClientRect(); } // 測試頁寬度不固定，先撐到桌面版面
+    try {
+      for (let i = 1; i <= 4; i++) addNote('t3011', `第 ${i} 則筆記\n` + '殺菌條件驗證紀錄。'.repeat(10));
+      const m = document.getElementById('main');
+      const tab = (t) => m.querySelector(`.tabs [data-tab="${t}"]`).click();
+      enter('t301');
+      for (const t of ['board', 'timeline', 'graph']) {
+        tab('records'); m.scrollTop = m.scrollHeight;
+        ok(m.scrollTop > 0, '前置：紀錄分頁要可以捲動');
+        tab(t);
+        eq(getComputedStyle(m).overflowY, 'hidden', `前置：桌面版面的 ${t} 分頁不能捲動主區域`);
+        eq(m.scrollTop, 0, `${t}：主區域不能捲動時應回到頁首`);
+      }
+    } finally { if (fr) fr.style.width = w; }
+  });
+  await T('回報卡：成果說明最多顯示約 6 行，超過的在卡片內捲動；完整內容在回報歷史（D16）', async () => {
+    as('ming'); await submitReport('t30121', { ...good, summary: Array.from({ length: 15 }, (_, i) => `第 ${i + 1} 行：設備參數調整紀錄。`).join('\n') });
+    as('yu'); ui.tab = 'records'; const m = page('t30121');
+    const s = m.querySelector('.rcard .rc-sum'), lh = parseFloat(getComputedStyle(s).lineHeight);
+    ok(s.clientHeight <= lh * 6 + 1, `卡片上最多約 6 行（高 ${s.clientHeight}px，行高 ${lh}px）`);
+    ok(s.scrollHeight > s.clientHeight + lh, '超過的部分在卡片內捲動');
+    eq(getComputedStyle(s).overflowY, 'auto');
+    ok(m.querySelector('.records').textContent.includes('第 15 行'), '回報歷史有完整內容');
+  });
+  await T('子任務頁新增第一個子任務或套用模板後，從紀錄分頁改到看板（D17）', () => {
+    as('yu'); enter('t30121'); eq(ui.tab, 'records', '前置：子任務預設紀錄分頁');
+    const m = document.getElementById('main');
+    m.querySelector('.tools [data-add-child="t30121"]').click();
+    document.getElementById('qTitle').value = '設備儀表校正'; document.getElementById('qaForm').requestSubmit();
+    ok(!isLeaf(node('t30121')), '前置：已變成上層任務');
+    eq(ui.tab, 'board', '新增後切到看板');
+    ok(document.getElementById('view').textContent.includes('設備儀表校正'), '看板上看得到新的子任務');
+    ui.tab = 'records'; render();
+    m.querySelector('[data-add-child="t30121"]').click();
+    document.getElementById('qTitle').value = '第二個子任務'; document.getElementById('qaForm').requestSubmit();
+    eq(ui.tab, 'records', '本來就是上層任務時維持原分頁');
+    enter('t30122'); eq(ui.tab, 'records', '前置：另一個子任務');
+    openApplyTpl('t30122', null, 'tpl'); document.getElementById('tplForm').requestSubmit();
+    ok(!isLeaf(node('t30122')), '前置：套用模板後變成上層任務');
+    eq(ui.tab, 'board', '套用模板後也切到看板');
+  });
 
   // ── 新測試加在這一行上面 ──
   return results;

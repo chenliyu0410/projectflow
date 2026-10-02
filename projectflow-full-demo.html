@@ -261,7 +261,7 @@ table.tbl{border-collapse:collapse;width:100%;font-size:13px}
 .rcard .rc-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .rcard .rc-main{min-width:0;flex:1 1 240px}
 .rcard h3{margin:0}
-.rcard .rc-sum{margin-top:6px;white-space:pre-wrap;line-height:1.7}
+.rcard .rc-sum{margin-top:6px;white-space:pre-wrap;line-height:1.7;max-height:10.2em;overflow:auto}
 .rcard .rc-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
@@ -1324,11 +1324,13 @@ function mbar() {
 }
 function renderMain() {
   const m = $('main');
+  const pages = { overview: pageOverview, mytasks: pageMyTasks, review: pageReview, ops: pageOps, templates: pageTemplates, aigov: pageAIGov, audit: pageAudit, node: pageNode };
+  const html = mbar() + (pages[ui.page] || pageNode)(); // 先產生內容：pageNode 可能把分頁從「紀錄」改成「看板」（D17）
   m.classList.toggle('scroll', ui.page !== 'node');
   // 節點頁的看板、時程、相依圖在自己的區塊內捲動；紀錄、文件、資料、成員分頁讓整個主區域上下捲動
   m.classList.toggle('vscroll', ui.page === 'node' && ['records', 'docs', 'data', 'people'].includes(ui.tab));
-  const pages = { overview: pageOverview, mytasks: pageMyTasks, review: pageReview, ops: pageOps, templates: pageTemplates, aigov: pageAIGov, audit: pageAudit, node: pageNode };
-  m.innerHTML = mbar() + (pages[ui.page] || pageNode)();
+  m.innerHTML = html;
+  if (getComputedStyle(m).overflowY === 'hidden') m.scrollTop = 0; // 主區域不能捲動時（桌面版的看板、時程、相依圖），不要停在紀錄等分頁捲動後的位置
   afterRender();
 }
 function afterRender() {
@@ -1345,6 +1347,9 @@ function pageNode() {
   const [s, e] = span(n);
   const pc = Math.round(prog(n));
   const leafTask = n.type === 'task' && isLeaf(n);
+  // 子任務新增第一個子任務或套用模板後變成上層任務，「紀錄」只剩唯讀彙總：改到看板，直接看到新的子任務（D17）
+  if (ui.leafPage === n.id && !leafTask && ui.tab === 'records') ui.tab = 'board';
+  ui.leafPage = leafTask ? n.id : null;
   const tabs = [['board', '看板'], ['timeline', '時程'], ['graph', '相依圖'], ['docs', '文件'], ['data', '資料'], ['people', '成員與權限'], ['records', '紀錄']];
   if (leafTask) tabs.unshift(tabs.pop()); // 子任務把「紀錄」放第一個
   const lvl = effLevel(n);
