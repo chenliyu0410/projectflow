@@ -13,14 +13,14 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W2 部門模型**（📋 已規劃） |
-| 下一個動作 | W2 開工（WORKFLOW G3），照 W2 plan 執行：先讀 §3 W2 的「執行注意」（第 14–19 點是 W1 合併後的影響），在 `main` 上做 Pre-flight（基準測試應為 `全部通過 64/64`，對照 §3 W2 的「執行注意」，特別是第 1 點 `.tools` 那一行），宣告開工 `Progress: start W2`，再開分支 `feature/w2-departments` |
-| 分支 | `main`（`feature/w1-subtask-report-card` 已 ff 合併並刪除） |
+| 目前工作項目 | **W2 部門模型**（🔨 執行中） |
+| 下一個動作 | 切到 `feature/w2-departments`，進度以該分支的 PROGRESS 為準。下一步：W2 Task 1（部門資料、v4 升級、顯示改用部門名稱） |
+| 分支 | `feature/w2-departments`（從 `main` 的 `Progress: start W2` 切出） |
 | 最新程式 commit | `26ea8eb`（W1 整體修正）。W1 合併後的 HEAD 是 `2d2c785` |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過） |
+| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過。W2 Pre-flight 在 `b2c96c1` 上重跑仍是 `全部通過 64/64`） |
 | 資料版本 | `db.v = 3`；localStorage key 是 `projectflow-demo-v2` |
-| 認領中 | 無 |
+| 認領中 | Claude Opus 5.5（Claude Code，手動 SDD），2026-10-02 12:05 |
 | 阻塞／待人類 | 無阻塞。D14–D18 都已決定（§6） |
 | 遠端 | 2026-10-02 經人類授權（D3：執行注意 W1-12，以及人類 2026-10-02 指示「推上 git」），把 `main` push 到 `origin/main`，內容包括 W1 全部 commit、`Progress: W1 handoff summary`，以及之後的 `Docs: README section on how to direct AI agents`（同一天第二次指示「推上 git」）。push 之後 `git log --oneline origin/main..main` 應該是空的。之後每次 push 都要人類明確授權（D3） |
 
@@ -69,7 +69,7 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec | Plan | 資料版本 | 依賴 |
 |---|---|---|---|---|---|---|---|
 | 1 | W1 | 子任務置頂回報卡 | ✅ | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
-| 2 | W2 | 部門模型 | 📋 | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1） |
+| 2 | W2 | 部門模型 | 🔨 | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1） |
 | 3 | W3 | 流程控制 | ⬜ 需先寫 spec | — | — | v4 → v5 | W2 已合併；D13 甘特圖到位；brainstorming 需要人類參與（D9） |
 | 4 | W4 | F11 遺留問題清理 | ⬜ 需先寫小 plan（問題清理型，AI 可以自己寫，見 WORKFLOW G1 例外） | PROGRESS §5 | — | 維持 | 沒有進行中的分支時才能做。建議排在 W2 合併後，因為它會改到 `load()` 這類 W2 的錨點。如果提前做，W2 的預期測試數和錨點都要重新核對 |
 | 5 | W5 | README 對齊現況 | ⬜ | — | — | — | 排在 W2 之後（W2 會改 README）。full demo 定位的文字需要人類審閱（D12） |
@@ -169,7 +169,7 @@
 18. **Task 2 審查後實測失敗（品質審查 Verify 1，轉 Important）**：1280×720 下，在 `t301` 的紀錄分頁捲到 300 後切到「相依圖」，主區域停在 43px，麵包屑被切掉，而且捲不回去。原因是相依圖下方的圖例說明超出 `.view`，主區域有可捲動的高度，但桌面版這三個分頁是 `overflow:hidden`。這是 D15 帶出來的問題，放在 Task 2 修正輪 1 處理：主區域不能捲動時回到頁首。已在 `c4e9e36` 修好：`renderMain()` 寫入內容後，主區域的計算樣式是 `overflowY:hidden` 時（只有桌面版節點頁的看板、時程、相依圖）把捲動位置設回 0。可以捲動的分頁和手機版維持原本的位置。
 19. **D18（2026-10-02 提出，2026-10-02 人類決定維持現狀）**：卡片上的自訂欄位、退回意見、跳過理由沒有高度上限（§5 W1-T2-m9）。維持現狀，W1 不改；§5 W1-T2-m9 改列 BY_DESIGN。
 
-### W2 部門模型 — 📋
+### W2 部門模型 — 🔨
 
 - **目標**：
   - 部門變成可以設定的資料，存在 `db.departments`。預設 10 個部門，其中只有研發（yu）、品保（chen）、採購（hua）有預設主管，其餘 7 個沒有主管。
