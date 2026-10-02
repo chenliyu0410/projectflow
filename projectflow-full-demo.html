@@ -773,7 +773,7 @@ function seeTask(n, u = me()) {
   if (SEE_ALL.includes(u.role)) return true;
   if (directSee(n, u)) return true;
   if (n.owner !== null && ancestors(n).some((a) => directSee(a, u))) return true;
-  return descendants(n.id).some((d) => directSee(d, u) || (d.owner !== null && ancestors(d).some((a) => directSee(a, u))));
+  return descendants(n.id).some((d) => directSee(d, u));
 }
 // 專案與階段：專案底下有任何看得到的任務，就看得到專案與它的所有階段
 function seeNode(n, u = me()) {
@@ -1384,7 +1384,11 @@ function afterRender() {
 /* ================= 節點頁 ================= */
 function pageNode() {
   let n = node(ui.node);
-  if (!n || !can('view', n)) { n = projects().find(visible) || projects()[0]; ui.node = n.id; }
+  if (!n || !can('view', n)) {
+    n = projects().find(visible);
+    if (!n) return '<div class="panel empty">目前沒有你看得到的專案</div>'; // D21：不退回看不到的專案
+    ui.node = n.id;
+  }
   const p = projectOf(n);
   const anc = ancestors(n);
   const [s, e] = span(n);
@@ -2200,7 +2204,8 @@ function maskText(text) {
   out = out.replace(/M-\d{4}/g, (m) => put('料號', m));
   return { out, map };
 }
-function ctxProject() { return ui.page === 'node' && node(ui.node) ? projectOf(node(ui.node)) : projects().find(visible); }
+// 目前節點頁的專案；看不到、或不在節點頁時用第一個看得到的專案，一個都沒有就是 undefined（呼叫端要處理）
+function ctxProject() { const p = ui.page === 'node' && node(ui.node) ? projectOf(node(ui.node)) : null; return p && visible(p) ? p : projects().find(visible); }
 function publicSnapshot(p) {
   return descendants(p.id).filter((x) => x.type === 'task' && visible(x)).map((x) => { const [s, e] = span(x); return `- ${x.title}｜${STLBL[x.status]}｜${md(S(s))}–${md(S(e))}｜${uname(x.owner)}`; }).join('\n');
 }
@@ -2311,6 +2316,7 @@ function aiAsk(q) {
   ui.chat.push({ user: true, text: q });
   const p = ctxProject();
   const secret = /配方|比例|成本|報價|單價|價格|金額/.test(q);
+  if (!p && !secret) { ui.chat.push({ title: '專案問答', text: '目前沒有你看得到的專案，無法回答專案相關的問題。' }); return renderChat(); }
   if (secret) {
     aiRun('問答（含機密）', 'confidential', q, () => {
       if (!seeField('ratio') && !seeField('cost')) return { text: '這個問題涉及機密欄位（配方比例／成本），依你的角色權限無法回答。此請求在本地處理，未送出任何資料。' };
@@ -2799,8 +2805,10 @@ function runMinutes(text) {
   });
 }
 function openMinutesConfirm(items, done) {
-  const cur = ui.page === 'node' ? node(ui.node) : ctxProject();
-  const opts = [cur, ...descendants(ctxProject().id).filter((x) => !isLeaf(x))].filter((x, i, a) => a.indexOf(x) === i && can('create', x));
+  const p = ctxProject();
+  if (!p) return toast('目前沒有你看得到的專案', 'warn');
+  const cur = ui.page === 'node' ? node(ui.node) : p;
+  const opts = [cur, ...descendants(p.id).filter((x) => !isLeaf(x))].filter((x, i, a) => a.indexOf(x) === i && can('create', x));
   openDlg(`<form id="minConfirm"><h2 class="serif">確認建立待辦</h2>
     <div class="listpick">${items.map((x, i) => `<label><input type="checkbox" class="minItem" value="${i}" checked>${esc(x.title)} <span class="muted small">（${esc(uname(x.owner))}，${md(x.due)}）</span></label>`).join('')}</div>
     <div class="field" style="margin-top:12px"><label for="minParent">建立在</label><select id="minParent">${opts.map((x) => `<option value="${x.id}">${esc([...ancestors(x), x].map((a) => a.title).join(' / '))}</option>`).join('')}</select></div>
