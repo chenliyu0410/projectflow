@@ -261,8 +261,8 @@
     closeDrawer();
   });
   await T('成員不能拖曳已跳過的卡片來恢復任務', () => {
-    skipTask('t30122', '不做');
-    as('ming'); eq(setStatus('t30122', 'doing'), false); eq(node('t30122').status, 'skipped');
+    node('t30122').owner = 'an'; skipTask('t30122', '不做');
+    as('an'); ok(canWork(node('t30122')), '小安是負責人，擋下她的是「已跳過」防護'); eq(setStatus('t30122', 'doing'), false); eq(node('t30122').status, 'skipped');
   });
   await T('成員不能核准跳過申請', () => {
     node('t30122').owner = 'an'; as('an'); skipTask('t30122', '想跳過');

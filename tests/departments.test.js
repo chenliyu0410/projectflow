@@ -219,12 +219,20 @@
     ok(canNote(node('t403')), '協作人員可以寫筆記');
     ok(!canReport(node('t4032')));
     eq(setStatus('t4032', 'doing'), false);
+    // 葉任務 t402：lin 是協作人員，同一個節點上可以寫筆記、不能回報、不能改狀態
+    const t = node('t402');
+    ok(t.collabs.includes('lin') && t.owner !== 'lin' && isLeaf(t), 't402 是 lin 協作的葉任務');
+    ok(canNote(t), '協作人員可以寫筆記'); ok(!canReport(t), '協作人員不能送回報'); ok(!canWork(t));
+    eq(setStatus('t402', 'doing'), false); eq(t.status, 'todo', '狀態不變');
+    ok(addNote('t402', '協作人員的筆記').ok);
   });
   await T('指派負責人與改負責部門的權限', () => {
     as('chen'); ok(can('assign', node('t404')), '部門主管可以指派'); ok(!can('dept', node('t404')), '部門主管不能改部門');
     as('an'); ok(!can('assign', node('t404')));
     as('yu'); ok(can('assign', node('t504'))); ok(can('dept', node('t504')));
     as('ming'); ok(!can('assign', node('t30121')), '負責人不能自己改派');
+    as('chen'); ok(!can('assign', node('t30121')), '別的部門的主管不能指派');
+    ok(!can('assign', node('p1')), '專案不是任務');
   });
   await T('修改時程：成員只能改自己負責或自己主管部門的任務', () => {
     as('ming'); ok(can('schedule', node('t30121'))); ok(!can('schedule', node('t30122')));
@@ -232,7 +240,81 @@
   });
   await T('權限表顯示「指派負責人」', () => {
     ui.page = 'node'; ui.node = 'p1'; ui.tab = 'people'; render();
-    ok(document.getElementById('main').textContent.includes('指派負責人'));
+    const txt = document.getElementById('main').textContent;
+    ok(txt.includes('指派負責人')); ok(txt.includes('部門主管'), '權限表要寫「部門主管」');
+    ok(!txt.includes('undefined'), '權限表不應出現 undefined');
+  });
+  await T('can(\'edit\', 任務) 等於 canWork', () => {
+    as('chen'); ok(!can('edit', node('t30121')), '審核人不是負責人也不是主管，不能編輯');
+    as('an'); ok(!can('edit', node('t404')), '同部門成員不能編輯未指派任務');
+    as('ming'); ok(can('edit', node('t30121')), '負責人可以編輯');
+    as('chen'); ok(can('edit', node('t404')), '部門主管可以編輯未指派任務');
+    as('chen'); ok(can('edit', node('p1c')), '階段維持原本的規則');
+  });
+  await T('協作部門主管：不能操作，但可以寫筆記（含附檔）', async () => {
+    node('t30121').depts = ['d-pur'];
+    ok(!w('hua', 't30121'), '協作部門主管不能操作'); ok(!canReport(node('t30121')));
+    ok(canNote(node('t30121')), '協作部門主管可以寫筆記');
+    const r = addNote('t30121', '採購的筆記'); ok(r.ok, JSON.stringify(r));
+    const res = await addAttachments('t30121', [new File(['x'], 'x.txt', { type: 'text/plain' })], { noteId: r.note.id });
+    ok(res.ok, '協作部門主管的筆記附件：' + JSON.stringify(res.errors)); eq(res.added[0].note_id, r.note.id);
+  });
+  await T('協作人員的筆記附件：掛在筆記上；任務附件仍被拒；筆記必須屬於同一個任務', async () => {
+    const f = () => new File(['a'], 'a.txt', { type: 'text/plain' });
+    as('lin');
+    const r = addNote('t402', '附檔筆記'); ok(r.ok, JSON.stringify(r));
+    const res = await addAttachments('t402', [f()], { noteId: r.note.id });
+    ok(res.ok, '協作人員的筆記附件：' + JSON.stringify(res.errors));
+    eq(res.added.length, 1); eq(res.added[0].note_id, r.note.id); eq(res.added[0].node_id, 't402'); eq(res.added[0].uploaded_by, 'lin');
+    eq(db.attachments.filter((a) => a.note_id === r.note.id).length, 1, '附件要掛在這則筆記上');
+    const bad = await addAttachments('t402', [f()]);
+    eq(bad.ok, false); eq(bad.added.length, 0); eq(bad.errors, ['你的角色無權上傳附件']);
+    as('yu'); const other = addNote('t30121', '別的任務的筆記'); ok(other.ok); as('lin');
+    eq((await addAttachments('t402', [f()], { noteId: other.note.id })).ok, false, '別的任務的筆記不能掛附件');
+    eq((await addAttachments('t402', [f()], { noteId: 'nt-nope' })).ok, false, '不存在的筆記不能掛附件');
+    eq(db.attachments.length, 1, '只有第一個附件被存下來');
+  });
+  await T('修改時程（D23）：任務跟 canWork，階段與專案照舊', () => {
+    as('chen');
+    ok(!can('schedule', node('t30121')), '審核人不能改別人任務的時程');
+    ok(can('schedule', node('t404')), '部門主管可以改未指派任務的時程');
+    ok(can('schedule', node('p1c')), '審核人可以改階段時程');
+    ok(can('schedule', node('p1')), '審核人可以改專案時程');
+    as('yu'); ok(can('schedule', node('t30121'))); ok(can('schedule', node('p1c')));
+    as('it'); ok(can('schedule', node('t30121')));
+    as('an'); ok(!can('schedule', node('p1c')), 'member 不是階段負責人，不能改');
+    as('ming'); node('p1c').owner = 'ming'; ok(can('schedule', node('p1c')), 'member 負責的階段可以改時程');
+    as('hua'); node('t8024').owner = null; ok(can('schedule', node('t8024')), '部門主管可以改自己部門未指派任務的時程');
+    ok(!can('schedule', node('t30121')), '採購主管不能改製程任務');
+    as('lin'); ok(!can('schedule', node('t402')), '協作人員不能改時程');
+  });
+  await T('審核人不能用對話框或時間軸拖曳修改別人任務的時程（D23）', () => {
+    as('chen');
+    const s0 = node('t30121').start, e0 = node('t30121').end;
+    applySchedule('t30121', 'm', 1);
+    eq([node('t30121').start, node('t30121').end], [s0, e0], '審核人拖曳不能改時程');
+    openEditor('t30121');
+    ok(document.getElementById('eStart').disabled, '開始日停用'); ok(document.getElementById('eEnd').disabled, '結束日停用');
+    ok(document.getElementById('eLock').disabled, '鎖定停用');
+    ok(document.getElementById('edForm').textContent.includes('你的角色無權編輯此節點'), '要有唯讀提示');
+    closeDrawer();
+    as('ming'); applySchedule('t30121', 'm', 1);
+    ok(node('t30121').start !== s0, '負責人拖曳可以改時程');
+    openEditor('t30121');
+    ok(!document.getElementById('eStart').disabled && !document.getElementById('eEnd').disabled, '負責人的日期可以改');
+    closeDrawer();
+  });
+  await T('範圍內的審核人可以寫筆記；範圍外不行；唯讀一律不行（D24）', () => {
+    as('chen');
+    ok(canNote(node('t30121')), '範圍內審核人（殺菌與保存）可以寫筆記');
+    ok(addNote('t30121', '審核人的筆記').ok);
+    const t = node('t102');
+    ok(!inReviewerScope(t) && !t.collabs.includes('chen') && !isHead('chen', t.dept) && !t.depts.some((d) => isHead('chen', d)) && t.owner !== 'chen', 't102 與 chen 無關');
+    ok(!canNote(t), '範圍外、不是協作人員或主管的審核人不能寫筆記');
+    eq(addNote('t102', 'x').ok, false);
+    const bak = USERS.lin.role; USERS.lin.role = 'readonly';
+    try { as('lin'); ok(node('t402').collabs.includes('lin')); ok(!canNote(node('t402')), '唯讀不能寫筆記'); eq(addNote('t402', 'x').ok, false); }
+    finally { USERS.lin.role = bak; }
   });
 
   // ── 新測試加在這一行上面 ──

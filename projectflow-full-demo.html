@@ -800,7 +800,7 @@ function can(a, n) {
     case 'edit': if (n && n.type === 'task') return canWork(n); return r === 'collab' ? !!n && n.owner === u.id : true;
     case 'create': return r !== 'collab' || (!!n && n.owner === u.id);
     case 'delete': return r === 'owner';
-    case 'schedule': return r === 'owner' || r === 'reviewer' || (r === 'member' && !!n && canWork(n));
+    case 'schedule': if (n && n.type === 'task') return canWork(n); return r === 'owner' || r === 'reviewer' || (r === 'member' && !!n && n.owner === u.id);
     case 'deps': return r === 'owner' || r === 'reviewer';
     case 'gate': return r === 'owner' || (r === 'reviewer' && !!n && inReviewerScope(n));
     case 'override': return r === 'owner' || (r === 'reviewer' && !!n && inReviewerScope(n));
@@ -1174,7 +1174,7 @@ function moveReportField(id) {
 }
 
 /* ---------- 筆記 ---------- */
-function canNote(n) { return !!n && (can('edit', n) || n.collabs.includes(ui.me) || n.depts.some((d) => isHead(ui.me, d))); }
+function canNote(n) { return !!n && me().role !== 'readonly' && (can('edit', n) || n.collabs.includes(ui.me) || n.depts.some((d) => isHead(ui.me, d)) || inReviewerScope(n)); }
 function addNote(nodeId, body) {
   const n = node(nodeId);
   if (!canNote(n)) return { ok: false, error: '你的角色無權在此任務寫筆記' };
@@ -1207,7 +1207,10 @@ async function sha256Hex(blob) {
 }
 async function addAttachments(nodeId, files, link = {}) {
   const n = node(nodeId);
-  if (!n || !can('edit', n)) return { ok: false, errors: ['你的角色無權上傳附件'], added: [] };
+  // 筆記的附件由能寫筆記的人上傳（協作人員、協作部門主管、範圍內審核人），而且筆記要屬於這個節點；任務附件仍要能編輯
+  const note = link.noteId ? db.notes.find((x) => x.id === link.noteId) : null;
+  const allowed = link.noteId ? !!note && note.node_id === nodeId && canNote(n) : can('edit', n);
+  if (!n || !allowed) return { ok: false, errors: ['你的角色無權上傳附件'], added: [] };
   if (!(await fileStore.check())) return { ok: false, errors: ['此瀏覽器無法儲存檔案'], added: [] };
   const errors = [], added = [];
   for (const f of files) {
@@ -2465,7 +2468,7 @@ function openEditor(id) {
     ${leaf ? '' : '<p class="small muted" style="margin-top:-6px">這是上層任務的計畫期間；若子任務超出，實際範圍會自動延伸涵蓋。</p>'}
     <div class="frow"><div class="field"><label for="eWeight">權重（彙總進度用）</label><input id="eWeight" type="number" min="0" step="0.5" value="${n.weight}" ${ed ? '' : 'disabled'}></div>
       <div class="field"><label for="eProg">進度 %（進行中時可手填）</label><input id="eProg" type="number" min="0" max="100" value="${leaf ? Math.round(prog(n)) : Math.round(prog(n))}" ${leaf && ed && n.status === 'doing' ? '' : 'disabled'}></div></div>
-    <div class="chips" style="margin-bottom:12px"><label><input type="checkbox" id="eMs" ${n.milestone ? 'checked' : ''} ${ed && leaf ? '' : 'disabled'}>里程碑</label><label><input type="checkbox" id="eLock" ${n.locked ? 'checked' : ''} ${can('override', n) ? '' : 'disabled'}>鎖定（需權限才能改時程）</label></div>
+    <div class="chips" style="margin-bottom:12px"><label><input type="checkbox" id="eMs" ${n.milestone ? 'checked' : ''} ${ed && leaf ? '' : 'disabled'}>里程碑</label><label><input type="checkbox" id="eLock" ${n.locked ? 'checked' : ''} ${sch && can('override', n) ? '' : 'disabled'}>鎖定（需權限才能改時程）</label></div>
     <div class="field"><span class="lb">協作人員</span><div class="chips">${Object.entries(USERS).filter(([id]) => id !== 'it' && id !== n.owner).map(([id, u]) => `<label><input type="checkbox" class="eCo" value="${id}" ${n.collabs.includes(id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${u.name}</label>`).join('')}</div></div>
     <div class="field"><span class="lb">協作部門</span><div class="chips">${db.departments.map((x) => `<label><input type="checkbox" class="eDp" value="${x.id}" ${n.depts.includes(x.id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${esc(x.name)}</label>`).join('')}</div></div>
     <div class="field"><label for="eNote">備註</label><textarea id="eNote" style="min-height:60px" ${ed ? '' : 'disabled'}>${esc(n.note)}</textarea></div>
