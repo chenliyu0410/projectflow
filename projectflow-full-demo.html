@@ -784,19 +784,28 @@ function seeNode(n, u = me()) {
   return descendants(p.id).some((d) => d.type === 'task' && seeTask(d, u));
 }
 function visible(n) { return seeNode(n); }
+// 任務的操作（改狀態、進度、送回報、編輯）：負責人、負責部門主管、專案負責人、系統管理員
+function canWork(n, u = me()) {
+  if (!n || n.type !== 'task') return false;
+  if (u.role === 'admin' || u.role === 'owner') return true;
+  if (u.role === 'readonly') return false;
+  return isHead(u.id, n.dept) || (n.owner !== null && n.owner === u.id);
+}
 function can(a, n) {
   const u = me(), r = u.role;
   if (r === 'admin') return true;
   if (r === 'readonly') return a === 'view';
   switch (a) {
     case 'view': return !n || visible(n);
-    case 'edit': return r === 'collab' ? !!n && n.owner === u.id : true;
+    case 'edit': if (n && n.type === 'task') return canWork(n); return r === 'collab' ? !!n && n.owner === u.id : true;
     case 'create': return r !== 'collab' || (!!n && n.owner === u.id);
     case 'delete': return r === 'owner';
-    case 'schedule': return r === 'owner' || r === 'reviewer' || (r === 'member' && !!n && n.owner === u.id);
+    case 'schedule': return r === 'owner' || r === 'reviewer' || (r === 'member' && !!n && canWork(n));
     case 'deps': return r === 'owner' || r === 'reviewer';
     case 'gate': return r === 'owner' || (r === 'reviewer' && !!n && inReviewerScope(n));
     case 'override': return r === 'owner' || (r === 'reviewer' && !!n && inReviewerScope(n));
+    case 'assign': return !!n && n.type === 'task' && (r === 'owner' || isHead(u.id, n.dept));
+    case 'dept': return !!n && n.type === 'task' && r === 'owner';
     case 'members': return r === 'owner';
     case 'templates': return false;
     case 'formula-approve': return r === 'owner';
@@ -1033,7 +1042,7 @@ function resetAll() {
 function fieldDefs(nodeId) { return db.reportFields.filter((f) => f.node_id === nodeId).sort((a, b) => a.order - b.order); }
 function reportsOf(nodeId) { return db.reports.filter((r) => r.node_id === nodeId).sort((a, b) => b.version - a.version); }
 function pendingReport(nodeId) { return db.reports.find((r) => r.node_id === nodeId && r.status === 'submitted') || null; }
-function canReport(n) { return !!n && n.type === 'task' && isLeaf(n) && can('edit', n) && !DONE(n.status) && !pendingReport(n.id); }
+function canReport(n) { return !!n && n.type === 'task' && isLeaf(n) && canWork(n) && !DONE(n.status) && !pendingReport(n.id); }
 function validateReport(nodeId, data) {
   const errors = [];
   if (!RESULT[data.result]) errors.push('請選擇結果');
@@ -1165,7 +1174,7 @@ function moveReportField(id) {
 }
 
 /* ---------- 筆記 ---------- */
-function canNote(n) { return !!n && can('edit', n); }
+function canNote(n) { return !!n && (can('edit', n) || n.collabs.includes(ui.me) || n.depts.some((d) => isHead(ui.me, d))); }
 function addNote(nodeId, body) {
   const n = node(nodeId);
   if (!canNote(n)) return { ok: false, error: '你的角色無權在此任務寫筆記' };
@@ -1898,11 +1907,12 @@ function viewData(n) {
 
 /* ---------- 成員與權限（F5 / F6） ---------- */
 function viewPeople(n) {
-  const acts = [['view', '檢視'], ['edit', '新增 / 編輯任務'], ['delete', '刪除任務'], ['schedule', '修改時程'], ['deps', '設定前置條件'], ['gate', '核准階段閘門'], ['override', '覆寫（跳過）前置 / 閘門'], ['members', '管理成員與權限'], ['templates', '管理模板庫']];
+  const acts = [['view', '檢視'], ['edit', '新增 / 編輯任務'], ['assign', '指派負責人'], ['delete', '刪除任務'], ['schedule', '修改時程'], ['deps', '設定前置條件'], ['gate', '核准階段閘門'], ['override', '覆寫（跳過）前置 / 閘門'], ['members', '管理成員與權限'], ['templates', '管理模板庫']];
   const matrix = {
-    admin: ['✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅'], owner: ['✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', ''],
-    reviewer: ['✅', '✅', '', '✅', '✅', '指定階段', '指定階段', '', ''], member: ['✅', '✅', '', '自己的任務', '', '', '', '', ''],
-    collab: ['僅被指派節點', '僅自己的子任務', '', '', '', '', '', '', ''], readonly: ['✅', '', '', '', '', '', '', '', ''],
+    admin: ['✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅'], owner: ['✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', ''],
+    reviewer: ['相關任務', '自己負責／部門主管', '部門主管', '', '✅', '✅', '指定階段', '指定階段', '', ''],
+    member: ['相關任務', '自己負責／部門主管', '部門主管', '', '自己負責／部門主管', '', '', '', '', ''],
+    collab: ['相關任務', '自己負責', '', '', '', '', '', '', '', ''], readonly: ['✅', '', '', '', '', '', '', '', '', ''],
   };
   const r = me().role;
   return `<div class="stack"><div class="grid2">
@@ -1912,7 +1922,7 @@ function viewPeople(n) {
       <dt>協作部門</dt><dd>${n.depts.map((d) => `<span class="tag gray">${esc(deptName(d))}</span>`).join(' ') || '—'}</dd>
       <dt>資料等級</dt><dd>${lvBadge(effLevel(n))} ${n.level ? '（本節點設定）' : '（繼承上層）'}</dd></dl>
       ${n.type !== 'project' ? `<button class="btn sm" type="button" data-edit="${n.id}" style="margin-top:10px" ${can('edit', n) ? '' : 'disabled'}>編輯成員與等級</button>` : ''}
-      <p class="small muted">協作人員只看得到被指派的節點（及必要的上層摘要）。權限預設繼承上層，可在子樹覆寫。</p></div>
+      <p class="small muted">每件任務只有相關的人看得到：負責人、協作人員、負責部門與協作部門的主管、範圍內的審核人。未指派負責人的任務只有部門主管看得到。</p></div>
     <div class="panel"><h3>你（${esc(me().name)}・${ROLES[r]}）在此節點可以</h3>
       ${acts.map(([k, l]) => `<div class="row" style="padding:2px 0">${can(k, n) ? '<span class="check">✓</span>' : '<span class="cross">✗</span>'} ${l}</div>`).join('')}
       <p class="small muted">左下角可切換身分，體驗不同角色看到的畫面。</p></div></div>

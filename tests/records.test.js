@@ -224,7 +224,7 @@
 
   // ── Task 6：跳過任務 ──
   await T('成員申請跳過 → 範圍內審核人核准 → 已跳過、進度 100%', () => {
-    as('ming');
+    node('t30122').owner = 'an'; as('an');
     eq(skipTask('t30122', '').error, '請填寫理由');
     const r = skipTask('t30122', '品保已在現場確認');
     eq(r.mode, 'requested'); eq(node('t30122').status, 'todo');
@@ -265,7 +265,7 @@
     as('ming'); eq(setStatus('t30122', 'doing'), false); eq(node('t30122').status, 'skipped');
   });
   await T('成員不能核准跳過申請', () => {
-    as('ming'); skipTask('t30122', '想跳過');
+    node('t30122').owner = 'an'; as('an'); skipTask('t30122', '想跳過');
     const o = pendingSkip('t30122'); decideOverride(o.id, true);
     eq(o.status, 'pending'); eq(node('t30122').status, 'todo');
   });
@@ -336,7 +336,7 @@
     o.status = 'pending'; decideOverride(o.id, true); eq(node('t3013').status, 'skipped');
   });
   await T('跳過上層任務時結案子任務的跳過申請；恢復後子任務回到原狀態', () => {
-    as('ming'); skipTask('t30122', '想跳過');
+    node('t30122').owner = 'an'; as('an'); skipTask('t30122', '想跳過');
     const o = pendingSkip('t30122');
     as('yu'); skipTask('t3012', '整段不做');
     eq(o.status, 'rejected');

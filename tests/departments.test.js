@@ -204,6 +204,37 @@
     ok(!document.getElementById('dlg').open, '總覽不應開啟對話框');
   });
 
+  // ── Task 3：操作權限 ──
+  const w = (u, id) => { as(u); return canWork(node(id)); };
+  await T('canWork：負責人、部門主管、專案負責人、系統管理員', () => {
+    ok(w('ming', 't30121')); ok(w('yu', 't30121')); ok(w('it', 't30121'));
+    ok(!w('chen', 't30121'), '審核人不是負責人也不是部門主管');
+    node('t30122').owner = 'an';
+    ok(w('an', 't30122'), '負責人'); ok(w('chen', 't30122'), '部門主管');
+    ok(!w('lin', 't403'), '協作人員不能操作');
+    ok(w('chen', 't404'), '主管可以操作未指派任務'); ok(!w('an', 't404'), '同部門成員不能操作未指派任務');
+  });
+  await T('協作人員可以寫筆記，但不能送回報、不能改狀態', () => {
+    as('lin');
+    ok(canNote(node('t403')), '協作人員可以寫筆記');
+    ok(!canReport(node('t4032')));
+    eq(setStatus('t4032', 'doing'), false);
+  });
+  await T('指派負責人與改負責部門的權限', () => {
+    as('chen'); ok(can('assign', node('t404')), '部門主管可以指派'); ok(!can('dept', node('t404')), '部門主管不能改部門');
+    as('an'); ok(!can('assign', node('t404')));
+    as('yu'); ok(can('assign', node('t504'))); ok(can('dept', node('t504')));
+    as('ming'); ok(!can('assign', node('t30121')), '負責人不能自己改派');
+  });
+  await T('修改時程：成員只能改自己負責或自己主管部門的任務', () => {
+    as('ming'); ok(can('schedule', node('t30121'))); ok(!can('schedule', node('t30122')));
+    as('hua'); ok(can('schedule', node('t8024')));
+  });
+  await T('權限表顯示「指派負責人」', () => {
+    ui.page = 'node'; ui.node = 'p1'; ui.tab = 'people'; render();
+    ok(document.getElementById('main').textContent.includes('指派負責人'));
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
