@@ -37,7 +37,7 @@
 - 目前測試基準：`tests/records.html` 為 `全部通過 149/149`（W3 合併後重跑）。
 - W3 依 2026-10-05 人類指示改成「先完成功能架構」：系統支援工作流模板、從工作流建立專案、階段關卡；每個部門的實際工作流內容可由使用者之後自行添加。
 - Demo 走查已通過；最後只等人類確認可以拿來展示，以及決定 D43（工作流編輯器是否要做成表單式，不擋展示）。
-- 正式產品軌（React／FastAPI／PostgreSQL／內網部署／真 AI／ERP 整合等）尚未啟動，需等人類決定 D11；啟動後第一步是 P0（正式版技術骨架與開發規則）。
+- 正式產品軌已先開規劃 PR：P0 技術骨架與規則約 1–2 天，P1 React + FastAPI + PostgreSQL 基礎版約 1–2 週；實作需等人類確認 PR 後再啟動。
 
 **和 plan 不同、已由人類決定的地方**：PROGRESS §6 的 D19–D33，以及 §3 W2「執行注意」第 20–34 點。例如 D23：任務的時程只有負責人、負責部門主管、專案負責人和系統管理員能改。接手前請先讀這些條目，不要照 plan 的舊寫法改回去。
 
@@ -704,6 +704,24 @@ projectflow/
 ## 8. 開發路線圖（各階段該完成的事）
 
 每個階段都列出「要做的事」與「驗收標準」，驗收全部達成才進下一階段。
+
+### 正式產品 MVP 第一輪（P0 / P1）
+
+這一輪以「先做可內部試用的正式版基礎」為目標，不把完整 AI、ERP、AD／LDAP、RAG 全部塞進第一版。
+
+- **P0｜技術骨架與規則（約 1–2 天）**：建立 `web/`、`api/`、`deploy/`，確認 React + FastAPI + PostgreSQL + Docker Compose 可以啟動，並定正式版開發規則。
+- **P1a｜資料模型與後端核心（約 2–4 天）**：建立 PostgreSQL schema、FastAPI core API、Project／Node／Workflow／Gate／Dept/RBAC 基礎資料與測試。
+- **P1b｜React 核心 UI（約 3–5 天）**：建立專案清單、專案頁、節點看板、工作流模板、從工作流建立專案、Gate 阻擋提示。
+- **P1c｜部署、測試與驗收（約 2–3 天）**：Docker Compose 一鍵啟動、權限測試、Gate 繞過回歸測試、yu／chen／ming 角色驗收流程。
+
+規劃文件：
+
+- [Formal Product MVP Design](docs/superpowers/specs/2026-10-05-formal-product-mvp-design.md)
+- [Formal Product MVP Implementation Plan](docs/superpowers/plans/2026-10-05-formal-product-mvp.md)
+
+**預估**：P0 確認後，正式產品基礎版約 1–2 週可做到可內部試用；完整 AI／ERP／AD 整合另排後續階段。
+
+---
 
 ### 階段 0｜互動 Demo ✅ 已完成
 
