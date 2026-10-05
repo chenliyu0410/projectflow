@@ -561,6 +561,36 @@ function validateWorkflow(wf) {
   if (workflowHasCycle(wf)) errors.push('循環前置：工作流內有互相依賴');
   return [...new Set(errors)];
 }
+function canManageWorkflows() { return can('templates'); }
+function saveWorkflow(wf) {
+  if (!canManageWorkflows()) return { ok: false, error: '你的角色無權管理工作流' };
+  const errors = validateWorkflow(wf);
+  if (errors.length) return { ok: false, error: errors[0], errors };
+  const old = db.workflows.find((x) => x.id === wf.id);
+  const clean = cloneWorkflow(wf, { version: wf.version || 1, builtin: old ? !!old.builtin : !!wf.builtin });
+  const i = db.workflows.findIndex((x) => x.id === clean.id);
+  commit(i >= 0 ? `更新工作流「${clean.name}」` : `新增工作流「${clean.name}」`, () => {
+    if (i >= 0) db.workflows[i] = clean; else db.workflows.push(clean);
+  });
+  log(null, '工作流', `${i >= 0 ? '更新' : '新增'}工作流「${clean.name}」`);
+  return { ok: true, workflow: clean };
+}
+function duplicateWorkflow(id) {
+  if (!canManageWorkflows()) return null;
+  const src = db.workflows.find((w) => w.id === id);
+  if (!src) return null;
+  const copy = cloneWorkflow(src, { id: newId('wf'), name: `${src.name} 副本`, builtin: false, version: 1 });
+  return saveWorkflow(copy).ok ? copy : null;
+}
+function deleteWorkflow(id) {
+  if (!canManageWorkflows()) return { ok: false, error: '你的角色無權管理工作流' };
+  const wf = db.workflows.find((w) => w.id === id);
+  if (!wf) return { ok: false, error: '找不到工作流' };
+  if (wf.builtin) return { ok: false, error: '內建工作流不能刪除' };
+  commit(`刪除工作流「${wf.name}」`, () => { db.workflows = db.workflows.filter((x) => x.id !== id); });
+  log(null, '工作流', `刪除工作流「${wf.name}」`);
+  return { ok: true };
+}
 
 /* ================= 種子資料 ================= */
 function seed() {
@@ -2217,7 +2247,19 @@ function pageReview() {
 /* ================= 模板庫（F2） ================= */
 function pageTemplates() {
   const scopeL = { system: '系統內建', org: '組織模板', personal: '個人模板' };
+  const wfCards = db.workflows.map((w) => {
+    const st = workflowStats(w);
+    return `<div class="panel"><div class="row" style="justify-content:space-between"><div class="row"><span class="tag ${w.builtin ? '' : 'blue'}">${w.builtin ? '內建工作流' : '自訂工作流'}</span><span class="small muted">v${w.version || 1}</span></div>
+      <div class="row">${canManageWorkflows() ? `<button class="btn sm" type="button" data-wf-edit="${w.id}">編輯</button><button class="btn sm" type="button" data-wf-copy="${w.id}">複製</button><button class="btn sm danger" type="button" data-wf-del="${w.id}" ${w.builtin ? 'disabled title="內建工作流不能刪除"' : ''}>刪除</button>` : ''}</div></div>
+      <h3 style="margin-top:8px">${esc(w.name)}</h3><p class="small muted" style="margin:0 0 8px">${esc(w.desc || '')}</p>
+      <div class="small">${esc(w.category || '未分類')}・${st.stages} 階段・${st.tasks} 個任務・${st.gates} 個關卡・約 ${st.days} 天</div>
+      <details style="margin-top:8px"><summary class="small">預覽階段</summary><ol class="small" style="padding-left:20px;margin:6px 0">${(w.stages || []).map((s) => `<li>${esc(s.title)} <span class="muted">（${esc(deptName(s.dept))}・${(s.tasks || []).length} 項${s.gate ? '・關卡：' + esc(s.gate.title) : ''}）</span></li>`).join('')}</ol></details>
+      <button class="btn sm primary" type="button" data-wf-create="${w.id}" style="margin-top:8px">用這套工作流建立專案</button></div>`;
+  }).join('');
   return `<div class="pagehead"><div><h1 class="serif">模板庫</h1><p>模板存的是相對時間（開始後第 N 天、工期 N 天），套用時依新的開始日自動計算；支援 {產品名} 等變數。</p></div></div>
+  <div class="row" style="justify-content:space-between;margin:0 0 10px"><h2 style="margin:0">工作流模板</h2>${canManageWorkflows() ? '<button class="btn sm primary" type="button" data-wf-new>＋ 新增工作流</button>' : ''}</div>
+  <div class="grid2" style="margin-bottom:18px">${wfCards || '<div class="empty">尚無工作流模板。</div>'}</div>
+  <h2>任務模板</h2>
   <div class="grid2">${db.templates.map((t) => {
     const nodes = t.nodes.filter((x) => x.p !== null);
     const days = Math.max(...t.nodes.map((x) => x.off + x.dur));
@@ -2646,6 +2688,39 @@ function deptOpts(sel) { return db.departments.map((d) => `<option value="${d.id
 function ownerOpts(deptId, sel) { return '<option value="">未指派</option>' + deptMembers(deptId).map((u) => `<option value="${u}" ${u === sel ? 'selected' : ''}>${esc(USERS[u].name)}</option>`).join(''); }
 // 任務的負責人顯示：已指派顯示人名與部門，未指派顯示「未指派・部門」
 function whoHTML(n) { return n.owner ? `<span class="whonm" title="${esc(uname(n.owner))}・${esc(deptName(n.dept))}">${esc(uname(n.owner))}<span class="small muted">・${esc(deptName(n.dept))}</span></span>` : `<span class="tag warn">未指派・${esc(deptName(n.dept))}</span>`; }
+function openWorkflowEditor(id) {
+  if (!canManageWorkflows()) return toast('你的角色無權管理工作流', 'warn');
+  const src = id ? db.workflows.find((w) => w.id === id) : null;
+  const wf = src || { id: newId('wf'), name: '', desc: '', category: '', version: 1, builtin: false, stages: [{ id: 's1', title: '第一階段', dept: 'd-adm', gate: null, tasks: [{ id: 't1', title: '第一個任務', dept: 'd-adm', depts: [], dur: 3 }] }], deps: [] };
+  const d = $('drawer');
+  d.innerHTML = `<form id="wfForm" data-id="${wf.id}" data-builtin="${wf.builtin ? '1' : ''}" data-version="${wf.version || 1}">
+    <h2 class="serif">${src ? '編輯工作流' : '新增工作流'}</h2>
+    ${wf.builtin ? '<div class="note" style="margin-bottom:12px">這是內建工作流；可編輯內容或先複製成自訂工作流再調整。</div>' : ''}
+    <div class="frow"><div class="field"><label for="wfName">工作流名稱</label><input id="wfName" value="${esc(wf.name)}" required></div>
+      <div class="field"><label for="wfCategory">分類</label><input id="wfCategory" value="${esc(wf.category || '')}" placeholder="例如：新產品、活動、內部流程"></div></div>
+    <div class="field"><label for="wfDesc">說明</label><textarea id="wfDesc" style="min-height:70px">${esc(wf.desc || '')}</textarea></div>
+    <div class="field"><label for="wfJson">階段與相依設定（JSON）</label><textarea id="wfJson" style="min-height:320px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace">${esc(JSON.stringify({ stages: wf.stages || [], deps: wf.deps || [] }, null, 2))}</textarea></div>
+    <div class="dlg-actions"><button class="btn" type="button" data-close-drawer>取消</button><button class="btn primary" type="submit">儲存工作流</button></div>
+  </form>`;
+  if (!d.open) d.showModal();
+}
+function submitWorkflowForm(f) {
+  let body;
+  try { body = JSON.parse($('wfJson').value || '{}'); } catch (err) { return toast('階段與相依設定不是有效 JSON', 'warn'); }
+  const wf = {
+    id: f.dataset.id,
+    name: $('wfName').value.trim(),
+    desc: $('wfDesc').value.trim(),
+    category: $('wfCategory').value.trim(),
+    version: +f.dataset.version || 1,
+    builtin: f.dataset.builtin === '1',
+    stages: body.stages || [],
+    deps: body.deps || [],
+  };
+  const r = saveWorkflow(wf);
+  if (!r.ok) return toast(r.error, 'warn');
+  closeDrawer(); render(); return toast('已儲存工作流');
+}
 function openEditor(id) {
   const n = node(id); if (!n) return;
   const d = $('drawer');
@@ -3307,6 +3382,10 @@ document.addEventListener('click', (e) => {
   if ('undo' in ds) return undo();
   if ('connect' in ds) { ui.connect = !ui.connect; ui.gsel = null; return render(); }
   if (ds.addChild) return openQuickAdd(ds.addChild);
+  if ('wfNew' in ds) return openWorkflowEditor();
+  if (ds.wfEdit) return openWorkflowEditor(ds.wfEdit);
+  if (ds.wfCopy) { const copy = duplicateWorkflow(ds.wfCopy); return copy ? toast(`已建立「${copy.name}」`) : toast('無法複製工作流', 'warn'); }
+  if (ds.wfDel) { const r = deleteWorkflow(ds.wfDel); return r.ok ? toast('已刪除工作流', null, { label: '復原', fn: undo }) : toast(r.error, 'warn'); }
   if (ds.applyTpl) return openApplyTpl(ds.applyTpl, ds.tpl);
   if (ds.tplsrc) { const st = ui.tplState; return openApplyTpl(st.nodeId, $('tSel') ? $('tSel').value : undefined, ds.tplsrc, ''); }
   if (ds.saveTpl) return openSaveTpl(ds.saveTpl);
@@ -3438,6 +3517,7 @@ document.addEventListener('submit', (e) => {
   const f = e.target; e.preventDefault();
   if (f.id === 'askForm') { const q = $('askInput').value.trim(); if (!q) return; $('askInput').value = ''; return aiAsk(q); }
   if (f.id === 'edForm') return saveEditor(f.dataset.id);
+  if (f.id === 'wfForm') return submitWorkflowForm(f);
   if (f.id === 'deptForm') return submitDept(f.dataset.id);
   if (f.id === 'qaForm') {
     const title = $('qTitle').value.trim(); if (!title) return;

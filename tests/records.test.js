@@ -601,6 +601,46 @@
     ok(validateWorkflow(cyc).some((x) => x.includes('循環前置')), '循環前置要被擋');
   });
 
+  // ── W3 Task 2：工作流模板管理 ──
+  await T('W3：模板庫顯示工作流模板與任務模板兩區', () => {
+    as('it'); ui.page = 'templates'; render();
+    const txt = document.getElementById('main').textContent;
+    ok(txt.includes('工作流模板'), '應顯示工作流模板區');
+    ok(txt.includes('任務模板'), '應保留任務模板區');
+    ok(txt.includes('筆電新機種專流'), '應顯示內建工作流');
+  });
+
+  await T('W3：只有系統管理員可以新增工作流', () => {
+    as('ming'); ui.page = 'templates'; render();
+    ok(!document.getElementById('main').querySelector('[data-wf-new]'), '一般成員不能新增工作流');
+    as('it'); ui.page = 'templates'; render();
+    ok(document.getElementById('main').querySelector('[data-wf-new]'), '系統管理員可新增工作流');
+  });
+
+  await T('W3：新增、編輯、複製、刪除自訂工作流', () => {
+    as('it');
+    const before = db.workflows.length;
+    const wf = {
+      id: 'wf-custom', name: '客製工作流', desc: '展示用', category: '測試', version: 1, builtin: false,
+      stages: [{ id: 's1', title: '第一階段', dept: 'd-adm', gate: { title: 'G0', criteria: '完成第一階段' }, tasks: [{ id: 't1', title: '第一個任務', dept: 'd-adm', depts: [], dur: 3 }] }],
+      deps: [],
+    };
+    ok(saveWorkflow(wf).ok, '新增應成功');
+    eq(db.workflows.length, before + 1);
+    ok(saveWorkflow({ ...wf, name: '客製工作流 v2' }).ok, '編輯應成功');
+    eq(db.workflows.find((x) => x.id === 'wf-custom').name, '客製工作流 v2');
+    const copy = duplicateWorkflow('wf-custom');
+    ok(copy && copy.id !== 'wf-custom' && copy.name.includes('副本'), '複製應建立新 id');
+    ok(deleteWorkflow('wf-custom').ok, '自訂工作流可刪除');
+  });
+
+  await T('W3：內建工作流不能刪除，錯誤資料不能儲存', () => {
+    as('it');
+    const built = db.workflows.find((w) => w.builtin);
+    eq(deleteWorkflow(built.id).error, '內建工作流不能刪除');
+    eq(saveWorkflow({ ...built, id: 'bad', name: ' ' }).ok, false);
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
