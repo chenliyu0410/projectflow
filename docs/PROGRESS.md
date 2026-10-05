@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W3 工作流架構（精簡版）**（🔨 執行中：Task 1） |
+| 目前工作項目 | **W5 README 對齊現況（精簡）**（⬜ 未開始） |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 切到 `feature/w3-workflow-architecture`，照 `docs/superpowers/plans/2026-10-05-workflow-architecture.md` 從 Task 1「Workflow Data Model and Validation」開始，用 TDD 實作。 |
-| 分支 | `feature/w3-workflow-architecture`（從 `main` 的 `Progress: start W3` 切出；進度以分支上的 PROGRESS 為準） |
-| 最新程式 commit | W2 合併結果 `5f326ab`；最新產品程式 commit 是 `b2f7453`（W2 整體修正）。最新進度/spec commit 是 `d9c6f55`。W1 合併後的 HEAD 是 `2d2c785` |
+| 下一個動作 | W3 已完成並等待本次 fast-forward 合併／push 收尾；完成後做 W5：只更新 README §1 快速開始、§2 功能總覽，反映 full demo 現況。 |
+| 分支 | `feature/w3-workflow-architecture`（本分支 W3 已完成；合併後回 `main`） |
+| 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W2 合併結果 `5f326ab`；最新進度/spec commit 是 `d9c6f55`。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 137/137`（2026-10-05，W2 fast-forward 合併到 `main` 後由 Codex 用 8001 重跑，console error 0）。歷史基準：W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
-| 資料版本 | `db.v = 4`（W2 Task 1 起；`load()` 讀 v2／v3／v4 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
-| 認領中 | Codex GPT-5，2026-10-05 12:00 |
-| 阻塞／待人類 | W3 不再阻塞；D42 已確認功能架構方向。D10、D11、D12 仍待人類但不擋 Demo 軌；D34–D42 是 AI 代決或人類調整（可推翻）。 |
+| 測試基準 | `tests/records.html`：`全部通過 149/149`（2026-10-05，W3 審查修正後 Codex 用 8001 重跑）。歷史基準：W2 合併後 `全部通過 137/137`；W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
+| 資料版本 | `db.v = 5`（W3 起；`load()` 讀 v2／v3／v4／v5 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
+| 認領中 | — |
+| 阻塞／待人類 | D10、D11、D12 仍待人類但不擋 Demo 軌；D34–D42 是 AI 代決或人類調整（可推翻）。 |
 | 遠端 | 2026-10-05：人類授權「push上去」後，已把本機 `main` push 到 `origin/main`（`a2f7e85`）。每次 push 都要人類明確授權（D3）。 |
 
 ---
@@ -55,7 +55,7 @@
 3. **目前里程碑**：依序完成 W1 → W2 → W3（精簡版，D31／D42），讓 Demo 具備可自行新增、編輯、套用工作流的功能架構。2026-10-05 起依 D42，個別工作流內容之後由使用者自行添加；D41 的兩份現有專流只作內建範例與測試素材。
    - **展示模式**（D30，人類 2026-10-05 指示「這個專案是展示用的，先以完成主要功能能使用為主，不用花太多時間在細節的修飾。以最快的速度完成整個專案」）：Demo 軌就是這次要完成的「整個專案」，正式產品軌（P0–P9）不在範圍內。W4 取消，W5 精簡，§5 的 minor 除非有指定，一律延到正式版。
 4. **Demo 驗證軌的完成條件**（2026-10-05 依 D30 精簡）
-   - [ ] W1、W2、W3（精簡版）都是 ✅
+   - [x] W1、W2、W3（精簡版）都是 ✅
    - [ ] W5 ✅：README §1 快速開始、§2 功能總覽反映 full demo 的現況
    - [ ] 用 W3 的工作流架構新增／編輯／套用一套工作流，並以 yu、chen、ming 各走一次主要流程，桌面和 375px 都沒有水平捲動，console 沒有錯誤
    - [ ] 人類確認可以拿來展示（README §8 階段 0 的驗收：「能用 Demo 向他人完整說明產品概念」）
@@ -71,7 +71,7 @@
 |---|---|---|---|---|---|---|---|
 | 1 | W1 | 子任務置頂回報卡 | ✅ | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
 | 2 | W2 | 部門模型 | ✅ | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1）；2026-10-05 已 ff 合併進 `main` |
-| 3 | W3 | 工作流架構（**精簡版**，D31／D42）：工作流模板 CRUD、從工作流建立專案、關卡擋住後續階段 | 🔨 執行中 | [spec](superpowers/specs/2026-10-05-process-control-design.md) | [plan](superpowers/plans/2026-10-05-workflow-architecture.md) | v4 → v5 | W2 已合併；依 D42 先完成功能架構，個別工作流內容由使用者之後自行添加 |
+| 3 | W3 | 工作流架構（**精簡版**，D31／D42）：工作流模板 CRUD、從工作流建立專案、關卡擋住後續階段 | ✅ | [spec](superpowers/specs/2026-10-05-process-control-design.md) | [plan](superpowers/plans/2026-10-05-workflow-architecture.md) | v4 → v5 | 2026-10-05 完成；依 D42 先完成功能架構，個別工作流內容由使用者之後自行添加 |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ⬜ | — | — | — | 排在 W3 之後。full demo 定位的文字由 AI 起草、人類看一次（D12） |
 | — | P0 | 正式軌工作規則 | ⬜ 未啟動 | — | — | — | D11 決定後才做：和人類一起定技術骨架，改寫 AGENTS §3–§4、WORKFLOW §5、G2 的必備內容。P0 ✅ 之前不能開工 P1 |
@@ -277,7 +277,9 @@
     - spec 沒寫到的小細節由 AI 代決，記成 §6 的 D（D32）。
     - 預期總數照舊：Task 6 是 129、Task 7 是 133，整體修正會再多 4 個左右（第 32 點）。
 
-### W3 工作流架構（精簡版）— 📋（已規劃，待執行）
+### W3 工作流架構（精簡版）— ✅
+
+> **W3 完成摘要（2026-10-05，給接手者）**：W3 已完成工作流功能架構。Demo 現在有 `db.workflows[]`（資料版 v5）、工作流模板庫 CRUD、可從工作流建立專案、工作流專案的前序階段關卡會硬性擋住後續階段任務；個別工作流內容之後由使用者自行添加。下一個工作項目是 W5 README 精簡對齊。
 
 - **來源**：W2 spec 開頭的「拆分」段落原本有 7 項。2026-10-05 人類先選「精簡版」（D31），後續又確認 W3 不要只內建某個工作流，而要完成可自行新增／編輯／套用工作流的功能架構（D42）。本項目只做：
   1. 工作流模板 CRUD：階段、任務、負責部門、協作部門、前置條件、階段關卡。
@@ -287,7 +289,16 @@
 - **不做，延到正式版**：範本指定關卡的核准人、總經理角色、強制通過關卡與略過整個階段、完成報告必附交付物。W2 spec 列為不在範圍內的應收帳款、人員帳號的新增與編輯也一樣不做。
 - **spec 怎麼產生**（D31 取代 D9 的完整 brainstorming）：AI 已把 D41 的兩份現有專流轉寫成 `docs/reference/2026-10-05-w3-current-flow-sources.md`，並依 D42 修訂短版 spec `docs/superpowers/specs/2026-10-05-process-control-design.md`。人類已在對話確認方向。
 - **plan**：`docs/superpowers/plans/2026-10-05-workflow-architecture.md`，共 4 個 Task：資料模型與驗證、工作流模板管理 UI、從工作流建立專案、關卡阻擋與驗收。
-- **下一步**：人類確認 plan 與執行方式後，做 G3 pre-flight、開 `feature/w3-workflow-architecture`，逐 Task TDD 實作。
+- **結果**：
+  | Task | 狀態 | 範圍 | commit／驗證 |
+  |---|---|---|---|
+  | 1 | ✅ | v5 工作流資料模型、內建工作流、驗證／統計／clone helper、v2→v5 升級路徑 | `c6d47ce`；RED `失敗 3/140` → GREEN `全部通過 140/140` |
+  | 2 | ✅ | 模板庫顯示工作流模板／任務模板兩區，管理員新增／編輯／複製／刪除工作流，JSON 型快速編輯器 | `3102c95`；RED `失敗 4/144` → GREEN `全部通過 144/144` |
+  | 3 | ✅ | 從工作流建立專案，產生專案、階段、任務、前置與關卡 | `7ec0695`；RED `失敗 2/146` → GREEN `全部通過 146/146` |
+  | 4 | ✅ | 工作流專案的前序階段關卡 pending 時擋住後續階段；375px 基本溢出測試 | `c8b4c3b`；RED `失敗 1/149` → GREEN `全部通過 149/149` |
+  | 審查修正 | ✅ | reviewer 指出 owner/admin 可用 generic 前置覆寫繞過 gate；已改成 gate blocker 只能走關卡審核／覆寫流程，並補回歸測試 | `9bb9a52`；GREEN `全部通過 149/149` |
+- **審查**：Codex 以 `requesting-code-review` 派 read-only reviewer 審 `6ea8d08..c8b4c3b`。結果：無 Critical；1 個 Important（generic 前置覆寫可繞過 pending workflow gate）已在 `9bb9a52` 修正並重跑測試。最終自我驗證：`tests/records.html?t=1791173758864` → `全部通過 149/149`。
+- **下一步**：W5 README 對齊現況（精簡：只改 README §1 快速開始、§2 功能總覽）。W3 feature 分支完成後可 fast-forward 合併到 `main`；人類已在對話中要求「確認後推上去」。
 
 ### W4 F11 遺留問題清理 — ✖（取消，D30）
 
@@ -329,6 +340,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | F11 | 任務紀錄與完成回報：回報與審核、自訂回報欄位、筆記、附件（IndexedDB）、主管跳過整個任務、AI 引用紀錄 | [spec](superpowers/specs/2026-09-30-task-records-and-skip-design.md)、[plan](superpowers/plans/2026-09-30-task-records-and-skip.md)；commits `9fdcc64..aebd709`（從 `2fc8f10` 到 `aebd709` 共 10 個：7 個 Task、2 輪修正、1 次整體修正），以 fast-forward 合併進 `main`；測試 44/44。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-09-30-f11-task-records/`（不在 git 裡；重要內容已整理到本看板 §5） |
 | W1 | 子任務置頂回報卡：葉任務頁標題下方固定顯示回報卡（狀態與下一步動作），「紀錄」分頁排第一並作為預設；D15 桌面版紀錄等分頁可捲動，D16 卡片摘要最多約 6 行，D17 新增第一個子任務後切到看板 | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)、[plan](superpowers/plans/2026-10-01-subtask-report-card.md)；commits `8aed7d6..2d2c785`（2 個 Task、2 輪 Task 修正、D15、1 次整體修正），以 fast-forward 合併進 `main`；測試 64/64；`db.v` 維持 3。審查全部獨立（每個 Task spec＋品質各 2 輪，整體審查 2 輪）。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-10-01-subtask-report-card/`（不在 git 裡；重要內容已整理到本看板 §3 W1、§5、§6） |
 | W2 | 部門模型：`db.departments` 可設定、預設 10 部門；任務必填負責部門且負責人可未指派；任務可見性與操作權限依負責人、部門主管、專案負責人、系統管理員等規則；時間軸預設收合成階段並可依負責部門篩選；模板帶入負責部門 | [spec](superpowers/specs/2026-10-01-department-model-design.md)、[plan](superpowers/plans/2026-10-01-department-model.md)；commits `670afaf..5f326ab`（Task 1–7、展示模式流程調整、整體修正與等待合併進度），以 fast-forward 合併進 `main`；測試 `全部通過 137/137`；`db.v = 4`。Task 1–5 是完整流程獨立審查，Task 6–7 是展示模式單一審查者，整體修正後由 Codex 自我再審並經人類確認合併。 |
+| W3 | 工作流架構：`db.workflows[]`、工作流模板 CRUD、從工作流建立專案、工作流專案的前序階段關卡硬性擋住後續階段 | [spec](superpowers/specs/2026-10-05-process-control-design.md)、[plan](superpowers/plans/2026-10-05-workflow-architecture.md)；commits `6ea8d08..9bb9a52`；測試 `全部通過 149/149`；`db.v = 5`。展示模式單一 reviewer 找到 1 個 Important（generic 前置覆寫可繞過 pending workflow gate），已修正。 |
 | 規劃文件 | W1 的 spec 和 plan、W2 的 spec 和 plan | `3a24c52`、`ed3e24f`、`edf46b6`、`dfc0126` |
 | 交接系統 | `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、本看板、`docs/WORKFLOW.md`、`.claude/workflows/pf-status.js`、`.claude/workflows/pf-next.js`、`.gitignore` | 2026-10-01 建立；commit 用 `git log --grep "Docs: handoff system"` 查 |
 
@@ -525,6 +537,21 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
+
+### 2026-10-05｜Codex GPT-5｜W3 工作流架構完成，準備 ff 合併與 push
+- **做了什麼**：
+  - 依 D42 完成 W3 功能架構：`db.v` 升到 5、加入 `db.workflows[]` 與兩套內建範例工作流、工作流模板庫 CRUD、從工作流建立專案、工作流專案的前序階段關卡硬性擋住後續階段。
+  - 逐 Task 用 TDD 實作並提交：`c6d47ce`（資料模型）、`3102c95`（模板庫管理）、`7ec0695`（從工作流建立專案）、`c8b4c3b`（關卡阻擋）。
+  - 派 read-only reviewer 審 `6ea8d08..c8b4c3b`；修掉 1 個 Important：generic 前置覆寫可繞過 pending workflow gate，修正 commit `9bb9a52`。
+  - 更新 PROGRESS：W3 改 ✅，目前工作項目切到 W5，測試基準改為 `149/149`，資料版本改為 v5。
+- **驗證**：
+  - RED/GREEN：Task 1 `失敗 3/140` → `全部通過 140/140`；Task 2 `失敗 4/144` → `全部通過 144/144`；Task 3 `失敗 2/146` → `全部通過 146/146`；Task 4 `失敗 1/149` → `全部通過 149/149`。
+  - reviewer 修正後重跑 `tests/records.html?t=1791173758864`，結果 `全部通過 149/149`；`git diff --check` 乾淨。
+- **沒做的事／偏離 plan**：
+  - CUA 的 Demo 頁 isolated evaluate 無法直接跑手動驗收腳本（`window.eval`／`document.createElement` 不可用），改以瀏覽器測試覆蓋 CRUD、建立專案、gate blocked/unblocked、375px 溢出。
+  - W5 README 精簡對齊尚未開始。
+- **下一步**：本次依人類「確認後推上去」授權，將 `feature/w3-workflow-architecture` fast-forward 合併到 `main`，合併後重跑 `tests/records.html`，再 `git push origin main`。
+- **注意**：8001 是正確 repo 伺服器但不是本 session 啟動；不要關。8000 不是此 repo。
 
 ### 2026-10-05｜Codex GPT-5｜W2 已 ff 合併進 main，等待 W3 的 D13
 - **做了什麼**：
