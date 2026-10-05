@@ -15,9 +15,9 @@
 |---|---|
 | 目前工作項目 | **W3 流程控制（精簡版）**（✏️ 規格中；依 D41 用現有專流先行） |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 依 D41，把 `C:\Users\User\Downloads\產品企劃部-筆電新機種專流.xlsx` 作為 W3 主要展示流程，`C:\Users\User\Downloads\行銷部-實體活動專流.xlsx` 作為輔助參考；先轉寫成 `docs/reference/` 的參考文件，再起草 W3 精簡版短 spec 給人類看一次。 |
+| 下一個動作 | W3 reference 與短版 spec 草案已建立：`docs/reference/2026-10-05-w3-current-flow-sources.md`、`docs/superpowers/specs/2026-10-05-process-control-design.md`。等人類審閱 spec；同意後進 G2 寫 plan。 |
 | 分支 | `main`（W2 已於 2026-10-05 fast-forward 合併；`feature/w2-departments` 將在 G6 收尾後刪除） |
-| 最新程式 commit | W2 合併結果 `5f326ab`；最新產品程式 commit 是 `b2f7453`（W2 整體修正）。最新進度 commit 是 `a2f7e85`。W1 合併後的 HEAD 是 `2d2c785` |
+| 最新程式 commit | W2 合併結果 `5f326ab`；最新產品程式 commit 是 `b2f7453`（W2 整體修正）。最新進度 commit 是 `7e1621a`。W1 合併後的 HEAD 是 `2d2c785` |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 137/137`（2026-10-05，W2 fast-forward 合併到 `main` 後由 Codex 用 8001 重跑，console error 0）。歷史基準：W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
 | 資料版本 | `db.v = 4`（W2 Task 1 起；`load()` 讀 v2／v3／v4 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
@@ -71,7 +71,7 @@
 |---|---|---|---|---|---|---|---|
 | 1 | W1 | 子任務置頂回報卡 | ✅ | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
 | 2 | W2 | 部門模型 | ✅ | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1）；2026-10-05 已 ff 合併進 `main` |
-| 3 | W3 | 流程控制（**精簡版**，D31）：範本與示範專案、關卡擋住後續階段 | ✏️ 規格中 | — | — | 視 spec 而定（需要時 v4 → v5） | W2 已合併；依 D41 用現有兩份專流先行，spec 由 AI 起草短版，人類看一次就定稿（D31 取代 D9 的完整 brainstorming） |
+| 3 | W3 | 流程控制（**精簡版**，D31）：範本與示範專案、關卡擋住後續階段 | ✏️ 規格草案待審 | [draft](superpowers/specs/2026-10-05-process-control-design.md) | — | spec 草案建議維持 v4；若 plan 發現必須新增持久欄位才升 v5 | W2 已合併；依 D41 用現有兩份專流先行，spec 由 AI 起草短版，人類看一次就定稿（D31 取代 D9 的完整 brainstorming） |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ⬜ | — | — | — | 排在 W3 之後。full demo 定位的文字由 AI 起草、人類看一次（D12） |
 | — | P0 | 正式軌工作規則 | ⬜ 未啟動 | — | — | — | D11 決定後才做：和人類一起定技術骨架，改寫 AGENTS §3–§4、WORKFLOW §5、G2 的必備內容。P0 ✅ 之前不能開工 P1 |
@@ -284,8 +284,8 @@
   2. 關卡硬性擋住後續階段（關卡沒通過，下一階段的任務不能開始）
   - 資料版本：只有在這兩項需要新欄位時才升 v5，spec 要寫明。
 - **不做，延到正式版**：範本指定關卡的核准人、總經理角色、強制通過關卡與略過整個階段、完成報告必附交付物。W2 spec 列為不在範圍內的應收帳款、人員帳號的新增與編輯也一樣不做。
-- **spec 怎麼產生**（D31 取代 D9 的完整 brainstorming）：AI 先把 D41 的兩份現有專流轉寫成 `docs/reference/` 的參考文件，再起草短版 spec `docs/superpowers/specs/<日期>-process-control-design.md`，請人類看一次，同意後定稿。接著寫 plan（G2），Task 數盡量少。
-- **下一步**：轉寫現有專流，起草 W3 短版 spec。
+- **spec 怎麼產生**（D31 取代 D9 的完整 brainstorming）：AI 已把 D41 的兩份現有專流轉寫成 `docs/reference/2026-10-05-w3-current-flow-sources.md`，並起草短版 spec `docs/superpowers/specs/2026-10-05-process-control-design.md`。人類看一次，同意後定稿。接著寫 plan（G2），Task 數盡量少。
+- **下一步**：等人類審閱 W3 spec 草案；同意後進 G2 寫 plan。
 
 ### W4 F11 遺留問題清理 — ✖（取消，D30）
 
