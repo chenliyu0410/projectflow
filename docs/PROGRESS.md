@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W2 部門模型**（🟢 可合併；因本輪為 Codex 自我再審，合併前需人類確認） |
+| 目前工作項目 | **W3 流程控制（精簡版）**（⛔ 等待 D13：10 部門流程甘特圖） |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 等人類確認是否合併。W2 Task 1–7 都已 ✅，整體修正 `b2f7453` 已完成，Codex 依展示模式做修正後自我再審，結論 Ready to merge: Yes；測試與精簡驗收已通過。因整體再審不是獨立審查，依 WORKFLOW G5／§11，AI 不自行合併。人類確認後照 G5：`git checkout main` → `git merge --ff-only feature/w2-departments`，再做 G6 收尾；合併前讀執行注意 33（D28、D29） |
-| 分支 | `feature/w2-departments`（從 `main` 的 `Progress: start W2` 切出；2026-10-05 照 D28 ff 到 `origin/main` 的 PR #1 merge commit `8041e14`，程式和 `079b035` 相同） |
-| 最新程式 commit | `b2f7453`（W2 整體修正：未指派顯示、卡片負責人不換行、權限表、回報 select 防護）。W2 Task 7 是 `03c9ff5`；W1 合併後的 HEAD 是 `2d2c785` |
+| 下一個動作 | 等人類提供 D13「10 部門流程甘特圖（連接器新產品，6 階段）」原檔或內容。拿到後，AI 依 D31 起草 W3 精簡版短 spec，給人類看一次；不要在 D13 到位前自行開工。 |
+| 分支 | `main`（W2 已於 2026-10-05 fast-forward 合併；`feature/w2-departments` 將在 G6 收尾後刪除） |
+| 最新程式 commit | W2 合併結果 `5f326ab`；最新產品程式 commit 是 `b2f7453`（W2 整體修正）。W1 合併後的 HEAD 是 `2d2c785` |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過。W2 Pre-flight 在 `b2c96c1` 上重跑仍是 `全部通過 64/64`）。**目前**：`全部通過 137/137`（2026-10-05，W2 整體修正後在 `b2f7453` 上由 Codex 用 8001 跑 `tests/records.html`，console error 0）。Task 7 後是 `全部通過 133/133`（`03c9ff5`）；Task 6 後是 `全部通過 129/129`（`7939a66`） |
+| 測試基準 | `tests/records.html`：`全部通過 137/137`（2026-10-05，W2 fast-forward 合併到 `main` 後由 Codex 用 8001 重跑，console error 0）。歷史基準：W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
 | 資料版本 | `db.v = 4`（W2 Task 1 起；`load()` 讀 v2／v3／v4 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 |  |
-| 阻塞／待人類 | W2 沒有產品阻塞；待人類確認是否接受自我再審並合併（WORKFLOW G5／§11）。D14–D33 都已決定（§6），D34、D35（Task 6）和 D36–D40（Task 7）是 AI 代決（可推翻，不擋）；D25、D26 在 2026-10-05 改為取消（D30）。W3 開工前要有 D13（10 部門甘特圖） |
-| 遠端 | 2026-10-02 第三次經人類授權（D3；人類指示「commit and push」，選「推兩個，README 寫在分支」）：push `main`（比 `origin/main` 多 1 個 `Progress: start W2`）和 `feature/w2-departments`（新分支，含 W2 Task 1–5 與交接紀錄）。push 之後 `git log --oneline origin/main..main` 和 `git log --oneline origin/feature/w2-departments..feature/w2-departments` 應該都是空的。2026-10-05：人類在 GitHub 合併 PR #1（「W2 部門模型：Task 1–5（草稿…）」），`origin/main` 變成 merge commit `8041e14`（parents `670afaf`、`079b035`），也就是 GitHub 的 `main` 已經有 W2 Task 1–5 的草稿。照 D28 接受，分支 ff 到 `8041e14`；照 D29 本機 `main` 對齊 `origin/main`。之後 `origin/feature/w2-departments` 會落後本機分支（`8041e14` 和之後的 commit 都沒 push）。之後每次 push 都要人類明確授權（D3） |
+| 阻塞／待人類 | W3 開工前要有 D13（10 部門甘特圖）。D10、D11、D12、D13 仍待人類；D34–D40 是 AI 代決（可推翻，不擋已合併的 W2）。 |
+| 遠端 | 2026-10-05：W2 已在本機 fast-forward 合併進 `main`，但沒有 push。`origin/main` 仍停在 GitHub PR #1 的 merge commit `8041e14`（只含 W2 Task 1–5 草稿）；本機 `main` 另有 Task 6、Task 7、整體修正和收尾進度 commit。每次 push 都要人類明確授權（D3）。 |
 
 ---
 
@@ -70,8 +70,8 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec | Plan | 資料版本 | 依賴 |
 |---|---|---|---|---|---|---|---|
 | 1 | W1 | 子任務置頂回報卡 | ✅ | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
-| 2 | W2 | 部門模型 | 🟢 等人類確認合併 | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1）；整體再審是 Codex 自我審查，合併前需人類確認 |
-| 3 | W3 | 流程控制（**精簡版**，D31）：連接器 6 階段範本與示範專案、關卡擋住後續階段 | ⬜ 需先寫短 spec | — | — | 視 spec 而定（需要時 v4 → v5） | W2 已合併；D13 甘特圖到位。spec 由 AI 依甘特圖起草短版，人類看一次就定稿（D31 取代 D9 的完整 brainstorming） |
+| 2 | W2 | 部門模型 | ✅ | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1）；2026-10-05 已 ff 合併進 `main` |
+| 3 | W3 | 流程控制（**精簡版**，D31）：連接器 6 階段範本與示範專案、關卡擋住後續階段 | ⛔ 等 D13 | — | — | 視 spec 而定（需要時 v4 → v5） | W2 已合併；D13 甘特圖到位後，spec 由 AI 依甘特圖起草短版，人類看一次就定稿（D31 取代 D9 的完整 brainstorming） |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ⬜ | — | — | — | 排在 W3 之後。full demo 定位的文字由 AI 起草、人類看一次（D12） |
 | — | P0 | 正式軌工作規則 | ⬜ 未啟動 | — | — | — | D11 決定後才做：和人類一起定技術骨架，改寫 AGENTS §3–§4、WORKFLOW §5、G2 的必備內容。P0 ✅ 之前不能開工 P1 |
@@ -326,6 +326,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | F1–F10 | full demo 的多層任務樹、模板、時程編輯、前置條件與關鍵路徑、權限與覆寫、協作、文件與版本、AI 副手（規則式）、分級路由與遮罩（模擬）、研發營運資料（模擬 ERP） | 早於 git 歷史，包含在 `9fdcc64` 裡。F6 的部門目前是寫死的，由 W2 處理 |
 | F11 | 任務紀錄與完成回報：回報與審核、自訂回報欄位、筆記、附件（IndexedDB）、主管跳過整個任務、AI 引用紀錄 | [spec](superpowers/specs/2026-09-30-task-records-and-skip-design.md)、[plan](superpowers/plans/2026-09-30-task-records-and-skip.md)；commits `9fdcc64..aebd709`（從 `2fc8f10` 到 `aebd709` 共 10 個：7 個 Task、2 輪修正、1 次整體修正），以 fast-forward 合併進 `main`；測試 44/44。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-09-30-f11-task-records/`（不在 git 裡；重要內容已整理到本看板 §5） |
 | W1 | 子任務置頂回報卡：葉任務頁標題下方固定顯示回報卡（狀態與下一步動作），「紀錄」分頁排第一並作為預設；D15 桌面版紀錄等分頁可捲動，D16 卡片摘要最多約 6 行，D17 新增第一個子任務後切到看板 | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)、[plan](superpowers/plans/2026-10-01-subtask-report-card.md)；commits `8aed7d6..2d2c785`（2 個 Task、2 輪 Task 修正、D15、1 次整體修正），以 fast-forward 合併進 `main`；測試 64/64；`db.v` 維持 3。審查全部獨立（每個 Task spec＋品質各 2 輪，整體審查 2 輪）。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-10-01-subtask-report-card/`（不在 git 裡；重要內容已整理到本看板 §3 W1、§5、§6） |
+| W2 | 部門模型：`db.departments` 可設定、預設 10 部門；任務必填負責部門且負責人可未指派；任務可見性與操作權限依負責人、部門主管、專案負責人、系統管理員等規則；時間軸預設收合成階段並可依負責部門篩選；模板帶入負責部門 | [spec](superpowers/specs/2026-10-01-department-model-design.md)、[plan](superpowers/plans/2026-10-01-department-model.md)；commits `670afaf..5f326ab`（Task 1–7、展示模式流程調整、整體修正與等待合併進度），以 fast-forward 合併進 `main`；測試 `全部通過 137/137`；`db.v = 4`。Task 1–5 是完整流程獨立審查，Task 6–7 是展示模式單一審查者，整體修正後由 Codex 自我再審並經人類確認合併。 |
 | 規劃文件 | W1 的 spec 和 plan、W2 的 spec 和 plan | `3a24c52`、`ed3e24f`、`edf46b6`、`dfc0126` |
 | 交接系統 | `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、本看板、`docs/WORKFLOW.md`、`.claude/workflows/pf-status.js`、`.claude/workflows/pf-next.js`、`.gitignore` | 2026-10-01 建立；commit 用 `git log --grep "Docs: handoff system"` 查 |
 
@@ -521,6 +522,19 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-05｜Codex GPT-5｜W2 已 ff 合併進 main，等待 W3 的 D13
+- **做了什麼**：
+  - 人類確認接受 Codex 自我再審後，照 WORKFLOW G5 在本機執行 `git checkout main`、`git merge --ff-only feature/w2-departments`，`main` 從 `8041e14` fast-forward 到 `5f326ab`。
+  - 依 G6 更新 PROGRESS：W2 改成 ✅，加入 §4 已完成摘要；「▶ 現在」切到 W3，狀態為 ⛔ 等 D13；分支改回 `main`；遠端狀態更新為本機未 push。
+- **驗證**：
+  - 合併後用 8001（確認 `AGENTS.md` 第一行正確）重跑 `tests/records.html?t=...`，結果 `全部通過 137/137`，console error 0。
+  - 合併方式是 fast-forward，沒有 merge commit，沒有 push。
+- **沒做的事／偏離 plan**：
+  - 尚未做 W3 spec；D13 的 10 部門甘特圖還沒到位。
+  - 尚未做 W5 README 精簡對齊，所以 README 頂部進度摘要仍可能不是最終狀態。
+- **下一步**：人類提供 D13「10 部門流程甘特圖（連接器新產品，6 階段）」後，AI 依 D31 起草 W3 精簡版短 spec，給人類看一次。沒有 D13 前不要自行開 W3。
+- **注意**：本機 `main` 比 `origin/main` 超前；依 D3 不 push，除非人類明確授權。
+
 ### 2026-10-05｜Codex GPT-5｜W2 整體修正再審與驗收完成，等待人類確認合併
 - **做了什麼**：
   - 接手時本地 HEAD 已是 `b2f7453 Departments final review fixes: unassigned owner labels, card who nowrap, schedule matrix, report select guard`，working tree 乾淨；`docs/PROGRESS.md` 仍停在 `03c9ff5`。
@@ -589,11 +603,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **注意**：
   - 本機分支比 `origin/feature/w2-departments` 多 `8041e14` 和這兩次的 Progress／Docs commit。要讓其他組員接手，push 前要先取得人類授權。
   - W3 開工前需要人類提供 D13 的 10 部門甘特圖。
-
-### 2026-10-02｜Claude Opus 5.5｜W2 開工、Task 1–5 完成、暫停交接、push
-- **做了什麼**：W2 Pre-flight（`b2c96c1` 上 `全部通過 64/64`）→ `670afaf Progress: start W2` → 開 `feature/w2-departments`。用手動 SDD（implementer＝Sonnet 5.5；每個 Task 兩位唯讀審查者＝spec＋品質，權限相關的 Task 2、3、5 由 Opus 5.5 做 spec 審查；修正輪後再一次 scoped re-review）。Task 1 `670afaf..7d48d40`、Task 2 `c2fefcc..0b981dd`、Task 3 `accb179..717b359`、Task 4 `a5c7430..4f428fc`、Task 5 `08c677b..9a7c438`，每個 Task 都有一輪修正。README 加「目前進度」一段給組員。
-- **驗證**：每個 Task 都有 RED → GREEN 的 `#sum` 原文（見 §3 W2 Task 表），沒有自然 RED 的補強測試都做了變異 RED（還原後 `cmp`）；每個 Task 記錄前都由 controller 獨立重跑測試頁，最後是 `全部通過 123/123`；待驗證項目都實測過（375px、console、v2 真實載入、權限表、拖曳狀態等）。審查：全部獨立。
-- **人類決定**：D19（升級時模板節點部門照 spec）、D20（`seeTask` 路徑照 spec 字面）、D21（看不到任何專案時顯示空狀態）、D22（衍生資訊維持現狀）、D23（任務時程只有負責人／部門主管／專案負責人／管理員能改，推翻 spec §4.4「reviewer 不變」）、D24（範圍內審核人可寫筆記）、D25（連動順延遇到沒權限的任務就停，整體修正做）、D26（部門主管排除協作人員與唯讀，整體修正做）、D27（未設主管提示維持 spec 原文）。
-- **沒做的事／偏離 plan**：Task 6、Task 7、整體審查都還沒做。偏離 plan 的地方都有 D 或執行注意 20–29 的裁決。
-- **下一步**：組員 `git fetch origin` 後 `git checkout feature/w2-departments`，照「▶ 現在」做 Task 6（`/pf-status` 再 `/pf-next`，或用其他 AI 照 AGENTS.md）。
-- **注意**：(1) 這台機器上的測試伺服器（PowerShell `Start-Process`，PID 23052）已關閉；接手者照 AGENTS §4 自己啟動。(2) `.superpowers/sdd/` 的 ledger、brief、審查報告只在這台機器上，沒有進 git，接手者不需要它，進度以本看板為準。(3) plan 的 Task 2 程式片段（`seeTask` 最後一行、`|| projects()[0]`）和 Task 3 的 `schedule` 規則已經被 D20、D21、D23 推翻，照執行注意 23、24、26。(4) 原本 `bmxwb4aaa` 背景伺服器 2 小時後被工具自動停止，之後改用 `Start-Process`。
