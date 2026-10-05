@@ -15,15 +15,15 @@
 |---|---|
 | 目前工作項目 | **W5 README 對齊現況（精簡）**（⬜ 未開始） |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | W3 已完成並等待本次 fast-forward 合併／push 收尾；完成後做 W5：只更新 README §1 快速開始、§2 功能總覽，反映 full demo 現況。 |
-| 分支 | `feature/w3-workflow-architecture`（本分支 W3 已完成；合併後回 `main`） |
-| 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W2 合併結果 `5f326ab`；最新進度/spec commit 是 `d9c6f55`。 |
+| 下一個動作 | W3 已 fast-forward 合併到 `main`；本次 push 完成後做 W5：只更新 README §1 快速開始、§2 功能總覽，反映 full demo 現況。 |
+| 分支 | `main`（W3 已 ff 合併；`feature/w3-workflow-architecture` 可保留作歷史參考） |
+| 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 進度收尾 `d8b6417`。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 149/149`（2026-10-05，W3 審查修正後 Codex 用 8001 重跑）。歷史基準：W2 合併後 `全部通過 137/137`；W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
+| 測試基準 | `tests/records.html`：`全部通過 149/149`（2026-10-05，W3 ff 合併到 `main` 後 Codex 用 8001 重跑）。歷史基準：W2 合併後 `全部通過 137/137`；W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
 | 資料版本 | `db.v = 5`（W3 起；`load()` 讀 v2／v3／v4／v5 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | — |
 | 阻塞／待人類 | D10、D11、D12 仍待人類但不擋 Demo 軌；D34–D42 是 AI 代決或人類調整（可推翻）。 |
-| 遠端 | 2026-10-05：人類授權「push上去」後，已把本機 `main` push 到 `origin/main`（`a2f7e85`）。每次 push 都要人類明確授權（D3）。 |
+| 遠端 | 2026-10-05：人類授權「確認後推上去」；本機 `main` 已含 W3，準備 push 到 `origin/main`。每次 push 都要人類明確授權（D3）。 |
 
 ---
 
@@ -550,7 +550,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **沒做的事／偏離 plan**：
   - CUA 的 Demo 頁 isolated evaluate 無法直接跑手動驗收腳本（`window.eval`／`document.createElement` 不可用），改以瀏覽器測試覆蓋 CRUD、建立專案、gate blocked/unblocked、375px 溢出。
   - W5 README 精簡對齊尚未開始。
-- **下一步**：本次依人類「確認後推上去」授權，將 `feature/w3-workflow-architecture` fast-forward 合併到 `main`，合併後重跑 `tests/records.html`，再 `git push origin main`。
+- **下一步**：本次依人類「確認後推上去」授權，`feature/w3-workflow-architecture` 已 fast-forward 合併到 `main`，合併後 `tests/records.html?t=1791173927585` 為 `全部通過 149/149`；接著 `git push origin main`。
 - **注意**：8001 是正確 repo 伺服器但不是本 session 啟動；不要關。8000 不是此 repo。
 
 ### 2026-10-05｜Codex GPT-5｜W2 已 ff 合併進 main，等待 W3 的 D13
