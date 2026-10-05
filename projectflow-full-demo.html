@@ -2948,6 +2948,13 @@ function openBlockDialog(n, to, bl) {
 }
 function submitBlock(id, to, reason) {
   const n = node(id); const bl = findBlockers(n, to).filter((b) => b.hard);
+  const gateBlock = bl.find((b) => b.kind === 'gate');
+  if (gateBlock) {
+    closeDlg();
+    toast('請先審核或覆寫前一階段關卡，不能用一般前置覆寫繞過', 'warn');
+    render();
+    return { ok: false, error: '階段關卡未通過' };
+  }
   const rec = { id: newId('o'), kind: 'dep', node: id, to, blockers: bl.map((b) => b.text), depIds: bl.filter((b) => b.dep).map((b) => b.dep.id), reason, by: ui.me, at: nowStr() };
   closeDlg();
   if (can('override', n)) {
@@ -2962,6 +2969,7 @@ function submitBlock(id, to, reason) {
     notify(`已送出跳過申請：「${n.title}」→ ${STLBL[to]}\n已通知：${approversFor(n).map(uname).join('、')}`, '跳過申請');
     render();
   }
+  return { ok: true };
 }
 function decideOverride(oid, ok) {
   const o = db.overrides.find((x) => x.id === oid); if (!o || o.status !== 'pending') return;

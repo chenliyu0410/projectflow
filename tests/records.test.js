@@ -673,6 +673,10 @@
     const bl = findBlockers(later, 'doing').map((b) => b.text).join('；');
     ok(bl.includes('階段關卡未通過'), bl);
     ok(!setStatus(later.id, 'doing'), 'pending gate 應擋住開始');
+    const bypass = submitBlock(later.id, 'doing', '不應繞過 gate');
+    eq(bypass.ok, false);
+    eq(node(later.id).status, 'todo');
+    eq(db.gates[gatePhase.id].status, 'pending');
     db.gates[gatePhase.id].status = 'approved';
     ok(setStatus(later.id, 'doing'), 'gate approved 後可開始');
   });
