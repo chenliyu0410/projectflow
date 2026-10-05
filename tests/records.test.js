@@ -10,9 +10,10 @@
   };
 
   // ── Task 1：資料版本與儲存 ──
-  await T('種子資料為 v4 且含四個新陣列', () => {
-    eq(db.v, 4);
+  await T('種子資料為 v5 且含四個新陣列', () => {
+    eq(db.v, 5);
     ['reportFields', 'reports', 'notes', 'attachments'].forEach((k) => ok(Array.isArray(db[k]), k + ' 應為陣列'));
+    ok(Array.isArray(db.workflows), 'workflows 應為陣列');
   });
   await T('種子資料：F0 測試有「F0 值」欄位，t3011 有已核准回報', () => {
     const f = db.reportFields.filter((x) => x.label === 'F0 值').map((x) => x.node_id).sort();
@@ -20,15 +21,16 @@
     const r = db.reports.find((x) => x.node_id === 't3011');
     eq(r.status, 'approved'); eq(r.fields[0].value, 2.6);
   });
-  await T('upgrade：v2 資料轉成 v4', () => {
+  await T('upgrade：v2 資料轉成 v5', () => {
     const d = seed(); d.v = 2;
-    delete d.reportFields; delete d.reports; delete d.notes; delete d.attachments;
+    delete d.reportFields; delete d.reports; delete d.notes; delete d.attachments; delete d.workflows;
     d.overrides = [{ id: 'o1', gate: true, node: 'p1b', status: 'approved' }, { id: 'o2', node: 't302', status: 'pending' }];
     const o = upgrade({ v: 2, db: d, audit: freshAudit() });
-    eq(o.v, 4); eq(o.db.v, 4);
+    eq(o.v, 5); eq(o.db.v, 5);
     eq(o.db.overrides.map((x) => x.kind), ['gate', 'dep']);
     eq(o.db.reportFields.length, 2); eq(o.db.reports.length, 1);
     eq(o.db.notes, []); eq(o.db.attachments, []);
+    eq(o.db.workflows.length, 2);
   });
   await T('fileStore：存入、讀出、清空', async () => {
     ok(await fileStore.check(), 'IndexedDB 應可使用');
@@ -561,6 +563,42 @@
     db.reports.push({ ...r1, id: 'r-t3011-v2', version: 2, status: 'rejected', review_comment: '請補數據', reviewed_by: 'yu', reviewed_at: '2026/09/20 10:00' });
     const c = card('t3011');
     ok(c.textContent.includes('確認：陳主管') && !c.textContent.includes('未附回報') && !c.querySelector('.rcard.rej'), '已完成而且有核准版本時，顯示核准的那一版，不因最新一版退回而顯示退回');
+  });
+
+  // ── W3 Task 1：工作流資料模型 ──
+  await T('W3：種子資料為 v5 且含兩套內建工作流', () => {
+    eq(db.v, 5);
+    ok(Array.isArray(db.workflows), 'db.workflows 應為陣列');
+    eq(db.workflows.map((w) => w.name).sort(), ['實體活動專流', '筆電新機種專流']);
+    const laptop = db.workflows.find((w) => w.name === '筆電新機種專流');
+    eq(workflowStats(laptop).stages, 9);
+    ok(workflowStats(laptop).tasks >= 40, '筆電工作流應包含主要任務');
+    ok(workflowStats(laptop).gates >= 7, '筆電工作流應包含 G0-G6 關卡');
+  });
+
+  await T('W3：upgrade v4 到 v5 保留既有模板並新增工作流', () => {
+    const d = seed(); d.v = 4; delete d.workflows;
+    const o = upgrade({ v: 4, db: d, audit: freshAudit() });
+    eq(o.v, 5); eq(o.db.v, 5);
+    ok(o.db.templates.length >= 4, '既有任務模板要保留');
+    eq(o.db.workflows.length, 2);
+  });
+
+  await T('W3：validateWorkflow 擋空資料、未知部門與循環前置', () => {
+    const base = cloneWorkflow(db.workflows[0], { id: 'wf-test', name: '測試工作流', builtin: false });
+    eq(validateWorkflow({ ...base, name: ' ' })[0], '工作流名稱必填');
+    eq(validateWorkflow({ ...base, stages: [] })[0], '至少需要 1 個階段');
+    const noTask = cloneWorkflow(base); noTask.stages[0].tasks = [];
+    eq(validateWorkflow(noTask)[0], '每個階段至少需要 1 個任務');
+    const badDept = cloneWorkflow(base); badDept.stages[0].tasks[0].dept = 'd-missing';
+    ok(validateWorkflow(badDept).some((x) => x.includes('未知部門')), '未知部門要被擋');
+    const cyc = cloneWorkflow(base);
+    cyc.stages = [{ id: 's', title: '階段', dept: 'd-adm', gate: null, tasks: [
+      { id: 'a', title: 'A', dept: 'd-adm', depts: [], dur: 1 },
+      { id: 'b', title: 'B', dept: 'd-adm', depts: [], dur: 1 },
+    ] }];
+    cyc.deps = [{ from: 'a', to: 'b', type: 'FS', lag: 0, enf: 'hard' }, { from: 'b', to: 'a', type: 'FS', lag: 0, enf: 'hard' }];
+    ok(validateWorkflow(cyc).some((x) => x.includes('循環前置')), '循環前置要被擋');
   });
 
   // ── 新測試加在這一行上面 ──

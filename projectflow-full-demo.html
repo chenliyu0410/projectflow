@@ -456,9 +456,115 @@ const PHASE_TEMPLATE = [
   ['量產上市', '首批量產完成並出貨上架', '專案負責人', [['量產 SOP', 'd-pe'], ['首批量產', 'd-mfg'], ['包材與設備確認', 'd-pur'], ['通路上架', 'd-sales']]],
 ];
 
+const WF_DEPT = {
+  研發部: 'd-rd', 財務部: 'd-fin', 採購部: 'd-pur', 品保部: 'd-qa',
+  行銷部: 'd-sales', 業務部: 'd-sales', 製造部: 'd-mfg', 資訊部: 'd-it',
+  產品企劃部: 'd-adm', 工業設計部: 'd-adm', 認證部: 'd-qa', 客服部: 'd-sales',
+  管理層: 'd-adm',
+};
+const WF_EXTERNAL = new Set(['ODM']);
+const wfDept = (name, fallback) => (WF_EXTERNAL.has(name) ? fallback : (WF_DEPT[name] || fallback || 'd-adm'));
+const wfTask = (id, title, dept, dur = 5, depts = []) => ({ id, title, dept, depts, dur });
+function wfStage(id, title, dept, gate, rows) {
+  return { id, title, dept, gate, tasks: rows.map((r, i) => wfTask(`${id}t${i + 1}`, r[0], wfDept(r[1], dept), r[2] || 5, (r[3] || []).map((x) => wfDept(x, null)).filter(Boolean))) };
+}
+function builtinWorkflows() {
+  const laptopStages = [
+    wfStage('ls1', '市場洞察', 'd-adm', { title: '立案審查（G0）', criteria: '市場洞察、產品定位、Business Case 與目標成本完成' }, [
+      ['市場與競品分析'], ['產品定位'], ['晶片平台 Roadmap 對齊', '研發部'], ['Business Case 與目標成本', '財務部'], ['立案審查（G0）', '管理層', 1],
+    ]),
+    wfStage('ls2', '產品定義', 'd-adm', { title: '規格凍結（G1）', criteria: 'PRD、外觀設計、長交期料件、法規盤點完成' }, [
+      ['撰寫 PRD 規格書'], ['外觀設計與 CMF', '工業設計部'], ['遴選 ODM', '採購部'], ['鎖定長交期料件', '採購部', 5, ['ODM']], ['盤點上市地區法規', '認證部'], ['規格凍結（G1）', '研發部', 1, ['財務部']],
+    ]),
+    wfStage('ls3', '設計開發', 'd-rd', { title: 'EVT 準備審查（G2）', criteria: '設計輸出、零件承認與 EVT 準備完成' }, [
+      ['線路圖與 PCB Layout', '研發部', 6, ['ODM']], ['機構設計與開模', 'ODM'], ['散熱設計', '研發部', 5, ['ODM']], ['BIOS／韌體開發', '研發部', 6, ['ODM']], ['零件承認', '採購部', 4, ['ODM']], ['EVT 準備審查（G2）', '研發部', 1],
+    ]),
+    wfStage('ls4', 'EVT 工程驗證', 'd-qa', { title: 'EVT Exit（G3）', criteria: 'EVT 問題追蹤與設計修正完成' }, [
+      ['EVT 試產', 'ODM'], ['開機除錯', '研發部', 5, ['ODM']], ['功能測試與問題追蹤', '品保部'], ['設計修正（ECN）', '研發部', 4, ['ODM']], ['EVT Exit（G3）', '品保部', 1],
+    ]),
+    wfStage('ls5', 'DVT 設計驗證', 'd-qa', { title: '設計凍結（G4）', criteria: '可靠度、效能續航與認證送測完成' }, [
+      ['DVT 試產', 'ODM'], ['可靠度測試', '品保部', 6, ['ODM']], ['效能與續航驗證', '研發部'], ['認證送測', '認證部'], ['設計凍結（G4）', '品保部', 1],
+    ]),
+    wfStage('ls6', 'PVT 生產驗證', 'd-mfg', { title: '量產審查（G5）', criteria: 'PVT、SOP、檢驗標準、認證與備料完成' }, [
+      ['PVT 試產', 'ODM'], ['量產 SOP 與治具', 'ODM'], ['檢驗標準制定', '品保部', 3, ['ODM']], ['取得認證證書', '認證部'], ['量產備料', '採購部', 5, ['ODM']], ['量產審查（G5）', '品保部', 1],
+    ]),
+    wfStage('ls7', '量產', 'd-mfg', { title: '出貨許可（G6）', criteria: '首批量產、品保稽核與出貨許可完成' }, [
+      ['首批量產與爬坡', 'ODM'], ['駐廠品保稽核', '品保部'], ['出貨許可（G6）', '品保部', 1],
+    ]),
+    wfStage('ls8', '上市', 'd-sales', null, [
+      ['命名與定價', '行銷部'], ['發表會與媒體評測', '行銷部'], ['通路鋪貨', '業務部'], ['上市開賣'],
+    ]),
+    wfStage('ls9', '售後與停產', 'd-sales', null, [
+      ['保固與維修', '客服部'], ['不良分析與改善', '品保部'], ['韌體與驅動更新', '研發部'], ['停產規劃'],
+    ]),
+  ];
+  const eventStages = [
+    wfStage('es1', '活動策略規劃', 'd-sales', null, [['市場分析'], ['設定目標'], ['定義 TA'], ['設計主題'], ['設計流程'], ['設計內容'], ['預算規劃'], ['預算核准', '財務部', 1]]),
+    wfStage('es2', '場地規劃', 'd-sales', null, [['評估場地'], ['預定場地']]),
+    wfStage('es3', '活動招商與資源整合', 'd-sales', null, [['尋找合作品牌'], ['製作活動合作方案'], ['主持人/口播/翻譯/講師邀請'], ['餐點/飲品廠商'], ['製作宣傳素材']]),
+    wfStage('es4', '宣傳策略', 'd-sales', null, [['建立報名網頁', '資訊部'], ['宣傳節奏排程'], ['贈品/試用品製作', '製造部']]),
+    wfStage('es5', 'Run Down', 'd-sales', null, [['建立工作人員分工表'], ['建立活動 Run Down'], ['特殊安全規劃'], ['前一天排演最後 Check']]),
+    wfStage('es6', '活動執行', 'd-sales', null, [['現場內容紀錄']]),
+    wfStage('es7', '活動後再行銷', 'd-sales', null, [['活動精彩回顧'], ['活動花絮 / 精彩影片'], ['會員再行銷']]),
+    wfStage('es8', '數據分析', 'd-sales', null, [['KPI指標'], ['活動 ROI']]),
+  ];
+  const stageDeps = (stages) => stages.slice(1).map((s, i) => ({ from: stages[i].tasks.at(-1).id, to: s.tasks[0].id, type: 'FS', lag: 0, enf: 'hard' }));
+  return [
+    { id: 'wf-laptop', name: '筆電新機種專流', desc: '從市場洞察到售後與停產的產品開發流程', category: '新產品', version: 1, builtin: true, stages: laptopStages, deps: stageDeps(laptopStages) },
+    { id: 'wf-event', name: '實體活動專流', desc: '行銷部實體活動從策略、場地、招商到活動後分析的流程', category: '行銷活動', version: 1, builtin: true, stages: eventStages, deps: stageDeps(eventStages) },
+  ];
+}
+function cloneWorkflow(wf, overrides = {}) { return { ...clone(wf), ...overrides }; }
+function workflowStats(wf) {
+  const tasks = (wf.stages || []).reduce((a, s) => a + (s.tasks || []).length, 0);
+  const gates = (wf.stages || []).filter((s) => s.gate).length;
+  const days = (wf.stages || []).reduce((a, s) => a + (s.tasks || []).reduce((b, t) => b + (+t.dur || 1), 0), 0);
+  return { stages: (wf.stages || []).length, tasks, gates, deps: (wf.deps || []).length, days };
+}
+function workflowTaskIds(wf) { return new Set((wf.stages || []).flatMap((s) => (s.tasks || []).map((t) => t.id))); }
+function workflowHasCycle(wf) {
+  const graph = {};
+  workflowTaskIds(wf).forEach((id) => { graph[id] = []; });
+  (wf.deps || []).forEach((d) => { if (graph[d.from]) graph[d.from].push(d.to); });
+  const seen = new Set(), visiting = new Set();
+  const visit = (id) => {
+    if (visiting.has(id)) return true;
+    if (seen.has(id)) return false;
+    visiting.add(id);
+    const hit = (graph[id] || []).some(visit);
+    visiting.delete(id); seen.add(id);
+    return hit;
+  };
+  return Object.keys(graph).some(visit);
+}
+function validateWorkflow(wf) {
+  const errors = [];
+  const deptIds = new Set((db.departments || []).map((d) => d.id));
+  if (!String(wf.name || '').trim()) errors.push('工作流名稱必填');
+  if (!Array.isArray(wf.stages) || !wf.stages.length) errors.push('至少需要 1 個階段');
+  (wf.stages || []).forEach((s) => {
+    if (!String(s.title || '').trim()) errors.push('階段名稱必填');
+    if (s.dept && !deptIds.has(s.dept)) errors.push(`未知部門：${s.dept}`);
+    if (!Array.isArray(s.tasks) || !s.tasks.length) errors.push('每個階段至少需要 1 個任務');
+    (s.tasks || []).forEach((t) => {
+      if (!String(t.title || '').trim()) errors.push('任務名稱必填');
+      if (!deptIds.has(t.dept)) errors.push(`未知部門：${t.dept}`);
+      (t.depts || []).forEach((id) => { if (!deptIds.has(id)) errors.push(`未知部門：${id}`); });
+      if (!Number.isFinite(+t.dur) || +t.dur < 1) errors.push(`工期至少 1 天：${t.title || t.id}`);
+    });
+  });
+  const ids = workflowTaskIds(wf);
+  (wf.deps || []).forEach((d) => {
+    if (!ids.has(d.from) || !ids.has(d.to)) errors.push(`前置任務不存在：${d.from} → ${d.to}`);
+    if (d.from === d.to) errors.push(`循環前置：${d.from} → ${d.to}`);
+  });
+  if (workflowHasCycle(wf)) errors.push('循環前置：工作流內有互相依賴');
+  return [...new Set(errors)];
+}
+
 /* ================= 種子資料 ================= */
 function seed() {
-  const db = { v: 4, departments: defaultDepts(), nodes: {}, deps: [], gates: {}, docs: [], templates: [], overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0, reportFields: [], reports: [], notes: [], attachments: [] };
+  const db = { v: 5, departments: defaultDepts(), nodes: {}, deps: [], gates: {}, docs: [], templates: [], workflows: builtinWorkflows(), overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0, reportFields: [], reports: [], notes: [], attachments: [] };
   let ord = 0;
   const N = (id, parent, type, title, o = {}) => {
     db.nodes[id] = {
@@ -699,17 +805,23 @@ function upgrade(o) {
     merged.forEach((nm) => o.audit.acts.unshift({ at: nowStr(), actor: 'it', node: null, action: '部門', text: `部門「${nm}」已併入研發` }));
     d.v = 4; o.v = 4;
   }
+  // v4 → v5：加入可編輯、可套用的工作流模板資料
+  if (o.v === 4) {
+    const d = o.db;
+    d.workflows = d.workflows && d.workflows.length ? d.workflows : builtinWorkflows();
+    d.v = 5; o.v = 5;
+  }
   return o;
 }
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const o = JSON.parse(raw); if (o && [2, 3, 4].includes(o.v) && o.db && o.audit) { upgrade(o); db = o.db; audit = o.audit; if (o.me && USERS[o.me]) ui.me = o.me; return; } }
+    if (raw) { const o = JSON.parse(raw); if (o && [2, 3, 4, 5].includes(o.v) && o.db && o.audit) { upgrade(o); db = o.db; audit = o.audit; if (o.me && USERS[o.me]) ui.me = o.me; return; } }
   } catch (e) { /* 無法讀取時使用種子資料 */ }
   db = seed(); audit = freshAudit();
 }
 function migrate() { const t = db.nodes.t2023; if (t) t.collabs = t.collabs.filter((c) => c !== 'lin'); }
-function save() { try { localStorage.setItem(KEY, JSON.stringify({ v: 4, db, audit, me: ui.me })); } catch (e) { /* 忽略 */ } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ v: 5, db, audit, me: ui.me })); } catch (e) { /* 忽略 */ } }
 function commit(label, fn) {
   undoStack.push({ label, snap: JSON.stringify(db) });
   if (undoStack.length > 60) undoStack.shift();

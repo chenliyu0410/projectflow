@@ -11,8 +11,8 @@
   const USERS_ALL = ['yu', 'ming', 'an', 'hua', 'chen', 'lin', 'it'];
 
   // ── Task 1：部門資料與升級 ──
-  await T('種子資料：v4、10 個部門、任務都有負責部門', () => {
-    eq(db.v, 4);
+  await T('種子資料：v5、10 個部門、任務都有負責部門', () => {
+    eq(db.v, 5);
     eq(db.departments.map((d) => d.name), ['研發', '製程', '品保', '業務', '生管', '採購', '管理', '資訊', '財務', '製造']);
     eq(dept('d-qa').head, 'chen'); eq(dept('d-pe').head, null);
     const tasks = Object.values(db.nodes).filter((n) => n.type === 'task');
@@ -31,7 +31,7 @@
     ok(db.templates.every((t) => t.nodes.every((x) => dept(x.dept))), '每個模板節點都要有負責部門');
     eq(db.templates[0].nodes[1].dp, ['d-qa']);
   });
-  await T('upgrade：v3 → v4 部門對應', () => {
+  await T('upgrade：v3 → v5 部門對應', () => {
     const d = seed(); d.v = 3; delete d.departments;
     Object.values(d.nodes).forEach((n) => { delete n.dept; if (n.owner === null) n.owner = 'yu'; });
     d.nodes.t301.depts = ['品保', '法規']; d.nodes.t403.depts = ['行銷']; d.nodes.t503.depts = ['生產', '外星部'];
@@ -39,7 +39,7 @@
     d.templates[0].nodes[1].dp = ['法規'];
     const au = freshAudit();
     const o = upgrade({ v: 3, db: d, audit: au });
-    eq(o.v, 4); eq(o.db.v, 4); eq(o.db.departments.length, 10);
+    eq(o.v, 5); eq(o.db.v, 5); eq(o.db.departments.length, 10); eq(o.db.workflows.length, 2);
     eq(o.db.nodes.t301.depts, ['d-qa']); eq(o.db.nodes.t403.depts, ['d-sales']); eq(o.db.nodes.t503.depts, ['d-mfg', 'd-rd']);
     eq(o.db.nodes.t301.dept, 'd-pe'); eq(o.db.nodes.t4031.dept, 'd-sales'); eq(o.db.nodes.p1.dept, null);
     eq(o.db.templates[0].nodes[1].dp, ['d-qa']);
