@@ -14,15 +14,15 @@
 | 欄位 | 值 |
 |---|---|
 | 目前工作項目 | **W2 部門模型**（🔨 執行中） |
-| 下一個動作 | 切到 `feature/w2-departments`，進度以該分支的 PROGRESS 為準。下一步：W2 Task 6（時間軸預設收合，並可依部門篩選）。先讀 §3 W2 執行注意 3、16、26、30；接著 Task 7（執行注意 10、31）和整體審查（執行注意 32） |
-| 分支 | `feature/w2-departments`（從 `main` 的 `Progress: start W2` 切出） |
+| 下一個動作 | 切到 `feature/w2-departments`，進度以該分支的 PROGRESS 為準。下一步：W2 Task 6（時間軸預設收合，並可依部門篩選）。先讀 §3 W2 執行注意 3、16、26、30；接著 Task 7（執行注意 10、31）和整體審查（執行注意 32）。合併前讀執行注意 33（D28、D29） |
+| 分支 | `feature/w2-departments`（從 `main` 的 `Progress: start W2` 切出；2026-10-05 照 D28 ff 到 `origin/main` 的 PR #1 merge commit `8041e14`，程式和 `079b035` 相同） |
 | 最新程式 commit | `9a7c438`（W2 Task 5 修正輪 1）。W1 合併後的 HEAD 是 `2d2c785` |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過。W2 Pre-flight 在 `b2c96c1` 上重跑仍是 `全部通過 64/64`）。**目前**：`全部通過 123/123`（2026-10-02，W2 Task 5 完成後在 `9a7c438` 上獨立重跑） |
+| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過。W2 Pre-flight 在 `b2c96c1` 上重跑仍是 `全部通過 64/64`）。**目前**：`全部通過 123/123`（2026-10-02，W2 Task 5 完成後在 `9a7c438` 上獨立重跑；2026-10-05 `/pf-status` 在 `079b035` 上重跑仍是 `全部通過 123/123`，console 沒有錯誤） |
 | 資料版本 | `db.v = 4`（W2 Task 1 起；`load()` 讀 v2／v3／v4 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | 無（2026-10-02 人類指示 Task 5 做完先暫停、交給組員接手；Claude 已釋放認領） |
-| 阻塞／待人類 | 無阻塞。D14–D27 都已決定（§6）。D25、D26 要在 W2 整體修正時實作 |
-| 遠端 | 2026-10-02 第三次經人類授權（D3；人類指示「commit and push」，選「推兩個，README 寫在分支」）：push `main`（比 `origin/main` 多 1 個 `Progress: start W2`）和 `feature/w2-departments`（新分支，含 W2 Task 1–5 與交接紀錄）。push 之後 `git log --oneline origin/main..main` 和 `git log --oneline origin/feature/w2-departments..feature/w2-departments` 應該都是空的。之後每次 push 都要人類明確授權（D3） |
+| 阻塞／待人類 | 無阻塞。D14–D29 都已決定（§6）。D25、D26 要在 W2 整體修正時實作 |
+| 遠端 | 2026-10-02 第三次經人類授權（D3；人類指示「commit and push」，選「推兩個，README 寫在分支」）：push `main`（比 `origin/main` 多 1 個 `Progress: start W2`）和 `feature/w2-departments`（新分支，含 W2 Task 1–5 與交接紀錄）。push 之後 `git log --oneline origin/main..main` 和 `git log --oneline origin/feature/w2-departments..feature/w2-departments` 應該都是空的。2026-10-05：人類在 GitHub 合併 PR #1（「W2 部門模型：Task 1–5（草稿…）」），`origin/main` 變成 merge commit `8041e14`（parents `670afaf`、`079b035`），也就是 GitHub 的 `main` 已經有 W2 Task 1–5 的草稿。照 D28 接受，分支 ff 到 `8041e14`；照 D29 本機 `main` 對齊 `origin/main`。之後 `origin/feature/w2-departments` 會落後本機分支（`8041e14` 和之後的 commit 都沒 push）。之後每次 push 都要人類明確授權（D3） |
 
 ---
 
@@ -237,9 +237,10 @@
     - 回報卡的確認人名單來自 `approversFor(n)`，它依賴 `can('override', n)`。W1 的測試會斷言 t30121 的卡片寫著「等待 … 力瑜 … 確認」、t3011 寫著「確認：陳主管 2026/09/13 09:05」。W2 改寫權限後，如果這些斷言失敗：
       - spec 沒有要求改變確認人，就是回歸，要修程式。
       - spec 確實要求改變確認人，就是 spec 和測試衝突，依 WORKFLOW §8 停下來問人類。不要直接改 W1 的測試。
-17. **測試環境**（2026-10-02 的狀態）：
-    - 8000 埠被另一個不是這個 repo 的 python 伺服器占用（回應 `{"detail":"Not Found"}`），不要動它。
-    - 8001 埠有前一個 session 留下的這個 repo 的伺服器（Windows PID 24024）。先用 `curl.exe -s http://127.0.0.1:8001/AGENTS.md` 確認第一行是 `# AGENTS.md`，符合就直接沿用；不符合就換別的埠。
+17. **測試環境**（2026-10-05 的狀態，主機是人類的 Windows 電腦）：
+    - 8000 埠被另一個不是這個 repo 的 python 伺服器占用（2026-10-05 是 PID 16860，回應 `{"detail":"Not Found"}`），不要動它。
+    - 8001 埠沒有伺服器（PID 24024 已在 2026-10-02 照人類指示關閉）。照 WORKFLOW §5 第 1 點在 8001 自己啟動，記下 PID，收工時用同一個 shell 關掉。啟動後先用 `curl.exe -s http://127.0.0.1:8001/AGENTS.md` 確認第一行是 `# AGENTS.md`。
+    - 2026-10-02 在 `172.22.32.95:8080` 開給同網域同事試用的分享伺服器（PID 27436，服務 repo 外的快照 `C:\Users\User\projectflow-share\`，不是測試伺服器），2026-10-05 實測已經不在了。要重開或更新快照等人類指示。
     - Browser pane 隱藏時，測試頁的 iframe 寬度會是 0。要測桌面或 375px，用 `resize_window` 設定 viewport；W1 和寬度有關的測試會自己撐開 iframe。
 18. **編輯陷阱**：
     - 工作目錄是 CRLF。用 python 讀寫檔案時要加 `newline=''`，否則換行會被改掉。
@@ -263,6 +264,7 @@
 30. **Task 6 注意**：Task 4 開放刪除部門，`ui.tlDept` 指到已刪除的部門時要退回 `'all'`；`resetAll()` 要清 `tlDept`（第 3 點）。Task 3 之後時間軸拖曳看 `can('schedule')`（D23），不要改回。
 31. **Task 7 注意**：`applyTemplate` 改成寫入 `dept` 後，把 §5 W2-T1-m7 的 `window.applyTemplate` 包裝換成直接斷言新節點的 `dept`；README 的 F6／權限表要一起反映 D23（§5 W2-T3-m1、README:242）和 §5 W2-T5-m9（README:265 還寫「我部門被指派的」）。D19 只限 `upgrade()`，`applyTemplate`／`nodeToTemplate` 仍照 plan 用 `TAG_DEPT`（第 20 點）。
 32. **整體審查／整體修正要做的人類決定**：D25（連動順延遇到操作者沒有時程權的任務就停，提示請負責人或部門主管處理，附測試）、D26（部門主管排除協作人員與唯讀，`updateDept` 拒絕、下拉不列出，附測試）。另外依 §5 的 W2-* 項目判斷哪些要在合併前修。
+33. **D28、D29（2026-10-05）**：GitHub 的 `main` 已經有 W2 Task 1–5 草稿（PR #1 的 `8041e14`），分支已 ff 到它，本機 `main` 也對齊到它，所以 `main` 是分支的祖先。G5 照常用 `git checkout main` + `git merge --ff-only feature/w2-departments`，不需要另外處理。整體審查的範圍仍從 `670afaf` 算起（`8041e14` 和 `079b035` 的程式相同）。從 GitHub 拿 `main` 的組員會拿到 Task 1–5 的草稿，Task 6、7 和整體修正還沒有進去。
 
 ### W3 流程控制 — ⬜（需先寫 spec）
 
@@ -473,12 +475,25 @@ full demo 定位的文字需要人類審閱（D12）。
 | D26 | W2-T4 | spec 沒有寫的情況（Task 4 品質審查 Minor 7）：部門主管可以選任何部門成員，包括協作人員（collab，例如業務部的小林）。主管有 `canWork` 和可見性的權限，所以小林被設成業務主管後，就能操作業務部所有的任務、看到未指派的業務任務 | **主管只能選成員、審核人、專案負責人這類角色，排除協作人員和唯讀**：`updateDept` 拒絕並提示，對話框的主管下拉不列出他們。放在 W2 整體修正，附測試。另一個選項：維持現狀（任何部門成員都能當主管） | 已決定 2026-10-02：排除協作人員與唯讀（人類選「排除協作人員與唯讀（建議）」）。放在 W2 整體修正，附測試 |
 | D27 | W2-T4 | spec 文字不準確（Task 4 spec 審查 Minor 1）：部門面板「未設主管」的提示文字照 spec §5.1 寫「這個部門的未指派工作只有專案負責人看得到」，但依 Task 2 的可見性，系統管理員（和唯讀）也看得到 | **改成「這個部門的未指派工作只有專案負責人與系統管理員看得到」**，放在 W2 整體修正。另一個選項：維持 spec 原文 | 已決定 2026-10-02：維持 spec 原文（人類選「維持 spec 原文」），不改 |
 | D18 | W1-T2 | §5 W1-T2-m9（Minor，兩位審查者第 2 輪都提到）：D16 只限制了卡片上的成果說明。自訂欄位、退回意見、跳過理由很長或很多時，卡片仍會把葉任務的看板、時程、相依圖擠到看不見。1366×650 實測：自訂欄位達 2 個時，時程的內容區變成 0；達 3 個時，看板和相依圖也是 0，時程的分頁列超出畫面 | **一起限制高度**：自訂欄位最多顯示約 4 列，退回意見和跳過理由最多約 4 行，超過的在卡片內捲動，完整內容在紀錄分頁的回報歷史，只改 CSS。另一個選項：維持現狀（目前種子資料和系統模板的欄位都只有 0–1 個） | 已決定 2026-10-02：維持現狀（人類回覆「D18 維持現狀」）。W1-T2-m9 改列 BY_DESIGN，要改需要人類另外排工作項目 |
+| D28 | W2（流程） | `origin/main` 已經用 GitHub PR #1 的 merge commit `8041e14`（2026-10-05 09:07，parents `670afaf`、`079b035`）合入 W2 Task 1–5 的草稿。這不符合 G5（整體審查後才合併、只用 ff、不建 merge commit）和「有 `feature/*` 分支時 `main` 凍結」。W2 要怎麼繼續？ | **接受，分支跟上**：`feature/w2-departments` 用 `git merge --ff-only origin/main` 前進到 `8041e14`（程式和 `079b035` 相同，只多一個 merge commit），照原流程在分支上做 Task 6、7 和整體審查，完成後再 ff 合併回 `main`。另一個選項：在 GitHub 上 revert | 已決定 2026-10-05：接受，分支跟上（人類選「接受，分支跟上（建議）」）。已 ff 到 `8041e14`，見 W2 執行注意 33 |
+| D29 | W2（流程） | 本機 `main` 有 2 個從沒 push 的 commit（`6c39df8 Progress: note 8001 test server stopped`、`4ed2ab5 Progress: note LAN share server for the demo`，2026-10-02），和 `origin/main` 分岔（ahead 2、behind 27），無法 fast-forward。內容是 8001 測試伺服器已關、8080 區網分享伺服器在跑；2026-10-05 實測兩台都不在 | **捨棄，對齊 `origin/main`**：先留備份 tag，再把本機 `main` 指到 `origin/main`；還有用的事實改寫進分支看板。另一個選項：在本機 `main` 建 merge commit 並解 PROGRESS 衝突（違反 ff-only） | 已決定 2026-10-05：捨棄，對齊 `origin/main`（人類選「捨棄，對齊 origin/main（建議）」）。已建本機 tag `backup/local-main-2026-10-02`（指向 `4ed2ab5`，沒有 push），用 `git branch -f main origin/main` 把 `main` 移到 `8041e14`；8001、8080 的現況寫進 W2 執行注意 17 |
 
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
+
+### 2026-10-05｜Claude Opus 5.5｜同步 origin、記錄 D28、D29
+- **做了什麼**：
+  - 人類要求「更新下來最新的，然後確認目前進度」。`git fetch` 後發現：GitHub 的 `main` 已經合併 PR #1（`8041e14`，W2 Task 1–5 草稿）；本機 `main` 有 2 個沒 push 的 Progress commit，和 `origin/main` 分岔。
+  - 照 AGENTS §2 切到 `feature/w2-departments`，跑 `/pf-status`，然後問人類，記成 D28、D29。
+  - 照 D28 把分支 ff 到 `8041e14`。照 D29 建本機 tag `backup/local-main-2026-10-02`，再用 `git branch -f main origin/main` 對齊本機 `main`。
+  - 8001、8080 的現況寫進 W2 執行注意 17，G5 的說明寫成執行注意 33。這次沒有改產品程式或測試。
+- **驗證**：`/pf-status` 在 `079b035` 上用 8001 跑測試頁，`全部通過 123/123`，Demo 載入後 `db.v = 4`，console 沒有錯誤；它自己啟動的 8001 伺服器已經關掉。`git diff --stat 079b035 8041e14` 是空的。
+- **沒做的事／偏離 plan**：沒有開始 Task 6。沒有 push（D3）。
+- **下一步**：W2 Task 6（見「▶ 現在」）。
+- **注意**：本機分支比 `origin/feature/w2-departments` 多 `8041e14` 和這筆紀錄。要讓其他組員接手，push 前要先取得人類授權。
 
 ### 2026-10-02｜Claude Opus 5.5｜W2 開工、Task 1–5 完成、暫停交接、push
 - **做了什麼**：W2 Pre-flight（`b2c96c1` 上 `全部通過 64/64`）→ `670afaf Progress: start W2` → 開 `feature/w2-departments`。用手動 SDD（implementer＝Sonnet 5.5；每個 Task 兩位唯讀審查者＝spec＋品質，權限相關的 Task 2、3、5 由 Opus 5.5 做 spec 審查；修正輪後再一次 scoped re-review）。Task 1 `670afaf..7d48d40`、Task 2 `c2fefcc..0b981dd`、Task 3 `accb179..717b359`、Task 4 `a5c7430..4f428fc`、Task 5 `08c677b..9a7c438`，每個 Task 都有一輪修正。README 加「目前進度」一段給組員。
@@ -528,19 +543,3 @@ full demo 定位的文字需要人類審閱（D12）。
   - 8000 埠仍被另一個不是這個 repo 的伺服器占用。測試用的是 8001 上前一個 session 留下的伺服器（PID 24024）。
   - 新的 D16 下限斷言用的是 `clientHeight`。iframe 寬 0 時會多出橫向捲軸，所以這個測試也先把 iframe 撐到 1200px。
   - D18 待人類，不擋合併。
-
-### 2026-10-02｜Claude Opus 5.5｜W1 Task 2 完成
-- **做了什麼**：
-  - 接手前一個 session 的進度：Task 2 已有 `0d8bf12`（plan 本體）和 `8103646`（D15），第 1 輪兩位審查者都是 Approved，但品質審查列的待驗證項目實測失敗 1 項。兩份審查報告是從前一個 session 的紀錄找回來的，存在 `.superpowers/sdd/review-f69d282..8103646-*-r0.md`。
-  - 人類回覆 D16、D17「都照建議」，記在 `3e59c71`。
-  - 修正輪 1 `c4e9e36`：主區域不能捲動時回到頁首；D16 卡片摘要最多 6 行；D17 新增第一個子任務後切到看板；另加 3 個測試。
-  - 兩位獨立審查者複審都是 Approved。他們列的待驗證項目都已實測，只有 W1-T2-m9 需要人類決定，登記為 D18。
-- **驗證**：基準 `全部通過 60/60` → 修正輪 RED `失敗 3/63` → GREEN `全部通過 63/63`（iframe 1235px 和 345px 各一次）→ 記錄前獨立重跑 `全部通過 63/63`。瀏覽器實測細節在 Task 2 列和 `.superpowers/sdd/task-2-report.md`。審查：獨立。
-- **沒做的事／偏離 plan**：D16、D17 是人類決定的增補。plan 沒有同步，以執行注意 16–18 為準。
-- **下一步**：W1 整體審查與驗收（見「▶ 現在」）。
-- **注意**：
-  - 接管 2026-10-01 16:09 的認領（前一個 session 中斷）。
-  - 8000 埠被另一個不是這個 repo 的 python 伺服器占用（PID 5932，2026-10-02 07:36 啟動，回應 `{"detail":"Not Found"}`），沒有動它。這個 session 改在 8001 啟動自己的伺服器（PID 24024）。
-  - Browser pane 隱藏時，測試頁寬度會是 0。新的回到頁首測試會自己把 iframe 撐到 1200px，所以結果和 pane 寬度無關。
-  - D18 待人類，不擋合併。
-
