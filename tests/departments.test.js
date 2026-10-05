@@ -601,6 +601,40 @@
     ok(document.getElementById('main').textContent.includes('採購負責'));
   });
 
+  // ── 整體修正 ──
+  await T('未指派的負責人顯示「未指派」，不出現「—」；改為未指派的稽核不寫「已通知」', () => {
+    as('yu'); ui.page = 'node'; ui.node = 't404'; ui.tab = 'people'; render();
+    const dd = [...document.querySelectorAll('#main dt')].find((x) => x.textContent === '負責人').nextElementSibling;
+    ok(dd.textContent.includes('未指派'), dd.textContent); ok(!dd.textContent.includes('—'), dd.textContent);
+    ui.node = 'p1e'; ui.tab = 'timeline'; render();
+    const bar = document.querySelector('[data-bar="t504"]');
+    ok(!bar.textContent.includes('—') && !bar.title.includes('—'), bar.textContent + '｜' + bar.title);
+    const line = publicSnapshot(node('p1')).split('\n').find((l) => l.includes('量產製程參數確認'));
+    ok(line.endsWith('｜未指派'), line);
+    openEditor('t30121'); $('eOwner').value = ''; saveEditor('t30121');
+    eq(node('t30121').owner, null);
+    ok(audit.acts[0].text.includes('負責人改為 未指派') && !audit.acts[0].text.includes('已通知'), audit.acts[0].text);
+  });
+  await T('看板卡片的「名字・部門」不換行', () => {
+    as('yu'); ui.page = 'node'; ui.node = 'p1d'; ui.tab = 'board'; render();
+    const nm = document.querySelector('[data-id="t403"] .who .whonm');
+    ok(nm, '名字和部門包在同一個 span'); ok(nm.textContent.includes('・'), nm.textContent);
+    eq(getComputedStyle(nm).whiteSpace, 'nowrap');
+  });
+  await T('權限表「修改時程」和 D23 一致', () => {
+    as('yu'); ui.page = 'node'; ui.node = 'p1'; ui.tab = 'people'; render();
+    const row = [...document.querySelectorAll('#main .tbl tbody tr')].find((tr) => tr.cells[0].textContent === '修改時程');
+    const col = (k) => row.cells[1 + Object.keys(ROLES).indexOf(k)].textContent;
+    ok(col('reviewer') !== '✅' && col('reviewer').includes('自己負責'), col('reviewer'));
+    eq(col('collab'), '自己負責');
+  });
+  await T('回報對話框：select 欄位沒有 options 也能打開', () => {
+    db.reportFields.push({ id: 'rf-nox', node_id: 't30121', key: 'nox', label: '無選項', type: 'select', unit: '', required: false, order: 1 });
+    as('ming'); openReportDialog('t30121');
+    ok($('rv_nox') && $('rv_nox').tagName === 'SELECT', '應有 select 欄位');
+    closeDlg();
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
