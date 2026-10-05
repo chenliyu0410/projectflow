@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W2 部門模型**（🔨 執行中） |
+| 目前工作項目 | **W2 部門模型**（🔍 審查中） |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 切到 `feature/w2-departments`，進度以該分支的 PROGRESS 為準。下一步：W2 Task 7（範本帶入負責部門、更新 README）。先讀 §3 W2 執行注意 10、20、31、34；接著整體審查（執行注意 32）。合併前讀執行注意 33（D28、D29） |
+| 下一個動作 | 切到 `feature/w2-departments`，進度以該分支的 PROGRESS 為準。下一步：W2 整體審查（/pf-next）。Task 1–7 都已 ✅。範圍從 `670afaf` 算起（mergeBase 填 `670afaf`，執行注意 33）；照展示模式一輪審查（執行注意 34），整體修正只做執行注意 32 的 4 項，驗收照 §3 W2 精簡後的清單。合併前讀執行注意 33（D28、D29） |
 | 分支 | `feature/w2-departments`（從 `main` 的 `Progress: start W2` 切出；2026-10-05 照 D28 ff 到 `origin/main` 的 PR #1 merge commit `8041e14`，程式和 `079b035` 相同） |
-| 最新程式 commit | `7939a66`（W2 Task 6）。W1 合併後的 HEAD 是 `2d2c785` |
+| 最新程式 commit | `03c9ff5`（W2 Task 7）。W1 合併後的 HEAD 是 `2d2c785` |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過。W2 Pre-flight 在 `b2c96c1` 上重跑仍是 `全部通過 64/64`）。**目前**：`全部通過 129/129`（2026-10-05，W2 Task 6 完成後在 `7939a66` 上獨立重跑，8001、viewport 1280×900，console 沒有錯誤）。Task 5 之後是 `全部通過 123/123`（`9a7c438`） |
+| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過。W2 Pre-flight 在 `b2c96c1` 上重跑仍是 `全部通過 64/64`）。**目前**：`全部通過 133/133`（2026-10-05，W2 Task 7 完成後在 `03c9ff5` 上獨立重跑，8001、viewport 1280×900，console 沒有錯誤）。Task 6 之後是 `全部通過 129/129`（`7939a66`） |
 | 資料版本 | `db.v = 4`（W2 Task 1 起；`load()` 讀 v2／v3／v4 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | Claude（/pf-next）／2026-10-05 09:47 |
-| 阻塞／待人類 | W2 沒有阻塞。D14–D33 都已決定（§6），D34、D35 是 Task 6 的 AI 代決（可推翻，不擋）；D25、D26 在 2026-10-05 改為取消（D30）。W3 開工前要有 D13（10 部門甘特圖） |
+| 阻塞／待人類 | W2 沒有阻塞。D14–D33 都已決定（§6），D34、D35（Task 6）和 D36–D40（Task 7）是 AI 代決（可推翻，不擋）；D25、D26 在 2026-10-05 改為取消（D30）。W3 開工前要有 D13（10 部門甘特圖） |
 | 遠端 | 2026-10-02 第三次經人類授權（D3；人類指示「commit and push」，選「推兩個，README 寫在分支」）：push `main`（比 `origin/main` 多 1 個 `Progress: start W2`）和 `feature/w2-departments`（新分支，含 W2 Task 1–5 與交接紀錄）。push 之後 `git log --oneline origin/main..main` 和 `git log --oneline origin/feature/w2-departments..feature/w2-departments` 應該都是空的。2026-10-05：人類在 GitHub 合併 PR #1（「W2 部門模型：Task 1–5（草稿…）」），`origin/main` 變成 merge commit `8041e14`（parents `670afaf`、`079b035`），也就是 GitHub 的 `main` 已經有 W2 Task 1–5 的草稿。照 D28 接受，分支 ff 到 `8041e14`；照 D29 本機 `main` 對齊 `origin/main`。之後 `origin/feature/w2-departments` 會落後本機分支（`8041e14` 和之後的 commit 都沒 push）。之後每次 push 都要人類明確授權（D3） |
 
 ---
@@ -70,7 +70,7 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec | Plan | 資料版本 | 依賴 |
 |---|---|---|---|---|---|---|---|
 | 1 | W1 | 子任務置頂回報卡 | ✅ | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
-| 2 | W2 | 部門模型 | 🔨 | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1） |
+| 2 | W2 | 部門模型 | 🔍 | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1） |
 | 3 | W3 | 流程控制（**精簡版**，D31）：連接器 6 階段範本與示範專案、關卡擋住後續階段 | ⬜ 需先寫短 spec | — | — | 視 spec 而定（需要時 v4 → v5） | W2 已合併；D13 甘特圖到位。spec 由 AI 依甘特圖起草短版，人類看一次就定稿（D31 取代 D9 的完整 brainstorming） |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ⬜ | — | — | — | 排在 W3 之後。full demo 定位的文字由 AI 起草、人類看一次（D12） |
@@ -170,7 +170,7 @@
 18. **Task 2 審查後實測失敗（品質審查 Verify 1，轉 Important）**：1280×720 下，在 `t301` 的紀錄分頁捲到 300 後切到「相依圖」，主區域停在 43px，麵包屑被切掉，而且捲不回去。原因是相依圖下方的圖例說明超出 `.view`，主區域有可捲動的高度，但桌面版這三個分頁是 `overflow:hidden`。這是 D15 帶出來的問題，放在 Task 2 修正輪 1 處理：主區域不能捲動時回到頁首。已在 `c4e9e36` 修好：`renderMain()` 寫入內容後，主區域的計算樣式是 `overflowY:hidden` 時（只有桌面版節點頁的看板、時程、相依圖）把捲動位置設回 0。可以捲動的分頁和手機版維持原本的位置。
 19. **D18（2026-10-02 提出，2026-10-02 人類決定維持現狀）**：卡片上的自訂欄位、退回意見、跳過理由沒有高度上限（§5 W1-T2-m9）。維持現狀，W1 不改；§5 W1-T2-m9 改列 BY_DESIGN。
 
-### W2 部門模型 — 🔨
+### W2 部門模型 — 🔍
 
 - **目標**：
   - 部門變成可以設定的資料，存在 `db.departments`。預設 10 個部門，其中只有研發（yu）、品保（chen）、採購（hua）有預設主管，其餘 7 個沒有主管。
@@ -189,7 +189,7 @@
 | 4 | 部門管理面板：新增、修改、刪除 | ✅ 審查：獨立（spec＝Sonnet Approved；品質＝Sonnet Needs fixes：「我的任務」標題的部門名稱沒有 `esc()`，Task 4 開放改名後變成可利用的 XSS；修正輪 1 後 scoped re-review Approved）。修正輪 1：`<h2>${esc(t)}…`（RED 失敗 1/111），補稽核、非管理員修改、清除主管、單一條件刪除、面板唯讀的測試（變異 RED：拿掉 `deptUsage` 的協作部門條件 → `失敗 1/111`，還原後 `cmp` 相同）。待驗證都已實測：獨立重跑 `全部通過 111/111`；模態對話框裡的錯誤 toast（例如「已有同名部門」）看得見；1280px 下部門表沒有內部捲動、每列約 50px；各部門「任務」數的組成（品保 29 = 負責 9 + 協作 2 + 模板節點 18；只因模板而刪不掉的是製造）；console 沒有錯誤。spec §7 對應：第 8 項「刪除部門：有任務或人員時拒絕；空部門可以刪除且可復原」「刪除部門：只被協作部門、只被模板、只有人員時，分別拒絕」 | `a5c7430..4f428fc`（`bbe808c` 實作、`4f428fc` 修正輪 1） | 5（實際 10，修正輪 +5）：RED 失敗 5/106 → GREEN 全部通過 106/106；修正輪 1 RED 失敗 1/111 → GREEN 全部通過 111/111 | 106（實際 111） |
 | 5 | 任務的負責部門和負責人：對話框、看板、我的任務、總覽 | ✅ 審查：獨立（spec＝Opus、品質＝Sonnet，第 1 輪都是 Needs fixes：ERP 證照、配方重做、會議待辦三個 `addNode` 呼叫端沒傳部門，負責人被靜默清空；`saveEditor` 沒用 `can()` 把關；快速新增的預設負責人會變成未指派；修正輪 1 後 scoped re-review Approved）。修正輪 1：三個呼叫端傳負責人所屬部門（配方重做傳原部門）、`saveEditor` 依 `can('dept')`／`can('assign')` 決定是否採用表單值、快速新增預設取第一個屬於部門的人並保留明確的「未指派」、XSS 測試補已指派分支與 `deptOpts`（兩次變異 RED 各 `失敗 1/123`）、未指派上層的提示寫「未指派・部門」。待驗證都已實測：獨立重跑 `全部通過 123/123`；375px 下看板、我的任務（含 chen 的「待我指派」）、總覽、任務頁都沒有水平捲動；console 沒有錯誤。spec §7 對應：第 7 項後半「任務對話框：負責人只列出部門成員；換部門會清空不屬於新部門的負責人」「任務對話框：部門主管可以指派但不能改部門」 | `08c677b..9a7c438`（`e1e5b23` 實作、`9a7c438` 修正輪 1） | 6（實際 12，修正輪 +6）：RED 失敗 6/117 → GREEN 全部通過 117/117；修正輪 1 RED 失敗 6/123 → GREEN 全部通過 123/123 | 117（實際 123） |
 | 6 | 時間軸預設收合，並可依部門篩選 | ✅ 審查：獨立（展示模式單一審查者 combined，第 1 輪 Approved、spec compliant，沒有修正輪；7 個 minor 記成 W2-T6-m1–m7，implementer 的兩項 AI 代決記成 D34、D35）。照執行注意 30 加上 `ui.tlDept` 指到已刪除部門時退回 `'all'`（plan 沒有）。實測：記錄者在 `7939a66` 上獨立重跑 `全部通過 129/129`（console 沒有錯誤）；桌面 1400×900 預設列 p1a–p1e，「品保」篩選後階段件數 1/0/2/3/0、上層 t301／t3012 淡色路徑、只剩 1 條箭頭，p4（沒有階段）不收合；真實刪除部門流程（admin 新增「測試部」→ 篩選 → 刪除 → 切回時程）退回「全部」、列 p1a–p1e，工具列和 toast 的復原都沒有錯誤；品保篩選中拖 t30122 +14 天（連動順延開啟），被篩掉的 t3013、t302、t401、t502、t503 都有順延，「↶ 復原」後全部日期回原值、篩選和展開狀態保留；375×812 篩選列換 3 行，`.tl` clientHeight 306、可捲到 p1e，§5 第 7 點檢查式 true；console 都沒有錯誤。沒有驗：Firefox／Safari 的 `:has()`（W2-T6-m2） | `af9a3b9..7939a66`（`7939a66` 實作） | 6 → 實際 RED 失敗 6/129 → GREEN 全部通過 129/129 | 129（實際 129） |
-| 7 | 範本帶入負責部門、更新 README | ⬜ | — | 4 | 133 |
+| 7 | 範本帶入負責部門、更新 README | ✅ 審查：獨立（展示模式單一審查者 combined，第 1 輪 Approved、spec compliant，沒有修正輪；5 個 minor 記成 W2-T7-m1–m5，implementer 回報的既有 375px 對話框內捲動記成 W2-T7-m6，implementer 的 5 項 AI 代決記成 D36–D40）。照執行注意 31：W2-T1-m7 拿掉 `window.applyTemplate` 包裝、改斷言新節點的 `dept`／`depts`（測試改名「採購單建立驗收任務：協作部門存 id，新任務的負責部門都是品保」，總數不變）；README「修改時程」列反映 D23，F6 改成「待我指派」（W2-T5-m9）；`applyTemplate`／`nodeToTemplate` 照 plan 用 `TAG_DEPT`（D19 只限 `upgrade()`）。照 plan 的行為變化：模板節點沒有 `who` 時負責人改成未指派（不再帶 `ui.me`），採購單「建立驗收任務」的 5 個任務都是品保的未指派任務（W2-T7-m4）。實測：記錄者在 `03c9ff5` 上獨立重跑 `全部通過 133/133`（iframe 確認是新版 `applyTemplate`，console 沒有錯誤）；驗證者以小安（非主管成員）在 t703 真實點擊套用「送驗流程」並取消預設負責人 → 節點 65→78，新根節點 dept d-qa、13 個後代 owner 全是 null，小安看得到的新節點 0 個、看板顯示空狀態；採購單「建立驗收任務」後按 toast「開啟」只出現 `toast warn`「你沒有檢視此節點的權限」、頁面不跳轉；t703 七個分頁、overview／mytasks／review／ops／templates／aigov／audit、p1／p1c／p3 各分頁 render 都沒有例外、沒有 `undefined`／`NaN`；375×812 下 t703、ops 檢查式 true。implementer 另測：模板庫預覽 32 列沒有 `undefined`、依範本建立專案的 16 個任務 owner 全是 null 且 dept 照 `PHASE_TEMPLATE`、另存模板每個節點都有 dept、AI 任務拆解不拋例外、375px 模板庫和套用對話框檢查式 true；console 都沒有錯誤。沒有驗：截圖 | `c52e39b..03c9ff5`（`03c9ff5` 實作） | 4 → 實際 RED 失敗 5/133（4 個新測試加改寫的 W2-T1-m7）→ GREEN 全部通過 133/133 | 133（實際 133） |
 | — | 整體審查 | ⬜ | — | — | — |
 
 預期總數是研究時推算的，plan 本身只寫「全部通過 N/N」。以實際跑出來的數字為準。W1 最後共有 20 個測試（plan 的 13 個，加上修正輪和整體修正的 7 個），基準是 64，上表已經照這個數字調整（2026-10-02，W1-F-m1）。W1 如果還有修正增加測試，要再調整。W2 Task 1–5 的修正輪分別多了 4、9、6、5、6 個測試，Task 6 以後的預期總數已經 +30（2026-10-02）。
@@ -268,7 +268,7 @@
     - §5 W2-T5-m2：看板卡片的「名字・部門」在窄欄位不要逐字換行。
     - §5 W2-T3-m1：成員與權限頁的權限表要和 D23 一致（審核人的「修改時程」、collab 的「修改時程」）。
     - §5 F11-N1：回報對話框的 `f.options.map` 加 `(f.options || [])` 防護。
-    - W2-T5-m9（README:265）和 W2-T1-m7（測試的 `applyTemplate` 包裝）照執行注意 31 在 Task 7 處理。
+    - W2-T5-m9（README:265）和 W2-T1-m7（測試的 `applyTemplate` 包裝）照執行注意 31 在 Task 7 處理（已在 `03c9ff5` 修好，見 §5 已關閉）。
 33. **D28、D29（2026-10-05）**：GitHub 的 `main` 已經有 W2 Task 1–5 草稿（PR #1 的 `8041e14`），分支已 ff 到它，本機 `main` 也對齊到它，所以 `main` 是分支的祖先。G5 照常用 `git checkout main` + `git merge --ff-only feature/w2-departments`，不需要另外處理。整體審查的範圍仍從 `670afaf` 算起（`8041e14` 和 `079b035` 的程式相同）。從 GitHub 拿 `main` 的組員會拿到 Task 1–5 的草稿，Task 6、7 和整體修正還沒有進去。
 34. **展示模式（D30，2026-10-05 起）**：Task 6、Task 7 和整體審查都照 WORKFLOW §13 做：
     - 一位審查者，最多一輪修正，只擋會讓展示出問題的錯誤。
@@ -387,7 +387,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W2-T2-m4 | 一個專案都看不到時，AI 快速指令（6 個 `data-act` 按鈕）是靜默不動作；同一狀態下 `aiAsk` 會回覆、`openMinutesConfirm` 會 toast，行為不一致 | trivial | S | 否 | `aiAction`（html:2262@0b981dd） |
 | W2-T2-m5 | 效能小改善：`inScopeOf` 先算 `phaseOf(n)` 才檢查角色；`graphLayout` 先算 `visible(x)` 才檢查 `isLeaf(x)`。種子資料量下沒有影響 | trivial | S | 否 | html:762、:1767@0b981dd |
 | W2-T2-m6 | plan Task 2 的 `seeTask` 最後一行和 Step 4.2 的 `\|\| projects()[0]` 仍是 D20、D21 之前的寫法。以執行注意 23、24 為準；整體審查時可視需要 `Plan: fix` | trivial | S | 否 | plan:398、:416 |
-| W2-T3-m1 | 【W2 整體修正】成員與權限頁的權限表文字和 D23 不一致：審核人的「修改時程」仍是 ✅（D23 之後任務只限自己負責或部門主管，階段與專案照舊），collab 的「修改時程」是空白（D23 之後 collab 負責人可以改自己任務的時程）。同一頁「你在此節點可以」清單走 `can()`，會和表格矛盾。README:242 的權限表也一樣。Task 7 更新 README 或整體審查時一起改 | minor | S | 否 | `viewPeople`（html:1916-1918@717b359）、README.md:242 |
+| W2-T3-m1 | 【W2 整體修正】成員與權限頁的權限表文字和 D23 不一致：審核人的「修改時程」仍是 ✅（D23 之後任務只限自己負責或部門主管，階段與專案照舊），collab 的「修改時程」是空白（D23 之後 collab 負責人可以改自己任務的時程）。同一頁「你在此節點可以」清單走 `can()`，會和表格矛盾。README:242 的權限表也一樣。Task 7 更新 README 或整體審查時一起改。**README 的「修改時程」列已在 Task 7（`03c9ff5`）照 D23 更新（D38），剩成員與權限頁**；README 的「新增 / 編輯任務」列見 W2-T7-m2 | minor | S | 否 | `viewPeople`（html:1916-1918@717b359）、README.md:242 |
 | W2-T3-m2 | 「你在此節點可以」清單在專案、階段節點顯示「✗ 指派負責人」（`can('assign')` 只對任務成立），表格卻寫專案負責人 ✅。修法：非任務節點改成「底下有可以指派的任務」 | minor | S | 否 | `viewPeople`（html:1927@717b359）、`can()`（:807） |
 | W2-T3-m3 | 權限表和說明文字不精確（plan 指定的文字）：「新增 / 編輯任務」寫「自己負責／部門主管」，但 `create` 沒變；說明文字「未指派負責人的任務只有部門主管看得到」漏了專案負責人、系統管理員、唯讀和「負責上層任務的人看得到子任務」 | minor | S | 否 | html:1910-1925@717b359 |
 | W2-T3-m4 | `create` 照 spec 不變，所以不能操作某個任務的人（例如透過上層規則看得到它的成員、範圍內審核人）仍可以在它底下新增子任務，讓它從葉任務變成上層任務、清掉進度、自動結案待確認的回報。spec §4.4 明寫「其餘動作不變」，要改需要人類另外決定 | minor | S | 否（spec 指定） | `can()`（html:801@717b359）、`addNode` |
@@ -406,14 +406,18 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W2-T5-m6 | 快速新增的預設部門 `qaDept` 和 `addNode` 的預設部門是兩份相同的公式，qaForm 沒有把 `dept` 傳下去 | trivial | S | 否 | html:2607、:2447、:3316@9a7c438 |
 | W2-T5-m7 | 測試缺口：總覽測試沒有斷言各部門件數與「未指派不算進人員負載」；會議待辦沒寫名字的情況沒有測試；XSS 測試的未指派分支沒做變異 RED；配方重做測試設了 `ui.opsTab = 'formulas'`，`resetAll()` 不會重置 `opsTab` | trivial | S | 否 | tests/departments.test.js（Task 5 段）、`resetAll`（html:1037）@9a7c438 |
 | W2-T5-m8 | 375px 下任務對話框的進度欄 `#eProg` 超出表單 14px（`#edForm` scrollWidth 311 > clientWidth 297），頁面本身沒有水平捲動。Task 5 沒有改這一列，推論是 W2 之前就有 | trivial | S | 否 | `openEditor`（進度那一列） |
-| W2-T5-m9 | README.md:265 還寫「我的任務」包含「我部門被指派的」，Task 5 已經移除這一組、改成「待我指派」。Task 7 更新 README 時一起改（執行注意 31） | minor | S | 否 | README.md:265 |
-| W2-T1-m7 | 測試「採購單建立驗收任務…」暫時包住 `window.applyTemplate` 來讀模板上的 `dept`，因為 Task 7 之前 `applyTemplate` 不寫 `dept`。Task 7 改 `applyTemplate` 後，改成直接斷言新節點的 `dept`，並拿掉包裝 | minor | S | 否 | tests/departments.test.js:72-75@7d48d40 |
 | W2-T6-m2 | D34 的 `.view:has(> .deptbar)` 沒有退路：不支援 `:has()` 的瀏覽器（Firefox <121、Safari <15.4）會丟掉那一行，但 `.deptbar + .tl{height:auto}` 仍然生效，`.tl` 失去高度限制，被桌面版 `.main{overflow:hidden}` 裁掉下方的列，也沒有垂直捲軸。展示用的 Chromium 不受影響（Task 6 只在 Chromium 驗過）。修法：時程分頁給 `.view` 加 class（例如 `view tlview`），或用一層 `display:flex;flex-direction:column;height:100%` 的容器包住篩選列和 `.tl` | minor | S | 否 | `.deptbar` CSS（html:160-161@7939a66） |
 | W2-T6-m3 | `tlDeptMatch()` 判斷子孫是否符合篩選時沒有套 `visible()`：使用者看得到上層任務、看不到符合篩選的子任務時，上層仍以淡色路徑出現、有展開鈕，展開後卻是空的。用 yu（專案負責人）展示時不會發生。修法：`descendants(x.id).some((d) => d.type === 'task' && d.dept === ui.tlDept && visible(d))` | minor | S | 否 | `tlDeptMatch`（html:1545@7939a66） |
 | W2-T6-m4 | spec §5.4 寫「點階段列的名稱可展開或收合」，但名稱按鈕仍是 `data-enter`（進入展開圖），只有 ▸ 展開鈕能切換；`.cnt` 的「▸ N 件」不能點，箭頭也和展開鈕重複（plan Step 5 的格式）。修法：`.cnt` 改成帶 `data-twist` 的按鈕，或拿掉 `.cnt` 裡的箭頭 | minor | S | 否 | `viewTimeline`（html:1618@7939a66） |
 | W2-T6-m5 | 時間軸表頭「總覽圖・任務（N）」用 `rows.length`，把階段列也算進去：收合後顯示「任務（5）」，其實是 5 個階段；篩選後也不是任務數（既有寫法，收合以後更容易誤會）。修法：N 改成 `rows.filter((r) => r.n.type === 'task').length`，或用篩選列目前按鈕的件數 | minor | S | 否 | `viewTimeline`（html:1599@7939a66） |
 | W2-T6-m6 | （plan 指定的寫法）`viewTimeline()` 外層的 `const bar`（篩選列）被 `rows.forEach` 內層的 `const bar`（時程條）遮蔽，行為正確但容易看錯；`drawArrows()` 的 `ui.tlDept !== 'all'` 和 `tlDeptMatch()` 開頭的判斷重複。修法：外層改名 `deptBar` | minor | S | 否 | `viewTimeline`（html:1597、:1608@7939a66）、`drawArrows`（:1670） |
 | W2-T6-m7 | 外部 ERP 採購交期列（`data-ext`）不受部門篩選影響，篩選（例如財務、品保）時仍然顯示；spec 沒有提到。可以考慮篩選時只顯示 `node` 符合 `tlDeptMatch` 的採購單列 | minor | S | 否 | `viewTimeline`（html:1623@7939a66） |
+| W2-T7-m1 | README §2 功能表的「時程」列仍是「8 個月甘特圖｜✅ 可用（唯讀）」，沒有反映 spec §8 要的時間軸說明（預設收合成階段、可依負責部門篩選）。plan Step 7 沒列這一項，F6 段落末尾已經寫了，只是文件不完整。審查建議：說明改成「8 個月甘特圖；預設只顯示階段，可依負責部門篩選」，「（唯讀）」是否過時留給 W5；要不要在 W2 整體修正時順手改，由整體審查判斷（執行注意 32 的範圍沒有它） | minor | S | 否 | README.md:153@03c9ff5 |
+| W2-T7-m2 | README F5 權限表的「新增 / 編輯任務」列，成員和階段審核人仍是 ✅，但 Task 3 起 `can('edit', task)` 走 `canWork`（負責人、負責部門主管、專案負責人、系統管理員），表格和實作不一致。執行注意 31 只點名「修改時程」，Task 7 沒改（D38）。審查建議：整體修正時和 W2-T3-m1 一起處理，任務的部分改成「自己負責或主管部門的任務」 | minor | S | 否 | README.md:281@03c9ff5 |
+| W2-T7-m3 | 測試「依範本建立專案：任務依範本帶部門且未指派」只斷言 `PHASE_TEMPLATE` 常數的形狀，沒有呼叫 `createProject` 驗證新任務的 `dept` 和 `owner === null`（plan Step 1 原樣）。implementer 已用 DOM/JS 實測：16 個任務的 owner 都是 null，dept 和範本一致。展示模式不補強，延到正式版 | minor | S | 否 | tests/departments.test.js:596-598@03c9ff5 |
+| W2-T7-m4 | spec §5.5 移除 `ui.me` 預設帶出的體驗問題：非部門主管的成員（例如小安）在自己的任務下套用模板，或按採購單「建立驗收任務」，新任務都是未指派；依 spec §4.1 未指派任務不會經由上層路徑被看到，所以建立者自己看不到。toast 卻寫「已建立 N 個任務」，採購單 toast 的「開啟」只跳出「你沒有檢視此節點的權限」（2026-10-05 實測，沒有錯誤或例外）。可選的改善：toast 加一句「未指派的任務由部門主管指派，指派前你可能看不到」，或建立者看不到根節點時拿掉「開啟」 | minor | S | 否 | `submitTpl`、`poTask`（html:2760、3258-3260@03c9ff5） |
+| W2-T7-m5 | 負責部門的退路 `x.dept \|\| TAG_DEPT[x.tag] \|\| 'd-rd'` 在 `nodeToTemplate` 和 `applyTemplate` 逐字重複，`mkTpl` 也有類似寫法（plan 原樣，量很小）。正式版可以抽成 `tplDept(x)` | minor | S | 否 | `nodeToTemplate`、`applyTemplate`（html:2742、2759@03c9ff5）、`mkTpl`（:577-578） |
+| W2-T7-m6 | （W2 之前就有，Task 7 implementer 回報）375px 下套用模板對話框的「開始日／{產品名}」那一列在對話框內出現水平捲動（scrollWidth 383 > clientWidth 341，`overflow-x:auto`）。頁面本身沒有水平捲動，§5 第 7 點檢查式是 true | trivial | S | 否 | `openApplyTpl`（html:2767@03c9ff5） |
 
 ### BY_DESIGN（plan 或 brief 指定的行為，要改必須先經過人類同意）
 
@@ -452,6 +456,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W1-F-m3、W1-F-m4 | FIXED（`Progress: W1 ready to merge`：「下一個動作」改成合併，W1-F-m1 補上 hash） |
 | W1-F-m2 | FIXED `26ea8eb`（7 個分頁都斷言有回報卡和 `.tools` 的「＋ 新增子任務」） |
 | W2-T1-m1 | FIXED `4f428fc`（W2 Task 4 修正輪 1：「我的任務」標題改成 `esc(t)`，附 XSS 測試；Task 4 開放改名後這裡變成可利用的 XSS，所以沒有等到 Task 5） |
+| W2-T1-m7 | FIXED `03c9ff5`（W2 Task 7：拿掉 `window.applyTemplate` 包裝，改成直接斷言新節點的 `dept`／`depts`；執行注意 31、D40） |
+| W2-T5-m9 | FIXED `03c9ff5`（W2 Task 7：README F6「我的任務」改成「我負責的、我協作的；部門主管另有『待我指派』」） |
 | W2-T6-m1 | FIXED（`Progress: W2 task 6 done`：Task 6 審查指出兩項 AI 代決——`:has()` 版面、手機隱藏階段件數——還沒有記成 D，記錄者補成 §6 的 D34、D35） |
 
 ---
@@ -503,12 +509,34 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | D33 | 全專案（流程） | 展示會用手機看嗎？（決定展示模式要不要保留 375px 檢查） | 建議只用電腦展示，不再檢查 375px。另一個選項：手機也要能看 | 已決定 2026-10-05：**手機也要能看**（人類推翻建議）。每個 Task 和驗收都保留 375px 沒有水平捲動的檢查 |
 | D34 | W2-T6 | spec 沒寫到的小細節（Task 6 implementer concern、審查 m1）：時程分頁的部門篩選列放在 `height:100%` 的 `.tl` 前面，桌面版 `.tl` 會超出 `.view` 約 40px，下緣和橫向捲軸被 `.main{overflow:hidden}` 裁掉（實測修正前 `.tl` 下緣 920 > `.main` 900） | **只用 CSS 讓有篩選列的 `.view` 改成直向 flex**：`.view:has(> .deptbar){display:flex;flex-direction:column}`、`.deptbar + .tl{flex:1 1 0;min-height:0;height:auto}`，`.deptbar` 加 `flex-shrink:0`，不改 plan 規定的 HTML 結構。缺點是依賴 `:has()`，舊版 Firefox／Safari 沒有退路（§5 W2-T6-m2）。另一個選項：時程分頁的 `.view` 加 class，或用容器包住篩選列和 `.tl` | AI 代決 2026-10-05：有篩選列時 `.view` 改成直向 flex、`.tl` 吃剩下的高度（`7939a66`；桌面 `.tl` 下緣等於 `.view` 下緣，375px 篩選列換 3 行時 `.tl` 仍有 306px 可捲動）（可推翻） |
 | D35 | W2-T6 | spec 沒寫到的小細節（Task 6 implementer concern、審查 m1）：手機版（≤860px）的 `.tl-label` 只有 150px，階段列的件數「▸ N 件」會把階段名稱擠到只剩 3px，名稱完全看不到 | **手機版隱藏階段件數**：在 `@media (max-width:860px)` 加 `.tl-label .cnt{display:none}`，名稱寬度回到改動前（47px），件數仍可以在篩選列看到。這和 spec §5.4「階段列上顯示 ▸ N 件」在手機上不一致。另一個選項：縮短件數文字或加寬標籤欄 | AI 代決 2026-10-05：寬度 ≤860px 時不顯示階段列的件數（`7939a66`）（可推翻） |
+| D36 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：README §2 功能表新增「我的任務｜✅ 可用」列之後，原本的「其他｜分享、總覽、我的任務、AI 收件匣｜⬜ 未實作」會和它直接矛盾 | **從「其他」列拿掉「我的任務」**，只刪一個詞，不算大改 §2（執行注意 7）。另一個選項：保留原列不動 | AI 代決 2026-10-05：「其他」列改成「分享、總覽、AI 收件匣」（`03c9ff5`）（可推翻） |
+| D37 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：README §2 表沒有獨立的「我的任務」列，也沒有部門的列（執行注意 7 要用新增的方式），新列要怎麼寫 | **新增兩列**：「我的任務｜跨專案列出我負責的、我協作的任務；部門主管有「待我指派」｜✅ 可用」、「部門（F6）｜部門設定與負責部門｜✅ 可用」 | AI 代決 2026-10-05：照建議新增兩列（`03c9ff5`）（可推翻） |
+| D38 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：README F5 權限表的「修改時程」列要反映 D23，各角色欄的文字 | **照 `can('schedule')` 寫**（任務走 `canWork`，非任務照舊）：系統管理員 ✅、專案負責人 ✅、階段審核人「階段；任務限自己負責或主管部門的」、成員「自己負責或主管部門的任務」、協作人員「自己負責的任務」、唯讀空白。同表的「新增 / 編輯任務」列也受 `canWork` 影響，但執行注意 31 只點名「修改時程」，這次沒改（§5 W2-T7-m2） | AI 代決 2026-10-05：照建議（`03c9ff5`；審查者對照 html `can('schedule')` → `canWork` 確認正確）（可推翻） |
+| D39 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：README 資料模型的 `departments` 只有一行（`users, departments, department_members`），部門主管和任務的負責部門要怎麼寫 | **不拆原本那一行**：在它下面加一行 `departments.head_id # 部門主管（FK users，可空）`；`nodes` 加 `dept_id # 任務的負責部門（FK departments）` | AI 代決 2026-10-05：照建議（`03c9ff5`）（可推翻） |
+| D40 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：執行注意 31 要把 W2-T1-m7 的 `window.applyTemplate` 包裝換成直接斷言新節點的 `dept`，原本對模板物件 `dp` 的斷言要怎麼處理 | **改成斷言新節點**：根節點的 `depts` 是 `[]`、`dept` 是 d-qa，4 個子任務的 `dept` 和 `depts` 都是品保；測試改名「採購單建立驗收任務：協作部門存 id，新任務的負責部門都是品保」，總數不變 | AI 代決 2026-10-05：照建議（`03c9ff5`；審查者確認覆蓋範圍沒有縮小）（可推翻） |
 
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
+
+### 2026-10-05｜Claude Opus 5.5｜W2 Task 7 完成（範本帶負責部門、README），W2 進入整體審查
+- **做了什麼**：
+  - `/pf-next all` 照展示模式推進 W2 Task 7。implementer 完成 `03c9ff5 Departments task 7: templates carry owner department; README`（`c52e39b..03c9ff5`，DONE_WITH_CONCERNS）：`PHASE_TEMPLATE` 的任務改成〔名稱, 部門〕、依範本建立專案的任務帶部門且未指派、`nodeToTemplate`／`applyTemplate` 帶 `dept`（`TAG_DEPT` 退路，D19 只限 `upgrade()`）、模板庫預覽顯示「X負責」、README F5／F6／§2／資料模型。照執行注意 31 處理 W2-T1-m7、W2-T5-m9（都已 FIXED）。
+  - implementer 的 5 項 AI 代決記成 D36–D40；審查的 5 個 minor 和 implementer 回報的既有 375px 對話框問題記成 W2-T7-m1–m6；W2-T3-m1 補註 README 的「修改時程」列已更新。
+  - 這是 W2 最後一個 Task，W2 三處改成 🔍。
+  - 審查報告存在 `.superpowers/sdd/review-c52e39b..03c9ff5-combined-r0.md`，ledger 加上 Task 7 complete。
+- **驗證**：RED 失敗 5/133 → GREEN 全部通過 133/133。記錄者在 `03c9ff5` 上獨立重跑 `全部通過 133/133`（8001、1280×900，iframe 確認是新版 `applyTemplate`，console 沒有錯誤）。待驗證 1 項實測通過：小安（非主管成員）套用模板、建立驗收任務後按「開啟」只出現權限提示，沒有錯誤，也沒有 `undefined`／`NaN`，375px 檢查式 true。審查：獨立（/pf-next），展示模式單一審查者 Approved，沒有修正輪。
+- **沒做的事／偏離 plan**：
+  - 照 plan 的行為變化：模板節點沒有 `who` 時負責人改成未指派，非主管成員建立後自己看不到（W2-T7-m4，展示模式不修）。
+  - README 的「新增 / 編輯任務」列（W2-T7-m2）和 §2「時程」列（W2-T7-m1）沒改。審查建議整體修正時一起看，但執行注意 32 的範圍沒有它們，要不要加由整體審查判斷。
+  - README :20–45 的「目前進度」摘要（Task 6 還寫 ⬜、測試 123/123）照 pre-flight 指示沒改，留給整體審查或 G6。
+- **下一步**：W2 整體審查（/pf-next），mergeBase 填 `670afaf`（執行注意 33），見「▶ 現在」。
+- **注意**：
+  - D36–D40 是 AI 代決，人類可以推翻。
+  - 8000 仍是別的伺服器（回應 `{"detail":"Not Found"}`，沒有動）。記錄者自己在 8001 啟動的伺服器（PID 29460）已經關掉，8001 目前沒有 listener。
+  - 認領保留給 `/pf-next all`，接著做整體審查。
 
 ### 2026-10-05｜Claude Opus 5.5｜W2 Task 6 完成（時間軸預設收合、部門篩選）
 - **做了什麼**：
@@ -565,15 +593,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **沒做的事／偏離 plan**：沒有開始 W2，也沒有做 W2 的 Pre-flight。
 - **下一步**：W2 開工（見「▶ 現在」）。
 - **注意**：8001 上 PID 24024 的伺服器沒有關（不是這個 session 啟動的）。
-
-### 2026-10-02｜Claude Opus 5.5｜W1 完成並合併
-- **做了什麼**：
-  - 人類回覆「D18 維持現狀」，記在 `1978dde`；W1-T2-m9 改列 BY_DESIGN。
-  - 獨立的整體審查第 2 輪（`44df43a..a5e2b7c`）結論是 Ready to merge: Yes，只有 2 項 trivial（W1-F-m3、m4），在 `2d2c785` 修正並把 W1 標成 🟢。報告在 `.superpowers/sdd/review-44df43a..a5e2b7c-final-r1.md`，已隨 SDD 歸檔。
-  - 依 D2 在本地 `git merge --ff-only`（`8aed7d6..2d2c785`），然後在 `main` 上做這筆 G6 收尾，並刪除分支。
-- **驗證**：第 2 輪的 Verify 都實測過：CSS zoom 0.9–1.5 倍時 `scrollTop` 的精確比較是穩的；375px 下 15 行摘要沒有橫向捲軸；合併前在 `1978dde` 上獨立重跑 `全部通過 64/64`，console 無錯誤。審查：獨立。
-- **沒做的事／偏離 plan**：長網址會把紀錄分頁的回報歷史撐出主區域。這是 F11 原本就有的問題，`main` 上也一樣，登記為 §5 W1-F-m5，歸 W4。
-- **下一步**：W2 開工（見「▶ 現在」）。
-- **注意**：
-  - 8000 埠仍被另一個不是這個 repo 的伺服器占用。8001 上是前一個 session 啟動的這個 repo 的伺服器（Windows PID 24024），這個 session 都是用它跑測試。這個 session 也試著在 8001 啟動伺服器，但因為埠已被占用，一啟動就結束了。24024 不是這個 session 啟動的，所以沒有關（WORKFLOW §5 第 8 點），要不要關由人類決定。
-  - W1 的 commit 都還沒有 push，push 需要人類授權（D3）。
