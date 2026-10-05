@@ -591,6 +591,65 @@ function deleteWorkflow(id) {
   log(null, '工作流', `刪除工作流「${wf.name}」`);
   return { ok: true };
 }
+function canCreateWorkflowProject() { return ['admin', 'owner'].includes(me().role); }
+function createProjectFromWorkflow(workflowId, opts = {}) {
+  if (!canCreateWorkflowProject()) return { ok: false, error: '你的角色無權從工作流建立專案' };
+  const wf = db.workflows.find((w) => w.id === workflowId);
+  if (!wf) return { ok: false, error: '找不到工作流' };
+  const errors = validateWorkflow(wf);
+  if (errors.length) return { ok: false, error: errors[0], errors };
+  const name = String(opts.name || '').trim();
+  if (!name) return { ok: false, error: '專案名稱必填' };
+  let projectId, count = 0;
+  commit(`從工作流建立專案「${name}」`, () => {
+    const start = D(opts.start || TODAY);
+    const owner = opts.owner && USERS[opts.owner] ? opts.owner : ui.me;
+    const map = {};
+    const orders = Object.values(db.nodes).map((n) => n.order || 0);
+    let order = Math.max(0, ...orders) + 1;
+    let cursor = start;
+    projectId = newId('p');
+    db.nodes[projectId] = {
+      id: projectId, parent: null, type: 'project', title: name, tag: '', status: 'todo', progress: null, weight: 1,
+      start: S(start), end: S(start), milestone: false, locked: false, owner, dept: null, collabs: [], depts: [],
+      level: 'internal', ai: false, note: '', links: [], order: order++, color: '#2E6F8E',
+      goal: `依工作流「${wf.name}」建立`, due: '',
+    };
+    (wf.stages || []).forEach((s) => {
+      const ph = newId('n');
+      db.nodes[ph] = {
+        id: ph, parent: projectId, type: 'phase', title: s.title, tag: '', status: 'todo', progress: null, weight: 1,
+        start: S(cursor), end: S(cursor), milestone: false, locked: false, owner, dept: null, collabs: [], depts: [],
+        level: null, ai: false, note: '', links: [], order: order++,
+      };
+      let phaseEnd = cursor;
+      (s.tasks || []).forEach((t) => {
+        const id = newId('n');
+        const dur = Math.max(1, +t.dur || 1);
+        map[t.id] = id;
+        db.nodes[id] = {
+          id, parent: ph, type: 'task', title: t.title, tag: '', status: 'todo', progress: null, weight: 1,
+          start: S(cursor), end: S(cursor + dur - 1), milestone: false, locked: false, owner: null,
+          dept: t.dept, collabs: [], depts: t.depts || [], level: null, ai: false, note: '', links: [], order: order++,
+        };
+        phaseEnd = Math.max(phaseEnd, cursor + dur - 1);
+        cursor += dur; count++;
+      });
+      db.nodes[ph].end = S(phaseEnd);
+      if (s.gate) db.gates[ph] = { criteria: s.gate.criteria, approver: '專案負責人', status: 'pending' };
+    });
+    (wf.deps || []).forEach((d) => {
+      if (map[d.from] && map[d.to]) db.deps.push({ id: newId('d'), from: map[d.from], to: map[d.to], type: d.type || 'FS', lag: +d.lag || 0, enf: d.enf || 'hard', cond: null, overridden: false });
+    });
+    const spans = descendants(projectId).map(span);
+    if (spans.length) {
+      db.nodes[projectId].start = S(Math.min(...spans.map((x) => x[0])));
+      db.nodes[projectId].end = S(Math.max(...spans.map((x) => x[1])));
+    }
+  });
+  log(projectId, '工作流', `從「${wf.name}」建立專案「${name}」`);
+  return { ok: true, projectId, count };
+}
 
 /* ================= 種子資料 ================= */
 function seed() {
@@ -2721,6 +2780,25 @@ function submitWorkflowForm(f) {
   if (!r.ok) return toast(r.error, 'warn');
   closeDrawer(); render(); return toast('已儲存工作流');
 }
+function openWorkflowProjectDialog(workflowId) {
+  const wf = db.workflows.find((w) => w.id === workflowId);
+  if (!wf) return toast('找不到工作流', 'warn');
+  if (!canCreateWorkflowProject()) return toast('你的角色無權從工作流建立專案', 'warn');
+  const st = workflowStats(wf);
+  openDlg(`<form id="wfProjectForm" data-wf="${wf.id}">
+    <h2 class="serif">用「${esc(wf.name)}」建立專案</h2>
+    <p class="small muted">${st.stages} 階段・${st.tasks} 個任務・${st.gates} 個關卡・約 ${st.days} 天</p>
+    <div class="field"><label for="wpName">專案名稱</label><input id="wpName" value="${esc(wf.name.replace(/專流$/, '專案'))}" required></div>
+    <div class="frow"><div class="field"><label for="wpStart">開始日期</label><input id="wpStart" type="date" value="${TODAY}"></div>
+      <div class="field"><label for="wpOwner">專案負責人</label><select id="wpOwner">${userOpts('yu')}</select></div></div>
+    <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn primary" type="submit">建立專案</button></div>
+  </form>`);
+}
+function submitWorkflowProjectForm(f) {
+  const r = createProjectFromWorkflow(f.dataset.wf, { name: $('wpName').value, start: $('wpStart').value || TODAY, owner: $('wpOwner').value });
+  if (!r.ok) return toast(r.error, 'warn');
+  closeDlg(); toast(`已建立專案（${r.count} 個任務）`); return enter(r.projectId);
+}
 function openEditor(id) {
   const n = node(id); if (!n) return;
   const d = $('drawer');
@@ -3384,6 +3462,7 @@ document.addEventListener('click', (e) => {
   if (ds.addChild) return openQuickAdd(ds.addChild);
   if ('wfNew' in ds) return openWorkflowEditor();
   if (ds.wfEdit) return openWorkflowEditor(ds.wfEdit);
+  if (ds.wfCreate) return openWorkflowProjectDialog(ds.wfCreate);
   if (ds.wfCopy) { const copy = duplicateWorkflow(ds.wfCopy); return copy ? toast(`已建立「${copy.name}」`) : toast('無法複製工作流', 'warn'); }
   if (ds.wfDel) { const r = deleteWorkflow(ds.wfDel); return r.ok ? toast('已刪除工作流', null, { label: '復原', fn: undo }) : toast(r.error, 'warn'); }
   if (ds.applyTpl) return openApplyTpl(ds.applyTpl, ds.tpl);
@@ -3518,6 +3597,7 @@ document.addEventListener('submit', (e) => {
   if (f.id === 'askForm') { const q = $('askInput').value.trim(); if (!q) return; $('askInput').value = ''; return aiAsk(q); }
   if (f.id === 'edForm') return saveEditor(f.dataset.id);
   if (f.id === 'wfForm') return submitWorkflowForm(f);
+  if (f.id === 'wfProjectForm') return submitWorkflowProjectForm(f);
   if (f.id === 'deptForm') return submitDept(f.dataset.id);
   if (f.id === 'qaForm') {
     const title = $('qTitle').value.trim(); if (!title) return;

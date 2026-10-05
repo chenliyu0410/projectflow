@@ -641,6 +641,26 @@
     eq(saveWorkflow({ ...built, id: 'bad', name: ' ' }).ok, false);
   });
 
+  // ── W3 Task 3：從工作流建立專案 ──
+  await T('W3：從工作流建立專案會產生專案、階段、任務、前置與關卡', () => {
+    as('it');
+    const wf = db.workflows.find((w) => w.name === '筆電新機種專流');
+    const r = createProjectFromWorkflow(wf.id, { name: '展示筆電專案', start: '2026-10-01', owner: 'yu' });
+    ok(r.ok, r.error);
+    const p = node(r.projectId);
+    eq(p.title, '展示筆電專案');
+    eq(kids(p.id).filter((x) => x.type === 'phase').length, workflowStats(wf).stages);
+    ok(descendants(p.id).filter((x) => x.type === 'task').length >= workflowStats(wf).tasks);
+    ok(Object.keys(db.gates).some((id) => projectOf(node(id)).id === p.id), '應建立階段關卡');
+    ok(db.deps.some((d) => node(d.from) && node(d.to) && projectOf(node(d.to)).id === p.id), '應建立前置條件');
+  });
+
+  await T('W3：專案負責人可從工作流建立專案，一般成員不可', () => {
+    const wf = db.workflows[0];
+    as('ming'); eq(createProjectFromWorkflow(wf.id, { name: '不應建立', start: TODAY, owner: 'ming' }).ok, false);
+    as('yu'); ok(createProjectFromWorkflow(wf.id, { name: '負責人建立', start: TODAY, owner: 'yu' }).ok);
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
