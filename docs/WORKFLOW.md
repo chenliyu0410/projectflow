@@ -4,7 +4,7 @@
 > 進度看 [PROGRESS.md](PROGRESS.md)，入口看 [AGENTS.md](../AGENTS.md)。本文件規定**怎麼做**，PROGRESS 記錄**做到哪裡**。
 > 這套流程是把 F11 實際用過的做法（superpowers 的 brainstorming → writing-plans → subagent-driven-development）寫成文字，並補上 F11 和交接演練時踩過的坑。
 >
-> **閱讀指引**：開工時讀 §0、§3、§8、§12，其他章節需要時再查。
+> **閱讀指引**：開工時讀 §0、§3、§8、§12，其他章節需要時再查。PROGRESS「▶ 現在」的「模式」是「展示模式」時，也要讀 §13，它優先於其他章節。
 
 **詞彙**
 - **SDD**：superpowers:subagent-driven-development。Claude 的執行方式：主 session（controller）把每個 Task 交給子代理實作，再交給另一個子代理審查。
@@ -326,6 +326,8 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 
 遇到下列情況，先在 PROGRESS §6 記下問題（給一個新的 D 編號），「▶ 現在」標 ⛔，commit 之後再問。分支存在時，commit 放在該分支上。
 
+> **展示模式**（§13）：第 1、3 點裡的小細節由 AI 代決並記進 §6，不停下來；第 2 點只有 Critical 要停。其他各點照舊。
+
 1. spec、plan 和現有程式碼衝突，或 plan 的指示無法照做。PROGRESS「執行注意」已經裁決過的不算。
 2. plan-mandated 問題（處理方式見 §4.1）：Critical 立即停；Important 要在改成 🟢 之前有結論。
 3. 任何 spec 沒有寫明的產品決策，包括行為、文字、資料模型。
@@ -375,7 +377,7 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 | 用途 | 做法 |
 |---|---|
 | 看現況 | `/pf-status`：唯讀檢查，核對 PROGRESS、git 和測試，並給出下一步 |
-| 推進工作 | `/pf-next` 依看板推進一步，可能是下列其中一種：<br>- 下一個 Task：實作 → 兩位審查者 → 實測「待驗證」項目 → 最多兩輪修正 → 記錄<br>- 整體審查<br>- 依 D2 在本地 ff 合併<br>`/pf-next all` 會連續做到工作項目完成或遇到阻塞。<br>`/pf-next dry` 只預覽，不改 repo，但在正確的分支上會跑一次測試頁（用 127.0.0.1） |
+| 推進工作 | `/pf-next` 依看板推進一步，可能是下列其中一種：<br>- 下一個 Task：實作 → 審查（展示模式一位，完整流程兩位）→ 實測「待驗證」項目 → 修正（展示模式最多一輪，完整流程最多兩輪）→ 記錄<br>- 整體審查<br>- 依 D2 在本地 ff 合併<br>`/pf-next all` 會連續做到工作項目完成或遇到阻塞。<br>`/pf-next dry` 只預覽，不改 repo，但在正確的分支上會跑一次測試頁（用 127.0.0.1）。<br>`/pf-next full` 單次改用完整流程（§13） |
 | 寫規格 | `superpowers:brainstorming`，要和人類一起做。📋 以上的項目**不要**再跑 |
 | 寫計畫 | `superpowers:writing-plans`。📋 以上的項目**不要**再跑 |
 | 手動執行 plan | `superpowers:subagent-driven-development`：<br>- 先依 §7 歸檔，並建立第一行是 `Plan:` 的 ledger<br>- 不開 worktree（D2）<br>- 每個 Task 都照 §3 第 9 步 commit PROGRESS<br>- plan 開頭的「REQUIRED SUB-SKILL」優先改用 `/pf-next` |
@@ -444,6 +446,41 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 | 看板已經是 ✅，但已合併的 `feature/*` 分支還在 | 中斷在 G6 commit 之後、刪分支之前 | `git branch -d <分支>`。這個分支不算「進行中的分支」 |
 | 有 `.superpowers/` 以外的 untracked 檔案 | 前一個 session 沒有 commit | 列給人類看，不要自己 add 或刪除 |
 | 「認領中」殘留 | 前一個 session 沒收尾 | 依 §9 判斷是否過期 |
+
+---
+
+## 13. 展示模式（人類 2026-10-05 指示，PROGRESS D30）
+
+Demo 是展示用的，目標是主要功能能用，不在細節修飾上花時間。PROGRESS「▶ 現在」的「模式」欄寫「展示模式」時適用，**和本文件其他章節衝突時以本節為準**。人類要恢復完整流程時，把那一欄改成「完整流程」；`/pf-next full` 可以單次用完整流程。
+
+**不變的部分**
+- AGENTS §3 的硬性規則：`commit()`／`log()`、`can()`、`esc()`、繁體中文、不加外部函式庫、`db.v`／`upgrade()`、只改允許的檔案。
+- TDD：照 plan 的測試先跑出 RED、再做到 GREEN，記下 `#sum` 原文。沒有實際跑出結果，就不能說測試通過。
+- 手機版：375px 沒有水平捲動（§5 第 7 點的檢查式），console 沒有錯誤（D33：人類要求手機也要能看）。
+- Git 規則（§6）、一次只做一個分支、每個 Task 記錄並 commit、交接紀錄。
+
+**減輕的部分**
+
+| 項目 | 完整流程 | 展示模式 |
+|---|---|---|
+| Task 審查（§3 第 8 步） | spec 和品質兩位審查者 | 一位審查者同時看 spec 和品質 |
+| 阻塞標準（§4.1 嚴重度） | Critical、Important | 只有**會讓展示出問題**的才算 Important：功能壞掉或拋例外、資料錯誤或遺失、畫面上看得到的錯誤（`undefined`、`NaN`、版面跑掉）、375px 水平捲動、console 錯誤、安全問題（例如沒有 `esc()`）。其他都算 Minor |
+| 修正輪 | 最多兩輪，每輪修完再審 | 最多一輪，修完由審查者再看一次。仍未通過就標 ⛔ |
+| Minor | 記進 §5，整體審查時判斷要不要修 | 記進 §5 就好，不修（延到正式版），除非 PROGRESS 指定要修 |
+| 補強測試、變異 RED（PROGRESS W2 執行注意 19） | 沒有自然 RED 時要做 | 不做 |
+| 待驗證項目 | 審查者列出的都要實測 | 只列和上面阻塞標準有關的項目 |
+| 整體審查（G4） | 最多兩輪 | 一輪；有阻塞問題時修一次，再審一次 |
+| 驗收清單 | 照 plan 和 spec 詳列 | 照 PROGRESS 精簡後的清單 |
+| spec 沒寫到的小細節（§8 第 1、3 點） | 停下來問人類 | **AI 代決**（D32）：照最合理的建議做，在 PROGRESS §6 新增一個 D，狀態寫「AI 代決 YYYY-MM-DD：<結論>（可推翻）」，不標 ⛔，也不停下來。人類事後看 §6 |
+| plan-mandated Important（§4.1） | 改成 🟢 之前要有人類結論 | 照審查者建議的修法修，記成 AI 代決的 D |
+
+**仍然要停下來問人類**
+- 改範圍：新增或刪掉功能、取消或新增工作項目。
+- 要寫新的 spec，或 spec 大幅改版（G1）。
+- 改資料版本（plan 已經規定的除外）、引入外部依賴、修改允許清單以外的產品或測試檔。
+- plan-mandated Critical。
+- push、PR、無法 fast-forward 的合併、`main` 出現不明的新 commit，或任何破壞性的 git 操作。
+- 測試回歸查不出原因（§5 第 11 點），或 debugging 修了兩輪仍然失敗。
 
 ---
 

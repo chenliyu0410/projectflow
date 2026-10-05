@@ -82,6 +82,8 @@
 - 要寫新的 spec。
 - push、PR、無法 fast-forward 的合併，或 `main` 出現來源不明的新 commit。
 
+**展示模式**（PROGRESS「▶ 現在」的「模式」欄；細節見 [WORKFLOW §13](docs/WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)）：spec 沒寫到的小細節由 AI 代決，記進 PROGRESS §6 後繼續做；審查只擋會讓展示出問題的錯誤。上面其他情況照舊要停下來。
+
 處理方式：先把問題記進 PROGRESS §6，再問人類。人類不在的話，照 PROGRESS §2 的排程規則處理，**不要用猜的**。
 
 ## 6. 文件地圖

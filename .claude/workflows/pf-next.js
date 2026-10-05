@@ -1,13 +1,13 @@
 export const meta = {
   name: 'pf-next',
-  description: 'ProjectFlow：依 docs/PROGRESS.md 推進下一步（Task 實作→雙審查→實測待驗證→修正→記錄／整體審查／依 D2 合併）；all＝連續到工作項目完成或阻塞；dry＝只預覽',
-  whenToUse: '要推進 ProjectFlow 目前的工作項目時。參數：留空＝推進一步；all＝連續執行到整體審查與合併（或遇到阻塞）；dry＝不改 repo 的預覽（在正確分支上會用 127.0.0.1 跑一次測試頁）。',
+  description: 'ProjectFlow：依 docs/PROGRESS.md 推進下一步（Task 實作→審查→實測待驗證→修正→記錄／整體審查／依 D2 合併）；看板是展示模式時照 WORKFLOW §13；all＝連續到工作項目完成或阻塞；dry＝只預覽；full＝這次用完整流程',
+  whenToUse: '要推進 ProjectFlow 目前的工作項目時。參數：留空＝推進一步；all＝連續執行到整體審查與合併（或遇到阻塞）；dry＝不改 repo 的預覽（在正確分支上會用 127.0.0.1 跑一次測試頁）；full＝不套用展示模式（可和 all 併用）。',
   phases: [
     { title: 'Orient', detail: '讀看板、檢查認領與分支、Pre-flight、基準測試、決定下一步' },
     { title: 'Implement', detail: 'TDD 實作一個 Task 並 commit' },
-    { title: 'Review', detail: 'spec 符合度與品質，兩位唯讀審查者' },
+    { title: 'Review', detail: '展示模式一位審查者（spec＋品質）；完整流程兩位唯讀審查者' },
     { title: 'Verify', detail: '實測審查者列出的待驗證項目' },
-    { title: 'Fix', detail: '修正 Critical／Important，最多兩輪' },
+    { title: 'Fix', detail: '修正阻塞問題，展示模式最多一輪、完整流程最多兩輪' },
     { title: 'Final review', detail: '所有 Task 完成後的整體審查與驗收' },
     { title: 'Record', detail: '獨立重跑測試、更新 PROGRESS.md 與 ledger、commit' },
     { title: 'Merge', detail: '依 PROGRESS D2 本地 fast-forward 合併並收尾' },
@@ -20,13 +20,37 @@ const raw = (Array.isArray(args) ? args.join(' ') : typeof args === 'string' ? a
 const DRY = !!opt.dryRun || /(^|[\s-])(dry|preview)\b|預覽/.test(raw)
 const ALL = !DRY && (!!opt.all || /(^|\s)all\b|全部/.test(raw))
 const MAX_TASKS = ALL ? 12 : Math.max(1, Number(opt.tasks) || 1)
-const MAX_FIX_ROUNDS = 2
-log(`參數 ${JSON.stringify(args === undefined ? '' : args)} → ${DRY ? 'dry（不改 repo 的預覽）' : ALL ? `all（最多 ${MAX_TASKS} 個 Task）` : `推進 ${MAX_TASKS} 步`}`)
+// 展示模式（WORKFLOW §13）由看板「▶ 現在」的「模式」欄決定（orient 回傳 demoMode）；full 參數強制用完整流程
+const FULL = !!opt.full || /(^|\s)full\b|完整/.test(raw)
+const isDemo = (o) => !FULL && !!(o && o.demoMode)
+const maxFixRounds = (o) => (isDemo(o) ? 1 : 2)
+log(`參數 ${JSON.stringify(args === undefined ? '' : args)} → ${DRY ? 'dry（不改 repo 的預覽）' : ALL ? `all（最多 ${MAX_TASKS} 個 Task）` : `推進 ${MAX_TASKS} 步`}${FULL ? '，完整流程' : ''}`)
 
 const BASE = `專案：ProjectFlow，repo 就是目前工作目錄（git）。進度看板 docs/PROGRESS.md 是唯一依據；硬性規則在 AGENTS.md §3；流程在 docs/WORKFLOW.md。
 說明文字用繁體中文，識別字、路徑、SHA 照原樣。絕對不要 push、force、reset --hard、checkout -- <檔案>、stash drop，也不要改寫已提交的歷史。
 不要整份讀 projectflow-full-demo.html（約 28 萬字元）：先 grep 函式名，再用 offset/limit 讀局部。
-測試與瀏覽器一律用 http://127.0.0.1:8000/（不要用 localhost）；確認伺服器用 \`curl.exe -s http://127.0.0.1:8000/AGENTS.md\`（PowerShell 必須寫 curl.exe）。`
+測試與瀏覽器一律用 http://127.0.0.1:<埠>/（不要用 localhost）。先用 \`curl.exe -s http://127.0.0.1:8000/AGENTS.md\`（PowerShell 必須寫 curl.exe）確認 8000 是這個 repo；不是的話不要動它，照 WORKFLOW §5 第 1 點改用 8001（自己啟動、記下 PID、結束時用同一個 shell 關掉），後面的網址都跟著換。`
+
+// 展示模式的共同說明，附加在各步驟的 prompt 後面
+const DEMO_BAR = `會讓展示出問題的才算阻塞（critical／important）：功能壞掉或拋例外、資料錯誤或遺失、畫面上看得到的錯誤（undefined、NaN、版面跑掉）、375px 水平捲動、console 錯誤、安全問題（例如沒有 esc()）。其他都算 minor。`
+const demoNote = (o, role) => !isDemo(o) ? '' : `
+
+**展示模式（docs/WORKFLOW.md §13，優先於其他章節）**：目標是主要功能能用，不在細節修飾上花時間。AGENTS §3 的硬性規則、TDD（RED→GREEN 的 #sum 原文）、375px 沒有水平捲動、console 沒有錯誤都不變。
+${{
+  implement: `- 只寫 plan 指定的測試，不要另外補強測試，也不要做變異 RED。
+- spec／plan 沒寫到的小細節，照最合理的做法做，寫進 concerns，開頭寫「AI 代決：」並附上你的選擇和理由。改範圍、改資料版本、改允許清單以外的檔案仍然要回報 NEEDS_CONTEXT。`,
+  review: `- 你是唯一的審查者，同時負責 spec 符合度和程式品質。
+- ${DEMO_BAR}
+- verify 只列和上述阻塞標準有關、從 diff 判斷不了的項目，最多 5 項。
+- plan 規定的做法有 important 等級的缺陷時，照常標 planMandated=true，fix 欄寫建議修法（會直接照修，記成 AI 代決）。`,
+  fix: `- 能重現的問題先寫一個測試跑出 RED 再修；不要另外補強測試，也不要做變異 RED。
+- planMandated 的項目照審查者建議的修法修。`,
+  final: `- ${DEMO_BAR}
+- PROGRESS §5 的 minor 不要求合併前修，除非 PROGRESS 的執行注意指定要修。`,
+  record: `- planMandatedIssues（important）已經照修法修好：§6 新增 D，狀態寫「AI 代決 <日期>：<修法>（可推翻）」，不要寫「待人類」，也不要標 ⛔。
+- implementer／修正者 concerns 裡開頭是「AI 代決：」的項目，同樣各記成一個「AI 代決」的 D。
+- minor 照常記進 §5 OPEN，不用排修正。`,
+}[role]}`
 
 const TRAILER_RULE = `commit 訊息結尾空一行，加上 session attribution 指定的 trailer（例如 \`Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\`），模型名稱寫你實際執行的模型。plan 裡寫死的 trailer 不要照抄，也不要重複。`
 
@@ -70,8 +94,9 @@ const ORIENT = {
     executionNotes: { type: 'string', description: 'PROGRESS 該工作項目「執行注意」中與這一步相關的條目（全文），以及已決定的相關 D 結論' },
     humanQuestions: { type: 'array', items: { type: 'string' } },
     actionsTaken: { type: 'array', items: { type: 'string' } },
+    demoMode: { type: 'boolean', description: '目前分支 PROGRESS「▶ 現在」的「模式」欄是「展示模式」時為 true（WORKFLOW §13）；沒有這一欄或寫「完整流程」時為 false' },
   },
-  required: ['ok', 'mode', 'reason', 'needsRecord', 'workItem', 'title', 'specPath', 'planPath', 'branch', 'commitPrefix', 'allowedFiles', 'taskNumber', 'taskTitle', 'taskSubject', 'totalTasks', 'baseSha', 'headSha', 'mergeBase', 'alreadyMerged', 'testBaseline', 'executionNotes', 'humanQuestions', 'actionsTaken'],
+  required: ['ok', 'mode', 'reason', 'needsRecord', 'workItem', 'title', 'specPath', 'planPath', 'branch', 'commitPrefix', 'allowedFiles', 'taskNumber', 'taskTitle', 'taskSubject', 'totalTasks', 'baseSha', 'headSha', 'mergeBase', 'alreadyMerged', 'testBaseline', 'executionNotes', 'humanQuestions', 'actionsTaken', 'demoMode'],
 }
 
 const IMPL = {
@@ -143,8 +168,9 @@ const RECORD = {
 const flat = (reviews) => reviews.filter(Boolean).flatMap((r) => r.issues || [])
 const uniq = (xs) => xs.filter((x, i) => xs.findIndex((y) => y.file === x.file && y.line === x.line && y.desc === x.desc) === i)
 const isPM = (i) => i.planMandated && i.severity !== 'minor'
-const blocking = (reviews) => reviews.filter(Boolean).flatMap((r) => {
-  const hard = (r.issues || []).filter((i) => (i.severity === 'critical' || i.severity === 'important') && !isPM(i))
+// 展示模式：plan-mandated important 也直接修（記成 AI 代決）；plan-mandated critical 仍然停
+const blocking = (reviews, demo) => reviews.filter(Boolean).flatMap((r) => {
+  const hard = (r.issues || []).filter((i) => (i.severity === 'critical' || i.severity === 'important') && (!isPM(i) || (demo && i.severity === 'important')))
   if (!hard.length && r.verdict === 'needs_fixes' && !(r.issues || []).some(isPM)) {
     return [{ severity: 'important', planMandated: false, file: '(review)', line: '', desc: `審查結論是 needs_fixes 但沒有列出阻塞 issue：${String(r.report || '').slice(0, 400)}`, fix: '依審查報告處理' }]
   }
@@ -170,7 +196,7 @@ ${o.executionNotes || '（無）'}`
 // ── 各步驟的 prompt ──
 const orientPrompt = (step) => `${BASE}
 
-你是 controller 的「定位」步驟。先讀 AGENTS.md、docs/WORKFLOW.md 的 §0、§2、§5、§8、§9、§12，以及 docs/PROGRESS.md 的「▶ 現在」、§2、§6（注意「來源」欄）和目前工作項目在 §3 的明細。${DRY ? `
+你是 controller 的「定位」步驟。先讀 AGENTS.md、docs/WORKFLOW.md 的 §0、§2、§5、§8、§9、§12、§13，以及 docs/PROGRESS.md 的「▶ 現在」、§2、§6（注意「來源」欄）和目前工作項目在 §3 的明細。${DRY ? `
 **這是 DRY RUN，不可以改 repo**：不 checkout、不建分支、不 commit、不搬檔、不改任何檔案（包括認領）。
 - 「本來會做的動作」寫進 actionsTaken，每項前面加「(dry) 」。
 - 如果目前分支不是「▶ 現在」指向的分支：
@@ -223,6 +249,7 @@ const orientPrompt = (step) => `${BASE}
    - 讀 plan 的 Global Constraints、該 Task 全文，以及 PROGRESS 的執行注意。
    - 抽查該 Task 要搜尋的程式片段（錨點）在目前的程式碼中存在。
    - 衝突已經在執行注意裡裁決過的，照裁決做。其他無法自行解決的衝突 → mode=blocked，問題寫進 humanQuestions，needsRecord=${DRY ? 'false' : 'true'}。
+   - ${FULL ? '這次是完整流程（full），不套用展示模式。' : '「▶ 現在」的「模式」是「展示模式」時（WORKFLOW §13）：只是小細節的衝突（不改範圍、不改資料版本、不改允許清單以外的檔案），不要 blocked，把「AI 代決：<衝突與選擇>」寫進 executionNotes 最後，讓 implementer 照做、記錄者記成 D。'}
    - executionNotes 填相關條目的全文。taskSubject 填 plan 指定的 commit 主旨。
 6. **基準測試**（mode 為 task、review、final，或 📋 開工前都要做；merge 不用；DRY 規則見上面）：
    - 照 WORKFLOW §5 跑一次，testBaseline 填 \`#sum\` 原文。
@@ -238,6 +265,8 @@ const orientPrompt = (step) => `${BASE}
 8. **認領**（非 DRY，mode 為 task、review、final 時做）：「認領中」不是你的話，改成「Claude（/pf-next）／<日期時間>」。這個修改**先不 commit**，記錄步驟會一起 commit。merge 模式不寫認領。
 9. 收尾欄位：
    - headSha、mergeBase、alreadyMerged 照 schema 說明填。task、final、merge 模式下，baseSha 等於 headSha。
+   - mergeBase 例外：目前工作項目的執行注意如果指定了整體審查的起點（例如 main 已經包含部分 Task，見 W2 執行注意 33），mergeBase 改填那個 commit 的完整 SHA。
+   - demoMode：照 schema 說明，看**目前分支** PROGRESS「▶ 現在」的「模式」欄。
    - mode 是 task、review、final、merge 時 ok=true；blocked、idle 時 ok=false。`
 
 const implementPrompt = (o) => `${BASE}
@@ -258,31 +287,33 @@ BASE：${o.baseSha}　目前測試：${o.testBaseline}　plan 指定的 commit �
 - **自我檢查**：照 WORKFLOW §4.1。
 - **Commit**：\`git add <明確路徑>\`，只加允許清單內你改過的檔案。主旨用 plan 指定的；沒有的話用 \`${o.commitPrefix} task ${o.taskNumber}: …\`。${TRAILER_RULE}
 - **報告**：寫到 \`.superpowers/sdd/task-${o.taskNumber}-report.md\`，格式照 WORKFLOW 附錄 C。
-- 不要改 docs/PROGRESS.md（記錄步驟會處理），不要 push。伺服器只關你自己啟動的。`
+- 不要改 docs/PROGRESS.md（記錄步驟會處理），不要 push。伺服器只關你自己啟動的。${demoNote(o, 'implement')}`
 
 const reviewPrompt = (o, kind, base, head, prior) => `${BASE}
 
-你是**唯讀**的${kind === 'spec' ? ' spec 符合度' : '程式品質'}審查者，審查 ${o.workItem} 的 Task ${o.taskNumber}「${o.taskTitle}」。先讀 AGENTS.md §3 和 docs/WORKFLOW.md §4.1。
-不可以修改 working tree、index、HEAD 或分支。**不要使用瀏覽器，也不要啟動伺服器**，因為另一位審查者同時在跑。
+你是**唯讀**的${kind === 'spec' ? ' spec 符合度' : kind === 'quality' ? '程式品質' : ' spec 符合度＋程式品質'}審查者，審查 ${o.workItem} 的 Task ${o.taskNumber}「${o.taskTitle}」。先讀 AGENTS.md §3 和 docs/WORKFLOW.md §4.1${isDemo(o) ? '、§13' : ''}。
+不可以修改 working tree、index、HEAD 或分支。**不要使用瀏覽器，也不要啟動伺服器**，需要實測的放進 verify。
 ${itemCtx(o)}
 審查範圍：先看 \`git log --oneline ${base}..${head}\` 和 \`git diff --stat ${base}..${head}\`，再讀 \`git diff ${base}..${head}\`。
 實作報告在 .superpowers/sdd/task-${o.taskNumber}-report.md。**不要相信報告的自述**，以 diff 為準；但實作者或修正者對「待驗證」項目附上的 DOM/JS 讀值和測試頁輸出，可以採信。
 PROGRESS「執行注意」已經裁決的做法不算 issue。
 ${prior ? `上一輪資料如下（阻塞問題、修正者的實測紀錄）。請逐一確認阻塞問題是否修好，仍然存在的要再列一次：\n${prior}\n` : ''}
-${kind === 'spec'
+${kind !== 'quality'
     ? `重點：對照 plan 中該 Task 的全文和 spec 的相關章節，找出：
 - 漏做（Missing）
 - 多做（Extra）
 - 做錯（Misunderstood）
 - 測試沒照 plan 寫，或沒有真的斷言行為
 **從 diff 無法判斷的部分**（例如畫面外觀、互動流程、測試是否真的通過）放進 verify，附上具體驗證方法。這些不算 issue。`
-    : `重點：
+    : ''}${kind === 'combined' ? '\n' : ''}${kind !== 'spec'
+    ? `重點：
 - WORKFLOW §4.1 的專案硬性規則：commit()／log()、can()、esc()、繁體中文、不用 CDN、只改允許的檔案、db.v／upgrade()
 - 品質：錯誤處理、邊界情況、逐字重複的程式碼、測試品質、檔案膨脹
-只有能說出具體風險時，才去看 diff 以外的程式碼，而且每個風險只做一次聚焦檢查。需要實測才能確認的項目放進 verify。`}
+只有能說出具體風險時，才去看 diff 以外的程式碼，而且每個風險只做一次聚焦檢查。需要實測才能確認的項目放進 verify。`
+    : ''}
 嚴重度的定義照 WORKFLOW §4.1。plan 本身規定了有缺陷的做法時，只有 critical 或 important 才設 planMandated=true；minor 就當一般 minor。每個 issue 都要附 file:line。
 verdict：有任何 critical 或 important、而且不是 planMandated 的 issue，填 needs_fixes；否則填 approved。verify 項目不影響 verdict。
-report：完整的審查文字，依序寫 Spec Compliance → Strengths → Issues → Verify → Assessment。`
+report：完整的審查文字，依序寫 Spec Compliance → Strengths → Issues → Verify → Assessment。${demoNote(o, 'review')}`
 
 const verifyPrompt = (o, items) => `${BASE}
 
@@ -311,7 +342,7 @@ ${J(issues)}
 - commit：\`git add <明確路徑>\`，訊息用 \`${label === 'final' ? `${o.commitPrefix} final review fixes: …` : `${o.commitPrefix} task ${o.taskNumber} fix: …`}\`。${TRAILER_RULE}
   - 沒有改任何程式時不要 commit，headSha 填目前的 HEAD。
 - 在 \`${label === 'final' ? '.superpowers/sdd/final-fix-report.md' : `.superpowers/sdd/task-${o.taskNumber}-report.md`}\` 後面附加 \`## Fix round ${round}\`，內容包括 RED/GREEN 證據、實測結果、改動檔案和 concerns。
-- 不要改 docs/PROGRESS.md，不要 push。伺服器只關你自己啟動的。`
+- 不要改 docs/PROGRESS.md，不要 push。伺服器只關你自己啟動的。${demoNote(o, 'fix')}`
 
 const recordPrompt = (o, data) => `${BASE}
 
@@ -360,7 +391,7 @@ ${J(data)}
    - blocked：\`Progress: ${o.workItem} blocked\`
    - 整體審查：\`Progress: ${o.workItem} final review\`
    ${TRAILER_RULE}
-6. 回傳下一步，必須和「▶ 現在」一致。看板已更新並 commit、而且第 2 步（如果有做）一致時，ok=true。outcome 是 blocked 但記錄成功，也算 ok=true。`
+6. 回傳下一步，必須和「▶ 現在」一致。看板已更新並 commit、而且第 2 步（如果有做）一致時，ok=true。outcome 是 blocked 但記錄成功，也算 ok=true。${demoNote(o, 'record')}`
 
 const mergePrompt = (o) => `${BASE}
 
@@ -421,18 +452,17 @@ async function runTask(o, continuing, resume) {
     outcome = 'blocked'
     reason = `implementer 回報 ${impl.status}：${(impl.concerns || []).join('；')}`
   } else {
+    const kinds = isDemo(o) ? ['combined'] : ['spec', 'quality']
     for (let round = 0; ; round++) {
       phase('Review')
-      const reviews = await parallel([
-        () => agent(reviewPrompt(o, 'spec', o.baseSha, head, prior), { label: `review:spec ${o.workItem} T${o.taskNumber}${round ? ` r${round}` : ''}`, phase: 'Review', schema: REVIEW }),
-        () => agent(reviewPrompt(o, 'quality', o.baseSha, head, prior), { label: `review:quality ${o.workItem} T${o.taskNumber}${round ? ` r${round}` : ''}`, phase: 'Review', schema: REVIEW }),
-      ])
-      allReviews.push(...reviews.map((r, i) => r && { ...r, kind: i ? 'quality' : 'spec', round, base: o.baseSha, head }).filter(Boolean))
-      const missing = ['spec', 'quality'].filter((_, i) => !reviews[i])
+      const reviews = await parallel(kinds.map((kind) =>
+        () => agent(reviewPrompt(o, kind, o.baseSha, head, prior), { label: `review:${kind} ${o.workItem} T${o.taskNumber}${round ? ` r${round}` : ''}`, phase: 'Review', schema: REVIEW })))
+      allReviews.push(...reviews.map((r, i) => r && { ...r, kind: kinds[i], round, base: o.baseSha, head }).filter(Boolean))
+      const missing = kinds.filter((_, i) => !reviews[i])
       if (missing.length) { outcome = 'blocked'; reason = `審查者沒有回應：${missing.join('、')}（不可視為通過）`; break }
       const pmCritical = planMandated(reviews).filter((i) => i.severity === 'critical')
       if (pmCritical.length) { outcome = 'blocked'; reason = `plan-mandated critical ${pmCritical.length} 項，需要人類決定（WORKFLOW §4.1、§8）`; break }
-      let block = blocking(reviews)
+      let block = blocking(reviews, isDemo(o))
       const items = verifyItems(reviews)
       if (!block.length && items.length) {
         phase('Verify')
@@ -444,7 +474,7 @@ async function runTask(o, continuing, resume) {
       }
       lastBlock = block
       if (!block.length) break
-      if (round >= MAX_FIX_ROUNDS) { outcome = 'blocked'; reason = `修正 ${MAX_FIX_ROUNDS} 輪後仍有 ${block.length} 個阻塞問題`; break }
+      if (round >= maxFixRounds(o)) { outcome = 'blocked'; reason = `修正 ${maxFixRounds(o)} 輪後仍有 ${block.length} 個阻塞問題`; break }
       phase('Fix')
       const fx = await agent(fixPrompt(o, block, round + 1, 'task'), { label: `fix ${o.workItem} T${o.taskNumber} r${round + 1}`, phase: 'Fix', schema: IMPL })
       if (!fx || fx.status === 'BLOCKED' || fx.status === 'NEEDS_CONTEXT') {
@@ -458,7 +488,9 @@ async function runTask(o, continuing, resume) {
     }
   }
 
-  const keepClaim = continuing && outcome === 'done' && !(ALL && planMandated(allReviews).length)
+  // 展示模式下 plan-mandated important 已直接修好（AI 代決），不用為它停
+  const pmWaiting = isDemo(o) ? 0 : planMandated(allReviews).length
+  const keepClaim = continuing && outcome === 'done' && !(ALL && pmWaiting)
   phase('Record')
   const rec = await agent(recordPrompt(o, {
     outcome, reason, continuing: keepClaim, resumed: !!resume,
@@ -472,7 +504,7 @@ async function runTask(o, continuing, resume) {
 
   return {
     outcome, reason, task: o.taskNumber, head, fixRounds: fixes.length,
-    planMandatedCount: planMandated(allReviews).length,
+    planMandatedCount: pmWaiting,
     claimKept: keepClaim && !!(rec && rec.ok),
     impl: impl ? { status: impl.status, commits: impl.commits, green: impl.green, concerns: impl.concerns } : null,
     record: rec,
@@ -506,7 +538,7 @@ PROGRESS「執行注意」已經裁決的做法不算 issue。
 ${prior ? `上一輪的資料如下，請逐一確認是否修好，仍存在的要再列一次：\n${prior}\n` : ''}
 嚴重度照 WORKFLOW §4.1；planMandated 只用在 critical／important。
 verdict：有任何 critical 或 important、而且不是 planMandated 的問題時，填 needs_fixes；否則填 approved（等於 Ready to merge: Yes）。
-spec 欄填 n/a 或 compliant。report 是完整的審查文字，結尾要寫 \`Ready to merge: Yes | No | With fixes\`。`, { label: `final-review ${o.workItem}${round ? ` r${round}` : ''}`, phase: 'Final review', schema: REVIEW }),
+spec 欄填 n/a 或 compliant。report 是完整的審查文字，結尾要寫 \`Ready to merge: Yes | No | With fixes\`。${demoNote(o, 'final')}`, { label: `final-review ${o.workItem}${round ? ` r${round}` : ''}`, phase: 'Final review', schema: REVIEW }),
       () => agent(`${BASE}
 
 你是驗收者，負責 ${o.workItem}「${o.title}」。不要修改任何檔案。先讀 docs/WORKFLOW.md §5。
@@ -526,9 +558,9 @@ ${itemCtx(o)}
     if (pmCritical.length) { outcome = 'final_blocked'; reason = `plan-mandated critical ${pmCritical.length} 項，需要人類決定`; break }
     const accFails = (acc.checks || []).filter((c) => !c.pass).map((c) => ({ severity: 'important', planMandated: false, file: '(acceptance)', line: '', desc: `驗收未通過：${c.item}`, fix: c.evidence }))
     if (!acc.allPass && !accFails.length) accFails.push({ severity: 'important', planMandated: false, file: '(acceptance)', line: '', desc: `驗收 allPass=false（#sum：${acc.sum}）`, fix: acc.notes })
-    const all = [...blocking([final]), ...accFails]
+    const all = [...blocking([final], isDemo(o)), ...accFails]
     if (!all.length) break
-    if (round >= MAX_FIX_ROUNDS) { outcome = 'final_blocked'; reason = `整體審查或驗收在修正 ${round} 輪後仍未通過（${all.length} 項）`; break }
+    if (round >= maxFixRounds(o)) { outcome = 'final_blocked'; reason = `整體審查或驗收在修正 ${round} 輪後仍未通過（${all.length} 項）`; break }
     phase('Fix')
     const fx = await agent(fixPrompt(o, all, round + 1, 'final'), { label: `final-fix ${o.workItem} r${round + 1}`, phase: 'Fix', schema: IMPL })
     if (!fx || fx.status === 'BLOCKED' || fx.status === 'NEEDS_CONTEXT') {
@@ -548,7 +580,7 @@ ${itemCtx(o)}
     acceptance: acc,
     minorIssues: minors(allFinals), planMandatedIssues: planMandated(allFinals),
   }), { label: `record ${o.workItem} final`, phase: 'Record', schema: RECORD })
-  return { outcome, reason, head, fixRounds: fixes.length, planMandatedCount: planMandated(allFinals).length, acceptance: acc && { sum: acc.sum, allPass: acc.allPass }, record: rec }
+  return { outcome, reason, head, fixRounds: fixes.length, planMandatedCount: isDemo(o) ? 0 : planMandated(allFinals).length, acceptance: acc && { sum: acc.sum, allPass: acc.allPass }, record: rec }
 }
 
 // ── 主迴圈 ──
@@ -561,7 +593,7 @@ for (let step = 0; step < MAX_TASKS + 4; step++) {
   const o = await agent(orientPrompt(step), { label: `orient${step ? ` #${step + 1}` : ''}`, phase: 'Orient', schema: ORIENT })
   if (!o) { history.push({ step: 'orient', outcome: 'error', reason: 'orient agent 沒有回應' }); break }
   history.push({ step: 'orient', mode: o.mode, workItem: o.workItem, task: o.taskNumber, reason: o.reason, testBaseline: o.testBaseline, actions: o.actionsTaken, humanQuestions: o.humanQuestions })
-  log(`${o.workItem || '?'}｜mode=${o.mode}${o.taskNumber ? `｜Task ${o.taskNumber}/${o.totalTasks}` : ''}｜${o.reason}`)
+  log(`${o.workItem || '?'}｜mode=${o.mode}${o.taskNumber ? `｜Task ${o.taskNumber}/${o.totalTasks}` : ''}${isDemo(o) ? '｜展示模式' : ''}｜${o.reason}`)
 
   if (o.mode === 'blocked' && o.needsRecord && !DRY) {
     phase('Record')
