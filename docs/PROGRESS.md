@@ -23,7 +23,7 @@
 | 資料版本 | `db.v = 5`（W3 起；`load()` 讀 v2／v3／v4／v5 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | — |
 | 阻塞／待人類 | D10、D11 仍待人類但不擋 Demo 軌；D12 已由 AI 起草並更新 README，待人類可推翻；D34–D42 是 AI 代決或人類調整（可推翻）。 |
-| 遠端 | 2026-10-05：人類授權「確認後推上去」與「git 上的 readme 也要記得更新進度」後，已把 W3 與 W5 README 更新 push 到 `origin/main`（`aafc5ca`）。每次 push 都要人類明確授權（D3）。 |
+| 遠端 | 2026-10-05：人類授權「確認後推上去」與「git 上的 readme 也要記得更新進度」後，已把 W3、W5 README 更新與本看板收尾 push 到 `origin/main`。每次 push 都要人類明確授權（D3）。 |
 
 ---
 
@@ -498,7 +498,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 |---|---|---|---|---|
 | D1 | W1、W2 | W1 和 W2 的執行順序 | **先做 W1，再做 W2。** 理由：W1 的測試數（44→51→57）和「db.v 維持 3」只有先做才成立；W2 只需要調整一個片段；W1 的測試可以當作 W2 改寫權限時的回歸網 | 採預設 |
 | D2 | 流程 | 分支與合併方式 | 每個工作項目開一個分支 `feature/<wid>-<slug>`，直接在主 checkout 開，**不用 worktree**。plan 或 skill 要求用 worktree 時，以這條為準。整體審查結論是 Ready to merge、測試全部通過，而且所有審查都是獨立進行的（不是自我審查），這時 **AI 可以在本地用 `git merge --ff-only` 合併進 `main`**，然後刪除分支（WORKFLOW G5，比照 F11 的先例）。不 push | 採預設（人類可以改成「合併前一律問我」） |
-| D3 | 流程 | 要不要 push 到 `origin` | 由人類執行，或由人類明確授權。AI 不會自己 push | 已決定 2026-10-01：人類授權 push 交接系統（連同 `edf46b6`、`dfc0126`），已完成。2026-10-01 第二次授權：人類指示「完成後上傳到GIT」，W1 完成並合併進 `main` 後，把 `main` push 到 `origin`。2026-10-02：人類指示「推上 git」，W1 合併後已把 `main` push 到 `origin`（不 force，只推 `main`）。每次授權都只限該次，之後每次 push 仍要人類明確授權。2026-10-02 第三次：人類指示「你這個階段做完就先暫停，幫我 commit and push」，W2 Task 5 完成後 push `main` 和 `feature/w2-departments`（人類選「推兩個，README 寫在分支」）。2026-10-05：人類指示「push上去」，Codex 已 push `main` 到 `origin/main`（`8041e14..a2f7e85`），沒有 push 或刪除遠端 feature 分支。2026-10-05：人類指示「確認後推上去」與「git 上的 readme 也要記得更新進度」，Codex 已 push `main` 到 `origin/main`（`f1a9c74..aafc5ca`） |
+| D3 | 流程 | 要不要 push 到 `origin` | 由人類執行，或由人類明確授權。AI 不會自己 push | 已決定 2026-10-01：人類授權 push 交接系統（連同 `edf46b6`、`dfc0126`），已完成。2026-10-01 第二次授權：人類指示「完成後上傳到GIT」，W1 完成並合併進 `main` 後，把 `main` push 到 `origin`。2026-10-02：人類指示「推上 git」，W1 合併後已把 `main` push 到 `origin`（不 force，只推 `main`）。每次授權都只限該次，之後每次 push 仍要人類明確授權。2026-10-02 第三次：人類指示「你這個階段做完就先暫停，幫我 commit and push」，W2 Task 5 完成後 push `main` 和 `feature/w2-departments`（人類選「推兩個，README 寫在分支」）。2026-10-05：人類指示「push上去」，Codex 已 push `main` 到 `origin/main`（`8041e14..a2f7e85`），沒有 push 或刪除遠端 feature 分支。2026-10-05：人類指示「確認後推上去」與「git 上的 readme 也要記得更新進度」，Codex 已 push W3、W5 README 更新與看板收尾到 `origin/main` |
 | D4 | F11（W4） | F11-T1-m5：重置 Demo 時要不要把角色重設回 yu | 建議重設回 yu | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
 | D5 | F11（W4） | F11-T4-m2：SVG 附件改成下載，還是用 `<img>` 或 sandbox 顯示 | 建議排除 SVG 預覽，改成下載（安全優先） | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
 | D6 | F11（W4） | F11-T4-m4：附件全部上傳失敗時，回報要不要整份不送出 | 建議先寫入 blob，失敗就不建立回報 | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
