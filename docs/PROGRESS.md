@@ -13,11 +13,11 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W3 工作流架構（精簡版）**（✏️ 規格已確認；準備 G2 plan） |
+| 目前工作項目 | **W3 工作流架構（精簡版）**（📋 已規劃；待確認執行方式） |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | D42 已確認：W3 改成完成可自行新增／編輯／套用工作流的功能架構。已修訂 `docs/superpowers/specs/2026-10-05-process-control-design.md`，下一步進 G2 寫 implementation plan；plan 完成後再開 `feature/w3-workflow-architecture` 實作。 |
+| 下一個動作 | W3 implementation plan 已建立：`docs/superpowers/plans/2026-10-05-workflow-architecture.md`。等人類確認 plan 與執行方式；建議用 Native（Codex 在本 session 逐 Task TDD 實作，展示模式下一輪審查），確認後做 G3 pre-flight 並開 `feature/w3-workflow-architecture`。 |
 | 分支 | `main`（W2 已於 2026-10-05 fast-forward 合併；`feature/w2-departments` 將在 G6 收尾後刪除） |
-| 最新程式 commit | W2 合併結果 `5f326ab`；最新產品程式 commit 是 `b2f7453`（W2 整體修正）。最新進度 commit 是 `7e1621a`。W1 合併後的 HEAD 是 `2d2c785` |
+| 最新程式 commit | W2 合併結果 `5f326ab`；最新產品程式 commit 是 `b2f7453`（W2 整體修正）。最新進度/spec commit 是 `d9c6f55`。W1 合併後的 HEAD 是 `2d2c785` |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 137/137`（2026-10-05，W2 fast-forward 合併到 `main` 後由 Codex 用 8001 重跑，console error 0）。歷史基準：W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
 | 資料版本 | `db.v = 4`（W2 Task 1 起；`load()` 讀 v2／v3／v4 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
@@ -71,7 +71,7 @@
 |---|---|---|---|---|---|---|---|
 | 1 | W1 | 子任務置頂回報卡 | ✅ | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
 | 2 | W2 | 部門模型 | ✅ | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1）；2026-10-05 已 ff 合併進 `main` |
-| 3 | W3 | 工作流架構（**精簡版**，D31／D42）：工作流模板 CRUD、從工作流建立專案、關卡擋住後續階段 | ✏️ 規格已確認，準備 plan | [spec](superpowers/specs/2026-10-05-process-control-design.md) | — | v4 → v5 | W2 已合併；依 D42 先完成功能架構，個別工作流內容由使用者之後自行添加 |
+| 3 | W3 | 工作流架構（**精簡版**，D31／D42）：工作流模板 CRUD、從工作流建立專案、關卡擋住後續階段 | 📋 已規劃 | [spec](superpowers/specs/2026-10-05-process-control-design.md) | [plan](superpowers/plans/2026-10-05-workflow-architecture.md) | v4 → v5 | W2 已合併；依 D42 先完成功能架構，個別工作流內容由使用者之後自行添加 |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ⬜ | — | — | — | 排在 W3 之後。full demo 定位的文字由 AI 起草、人類看一次（D12） |
 | — | P0 | 正式軌工作規則 | ⬜ 未啟動 | — | — | — | D11 決定後才做：和人類一起定技術骨架，改寫 AGENTS §3–§4、WORKFLOW §5、G2 的必備內容。P0 ✅ 之前不能開工 P1 |
@@ -277,7 +277,7 @@
     - spec 沒寫到的小細節由 AI 代決，記成 §6 的 D（D32）。
     - 預期總數照舊：Task 6 是 129、Task 7 是 133，整體修正會再多 4 個左右（第 32 點）。
 
-### W3 工作流架構（精簡版）— ✏️（規格已確認，準備 G2）
+### W3 工作流架構（精簡版）— 📋（已規劃，待執行）
 
 - **來源**：W2 spec 開頭的「拆分」段落原本有 7 項。2026-10-05 人類先選「精簡版」（D31），後續又確認 W3 不要只內建某個工作流，而要完成可自行新增／編輯／套用工作流的功能架構（D42）。本項目只做：
   1. 工作流模板 CRUD：階段、任務、負責部門、協作部門、前置條件、階段關卡。
@@ -286,7 +286,8 @@
   - 資料版本：v4 → v5，新增 `db.workflows[]`。
 - **不做，延到正式版**：範本指定關卡的核准人、總經理角色、強制通過關卡與略過整個階段、完成報告必附交付物。W2 spec 列為不在範圍內的應收帳款、人員帳號的新增與編輯也一樣不做。
 - **spec 怎麼產生**（D31 取代 D9 的完整 brainstorming）：AI 已把 D41 的兩份現有專流轉寫成 `docs/reference/2026-10-05-w3-current-flow-sources.md`，並依 D42 修訂短版 spec `docs/superpowers/specs/2026-10-05-process-control-design.md`。人類已在對話確認方向。
-- **下一步**：進 G2 寫 plan，Task 數盡量少。
+- **plan**：`docs/superpowers/plans/2026-10-05-workflow-architecture.md`，共 4 個 Task：資料模型與驗證、工作流模板管理 UI、從工作流建立專案、關卡阻擋與驗收。
+- **下一步**：人類確認 plan 與執行方式後，做 G3 pre-flight、開 `feature/w3-workflow-architecture`，逐 Task TDD 實作。
 
 ### W4 F11 遺留問題清理 — ✖（取消，D30）
 
