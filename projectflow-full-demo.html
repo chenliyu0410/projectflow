@@ -508,7 +508,7 @@ function builtinWorkflows() {
     wfStage('es7', '活動後再行銷', 'd-sales', null, [['活動精彩回顧'], ['活動花絮 / 精彩影片'], ['會員再行銷']]),
     wfStage('es8', '數據分析', 'd-sales', null, [['KPI指標'], ['活動 ROI']]),
   ];
-  const stageDeps = (stages) => stages.slice(1).map((s, i) => ({ from: stages[i].tasks.at(-1).id, to: s.tasks[0].id, type: 'FS', lag: 0, enf: 'hard' }));
+  const stageDeps = (stages) => stages.flatMap((s) => s.tasks.slice(1).map((t, i) => ({ from: s.tasks[i].id, to: t.id, type: 'FS', lag: 0, enf: 'hard' })));
   return [
     { id: 'wf-laptop', name: '筆電新機種專流', desc: '從市場洞察到售後與停產的產品開發流程', category: '新產品', version: 1, builtin: true, stages: laptopStages, deps: stageDeps(laptopStages) },
     { id: 'wf-event', name: '實體活動專流', desc: '行銷部實體活動從策略、場地、招商到活動後分析的流程', category: '行銷活動', version: 1, builtin: true, stages: eventStages, deps: stageDeps(eventStages) },
@@ -1047,6 +1047,21 @@ function depLabel(d) {
 }
 function incoming(n) { return db.deps.filter((d) => d.to === n.id); }
 function outgoing(n) { return db.deps.filter((d) => d.from === n.id); }
+function phaseGateBlocker(n) {
+  if (!n || n.type !== 'task') return null;
+  const ph = phaseOf(n); if (!ph) return null;
+  const p = projectOf(n);
+  if (!String(p.goal || '').startsWith('依工作流')) return null;
+  const phases = kids(p.id).filter((x) => x.type === 'phase');
+  const idx = phases.findIndex((x) => x.id === ph.id);
+  for (let i = 0; i < idx; i++) {
+    const g = db.gates[phases[i].id];
+    if (g && !['approved', 'overridden'].includes(g.status)) {
+      return { phase: phases[i], gate: g, text: `階段關卡未通過：${phases[i].title}／${g.criteria}` };
+    }
+  }
+  return null;
+}
 function findBlockers(n, to) {
   const out = [];
   const leaving = n.status === 'todo' && to !== 'todo';
@@ -1060,6 +1075,8 @@ function findBlockers(n, to) {
       }
     });
   });
+  const gb = ((n.status === 'todo' && to !== 'todo') || to === 'done') ? phaseGateBlocker(n) : null;
+  if (gb) out.push({ kind: 'gate', gate: gb.gate, hard: true, text: gb.text });
   if (to === 'done' && !isLeaf(n)) {
     const open = kids(n.id).filter((c) => !DONE(c.status));
     if (open.length) out.push({ kind: 'children', hard: true, text: `還有 ${open.length} 項子任務未完成：${open.map((c) => c.title).join('、')}` });

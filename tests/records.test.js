@@ -661,6 +661,53 @@
     as('yu'); ok(createProjectFromWorkflow(wf.id, { name: '負責人建立', start: TODAY, owner: 'yu' }).ok);
   });
 
+  // ── W3 Task 4：階段關卡阻擋後續階段 ──
+  await T('W3：關卡 pending 時，後續階段任務不能開始；核准後可開始', () => {
+    as('it');
+    const wf = db.workflows.find((w) => w.name === '筆電新機種專流');
+    const r = createProjectFromWorkflow(wf.id, { name: '關卡阻擋測試', start: '2026-10-01', owner: 'yu' });
+    const p = node(r.projectId);
+    const phases = kids(p.id).filter((x) => x.type === 'phase');
+    const gatePhase = phases.find((ph) => db.gates[ph.id]);
+    const later = descendants(phases[phases.indexOf(gatePhase) + 1].id).find((x) => x.type === 'task');
+    const bl = findBlockers(later, 'doing').map((b) => b.text).join('；');
+    ok(bl.includes('階段關卡未通過'), bl);
+    ok(!setStatus(later.id, 'doing'), 'pending gate 應擋住開始');
+    db.gates[gatePhase.id].status = 'approved';
+    ok(setStatus(later.id, 'doing'), 'gate approved 後可開始');
+  });
+
+  await T('W3：關卡通過後，任務自己的硬性前置仍有效', () => {
+    as('it');
+    const wf = cloneWorkflow(db.workflows[0], { id: 'wf-dep-test', name: '前置測試', builtin: false });
+    wf.stages = [
+      { id: 's1', title: '一', dept: 'd-adm', gate: { title: 'G1', criteria: '完成一' }, tasks: [{ id: 'a', title: 'A', dept: 'd-adm', depts: [], dur: 1 }] },
+      { id: 's2', title: '二', dept: 'd-adm', gate: null, tasks: [{ id: 'b', title: 'B', dept: 'd-adm', depts: [], dur: 1 }] },
+    ];
+    wf.deps = [{ from: 'a', to: 'b', type: 'FS', lag: 0, enf: 'hard' }];
+    saveWorkflow(wf);
+    const r = createProjectFromWorkflow(wf.id, { name: '前置測試專案', start: TODAY, owner: 'yu' });
+    const p = node(r.projectId), phases = kids(p.id).filter((x) => x.type === 'phase');
+    db.gates[phases[0].id].status = 'approved';
+    const b = descendants(phases[1].id).find((x) => x.title === 'B');
+    ok(!setStatus(b.id, 'doing'), '自己的硬性前置未完成仍要阻擋');
+    ok(findBlockers(b, 'doing').some((x) => x.text.includes('前置：A')), '應顯示原本前置');
+  });
+
+  await T('W3：375px 下工作流頁與建立專案對話框不水平溢出', () => {
+    const fr = window.frameElement, w = fr && fr.style.width;
+    if (fr) { fr.style.width = '375px'; fr.getBoundingClientRect(); }
+    try {
+      as('it'); ui.page = 'templates'; render();
+      const m = document.getElementById('main');
+      ok(m.scrollWidth <= m.clientWidth + 1, `模板庫不應水平溢出 ${m.scrollWidth}/${m.clientWidth}`);
+      openWorkflowProjectDialog(db.workflows[0].id);
+      const dlg = document.getElementById('dlg');
+      ok(dlg.scrollWidth <= dlg.clientWidth + 1, `建立專案對話框不應水平溢出 ${dlg.scrollWidth}/${dlg.clientWidth}`);
+      closeDlg();
+    } finally { if (fr) fr.style.width = w; }
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()
