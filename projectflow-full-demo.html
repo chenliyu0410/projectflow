@@ -416,19 +416,25 @@ const STLBL = { todo: '待辦', doing: '進行中', review: '審核中', done: '
 const LEVELS = { public: '公開', internal: '內部', confidential: '機密' };
 const ROLES = { admin: '系統管理員', owner: '專案負責人', reviewer: '階段審核人', member: '成員', collab: '協作人員', readonly: '唯讀' };
 const TAGS = ['市場', '配方', '試作', '製程', '品保', '檢驗', '測試', '法規', '採購', '生產', '行銷'];
-const DEPTS = ['研發', '製程', '品保', '法規', '採購', '生產', '行銷'];
+// 部門：id、名稱、預設主管（可在「成員與權限」由系統管理員維護，存在 db.departments）
+const DEFAULT_DEPTS = [['d-rd', '研發', 'yu'], ['d-pe', '製程', null], ['d-qa', '品保', 'chen'], ['d-sales', '業務', null], ['d-pc', '生管', null], ['d-pur', '採購', 'hua'], ['d-adm', '管理', null], ['d-it', '資訊', null], ['d-fin', '財務', null], ['d-mfg', '製造', null]];
+const defaultDepts = () => DEFAULT_DEPTS.map(([id, name, head]) => ({ id, name, head }));
+// v3 以前的部門名稱 → 部門 id
+const OLD_DEPT = { 研發: 'd-rd', 製程: 'd-pe', 品保: 'd-qa', 法規: 'd-qa', 採購: 'd-pur', 生產: 'd-mfg', 行銷: 'd-sales', 資訊: 'd-it' };
+// 任務類別 → 預設負責部門（模板與升級時使用）
+const TAG_DEPT = { 市場: 'd-sales', 配方: 'd-rd', 試作: 'd-rd', 製程: 'd-pe', 品保: 'd-qa', 檢驗: 'd-qa', 測試: 'd-qa', 法規: 'd-qa', 採購: 'd-pur', 生產: 'd-mfg', 行銷: 'd-sales' };
 const DEPTYPE = { FS: '完成→開始', SS: '開始→開始', FF: '完成→完成' };
 const RESULT = { met: '達成', partial: '部分達成', unmet: '未達成' };
 const FIELD_TYPES = { text: '文字', number: '數字', date: '日期', select: '選項' };
 const MAX_FILE = 10 * 1024 * 1024;
 const USERS = {
-  yu: { name: '力瑜', short: '瑜', role: 'owner', dept: '研發', title: '研發主管／專案負責人', color: '#B4541F' },
-  ming: { name: '阿明', short: '明', role: 'member', dept: '製程', title: '製程工程師', color: '#1F5F5B' },
-  an: { name: '小安', short: '安', role: 'member', dept: '法規', title: '法規專員', color: '#4A5A8C' },
-  hua: { name: '阿華', short: '華', role: 'member', dept: '採購', title: '採購主管', color: '#6B7A3A' },
-  chen: { name: '陳主管', short: '陳', role: 'reviewer', dept: '品保', title: '品保主管（階段審核人）', color: '#7A4A8C', scope: ['殺菌與保存', '檢驗與適口性'] },
-  lin: { name: '小林', short: '林', role: 'collab', dept: '行銷', title: '行銷企劃（協作人員）', color: '#A0522D' },
-  it: { name: '資訊室', short: 'IT', role: 'admin', dept: '資訊', title: '系統管理員', color: '#555' },
+  yu: { name: '力瑜', short: '瑜', role: 'owner', dept: 'd-rd', title: '研發主管／專案負責人', color: '#B4541F' },
+  ming: { name: '阿明', short: '明', role: 'member', dept: 'd-pe', title: '製程工程師', color: '#1F5F5B' },
+  an: { name: '小安', short: '安', role: 'member', dept: 'd-qa', title: '法規專員', color: '#4A5A8C' },
+  hua: { name: '阿華', short: '華', role: 'member', dept: 'd-pur', title: '採購主管', color: '#6B7A3A' },
+  chen: { name: '陳主管', short: '陳', role: 'reviewer', dept: 'd-qa', title: '品保主管（階段審核人）', color: '#7A4A8C', scope: ['殺菌與保存', '檢驗與適口性'] },
+  lin: { name: '小林', short: '林', role: 'collab', dept: 'd-sales', title: '行銷企劃（協作人員）', color: '#A0522D' },
+  it: { name: '資訊室', short: 'IT', role: 'admin', dept: 'd-it', title: '系統管理員', color: '#555' },
 };
 // F10 欄位層級權限：機密欄位誰看得到
 const FIELD_ACCESS = { ratio: ['yu', 'chen', 'it'], price: ['yu', 'hua', 'it'], cost: ['yu', 'hua', 'it'] };
@@ -442,12 +448,14 @@ const PHASE_TEMPLATE = [
 
 /* ================= 種子資料 ================= */
 function seed() {
-  const db = { v: 3, nodes: {}, deps: [], gates: {}, docs: [], templates: [], overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0, reportFields: [], reports: [], notes: [], attachments: [] };
+  const db = { v: 4, departments: defaultDepts(), nodes: {}, deps: [], gates: {}, docs: [], templates: [], overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0, reportFields: [], reports: [], notes: [], attachments: [] };
   let ord = 0;
   const N = (id, parent, type, title, o = {}) => {
     db.nodes[id] = {
       id, parent, type, title, tag: o.tag || '', status: o.st || 'todo', progress: o.pg ?? null, weight: o.w || 1,
-      start: o.s || null, end: o.e || o.s || null, milestone: !!o.ms, locked: !!o.lock, owner: o.who || 'yu',
+      start: o.s || null, end: o.e || o.s || null, milestone: !!o.ms, locked: !!o.lock,
+      owner: 'who' in o ? o.who : 'yu',
+      dept: type === 'task' ? (o.dept || USERS['who' in o && o.who ? o.who : 'yu'].dept) : null,
       collabs: o.co || [], depts: o.dp || [], level: o.lv || null, ai: !!o.ai, note: o.note || '', links: o.ln || [],
       order: ord++, color: o.color, goal: o.goal, due: o.due,
     };
@@ -474,7 +482,7 @@ function seed() {
   dep('t103', 't201'); dep('t201', 't2021'); dep('t2021', 't2022'); dep('t2022', 't2023');
 
   N('p1c', 'p1', 'phase', '殺菌與保存', { s: '2026-09-08', e: '2026-12-15', st: 'doing' });
-  N('t301', 'p1c', 'task', '殺菌條件驗證（F0 值）', { tag: '製程', st: 'doing', who: 'ming', co: ['chen'], dp: ['品保'], ln: [F3, { t: 'wo', id: 'WO-T2603' }] });
+  N('t301', 'p1c', 'task', '殺菌條件驗證（F0 值）', { tag: '製程', st: 'doing', who: 'ming', co: ['chen'], dp: ['d-qa'], ln: [F3, { t: 'wo', id: 'WO-T2603' }] });
   N('t3011', 't301', 'task', '第 1 次 F0 測試', { tag: '製程', st: 'done', who: 'ming', s: '2026-09-08', e: '2026-09-12', note: 'F0 = 2.6，未達目標 3.0，需調整殺菌時間' });
   N('t3012', 't301', 'task', '調整殺菌時間', { tag: '製程', st: 'doing', who: 'ming' });
   N('t30121', 't3012', 'task', '設備參數設定', { tag: '製程', st: 'doing', who: 'ming', s: '2026-09-15', e: '2026-09-22', pg: 60, ln: [{ t: 'wo', id: 'WO-T2603' }] });
@@ -491,16 +499,19 @@ function seed() {
   N('p1d', 'p1', 'phase', '檢驗與適口性', { s: '2026-09-21', e: '2026-11-27', st: 'doing' });
   N('t401', 'p1d', 'task', '營養成分送驗', { tag: '檢驗', who: 'yu', s: '2026-10-12', e: '2026-11-06', ln: [F3] });
   N('t402', 'p1d', 'task', '適口性測試（雙碗試驗）', { tag: '測試', who: 'yu', ai: true, co: ['lin'], s: '2026-11-02', e: '2026-11-27', ln: [F3] });
-  N('t403', 'p1d', 'task', '包裝標示審查', { tag: '法規', st: 'doing', who: 'an', co: ['lin'], dp: ['行銷'], ln: [F3] });
+  N('t403', 'p1d', 'task', '包裝標示審查', { tag: '法規', st: 'doing', who: 'an', co: ['lin'], dp: ['d-sales'], ln: [F3] });
   N('t4031', 't403', 'task', '標示文案草稿', { tag: '行銷', st: 'doing', who: 'lin', s: '2026-09-21', e: '2026-10-09' });
   N('t4032', 't403', 'task', '營養標示與法規比對', { tag: '法規', who: 'an', s: '2026-10-12', e: '2026-11-20' });
+  // 未指派：只有部門主管（與專案負責人、系統管理員）看得到
+  N('t404', 'p1d', 'task', '檢驗報告判讀與宣稱比對', { tag: '品保', who: null, dept: 'd-qa', s: '2026-11-09', e: '2026-11-20' });
   dep('t301', 't401'); dep('t202', 't402', { enf: 'soft' }); dep('t4031', 't4032'); dep('t401', 't4032', { type: 'FF' });
 
   N('p1e', 'p1', 'phase', '量產上市', { s: '2026-12-01', e: '2027-03-31' });
   N('t501', 'p1e', 'task', '包材與設備確認', { tag: '生產', who: 'ming', s: '2026-12-01', e: '2027-01-08' });
   N('t502', 'p1e', 'task', '首批量產', { tag: '生產', who: 'ming', s: '2027-01-15', e: '2027-02-24' });
-  N('t503', 'p1e', 'task', '通路上架', { tag: '行銷', who: 'lin', dp: ['行銷'], s: '2027-02-26', e: '2027-03-29' });
+  N('t503', 'p1e', 'task', '通路上架', { tag: '行銷', who: 'lin', dp: ['d-sales'], s: '2027-02-26', e: '2027-03-29' });
   N('m501', 'p1e', 'task', '上市', { tag: '行銷', ms: true, lock: true, who: 'yu', s: '2027-03-31' });
+  N('t504', 'p1e', 'task', '量產製程參數確認', { tag: '製程', who: null, dept: 'd-pe', s: '2026-12-01', e: '2026-12-18' });
   dep('t302', 't502', { lag: 30 }); dep('t501', 't502'); dep('t401', 't502'); dep('t502', 't503'); dep('t403', 't503'); dep('t503', 'm501');
 
   db.gates.p1a = { criteria: '配方定案；主要原料至少 1 家供應商通過', approver: '研發主管', status: 'approved', by: 'yu', at: '2026/09/05' };
@@ -517,6 +528,7 @@ function seed() {
   N('t602', 'p2a', 'task', '保健原料文獻整理', { tag: '配方', st: 'doing', who: 'yu', s: '2026-09-10', e: '2026-10-20' });
   N('t603', 'p2a', 'task', '保健原料供應商詢價', { tag: '採購', who: 'hua', ai: true, s: '2026-10-01', e: '2026-10-31' });
   N('t604', 'p2a', 'task', '初版配方設計', { tag: '配方', who: 'yu', s: '2026-10-21', e: '2026-11-15' });
+  N('t605', 'p2a', 'task', '關節保健成分功效評估', { tag: '配方', who: null, dept: 'd-rd', s: '2026-10-05', e: '2026-10-30' });
   dep('t602', 't604'); dep('t603', 't604', { enf: 'soft' });
 
   // ── 專案 3：化毛零食罐 ──
@@ -534,7 +546,7 @@ function seed() {
   // ── 專案 4：供應商例行管理 ──
   N('p4', null, 'project', '供應商與原料例行管理', { color: '#6B7A3A', goal: '供應商評估、證照追蹤與原料核准', due: '2026-12-31', s: '2026-09-01', e: '2026-12-31', lv: 'internal', who: 'hua' });
   N('t801', 'p4', 'task', '年度供應商稽核排程', { tag: '採購', st: 'doing', who: 'hua', co: ['chen'], s: '2026-09-01', e: '2026-10-31' });
-  N('t802', 'p4', 'task', '南瓜泥供應商評估（綠野農產）', { tag: '採購', st: 'doing', who: 'hua', dp: ['品保'], ln: [{ t: 'supplier', id: 'S-003' }, { t: 'po', id: 'PO-2605' }] });
+  N('t802', 'p4', 'task', '南瓜泥供應商評估（綠野農產）', { tag: '採購', st: 'doing', who: 'hua', dp: ['d-qa'], ln: [{ t: 'supplier', id: 'S-003' }, { t: 'po', id: 'PO-2605' }] });
   N('t8021', 't802', 'task', '索取公司資料與證照', { tag: '採購', st: 'done', who: 'hua', s: '2026-09-14', e: '2026-09-18' });
   N('t8022', 't802', 'task', '樣品送驗', { tag: '品保', st: 'doing', who: 'chen', s: '2026-09-21', e: '2026-10-09' });
   N('t8023', 't802', 'task', '現場稽核', { tag: '品保', who: 'chen', s: '2026-10-12', e: '2026-10-16' });
@@ -551,9 +563,10 @@ function seed() {
   doc('doc6', 't403', '標示草稿 v2', 'internal', 'lin', '2026/09/28', '# 標示草稿 v2\n\n- 品名：成貓主食罐・鮪魚雞肉\n- 宣稱：完整均衡、高蛋白\n- 待確認：營養成分數值（等送驗報告）');
 
   // ── 模板 ──
-  const chain = (arr) => arr.map((a, i) => ({ k: 'k' + i, p: 'r', title: a[0], tag: a[1], off: a[2], dur: a[3], dp: a[4] || [] }));
+  const toIds = (arr) => [...new Set((arr || []).map((x) => OLD_DEPT[x] || x))];
+  const chain = (arr) => arr.map((a, i) => ({ k: 'k' + i, p: 'r', title: a[0], tag: a[1], off: a[2], dur: a[3], dp: toIds(a[4]), dept: TAG_DEPT[a[1]] || 'd-rd' }));
   const mkTpl = (id, name, scope, desc, rootTag, list, extra = {}) => {
-    const nodes = [{ k: 'r', p: null, title: name + '：{產品名}', tag: rootTag, off: 0, dur: 0 }, ...chain(list)];
+    const nodes = [{ k: 'r', p: null, title: name + '：{產品名}', tag: rootTag, off: 0, dur: 0, dp: [], dept: TAG_DEPT[rootTag] || 'd-rd' }, ...chain(list)];
     const deps = list.slice(1).map((_, i) => ({ f: 'k' + i, t: 'k' + (i + 1), type: 'FS', lag: 0 }));
     return { id, name, scope, desc, version: extra.version || 1, history: extra.history || [], nodes, deps, docs: extra.docs || [] };
   };
@@ -657,17 +670,36 @@ function upgrade(o) {
     s.reports.forEach((r) => { if (d.nodes[r.node_id] && !d.reports.some((x) => x.id === r.id)) d.reports.push(r); });
     d.v = 3; o.v = 3;
   }
+  // v3 → v4：部門改為可設定的資料；任務補上負責部門；部門名稱改存 id
+  if (o.v === 3) {
+    const d = o.db;
+    d.departments = d.departments || defaultDepts();
+    const known = new Set(d.departments.map((x) => x.id));
+    const merged = new Set();
+    const toId = (x) => { if (known.has(x)) return x; if (OLD_DEPT[x]) return OLD_DEPT[x]; merged.add(x); return 'd-rd'; };
+    const ids = (arr) => [...new Set((arr || []).map(toId))];
+    Object.values(d.nodes).forEach((n) => {
+      n.depts = ids(n.depts);
+      n.dept = n.type === 'task' ? ((USERS[n.owner] && USERS[n.owner].dept) || 'd-rd') : null;
+    });
+    d.templates.forEach((t) => t.nodes.forEach((x) => {
+      x.dp = ids(x.dp);
+      x.dept = (x.who && USERS[x.who] && USERS[x.who].dept) || x.dp[0] || 'd-rd';
+    }));
+    merged.forEach((nm) => o.audit.acts.unshift({ at: nowStr(), actor: 'it', node: null, action: '部門', text: `部門「${nm}」已併入研發` }));
+    d.v = 4; o.v = 4;
+  }
   return o;
 }
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const o = JSON.parse(raw); if (o && (o.v === 2 || o.v === 3) && o.db && o.audit) { upgrade(o); db = o.db; audit = o.audit; if (o.me && USERS[o.me]) ui.me = o.me; return; } }
+    if (raw) { const o = JSON.parse(raw); if (o && [2, 3, 4].includes(o.v) && o.db && o.audit) { upgrade(o); db = o.db; audit = o.audit; if (o.me && USERS[o.me]) ui.me = o.me; return; } }
   } catch (e) { /* 無法讀取時使用種子資料 */ }
   db = seed(); audit = freshAudit();
 }
 function migrate() { const t = db.nodes.t2023; if (t) t.collabs = t.collabs.filter((c) => c !== 'lin'); }
-function save() { try { localStorage.setItem(KEY, JSON.stringify({ v: 3, db, audit, me: ui.me })); } catch (e) { /* 忽略 */ } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ v: 4, db, audit, me: ui.me })); } catch (e) { /* 忽略 */ } }
 function commit(label, fn) {
   undoStack.push({ label, snap: JSON.stringify(db) });
   if (undoStack.length > 60) undoStack.shift();
@@ -688,6 +720,10 @@ function log(node, action, text, actor) { audit.acts.unshift({ at: nowStr(), act
 const node = (id) => db.nodes[id];
 const me = () => ({ id: ui.me, ...USERS[ui.me] });
 const uname = (id) => (USERS[id] ? USERS[id].name : id || '—');
+const dept = (id) => (id && db.departments.find((d) => d.id === id)) || null;
+const deptName = (id) => (dept(id) ? dept(id).name : '—');
+const deptMembers = (id) => Object.keys(USERS).filter((u) => USERS[u].dept === id);
+const isHead = (uid, id) => !!dept(id) && dept(id).head === uid;
 function kids(id) { return Object.values(db.nodes).filter((n) => n.parent === id).sort((a, b) => a.order - b.order); }
 function ancestors(n) { const a = []; let p = n && n.parent ? node(n.parent) : null; while (p) { a.unshift(p); p = p.parent ? node(p.parent) : null; } return a; }
 function projectOf(n) { return n.parent ? ancestors(n)[0] : n; }
@@ -722,38 +758,54 @@ function boardItems(n) {
 }
 
 /* ================= 權限（F5 / F6） ================= */
-function assigned(n, u) { return n.owner === u.id || n.collabs.includes(u.id) || n.depts.includes(u.dept); }
-function visible(n) {
-  const u = me();
-  if (u.role !== 'collab') return true;
-  if (assigned(n, u) || ancestors(n).some((a) => a.type !== 'project' && assigned(a, u))) return true;
-  return descendants(n.id).some((d) => assigned(d, u));
+/* 可見性：只有相關的人看得到任務 */
+function inScopeOf(n, u) { const ph = phaseOf(n); return u.role === 'reviewer' && !!ph && (u.scope || []).includes(ph.title); }
+function inReviewerScope(n) { return inScopeOf(n, me()); }
+// 直接相關：未指派時只有部門主管；已指派時是負責人、協作人員、負責部門或協作部門的主管、範圍內的審核人
+function directSee(n, u) {
+  if (!n || n.type !== 'task') return false;
+  if (n.owner === null) return isHead(u.id, n.dept);
+  return n.owner === u.id || n.collabs.includes(u.id) || isHead(u.id, n.dept) || n.depts.some((d) => isHead(u.id, d)) || inScopeOf(n, u);
 }
-// 與目前使用者相關：自己負責／協作／部門被指派的任務，這些任務底下的子任務，以及為了顯示路徑的上層
-// 專案負責人與系統管理員看全部；審核人另外看得到自己負責審核的階段；成員與審核人可切換「顯示全部」
-function relSelf(n) { const u = me(); return n.type !== 'project' && (assigned(n, u) || (u.role === 'reviewer' && inReviewerScope(n))); }
-function related(n) {
-  const u = me();
+const SEE_ALL = ['admin', 'owner', 'readonly'];
+// 任務：直接相關；或上層任務直接相關（未指派任務除外）；或下層任務直接相關（顯示路徑）
+function seeTask(n, u = me()) {
+  if (SEE_ALL.includes(u.role)) return true;
+  if (directSee(n, u)) return true;
+  if (n.owner !== null && ancestors(n).some((a) => directSee(a, u))) return true;
+  return descendants(n.id).some((d) => directSee(d, u));
+}
+// 專案與階段：專案底下有任何看得到的任務，就看得到專案與它的所有階段
+function seeNode(n, u = me()) {
+  if (!n) return false;
+  if (SEE_ALL.includes(u.role)) return true;
+  if (n.type === 'task') return seeTask(n, u);
+  const p = n.type === 'project' ? n : projectOf(n);
+  return descendants(p.id).some((d) => d.type === 'task' && seeTask(d, u));
+}
+function visible(n) { return seeNode(n); }
+// 任務的操作（改狀態、進度、送回報、編輯）：負責人、負責部門主管、專案負責人、系統管理員
+function canWork(n, u = me()) {
+  if (!n || n.type !== 'task') return false;
   if (u.role === 'admin' || u.role === 'owner') return true;
-  if (n.type === 'project') return descendants(n.id).some(relSelf);
-  return relSelf(n) || ancestors(n).some(relSelf) || descendants(n.id).some(relSelf);
+  if (u.role === 'readonly') return false;
+  return isHead(u.id, n.dept) || (n.owner !== null && n.owner === u.id);
 }
-function fullViewAllowed() { return ['member', 'reviewer'].includes(me().role); }
-function shown(n) { if (!visible(n)) return false; return (ui.showAll && fullViewAllowed()) ? true : related(n); }
-function inReviewerScope(n) { const u = me(); if (u.role !== 'reviewer') return false; const ph = phaseOf(n); return !!ph && (u.scope || []).includes(ph.title); }
 function can(a, n) {
   const u = me(), r = u.role;
   if (r === 'admin') return true;
   if (r === 'readonly') return a === 'view';
   switch (a) {
     case 'view': return !n || visible(n);
-    case 'edit': return r === 'collab' ? !!n && n.owner === u.id : true;
+    case 'edit': if (n && n.type === 'task') return canWork(n); return r === 'collab' ? !!n && n.owner === u.id : true;
     case 'create': return r !== 'collab' || (!!n && n.owner === u.id);
     case 'delete': return r === 'owner';
-    case 'schedule': return r === 'owner' || r === 'reviewer' || (r === 'member' && !!n && n.owner === u.id);
+    case 'schedule': if (n && n.type === 'task') return canWork(n); return r === 'owner' || r === 'reviewer' || (r === 'member' && !!n && n.owner === u.id);
     case 'deps': return r === 'owner' || r === 'reviewer';
     case 'gate': return r === 'owner' || (r === 'reviewer' && !!n && inReviewerScope(n));
     case 'override': return r === 'owner' || (r === 'reviewer' && !!n && inReviewerScope(n));
+    case 'assign': return !!n && n.type === 'task' && (r === 'owner' || isHead(u.id, n.dept));
+    case 'dept': return !!n && n.type === 'task' && r === 'owner';
     case 'members': return r === 'owner';
     case 'templates': return false;
     case 'formula-approve': return r === 'owner';
@@ -990,7 +1042,7 @@ function resetAll() {
 function fieldDefs(nodeId) { return db.reportFields.filter((f) => f.node_id === nodeId).sort((a, b) => a.order - b.order); }
 function reportsOf(nodeId) { return db.reports.filter((r) => r.node_id === nodeId).sort((a, b) => b.version - a.version); }
 function pendingReport(nodeId) { return db.reports.find((r) => r.node_id === nodeId && r.status === 'submitted') || null; }
-function canReport(n) { return !!n && n.type === 'task' && isLeaf(n) && can('edit', n) && !DONE(n.status) && !pendingReport(n.id); }
+function canReport(n) { return !!n && n.type === 'task' && isLeaf(n) && canWork(n) && !DONE(n.status) && !pendingReport(n.id); }
 function validateReport(nodeId, data) {
   const errors = [];
   if (!RESULT[data.result]) errors.push('請選擇結果');
@@ -1122,7 +1174,7 @@ function moveReportField(id) {
 }
 
 /* ---------- 筆記 ---------- */
-function canNote(n) { return !!n && can('edit', n); }
+function canNote(n) { return !!n && me().role !== 'readonly' && (can('edit', n) || n.collabs.includes(ui.me) || n.depts.some((d) => isHead(ui.me, d)) || inReviewerScope(n)); }
 function addNote(nodeId, body) {
   const n = node(nodeId);
   if (!canNote(n)) return { ok: false, error: '你的角色無權在此任務寫筆記' };
@@ -1155,7 +1207,10 @@ async function sha256Hex(blob) {
 }
 async function addAttachments(nodeId, files, link = {}) {
   const n = node(nodeId);
-  if (!n || !can('edit', n)) return { ok: false, errors: ['你的角色無權上傳附件'], added: [] };
+  // 筆記的附件由能寫筆記的人上傳（協作人員、協作部門主管、範圍內審核人），而且筆記要屬於這個節點；任務附件仍要能編輯
+  const note = link.noteId ? db.notes.find((x) => x.id === link.noteId) : null;
+  const allowed = link.noteId ? !!note && note.node_id === nodeId && canNote(n) : can('edit', n);
+  if (!n || !allowed) return { ok: false, errors: ['你的角色無權上傳附件'], added: [] };
   if (!(await fileStore.check())) return { ok: false, errors: ['此瀏覽器無法儲存檔案'], added: [] };
   const errors = [], added = [];
   for (const f of files) {
@@ -1302,7 +1357,7 @@ function renderNav() {
 }
 function renderProjects() {
   const cur = ui.page === 'node' && node(ui.node) ? projectOf(node(ui.node)).id : null;
-  $('projectList').innerHTML = projects().filter(shown).map((p) => {
+  $('projectList').innerHTML = projects().filter(visible).map((p) => {
     const pc = Math.round(prog(p));
     return `<button class="pbtn" type="button" data-enter="${p.id}" aria-current="${p.id === cur}">
       <span class="pdot" style="background:${p.color}"></span>
@@ -1316,7 +1371,7 @@ function renderMe() {
   const u = me();
   $('me').innerHTML = `<div class="row">${av(u.id, 34)}<div style="min-width:0"><div style="font-weight:500">${esc(u.name)}</div><div class="small muted">${esc(u.title)}</div></div></div>
     <label class="small muted" for="meSel">切換身分（Demo，用來體驗權限差異）</label>
-    <select id="meSel">${Object.entries(USERS).map(([id, x]) => `<option value="${id}" ${id === ui.me ? 'selected' : ''}>${x.name}｜${ROLES[x.role]}｜${x.dept}</option>`).join('')}</select>
+    <select id="meSel">${Object.entries(USERS).map(([id, x]) => `<option value="${id}" ${id === ui.me ? 'selected' : ''}>${x.name}｜${ROLES[x.role]}｜${esc(deptName(x.dept))}</option>`).join('')}</select>
     <button class="reset" type="button" id="resetBtn">重置 Demo 資料</button>`;
 }
 function mbar() {
@@ -1341,7 +1396,11 @@ function afterRender() {
 /* ================= 節點頁 ================= */
 function pageNode() {
   let n = node(ui.node);
-  if (!n || !can('view', n) || !shown(n)) { n = projects().find(shown) || projects().find(visible); ui.node = n.id; }
+  if (!n || !can('view', n)) {
+    n = projects().find(visible);
+    if (!n) return '<div class="panel empty">目前沒有你看得到的專案</div>'; // D21：不退回看不到的專案
+    ui.node = n.id;
+  }
   const p = projectOf(n);
   const anc = ancestors(n);
   const [s, e] = span(n);
@@ -1359,7 +1418,7 @@ function pageNode() {
       <nav class="crumbs" aria-label="麵包屑">${anc.map((a) => `<button type="button" data-enter="${a.id}">${esc(a.title)}</button><span>/</span>`).join('')}<span class="cur">${esc(n.title)}</span></nav>
       <h1 class="serif">${n.milestone ? '◆ ' : ''}${esc(n.title)}</h1>
       <div class="meta">
-        ${n.type === 'project' ? `<span>目標：${esc(n.goal || '—')}</span><span>預計上市：${ymd(n.due)}</span>` : `<span>負責人：${esc(uname(n.owner))}</span>`}
+        ${n.type === 'project' ? `<span>目標：${esc(n.goal || '—')}</span><span>預計上市：${ymd(n.due)}</span>` : n.type === 'task' ? `<span>負責：${whoHTML(n)}</span>` : `<span>負責人：${esc(uname(n.owner))}</span>`}
         <span>期間：${md(S(s))} – ${md(S(e))}</span>
         <span class="progress"><span class="track"><span style="width:${pc}%;background:${p.color}"></span></span><b>${pc}%</b></span>
         ${lvBadge(lvl)}
@@ -1382,7 +1441,6 @@ function pageNode() {
   if (n.type === 'project' && kids(n.id).some((k) => k.type === 'phase')) html += phasesStrip(n);
   if (n.type === 'phase' && db.gates[n.id]) html += gateInline(n);
   if (ui.scaleNode !== n.id) { ui.scale = autoScale(n); ui.scaleNode = n.id; }
-  const mineTool = ['board', 'timeline', 'graph'].includes(ui.tab) ? (fullViewAllowed() ? `<label title="預設只顯示與你相關的任務"><input type="checkbox" id="showAllChk" ${ui.showAll ? 'checked' : ''}>顯示全部任務</label>` : me().role === 'collab' ? '<span class="tag gray">只顯示指派給你的任務</span>' : '') : '';
   const tools = {
     board: `<span>拖曳卡片改狀態；拖到另一張卡片上 = 變成它的子任務</span>`,
     timeline: `${n.parent ? `<button class="btn sm" type="button" data-enter="${n.parent}" title="回到上一層">↑ 上一層：${esc(node(n.parent).title)}</button>` : '<span class="tag">總覽圖</span>'}
@@ -1399,7 +1457,7 @@ function pageNode() {
     records: '',
   };
   html += `<div class="toolbar"><div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button class="tab" role="tab" type="button" data-tab="${k}" aria-selected="${ui.tab === k}">${l}</button>`).join('')}</div>
-    <div class="tools">${leafTask ? `<button class="btn sm" type="button" data-add-child="${n.id}" ${can('create', n) ? '' : 'disabled'}>＋ 新增子任務</button>` : ''}${mineTool}${tools[ui.tab] || ''}</div></div>`;
+    <div class="tools">${leafTask ? `<button class="btn sm" type="button" data-add-child="${n.id}" ${can('create', n) ? '' : 'disabled'}>＋ 新增子任務</button>` : ''}${tools[ui.tab] || ''}</div></div>`;
   const views = { board: viewBoard, timeline: viewTimeline, graph: viewGraph, docs: viewDocs, data: viewData, people: viewPeople, records: viewRecords };
   html += `<div class="view" id="view">${(views[ui.tab] || viewBoard)(n)}</div>`;
   return html;
@@ -1432,7 +1490,7 @@ function gateInline(ph) {
 /* ---------- 看板 ---------- */
 function blockersFor(c) { return c.status === 'todo' ? findBlockers(c, 'doing') : []; }
 function cardHTML(c, ctx) {
-  const k = kids(c.id).filter(shown);
+  const k = kids(c.id).filter(visible);
   const bl = blockersFor(c);
   const hard = bl.filter((b) => b.hard), soft = bl.filter((b) => !b.hard);
   const late = isLate(c);
@@ -1454,13 +1512,13 @@ function cardHTML(c, ctx) {
     ${k.length ? `<div class="mini"><span>${k.filter((x) => DONE(x.status)).length}/${k.length} 子任務</span><span class="track"><span style="width:${pc}%"></span></span><span>${pc}%</span>
       <button class="iconbtn" type="button" data-expand="${c.id}" aria-expanded="${!!ex}">${ex ? '收合' : '展開'}</button></div>` : ''}
     ${k.length && ex ? `<div class="sublist">${k.map((x) => `<button type="button" data-enter="${x.id}"><span class="dot ${x.status}"></span>${esc(x.title)}${kids(x.id).length ? `<span class="muted small">（${kids(x.id).length}）</span>` : ''}</button>`).join('')}</div>` : ''}
-    <div class="cfoot"><span class="who">${av(c.owner, 22)}${esc(uname(c.owner))}${c.collabs.length ? `<span class="small">+${c.collabs.length}</span>` : ''}</span>
+    <div class="cfoot"><span class="who">${c.owner ? av(c.owner, 22) : ''}${whoHTML(c)}${c.collabs.length ? `<span class="small">+${c.collabs.length}</span>` : ''}</span>
       <span>${c.milestone ? md(S(s)) : `${md(S(s))}–${md(S(e))}`}${canReport(c) && (c.status === 'todo' || c.status === 'doing') ? `<button class="iconbtn" type="button" data-report="${c.id}" title="回報完成">✓ 回報</button>` : ''}${c.type === 'task' && !DONE(c.status) && !pendingSkip(c.id) && (can('override', c) || can('edit', c)) ? `<button class="iconbtn" type="button" data-skip="${c.id}" title="跳過任務" aria-label="跳過任務">⤳</button>` : ''}<button class="iconbtn" type="button" data-edit="${c.id}" aria-label="編輯">✎</button></span></div>
   </article>`;
 }
 function viewBoard(n) {
-  const items = boardItems(n).filter(shown);
-  if (!items.length && boardItems(n).length) return `<div class="panel empty">這裡沒有與你（${esc(me().name)}）相關的任務。${fullViewAllowed() ? '可勾選右上方「顯示全部任務」查看其他人的任務。' : ''}</div>`;
+  const items = boardItems(n).filter(visible);
+  if (!items.length && boardItems(n).length) return `<div class="panel empty">這裡沒有與你（${esc(me().name)}）相關的任務。</div>`;
   if (!items.length) return `<div class="panel empty">這個節點還沒有子任務。按「＋ 新增子任務」或「套用模板」開始拆解——每個節點都能再往下拆，並擁有自己的看板、時程與文件。</div>`;
   return `<div class="board">${STATUS.map(([k, l]) => {
     const ts = items.filter((t) => (k === 'done' ? DONE(t.status) : t.status === k));
@@ -1476,7 +1534,7 @@ let TL = null; // 目前時程的排版資訊，給連線與拖曳使用
 function tlOpen(x) { const k = ui.expanded['t' + x.id]; if (k !== undefined) return k; const n = node(ui.node); return n.type === 'project' && x.parent === n.id; }
 function tlRows(n) {
   const rows = [];
-  const walk = (x, lvl) => kids(x.id).filter(shown).forEach((c) => {
+  const walk = (x, lvl) => kids(x.id).filter(visible).forEach((c) => {
     rows.push({ n: c, lvl });
     if (kids(c.id).length && tlOpen(c)) walk(c, lvl + 1);
   });
@@ -1722,7 +1780,7 @@ function cascadeFrom(id, moved, lvl) {
 // 只放葉節點；掛在上層任務的相依，轉成「上層最晚結束的子任務 → 下層最早開始的子任務」
 const GW = 200, GH = 58, GCOL = 260, GROW = 80;
 function graphLayout(n) {
-  const leaves = descendants(n.id).filter((x) => shown(x) && isLeaf(x));
+  const leaves = descendants(n.id).filter((x) => visible(x) && isLeaf(x));
   const L = new Set(leaves.map((x) => x.id));
   const sub = new Set(descendants(n.id).map((x) => x.id));
   const ends = (id, first) => {
@@ -1850,28 +1908,90 @@ function viewData(n) {
     ${childLinks.length ? `<div class="panel"><h3>子層的關聯資料</h3>${childLinks.map((d) => `<div class="row" style="padding:4px 0"><button class="iconbtn" type="button" data-enter="${d.id}">${esc(d.title)}</button>${d.links.map((l) => `<span class="tag gray">${l.id}${l.v ? ' v' + l.v : ''}</span>`).join('')}</div>`).join('')}</div>` : ''}</div>`;
 }
 
+/* ---------- 部門管理 ---------- */
+function deptUsage(id) {
+  const tasks = Object.values(db.nodes).filter((n) => n.dept === id || (n.depts || []).includes(id)).length
+    + db.templates.reduce((a, t) => a + t.nodes.filter((x) => x.dept === id || (x.dp || []).includes(id)).length, 0);
+  return { tasks, users: deptMembers(id).length };
+}
+const deptAdminErr = () => (me().role === 'admin' ? null : '只有系統管理員可以管理部門');
+function addDept(name) {
+  const err = deptAdminErr(); if (err) return { ok: false, error: err };
+  const nm = String(name || '').trim();
+  if (!nm) return { ok: false, error: '請填寫部門名稱' };
+  if (db.departments.some((d) => d.name === nm)) return { ok: false, error: '已有同名部門' };
+  const id = commit(`新增部門「${nm}」`, () => { const nid = newId('d-'); db.departments.push({ id: nid, name: nm, head: null }); return nid; });
+  log(null, '部門', `新增部門「${nm}」`);
+  return { ok: true, id };
+}
+function updateDept(id, { name, head }) {
+  const err = deptAdminErr(); if (err) return { ok: false, error: err };
+  const d = dept(id); if (!d) return { ok: false, error: '找不到部門' };
+  const nm = String(name || '').trim();
+  if (!nm) return { ok: false, error: '請填寫部門名稱' };
+  if (db.departments.some((x) => x.id !== id && x.name === nm)) return { ok: false, error: '已有同名部門' };
+  if (head && !deptMembers(id).includes(head)) return { ok: false, error: '主管必須是部門成員' };
+  const old = d.name;
+  commit(`修改部門「${old}」`, () => { d.name = nm; d.head = head || null; });
+  log(null, '部門', `修改部門「${old}」：名稱「${nm}」，主管 ${head ? uname(head) : '未設'}`);
+  return { ok: true };
+}
+function deleteDept(id) {
+  const err = deptAdminErr(); if (err) return { ok: false, error: err };
+  const d = dept(id); if (!d) return { ok: false, error: '找不到部門' };
+  const u = deptUsage(id);
+  if (u.tasks || u.users) return { ok: false, error: `部門還有 ${u.tasks} 件任務、${u.users} 位人員，請先移轉` };
+  commit(`刪除部門「${d.name}」`, () => { db.departments = db.departments.filter((x) => x.id !== id); });
+  log(null, '部門', `刪除部門「${d.name}」`);
+  return { ok: true };
+}
+function deptPanelHTML() {
+  const adm = me().role === 'admin';
+  return `<div class="panel"><div class="row" style="justify-content:space-between"><h3>部門</h3>${adm ? '<button class="btn sm" type="button" data-dept-add>＋ 新增部門</button>' : ''}</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>部門</th><th>主管</th><th>成員</th><th>任務</th>${adm ? '<th></th>' : ''}</tr></thead><tbody>
+    ${db.departments.map((d) => { const u = deptUsage(d.id); return `<tr><td>${esc(d.name)}</td>
+      <td>${d.head ? `${av(d.head, 22)} ${esc(uname(d.head))}` : '<span class="tag warn" title="這個部門的未指派工作只有專案負責人看得到">未設主管</span>'}</td>
+      <td>${u.users}</td><td>${u.tasks}</td>
+      ${adm ? `<td class="row"><button class="btn sm" type="button" data-dept-edit="${d.id}">編輯</button><button class="btn sm danger" type="button" data-dept-del="${d.id}">刪除</button></td>` : ''}</tr>`; }).join('')}
+    </tbody></table></div>
+    <p class="small muted">${adm ? '刪除前需先移轉部門的任務與人員。' : '部門與主管由系統管理員維護。'}</p></div>`;
+}
+function openDeptDlg(id) {
+  const d = id ? dept(id) : null;
+  openDlg(`<form id="deptForm" data-id="${id || ''}"><h2 class="serif">${d ? '編輯部門' : '新增部門'}</h2>
+    <div class="field"><label for="dpName">部門名稱</label><input id="dpName" value="${esc(d ? d.name : '')}" required></div>
+    ${d ? `<div class="field"><label for="dpHead">主管</label><select id="dpHead"><option value="">未設主管</option>${deptMembers(d.id).map((u) => `<option value="${u}" ${u === d.head ? 'selected' : ''}>${esc(uname(u))}</option>`).join('')}</select></div>` : '<p class="small muted">新部門還沒有成員，建立後再設定主管。</p>'}
+    <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn primary" type="submit">儲存</button></div></form>`);
+}
+function submitDept(id) {
+  const r = id ? updateDept(id, { name: $('dpName').value, head: $('dpHead').value || null }) : addDept($('dpName').value);
+  if (!r.ok) return toast(r.error, 'warn');
+  closeDlg(); toast(id ? '已更新部門' : '已新增部門');
+}
+
 /* ---------- 成員與權限（F5 / F6） ---------- */
 function viewPeople(n) {
-  const acts = [['view', '檢視'], ['edit', '新增 / 編輯任務'], ['delete', '刪除任務'], ['schedule', '修改時程'], ['deps', '設定前置條件'], ['gate', '核准階段閘門'], ['override', '覆寫（跳過）前置 / 閘門'], ['members', '管理成員與權限'], ['templates', '管理模板庫']];
+  const acts = [['view', '檢視'], ['edit', '新增 / 編輯任務'], ['assign', '指派負責人'], ['delete', '刪除任務'], ['schedule', '修改時程'], ['deps', '設定前置條件'], ['gate', '核准階段閘門'], ['override', '覆寫（跳過）前置 / 閘門'], ['members', '管理成員與權限'], ['templates', '管理模板庫']];
   const matrix = {
-    admin: ['✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅'], owner: ['✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', ''],
-    reviewer: ['✅', '✅', '', '✅', '✅', '指定階段', '指定階段', '', ''], member: ['✅', '✅', '', '自己的任務', '', '', '', '', ''],
-    collab: ['僅被指派節點', '僅自己的子任務', '', '', '', '', '', '', ''], readonly: ['✅', '', '', '', '', '', '', '', ''],
+    admin: ['✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅'], owner: ['✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', '✅', ''],
+    reviewer: ['相關任務', '自己負責／部門主管', '部門主管', '', '✅', '✅', '指定階段', '指定階段', '', ''],
+    member: ['相關任務', '自己負責／部門主管', '部門主管', '', '自己負責／部門主管', '', '', '', '', ''],
+    collab: ['相關任務', '自己負責', '', '', '', '', '', '', '', ''], readonly: ['✅', '', '', '', '', '', '', '', '', ''],
   };
   const r = me().role;
   return `<div class="stack"><div class="grid2">
     <div class="panel"><h3>此節點的成員</h3><dl class="kv">
       <dt>負責人</dt><dd class="row">${av(n.owner)} ${esc(uname(n.owner))}</dd>
       <dt>協作人員</dt><dd class="row">${n.collabs.map((c) => av(c) + ' ' + esc(uname(c))).join('　') || '—'}</dd>
-      <dt>協作部門</dt><dd>${n.depts.map((d) => `<span class="tag gray">${esc(d)}</span>`).join(' ') || '—'}</dd>
+      <dt>協作部門</dt><dd>${n.depts.map((d) => `<span class="tag gray">${esc(deptName(d))}</span>`).join(' ') || '—'}</dd>
       <dt>資料等級</dt><dd>${lvBadge(effLevel(n))} ${n.level ? '（本節點設定）' : '（繼承上層）'}</dd></dl>
       ${n.type !== 'project' ? `<button class="btn sm" type="button" data-edit="${n.id}" style="margin-top:10px" ${can('edit', n) ? '' : 'disabled'}>編輯成員與等級</button>` : ''}
-      <p class="small muted">協作人員只看得到被指派的節點（及必要的上層摘要）。權限預設繼承上層，可在子樹覆寫。</p></div>
+      <p class="small muted">每件任務只有相關的人看得到：負責人、協作人員、負責部門與協作部門的主管、範圍內的審核人。未指派負責人的任務只有部門主管看得到。</p></div>
     <div class="panel"><h3>你（${esc(me().name)}・${ROLES[r]}）在此節點可以</h3>
       ${acts.map(([k, l]) => `<div class="row" style="padding:2px 0">${can(k, n) ? '<span class="check">✓</span>' : '<span class="cross">✗</span>'} ${l}</div>`).join('')}
       <p class="small muted">左下角可切換身分，體驗不同角色看到的畫面。</p></div></div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>權限</th>${Object.entries(ROLES).map(([k, l]) => `<th style="${k === r ? 'color:var(--teal)' : ''}">${l}${k === r ? '（你）' : ''}</th>`).join('')}</tr></thead>
-      <tbody>${acts.map(([k, l], i) => `<tr><td>${l}</td>${Object.keys(ROLES).map((rk) => `<td style="${rk === r ? 'background:var(--teal-soft)' : ''}">${matrix[rk][i]}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+      <tbody>${acts.map(([k, l], i) => `<tr><td>${l}</td>${Object.keys(ROLES).map((rk) => `<td style="${rk === r ? 'background:var(--teal-soft)' : ''}">${matrix[rk][i]}</td>`).join('')}</tr>`).join('')}</tbody></table></div>${deptPanelHTML()}</div>`;
 }
 </script>
 <script>
@@ -1881,10 +2001,9 @@ function pageOverview() {
   const leaves = ps.flatMap((p) => descendants(p.id).filter((x) => isLeaf(x) && x.type === 'task'));
   const open = leaves.filter((x) => !DONE(x.status));
   const load = {};
-  open.forEach((x) => { load[x.owner] = load[x.owner] || { n: 0, late: 0, ps: new Set() }; load[x.owner].n++; if (isLate(x)) load[x.owner].late++; load[x.owner].ps.add(projectOf(x).title); });
+  open.forEach((x) => { if (!x.owner) return; load[x.owner] = load[x.owner] || { n: 0, late: 0, ps: new Set() }; load[x.owner].n++; if (isLate(x)) load[x.owner].late++; load[x.owner].ps.add(projectOf(x).title); });
   const max = Math.max(1, ...Object.values(load).map((v) => v.n));
-  const deptLoad = {};
-  open.forEach((x) => { const d = USERS[x.owner]?.dept || '—'; deptLoad[d] = (deptLoad[d] || 0) + 1; });
+  const deptLoad = db.departments.map((d) => [d.name, open.filter((x) => x.dept === d.id).length]);
   return `<div class="pagehead"><div><h1 class="serif">所有專案總覽</h1><p>跨專案進度、預估上市與人員負載（Demo 基準日 ${ymd(TODAY)}）</p></div></div>
   <div class="grid3">
     <div class="panel stat"><b>${ps.length}</b><span>進行中專案</span></div>
@@ -1901,10 +2020,10 @@ function pageOverview() {
   }).join('')}</tbody></table></div>
   <div class="grid2">
     <div class="panel"><h3>人員負載（未完成任務數）</h3>
-      ${Object.entries(load).sort((a, b) => b[1].n - a[1].n).map(([u, v]) => `<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span class="row">${av(u)} ${esc(uname(u))} <span class="small muted">${esc(USERS[u]?.dept || '')}</span></span><span class="small">${v.n} 項${v.late ? `，<span style="color:var(--orange)">${v.late} 項延遲</span>` : ''}</span></div>
+      ${Object.entries(load).sort((a, b) => b[1].n - a[1].n).map(([u, v]) => `<div style="margin:8px 0"><div class="row" style="justify-content:space-between"><span class="row">${av(u)} ${esc(uname(u))} <span class="small muted">${esc(USERS[u] ? deptName(USERS[u].dept) : '')}</span></span><span class="small">${v.n} 項${v.late ? `，<span style="color:var(--orange)">${v.late} 項延遲</span>` : ''}</span></div>
       <div class="bar-h" title="${esc([...v.ps].join('、'))}"><span class="${v.n === max ? 'hot' : ''}" style="width:${v.n / max * 100}%"></span></div></div>`).join('')}
       <p class="small muted">工作量最重的人以橘色標示，可在任務編輯中改派負責人或加入協作人員。</p></div>
-    <div class="panel"><h3>部門負載</h3>${Object.entries(deptLoad).sort((a, b) => b[1] - a[1]).map(([d, c]) => `<div class="row" style="justify-content:space-between;padding:4px 0"><span>${esc(d)}</span><span>${c} 項</span></div>`).join('')}
+    <div class="panel"><h3>部門負載</h3>${deptLoad.slice().sort((a, b) => b[1] - a[1]).map(([d, c]) => `<div class="row" style="justify-content:space-between;padding:4px 0"><span>${esc(d)}</span><span>${c} 項</span></div>`).join('')}
       <h3 style="margin-top:16px">內網部署狀態（F7 示意）</h3>
       <dl class="kv"><dt>主機</dt><dd>projectflow.company.local（內部 CA 憑證）</dd><dt>對外連線</dt><dd>僅 AI 閘道可送出公開／遮罩後內容（政策：${{ local_only: '全本地', hybrid: '混合', cloud_allowed: '允許雲端' }[db.policy]}）</dd><dt>上次備份</dt><dd>${ymd(TODAY)} 02:00 → NAS（成功）</dd><dt>還原演練</dt><dd>2026/09/15（成功）</dd><dt>ERP 同步</dt><dd>${esc(audit.sync[0]?.at || '')}・${esc(audit.sync[0]?.status || '')}</dd></dl></div>
   </div>`;
@@ -1914,19 +2033,20 @@ function pageOverview() {
 function pageMyTasks() {
   const u = me();
   const all = Object.values(db.nodes).filter((n) => n.type === 'task' && !DONE(n.status) && can('view', n));
+  const heads = db.departments.filter((d) => d.head === u.id).map((d) => d.id);
   const groups = [
+    ...(heads.length ? [['待我指派', all.filter((n) => n.owner === null && heads.includes(n.dept)), true]] : []),
     ['我負責的', all.filter((n) => n.owner === u.id)],
     ['我協作的', all.filter((n) => n.owner !== u.id && n.collabs.includes(u.id))],
-    [`我部門（${u.dept}）被指派的`, all.filter((n) => n.owner !== u.id && !n.collabs.includes(u.id) && n.depts.includes(u.dept))],
   ];
-  const row = (n) => {
+  const row = (n, assign) => {
     const bl = blockersFor(n).filter((b) => b.hard);
     const [s, e] = span(n);
     return `<tr class="click" data-enter="${n.id}"><td><span class="dot ${n.status}" style="display:inline-block"></span> ${esc(n.title)}${bl.length ? ' <span class="tag warn">🔒 等待前置</span>' : ''}${isLate(n) ? ' <span class="tag warn">延遲</span>' : ''}</td>
-      <td class="small muted">${esc(projectOf(n).title)} / ${esc(ancestors(n).slice(1).map((a) => a.title).join(' / '))}</td><td>${STLBL[n.status]}</td><td>${md(S(s))}–${md(S(e))}</td></tr>`;
+      <td class="small muted">${esc(projectOf(n).title)} / ${esc(ancestors(n).slice(1).map((a) => a.title).join(' / '))}</td><td>${STLBL[n.status]}</td><td>${md(S(s))}–${md(S(e))}</td>${assign ? `<td><button class="btn sm" type="button" data-edit="${n.id}">指派</button></td>` : ''}</tr>`;
   };
-  return `<div class="pagehead"><div><h1 class="serif">我的任務</h1><p>${esc(u.name)}・跨專案、跨層級（含我負責、我協作、部門被指派）</p></div></div>
-  ${groups.map(([t, list]) => `<div class="stack"><h2>${t}（${list.length}）</h2>${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>任務</th><th>位置</th><th>狀態</th><th>期間</th></tr></thead><tbody>${list.sort((a, b) => span(a)[1] - span(b)[1]).map(row).join('')}</tbody></table></div>` : '<div class="empty">沒有項目。</div>'}</div>`).join('')}
+  return `<div class="pagehead"><div><h1 class="serif">我的任務</h1><p>${esc(u.name)}・跨專案、跨層級（含我負責、我協作${heads.length ? '、待我指派' : ''}）</p></div></div>
+  ${groups.map(([t, list, assign]) => `<div class="stack"><h2>${esc(t)}（${list.length}）</h2>${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>任務</th><th>位置</th><th>狀態</th><th>期間</th>${assign ? '<th></th>' : ''}</tr></thead><tbody>${list.sort((a, b) => span(a)[1] - span(b)[1]).map((n) => row(n, assign)).join('')}</tbody></table></div>` : '<div class="empty">沒有項目。</div>'}</div>`).join('')}
   <div class="panel"><h3>通知</h3>${audit.notes.slice(0, 8).map((x) => `<div class="small" style="padding:4px 0;border-bottom:1px solid #F0EDE6"><span class="muted">${esc(x.at)}</span>　${esc(x.text).replace(/\n/g, ' ')}</div>`).join('') || '<div class="empty">目前沒有通知。拖動任務、完成前置或工單完工時會出現在這裡。</div>'}</div>`;
 }
 
@@ -1973,7 +2093,7 @@ function pageTemplates() {
       ${t.scope === 'personal' ? `<button class="btn sm" type="button" data-publish="${t.id}" ${can('templates') ? '' : 'disabled'} title="需系統管理員">發布為組織模板</button>` : ''}</div>
       <h3 style="margin-top:8px">${esc(t.name)}</h3><p class="small muted" style="margin:0 0 8px">${esc(t.desc || '')}</p>
       <div class="small">${nodes.length} 個子任務・約 ${days} 天・${t.deps.length} 條前置${t.docs.length ? `・文件範本：${esc(t.docs.join('、'))}` : ''}</div>
-      <details style="margin-top:8px"><summary class="small">預覽結構</summary><ol class="small" style="padding-left:20px;margin:6px 0">${nodes.map((x) => `<li>${esc(x.title)} <span class="muted">（第 ${x.off} 天起，${x.dur} 天${x.dp && x.dp.length ? '，' + x.dp.join('/') : ''}）</span></li>`).join('')}</ol></details>
+      <details style="margin-top:8px"><summary class="small">預覽結構</summary><ol class="small" style="padding-left:20px;margin:6px 0">${nodes.map((x) => `<li>${esc(x.title)} <span class="muted">（第 ${x.off} 天起，${x.dur} 天${x.dp && x.dp.length ? '，' + esc(x.dp.map(deptName).join('/')) : ''}）</span></li>`).join('')}</ol></details>
       <button class="btn sm primary" type="button" data-apply-tpl="${ui.node}" data-tpl="${t.id}" style="margin-top:8px">套用到目前節點（${esc(node(ui.node)?.title || '')}）</button></div>`;
   }).join('')}</div>`;
 }
@@ -2158,7 +2278,8 @@ function maskText(text) {
   out = out.replace(/M-\d{4}/g, (m) => put('料號', m));
   return { out, map };
 }
-function ctxProject() { return ui.page === 'node' && node(ui.node) ? projectOf(node(ui.node)) : projects().find(visible); }
+// 目前節點頁的專案；看不到、或不在節點頁時用第一個看得到的專案，一個都沒有就是 undefined（呼叫端要處理）
+function ctxProject() { const p = ui.page === 'node' && node(ui.node) ? projectOf(node(ui.node)) : null; return p && visible(p) ? p : projects().find(visible); }
 function publicSnapshot(p) {
   return descendants(p.id).filter((x) => x.type === 'task' && visible(x)).map((x) => { const [s, e] = span(x); return `- ${x.title}｜${STLBL[x.status]}｜${md(S(s))}–${md(S(e))}｜${uname(x.owner)}`; }).join('\n');
 }
@@ -2228,7 +2349,7 @@ function aiAction(kind) {
       const cp = criticalPath(p.id);
       const pathList = [...cp.nodes].map(node).filter((x) => x && isLeaf(x)).sort((a, b) => span(a)[0] - span(b)[0]);
       const blocked = descendants(p.id).filter((x) => x.status === 'todo' && findBlockers(x, 'doing').some((b) => b.hard));
-      const load = {}; descendants(p.id).filter((x) => isLeaf(x) && !DONE(x.status)).forEach((x) => { load[x.owner] = (load[x.owner] || 0) + 1; });
+      const load = {}; descendants(p.id).filter((x) => isLeaf(x) && !DONE(x.status)).forEach((x) => { if (!x.owner) return; load[x.owner] = (load[x.owner] || 0) + 1; });
       const heavy = Object.entries(load).sort((a, b) => b[1] - a[1])[0];
       return { text: `${riskText(p)}\n\n關鍵路徑（延誤就會影響上市日）：\n· ${pathList.map((x) => x.title).join('\n→ ')}\n\n被硬性前置卡住：${blocked.length ? '\n· ' + blocked.map((x) => x.title).join('\n· ') : '無'}\n\n工作量最重：${heavy ? `${uname(heavy[0])}（${heavy[1]} 項未完成）` : '無'}\n\n建議：優先排除關鍵路徑上的延遲項目；非關鍵任務可借調人力；外部交期請採購確認是否能提前。`, actions: [{ label: '在時程上顯示關鍵路徑', kind: 'showCrit', payload: p.id }] };
     });
@@ -2249,7 +2370,7 @@ function aiAction(kind) {
     openMinutes();
   } else if (kind === 'cost') {
     aiRun('配方成本比較', 'confidential', '比較 F-CAT-01 v3 與 v4 的成本與營養（含配方比例與原料單價）', () => {
-      if (!seeField('cost')) return { text: `依欄位權限，${me().name}（${me().dept}）無法查詢配方成本與比例。\n此請求在本地處理，未送出任何資料。` };
+      if (!seeField('cost')) return { text: `依欄位權限，${me().name}（${deptName(me().dept)}）無法查詢配方成本與比例。\n此請求在本地處理，未送出任何資料。` };
       const f = db.ops.formulas[0]; const a = fCalc(f.versions[2]), b = fCalc(f.versions[3]);
       return { text: `（本地模型 + 本地計算，數值未離開內網）\n\nv3：每公斤原料成本 ${money(a.cost.toFixed(2))}，粗蛋白 ${a.protein.toFixed(1)}%\nv4：每公斤原料成本 ${money(b.cost.toFixed(2))}，粗蛋白 ${b.protein.toFixed(1)}%\n\n成本 ${((b.cost / a.cost - 1) * 100).toFixed(1)}%，粗蛋白 ${(b.protein - a.protein).toFixed(1)} 個百分點。\n主因：鮪魚比例下降、加入南瓜泥。若改版，需重做殺菌驗證、保存試驗、營養送驗與標示審查（見「變更影響分析」）。`, actions: [{ label: '開啟變更影響分析', kind: 'goOps', payload: 'formulas' }] };
     });
@@ -2258,10 +2379,10 @@ function aiAction(kind) {
     aiRun('推薦模板與協作部門', 'public', `依任務名稱推薦模板與協作部門：${n.title}\n子任務：${kids(n.id).map((x) => x.title).join('、')}`, () => {
       const t = n.title;
       const tpl = /送驗|檢驗/.test(t) ? 'tp1' : /試作/.test(t) ? 'tp2' : /供應商/.test(t) ? 'tp3' : /標示/.test(t) ? 'tp4' : null;
-      const deptMap = { 檢驗: ['品保'], 法規: ['行銷', '品保'], 試作: ['生產', '品保'], 製程: ['品保', '生產'], 採購: ['品保'], 品保: ['製程'], 行銷: ['法規'], 測試: ['行銷'], 生產: ['製程', '採購'], 配方: ['採購', '品保'] };
-      const depts = deptMap[n.tag] || ['品保'];
+      const deptMap = { 檢驗: ['d-qa'], 法規: ['d-sales', 'd-qa'], 試作: ['d-mfg', 'd-qa'], 製程: ['d-qa', 'd-mfg'], 採購: ['d-qa'], 品保: ['d-pe'], 行銷: ['d-qa'], 測試: ['d-sales'], 生產: ['d-pe', 'd-pur'], 配方: ['d-pur', 'd-qa'] };
+      const depts = deptMap[n.tag] || ['d-qa'];
       const T = db.templates.find((x) => x.id === tpl);
-      return { text: `「${t}」\n\n推薦模板：${T ? `${T.name}（${T.nodes.length - 1} 個子任務）` : '沒有高度相符的模板，可從相似的過去任務複製'}\n推薦協作部門：${depts.join('、')}${n.depts.length ? `（目前已有：${n.depts.join('、')}）` : ''}`, actions: [T ? { label: `套用「${T.name}」`, kind: 'applyTpl', payload: { node: n.id, tpl } } : { label: '搜尋過去任務', kind: 'applyTpl', payload: { node: n.id } }, { label: `加入協作部門`, kind: 'addDepts', payload: { node: n.id, depts } }] };
+      return { text: `「${t}」\n\n推薦模板：${T ? `${T.name}（${T.nodes.length - 1} 個子任務）` : '沒有高度相符的模板，可從相似的過去任務複製'}\n推薦協作部門：${depts.map(deptName).join('、')}${n.depts.length ? `（目前已有：${n.depts.map(deptName).join('、')}）` : ''}`, actions: [T ? { label: `套用「${T.name}」`, kind: 'applyTpl', payload: { node: n.id, tpl } } : { label: '搜尋過去任務', kind: 'applyTpl', payload: { node: n.id } }, { label: `加入協作部門`, kind: 'addDepts', payload: { node: n.id, depts } }] };
     });
   }
 }
@@ -2269,6 +2390,7 @@ function aiAsk(q) {
   ui.chat.push({ user: true, text: q });
   const p = ctxProject();
   const secret = /配方|比例|成本|報價|單價|價格|金額/.test(q);
+  if (!p && !secret) { ui.chat.push({ title: '專案問答', text: '目前沒有你看得到的專案，無法回答專案相關的問題。' }); return renderChat(); }
   if (secret) {
     aiRun('問答（含機密）', 'confidential', q, () => {
       if (!seeField('ratio') && !seeField('cost')) return { text: '這個問題涉及機密欄位（配方比例／成本），依你的角色權限無法回答。此請求在本地處理，未送出任何資料。' };
@@ -2288,7 +2410,7 @@ function aiAsk(q) {
       return { text: `${riskText(p)}\n\n影響路徑：${[...criticalPath(p.id).nodes].map(node).filter((x) => x && isLeaf(x)).sort((a, b) => span(a)[0] - span(b)[0]).map((x) => x.title).join(' → ')}\n${sl.days ? '要追回時程，可考慮：縮短保存試驗前置（先以 v3 啟動）、或與通路協調上架日。' : ''}\n\n來源：[1] 時程與相依關係　[2] 殺菌試驗紀錄` };
     }
     if (/誰|負責|工作量|人力/.test(q)) {
-      const load = {}; descendants(p.id).filter((x) => isLeaf(x) && !DONE(x.status)).forEach((x) => { load[x.owner] = (load[x.owner] || 0) + 1; });
+      const load = {}; descendants(p.id).filter((x) => isLeaf(x) && !DONE(x.status)).forEach((x) => { if (!x.owner) return; load[x.owner] = (load[x.owner] || 0) + 1; });
       return { text: `未完成任務分布：\n${Object.entries(load).sort((a, b) => b[1] - a[1]).map(([u, c]) => `· ${uname(u)}：${c} 項`).join('\n')}\n\n來源：[1] 任務指派` };
     }
     // 簡易 RAG：依字詞重疊檢索使用者看得到的文件
@@ -2315,20 +2437,24 @@ function runAIAction(i, j) {
   else if (a.kind === 'addDepts') {
     const n = node(a.payload.node); if (!can('edit', n)) return toast('你的角色無權編輯此節點', 'warn');
     commit('加入協作部門', () => { n.depts = [...new Set([...n.depts, ...a.payload.depts])]; });
-    log(n.id, '協作', `加入協作部門：${a.payload.depts.join('、')}`); a.used = true; renderChat();
+    log(n.id, '協作', `加入協作部門：${a.payload.depts.map(deptName).join('、')}`); a.used = true; renderChat();
   } else if (a.kind === 'minutesCreate') { openMinutesConfirm(a.payload, () => { a.used = true; renderChat(); }); }
 }
 
 /* ================= 節點操作 ================= */
 function addNode(parent, o) {
   const id = newId('n');
+  const pt = node(parent);
+  const dpt = o.dept || (pt && pt.type === 'task' ? pt.dept : null) || (USERS[ui.me] && USERS[ui.me].dept) || 'd-rd';
+  const want = o.owner !== undefined ? (o.owner || null) : ui.me;
+  const own = want && USERS[want] && USERS[want].dept === dpt ? want : null;
   const k = kids(parent);
   // 已完成（或審核中）的任務加入新子任務：連同上層一起改回進行中
   for (let p = node(parent); p && p.type === 'task'; p = p.parent ? node(p.parent) : null) {
     if (p.id === parent && !k.length) { p.progress = null; closePendingReport(p.id, '任務已加入子任務，回報自動結案'); }
     if (DONE(p.status) || p.status === 'review') { const from = STLBL[p.status]; p.status = 'doing'; audit.acts.unshift({ at: nowStr(), actor: ui.me, node: p.id, action: '狀態', text: `「${p.title}」加入新子任務，從「${from}」改回「進行中」` }); toast(`「${p.title}」加入新子任務，已從「${from}」改回「進行中」`); }
   }
-  db.nodes[id] = { id, parent, type: 'task', title: o.title, tag: o.tag || '', status: 'todo', progress: null, weight: 1, start: o.start || TODAY, end: o.end || o.start || S(T0 + 6), milestone: !!o.milestone, locked: false, owner: o.owner || ui.me, collabs: o.collabs || [], depts: o.depts || [], level: o.level || null, ai: !!o.ai, note: o.note || '', links: o.links || [], order: (k.length ? Math.max(...k.map((x) => x.order)) : node(parent).order) + 1 };
+  db.nodes[id] = { id, parent, type: 'task', title: o.title, tag: o.tag || '', status: 'todo', progress: null, weight: 1, start: o.start || TODAY, end: o.end || o.start || S(T0 + 6), milestone: !!o.milestone, locked: false, owner: own, dept: dpt, collabs: o.collabs || [], depts: o.depts || [], level: o.level || null, ai: !!o.ai, note: o.note || '', links: o.links || [], order: (k.length ? Math.max(...k.map((x) => x.order)) : node(parent).order) + 1 };
   return id;
 }
 function moveNode(id, np) {
@@ -2383,7 +2509,11 @@ function deleteNode(id) {
 
 /* ================= 對話框 ================= */
 function closeDrawer() { const d = $('drawer'); if (d.open) d.close(); }
-function userOpts(sel) { return Object.entries(USERS).filter(([id]) => id !== 'it').map(([id, u]) => `<option value="${id}" ${id === sel ? 'selected' : ''}>${u.name}（${u.dept}）</option>`).join(''); }
+function userOpts(sel) { return Object.entries(USERS).filter(([id]) => id !== 'it').map(([id, u]) => `<option value="${id}" ${id === sel ? 'selected' : ''}>${esc(u.name)}（${esc(deptName(u.dept))}）</option>`).join(''); }
+function deptOpts(sel) { return db.departments.map((d) => `<option value="${d.id}" ${d.id === sel ? 'selected' : ''}>${esc(d.name)}</option>`).join(''); }
+function ownerOpts(deptId, sel) { return '<option value="">未指派</option>' + deptMembers(deptId).map((u) => `<option value="${u}" ${u === sel ? 'selected' : ''}>${esc(USERS[u].name)}</option>`).join(''); }
+// 任務的負責人顯示：已指派顯示人名與部門，未指派顯示「未指派・部門」
+function whoHTML(n) { return n.owner ? `${esc(uname(n.owner))}<span class="small muted">・${esc(deptName(n.dept))}</span>` : `<span class="tag warn">未指派・${esc(deptName(n.dept))}</span>`; }
 function openEditor(id) {
   const n = node(id); if (!n) return;
   const d = $('drawer');
@@ -2400,16 +2530,18 @@ function openEditor(id) {
     <div class="field"><label for="eTitle">名稱</label><input id="eTitle" value="${esc(n.title)}" ${ed ? '' : 'disabled'} required></div>
     <div class="frow"><div class="field"><label for="eTag">類別</label><select id="eTag" ${ed ? '' : 'disabled'}><option value="">—</option>${TAGS.map((t) => `<option ${t === n.tag ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
       <div class="field"><label for="eStatus">狀態</label><select id="eStatus" ${ed && n.status !== 'skipped' ? '' : 'disabled'}>${Object.entries(STLBL).filter(([k]) => k !== 'skipped' || n.status === 'skipped').map(([k, l]) => `<option value="${k}" ${k === n.status ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
-    <div class="frow"><div class="field"><label for="eOwner">負責人</label><select id="eOwner" ${ed && me().role !== 'collab' ? '' : 'disabled'}>${userOpts(n.owner)}</select></div>
+    ${n.type === 'task' ? `<div class="frow"><div class="field"><label for="eDept">負責部門</label><select id="eDept" ${can('dept', n) ? '' : 'disabled'}>${deptOpts(n.dept)}</select></div>
+      <div class="field"><label for="eOwner">負責人</label><select id="eOwner" ${can('assign', n) ? '' : 'disabled'}>${ownerOpts(n.dept, n.owner)}</select></div></div>
+    <div class="frow">` : `<div class="frow"><div class="field"><label for="eOwner">負責人</label><select id="eOwner" ${ed && me().role !== 'collab' ? '' : 'disabled'}>${userOpts(n.owner)}</select></div>`}
       <div class="field"><label for="eLevel">資料等級</label><select id="eLevel" ${ed ? '' : 'disabled'}><option value="">繼承上層（${LEVELS[effLevel(node(n.parent) || n)]}）</option>${Object.entries(LEVELS).map(([k, l]) => `<option value="${k}" ${n.level === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
     <div class="frow"><div class="field"><label for="eStart">開始</label><input id="eStart" type="date" value="${S(s)}" ${sch && !(n.locked && !can('override', n)) ? '' : 'disabled'}></div>
       <div class="field"><label for="eEnd">結束</label><input id="eEnd" type="date" value="${S(e)}" ${sch && !n.milestone && !(n.locked && !can('override', n)) ? '' : 'disabled'}></div></div>
     ${leaf ? '' : '<p class="small muted" style="margin-top:-6px">這是上層任務的計畫期間；若子任務超出，實際範圍會自動延伸涵蓋。</p>'}
     <div class="frow"><div class="field"><label for="eWeight">權重（彙總進度用）</label><input id="eWeight" type="number" min="0" step="0.5" value="${n.weight}" ${ed ? '' : 'disabled'}></div>
       <div class="field"><label for="eProg">進度 %（進行中時可手填）</label><input id="eProg" type="number" min="0" max="100" value="${leaf ? Math.round(prog(n)) : Math.round(prog(n))}" ${leaf && ed && n.status === 'doing' ? '' : 'disabled'}></div></div>
-    <div class="chips" style="margin-bottom:12px"><label><input type="checkbox" id="eMs" ${n.milestone ? 'checked' : ''} ${ed && leaf ? '' : 'disabled'}>里程碑</label><label><input type="checkbox" id="eLock" ${n.locked ? 'checked' : ''} ${can('override', n) ? '' : 'disabled'}>鎖定（需權限才能改時程）</label></div>
+    <div class="chips" style="margin-bottom:12px"><label><input type="checkbox" id="eMs" ${n.milestone ? 'checked' : ''} ${ed && leaf ? '' : 'disabled'}>里程碑</label><label><input type="checkbox" id="eLock" ${n.locked ? 'checked' : ''} ${sch && can('override', n) ? '' : 'disabled'}>鎖定（需權限才能改時程）</label></div>
     <div class="field"><span class="lb">協作人員</span><div class="chips">${Object.entries(USERS).filter(([id]) => id !== 'it' && id !== n.owner).map(([id, u]) => `<label><input type="checkbox" class="eCo" value="${id}" ${n.collabs.includes(id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${u.name}</label>`).join('')}</div></div>
-    <div class="field"><span class="lb">協作部門</span><div class="chips">${DEPTS.map((x) => `<label><input type="checkbox" class="eDp" value="${x}" ${n.depts.includes(x) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${x}</label>`).join('')}</div></div>
+    <div class="field"><span class="lb">協作部門</span><div class="chips">${db.departments.map((x) => `<label><input type="checkbox" class="eDp" value="${x.id}" ${n.depts.includes(x.id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${esc(x.name)}</label>`).join('')}</div></div>
     <div class="field"><label for="eNote">備註</label><textarea id="eNote" style="min-height:60px" ${ed ? '' : 'disabled'}>${esc(n.note)}</textarea></div>
     ${leaf && n.type === 'task' ? `<div class="field"><span class="lb">回報欄位（完成回報時要填的自訂欄位）</span>
       ${fieldDefs(n.id).map((f) => `<div class="deprow"><span style="flex-grow:1">${esc(f.label)} <span class="tag gray">${FIELD_TYPES[f.type]}${f.unit ? '・' + esc(f.unit) : ''}</span>${f.required ? ' <span class="tag warn">必填</span>' : ''}${f.type === 'select' ? ` <span class="small muted">${esc((f.options || []).join('、'))}</span>` : ''}</span>
@@ -2450,9 +2582,15 @@ function saveEditor(id) {
   if ($('eMs').checked) e = s;
   if (D(e) < D(s)) return toast('結束日不能早於開始日', 'warn');
   const status = v('eStatus');
-  const oldS = n.start, oldE = n.end, oldOwner = n.owner;
+  const isTask = n.type === 'task';
+  const newDept = isTask ? (can('dept', n) ? v('eDept') : n.dept) : null;
+  if (isTask && !dept(newDept)) return toast('請選擇負責部門', 'warn');
+  let newOwner = isTask ? (can('assign', n) ? (v('eOwner') || null) : n.owner) : v('eOwner');
+  if (isTask && newOwner && (!USERS[newOwner] || USERS[newOwner].dept !== newDept)) { newOwner = null; toast('負責人不屬於所選部門，已改為未指派', 'warn'); }
+  const oldS = n.start, oldE = n.end, oldOwner = n.owner, oldDept = n.dept;
   commit(`編輯「${n.title}」`, () => {
-    Object.assign(n, { title, tag: v('eTag'), owner: v('eOwner'), level: v('eLevel') || null, weight: +v('eWeight') || 0, note: v('eNote'), milestone: $('eMs').checked, locked: $('eLock').checked });
+    Object.assign(n, { title, tag: v('eTag'), owner: newOwner, level: v('eLevel') || null, weight: +v('eWeight') || 0, note: v('eNote'), milestone: $('eMs').checked, locked: $('eLock').checked });
+    if (isTask) n.dept = newDept;
     const [os, oe] = span(n);
     if (!$('eStart').disabled && (leaf || n.start || s !== S(os) || e !== S(oe))) { n.start = s; n.end = e; }
     if (n.status === 'doing' && leaf) n.progress = Math.max(0, Math.min(100, +v('eProg') || 0));
@@ -2460,12 +2598,13 @@ function saveEditor(id) {
     n.depts = [...document.querySelectorAll('.eDp:checked')].map((x) => x.value);
     if (ui.cascade && (n.start !== oldS || n.end !== oldE)) cascadeFrom(n.id, [], 0);
   });
-  log(n.id, '編輯', `更新「${title}」${oldOwner !== n.owner ? `，負責人改為 ${uname(n.owner)}（已通知）` : ''}${oldS !== n.start || oldE !== n.end ? `，時程 ${md(n.start)}–${md(n.end)}` : ''}`);
+  log(n.id, '編輯', `更新「${title}」${oldOwner !== n.owner ? `，負責人改為 ${n.owner ? uname(n.owner) : '未指派'}（已通知）` : ''}${isTask && oldDept !== n.dept ? `，負責部門改為 ${deptName(n.dept)}` : ''}${oldS !== n.start || oldE !== n.end ? `，時程 ${md(n.start)}–${md(n.end)}` : ''}`);
   closeDrawer();
   if (status !== n.status) setStatus(n.id, status);
 }
 function openQuickAdd(parent, s, e, opt = {}) {
   const p = node(parent);
+  const qaDept = (p.type === 'task' && p.dept) || (USERS[ui.me] && USERS[ui.me].dept) || 'd-rd';
   if (!can('create', p)) return toast('你的角色無權在這裡新增任務', 'warn');
   const k = kids(parent);
   const [ps, pe] = span(p);
@@ -2478,13 +2617,15 @@ function openQuickAdd(parent, s, e, opt = {}) {
   de = de || S(D(ds) + 6);
   const prev = opt.prev ? node(opt.prev) : k.slice().sort((a, b) => span(a)[1] - span(b)[1]).pop();
   const becomesParent = !k.length && p.type === 'task';
+  // 預設負責人：沿用上層負責人，不屬於這個部門就改用自己，都不屬於則未指派；「建立並繼續新增」保留上一筆的選擇（含未指派）
+  const qaWho = me().role === 'collab' ? ui.me : 'owner' in opt ? opt.owner : [p.owner, ui.me].find((x) => x && deptMembers(qaDept).includes(x));
   openDlg(`<form id="qaForm" data-parent="${parent}" data-prev="${prev ? prev.id : ''}"><h2 class="serif">新增子任務</h2>
     <p class="small muted" style="margin-top:-8px">位置：${esc([...ancestors(p), p].map((x) => x.title).join(' / '))}${depth(p) + 1 >= 5 ? '　<span class="tag ai">超過 5 層，建議拆成獨立專案</span>' : ''}</p>
-    ${becomesParent ? `<div class="note" style="margin-bottom:12px">「${esc(p.title)}」目前沒有子任務。新增後它會變成上層任務：<b>進度與狀態改由子任務彙總</b>，負責人仍是 ${esc(uname(p.owner))}，原本的期間 ${md(S(ps))}–${md(S(pe))} 保留為計畫範圍。${DONE(p.status) || p.status === 'review' ? `<br>它目前是「${STLBL[p.status]}」，加入未完成的子任務後會改回「進行中」。` : ''}</div>` : ''}
+    ${becomesParent ? `<div class="note" style="margin-bottom:12px">「${esc(p.title)}」目前沒有子任務。新增後它會變成上層任務：<b>進度與狀態改由子任務彙總</b>，負責人仍是 ${whoHTML(p)}，原本的期間 ${md(S(ps))}–${md(S(pe))} 保留為計畫範圍。${DONE(p.status) || p.status === 'review' ? `<br>它目前是「${STLBL[p.status]}」，加入未完成的子任務後會改回「進行中」。` : ''}</div>` : ''}
     ${opt.added ? `<div class="note" style="margin-bottom:12px">✓ 已建立 ${opt.added} 項：${esc(opt.names.join('、'))}</div>` : ''}
     <div class="field"><label for="qTitle">任務名稱</label><input id="qTitle" required placeholder="例如：重金屬檢驗送驗"></div>
     <div class="frow"><div class="field"><label for="qTag">類別</label><select id="qTag">${TAGS.map((t) => `<option ${t === (opt.tag || p.tag) ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-    <div class="field"><label for="qWho">負責人</label><select id="qWho">${userOpts(me().role === 'collab' ? ui.me : opt.owner || p.owner || ui.me)}</select></div></div>
+    <div class="field"><label for="qWho">負責人（${esc(deptName(qaDept))}）</label><select id="qWho">${ownerOpts(qaDept, qaWho)}</select></div></div>
     <div class="frow"><div class="field"><label for="qS">開始</label><input id="qS" type="date" value="${ds}"></div><div class="field"><label for="qE">結束</label><input id="qE" type="date" value="${de}"></div></div>
     <p class="small muted" style="margin:-4px 0 10px">上層期間：${md(S(ps))}–${md(S(pe))}</p>
     <div class="chips"><label><input type="checkbox" id="qMs">里程碑</label>
@@ -2757,8 +2898,10 @@ function runMinutes(text) {
   });
 }
 function openMinutesConfirm(items, done) {
-  const cur = ui.page === 'node' ? node(ui.node) : ctxProject();
-  const opts = [cur, ...descendants(ctxProject().id).filter((x) => !isLeaf(x))].filter((x, i, a) => a.indexOf(x) === i && can('create', x));
+  const p = ctxProject();
+  if (!p) return toast('目前沒有你看得到的專案', 'warn');
+  const cur = ui.page === 'node' ? node(ui.node) : p;
+  const opts = [cur, ...descendants(p.id).filter((x) => !isLeaf(x))].filter((x, i, a) => a.indexOf(x) === i && can('create', x));
   openDlg(`<form id="minConfirm"><h2 class="serif">確認建立待辦</h2>
     <div class="listpick">${items.map((x, i) => `<label><input type="checkbox" class="minItem" value="${i}" checked>${esc(x.title)} <span class="muted small">（${esc(uname(x.owner))}，${md(x.due)}）</span></label>`).join('')}</div>
     <div class="field" style="margin-top:12px"><label for="minParent">建立在</label><select id="minParent">${opts.map((x) => `<option value="${x.id}">${esc([...ancestors(x), x].map((a) => a.title).join(' / '))}</option>`).join('')}</select></div>
@@ -2834,7 +2977,7 @@ function erpSync() {
     db.ops.suppliers.forEach((s) => {
       s.synced = s.source === 'erp' ? nowStr() : s.synced;
       if (D(s.cert) - T0 < 60 && !Object.values(db.nodes).some((n) => n.certFor === s.id)) {
-        const id = addNode('p4', { title: `更新證照：${s.short}（${md(s.cert)} 到期）`, tag: '採購', owner: 'hua', start: TODAY, end: S(D(s.cert) - 14), links: [{ t: 'supplier', id: s.id }] });
+        const id = addNode('p4', { title: `更新證照：${s.short}（${md(s.cert)} 到期）`, tag: '採購', owner: 'hua', dept: USERS.hua.dept, start: TODAY, end: S(D(s.cert) - 14), links: [{ t: 'supplier', id: s.id }] });
         db.nodes[id].certFor = s.id;
         changes.push(`${s.short} 證照 ${md(s.cert)} 到期，已自動建立更新任務給阿華`);
       }
@@ -3003,6 +3146,9 @@ document.addEventListener('click', (e) => {
   const t = e.target.closest('button, tr.click, [data-gnode], [data-enter]'); if (!t) return;
   const ds = t.dataset;
   if (ds.go) return go(ds.go);
+  if ('deptAdd' in ds) return openDeptDlg(null);
+  if (ds.deptEdit) return openDeptDlg(ds.deptEdit);
+  if (ds.deptDel) { const r = deleteDept(ds.deptDel); return r.ok ? toast('已刪除部門', null, { label: '復原', fn: undo }) : toast(r.error, 'warn'); }
   if (ds.gnode) {
     const n = node(ui.node);
     if (ui.connect) {
@@ -3088,7 +3234,7 @@ document.addEventListener('click', (e) => {
   if (ds.poTask) {
     const po = db.ops.pos.find((p) => p.id === ds.poTask);
     const host = linkedNodes('po', po.id)[0]; const parent = host ? host.parent : 'p1';
-    const t = { name: '到貨驗收', nodes: [{ k: 'r', p: null, title: `到貨驗收：${po.id}`, tag: '品保', off: 0, dur: 0 }, ...['核對數量與外觀', '抽樣檢驗', 'COA / 規格書核對', '入庫與批號登錄'].map((x, i) => ({ k: 'k' + i, p: 'r', title: x, tag: '品保', off: i, dur: 0, dp: ['品保'] }))], deps: [0, 1, 2].map((i) => ({ f: 'k' + i, t: 'k' + (i + 1), type: 'FS', lag: 0 })), docs: [] };
+    const t = { name: '到貨驗收', nodes: [{ k: 'r', p: null, title: `到貨驗收：${po.id}`, tag: '品保', off: 0, dur: 0, dp: [], dept: 'd-qa' }, ...['核對數量與外觀', '抽樣檢驗', 'COA / 規格書核對', '入庫與批號登錄'].map((x, i) => ({ k: 'k' + i, p: 'r', title: x, tag: '品保', off: i, dur: 0, dp: ['d-qa'], dept: 'd-qa' }))], deps: [0, 1, 2].map((i) => ({ f: 'k' + i, t: 'k' + (i + 1), type: 'FS', lag: 0 })), docs: [] };
     const res = commit(`建立 ${po.id} 驗收任務`, () => { const r = applyTemplate(t, parent, { start: po.expected, vars: {}, structure: true, deps: true, owners: true, dates: true, docs: false }); db.nodes[r.root].links = [{ t: 'po', id: po.id }]; return r; });
     log(res.root, '模板', `從採購單 ${po.id} 建立驗收任務（${res.count} 項）`);
     return toast(`已建立「到貨驗收：${po.id}」（${res.count} 項）`, null, { label: '開啟', fn: () => enter(res.root) });
@@ -3104,7 +3250,7 @@ document.addEventListener('click', (e) => {
   if (ds.bomPush) { audit.sync.unshift({ at: nowStr(), module: `BOM ${ds.bomPush.replace(':', ' v')}`, dir: 'push', records: 9, errors: 0, status: '成功，ERP BOM 核對一致' }); save(); log(null, 'ERP', `推送 ${ds.bomPush.replace(':', ' v')} 為 ERP 正式 BOM`); render(); return toast('已推送到 ERP，雙方 BOM 核對一致'); }
   if ('impact' in ds) {
     const ids = [...document.querySelectorAll('.impact:checked')].map((x) => x.value); if (!ids.length) return toast('請勾選要重做的任務', 'warn');
-    commit('產生配方改版重做任務', () => ids.forEach((id) => { const n = node(id); const [s, e] = span(n); const st = Math.max(T0 + 1, s); addNode(n.parent, { title: `【配方 v4 重做】${n.title}`, tag: n.tag, owner: n.owner, ai: true, start: S(st), end: S(st + (e - s)), links: [{ t: 'formula', id: 'F-CAT-01', v: 4 }] }); }));
+    commit('產生配方改版重做任務', () => ids.forEach((id) => { const n = node(id); const [s, e] = span(n); const st = Math.max(T0 + 1, s); addNode(n.parent, { title: `【配方 v4 重做】${n.title}`, tag: n.tag, owner: n.owner, dept: n.dept, ai: true, start: S(st), end: S(st + (e - s)), links: [{ t: 'formula', id: 'F-CAT-01', v: 4 }] }); }));
     log('p1', '配方', `配方 v3 → v4 變更影響：產生 ${ids.length} 項重做任務`);
     return toast(`已產生 ${ids.length} 項重做任務（標示 AI 建議）`, null, { label: '查看', fn: () => enter('p1') });
   }
@@ -3134,9 +3280,9 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('change', (e) => {
   const t = e.target;
-  if (t.id === 'meSel') { ui.me = t.value; ui.showAll = false; save(); if (ui.page === 'node' && node(ui.node) && !shown(node(ui.node))) { const p = projects().find(shown); if (p) ui.node = p.id; } ui.chat.push({ title: '切換身分', text: `目前身分：${me().name}（${ROLES[me().role]}・${me().dept}）。畫面、可操作的按鈕與可見的機密欄位都會跟著改變。` }); return render(); }
+  if (t.id === 'meSel') { ui.me = t.value; save(); if (ui.page === 'node' && node(ui.node) && !visible(node(ui.node))) { const p = projects().find(visible); if (p) ui.node = p.id; } ui.chat.push({ title: '切換身分', text: `目前身分：${me().name}（${ROLES[me().role]}・${deptName(me().dept)}）。畫面、可操作的按鈕與可見的機密欄位都會跟著改變。` }); return render(); }
+  if (t.id === 'eDept') { const cur = $('eOwner').value; $('eOwner').innerHTML = ownerOpts(t.value, deptMembers(t.value).includes(cur) ? cur : ''); return; }
   if (t.id === 'cascadeChk') { ui.cascade = t.checked; return; }
-  if (t.id === 'showAllChk') { ui.showAll = t.checked; return render(); }
   if (t.id === 'docsAllChk') { ui.docsAll = t.checked; return render(); }
   if (t.id === 'fvA' || t.id === 'fvB') { ui.fv = [+$('fvA').value, +$('fvB').value]; return render(); }
   if (t.name === 'policy') { commit('AI 政策', () => { db.policy = t.value; }); return log(null, 'AI 政策', `AI 政策改為「${{ local_only: '全本地', hybrid: '混合', cloud_allowed: '允許雲端' }[t.value]}」`); }
@@ -3158,19 +3304,20 @@ document.addEventListener('submit', (e) => {
   const f = e.target; e.preventDefault();
   if (f.id === 'askForm') { const q = $('askInput').value.trim(); if (!q) return; $('askInput').value = ''; return aiAsk(q); }
   if (f.id === 'edForm') return saveEditor(f.dataset.id);
+  if (f.id === 'deptForm') return submitDept(f.dataset.id);
   if (f.id === 'qaForm') {
     const title = $('qTitle').value.trim(); if (!title) return;
     let s = $('qS').value || TODAY, en = $('qE').value || s; if (D(en) < D(s)) en = s; if ($('qMs').checked) en = s;
     const chain = $('qChain') && $('qChain').checked ? f.dataset.prev : null;
     const more = e.submitter && e.submitter.value === 'more';
-    const tag = $('qTag').value, owner = $('qWho').value, ms = $('qMs').checked;
+    const tag = $('qTag').value, owner = $('qWho').value || null, ms = $('qMs').checked;
     closeDlg();
     const id = commit(`新增「${title}」`, () => {
       const nid = addNode(f.dataset.parent, { title, tag, owner, start: s, end: en, milestone: ms });
       if (chain && node(chain)) db.deps.push({ id: newId('d'), from: chain, to: nid, type: 'FS', lag: 0, enf: 'hard', cond: null, overridden: false });
       return nid;
     });
-    log(id, '新增', `新增任務「${title}」，指派給 ${uname(node(id).owner)}${chain ? `，接在「${node(chain).title}」之後` : ''}`);
+    log(id, '新增', `新增任務「${title}」，${node(id).owner ? `指派給 ${uname(node(id).owner)}` : '未指派'}${chain ? `，接在「${node(chain).title}」之後` : ''}`);
     if (more) { const dur = D(en) - D(s); const names = [...(ui.qaNames || []), title]; return openQuickAdd(f.dataset.parent, S(D(en) + 1), S(D(en) + 1 + dur), { prev: id, owner, tag, added: names.length, names }); }
     return toast(`已新增「${title}」`, null, { label: '復原', fn: undo });
   }
@@ -3217,7 +3364,7 @@ document.addEventListener('submit', (e) => {
   if (f.id === 'minConfirm') {
     const { items, done } = ui.minItems; const par = $('minParent').value; const pick = [...document.querySelectorAll('.minItem:checked')].map((x) => items[+x.value]);
     closeDlg();
-    commit('建立會議待辦', () => pick.forEach((x) => addNode(par, { title: x.title, owner: x.owner, start: S(Math.min(T0 + 1, D(x.due))), end: x.due, ai: true })));
+    commit('建立會議待辦', () => pick.forEach((x) => addNode(par, { title: x.title, owner: x.owner, dept: USERS[x.owner] ? USERS[x.owner].dept : undefined, start: S(Math.min(T0 + 1, D(x.due))), end: x.due, ai: true })));
     log(par, 'AI', `從會議紀錄建立 ${pick.length} 項待辦`); done(); return toast(`已建立 ${pick.length} 項子任務`, null, { label: '查看', fn: () => enter(par) });
   }
   if (f.id === 'impForm') {
