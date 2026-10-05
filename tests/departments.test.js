@@ -67,20 +67,17 @@
     ok(t.includes('工作量最重：無'), '全部未指派時應顯示「無」：' + t);
     ok(!t.includes('null'), '回答不應出現 null');
   });
-  await T('採購單建立驗收任務：協作部門存 id，模板節點都有負責部門', () => {
+  await T('採購單建立驗收任務：協作部門存 id，新任務的負責部門都是品保', () => {
     const po = db.ops.pos[0];
-    const orig = window.applyTemplate; let tpl = null;
-    window.applyTemplate = (t, ...rest) => { tpl = t; return orig(t, ...rest); };
     const btn = document.createElement('button'); btn.type = 'button'; btn.dataset.poTask = po.id; document.body.appendChild(btn);
-    try { btn.click(); } finally { window.applyTemplate = orig; btn.remove(); }
-    ok(tpl, '應該呼叫 applyTemplate');
-    ok(tpl.nodes.every((x) => x.dept === 'd-qa'), '模板根節點與子節點的負責部門都是品保');
-    eq(tpl.nodes.filter((x) => x.p === 'r').map((x) => x.dp), [['d-qa'], ['d-qa'], ['d-qa'], ['d-qa']]);
-    eq(tpl.nodes[0].dp, []);
+    try { btn.click(); } finally { btn.remove(); }
     const root = Object.values(db.nodes).find((n) => n.title === `到貨驗收：${po.id}`);
     ok(root, '應該建立驗收任務');
+    eq(root.dept, 'd-qa', '驗收任務的負責部門');
+    eq(root.depts, []);
     const subs = kids(root.id);
     eq(subs.length, 4);
+    ok(subs.every((n) => n.dept === 'd-qa'), '子任務的負責部門應該是品保：' + subs.map((n) => n.dept).join(','));
     ok(subs.every((n) => JSON.stringify(n.depts) === JSON.stringify(['d-qa'])), '子任務的協作部門應該是 ["d-qa"]');
     ok(subs.every((n) => deptName(n.depts[0]) === '品保'));
   });
@@ -581,6 +578,27 @@
     ui.page = 'node'; ui.node = 'p1'; ui.tab = 'timeline'; render();
     document.querySelector('[data-tl-dept="d-qa"]').click();
     eq(undoStack.length, before); ok(!('tlDept' in db));
+  });
+  // ── Task 7：範本 ──
+  await T('套用模板：任務帶負責部門；未勾預設負責人時全部未指派', () => {
+    as('yu');
+    const t = db.templates.find((x) => x.id === 'tp1');
+    const res = commit('套用', () => applyTemplate(t, 'p1d', { start: '2026-10-01', vars: { 產品名: 'X' }, structure: true, deps: true, owners: false, dates: true, docs: false }));
+    const made = [node(res.root), ...descendants(res.root)];
+    ok(made.every((x) => x.owner === null), '全部未指派');
+    eq(node(res.root).dept, 'd-qa');
+    eq(made.find((x) => x.title === '選定檢驗單位並詢價').dept, 'd-pur');
+  });
+  await T('另存為模板會帶入負責部門', () => {
+    const t = nodeToTemplate('t301');
+    eq(t.nodes[0].dept, 'd-pe'); ok(t.nodes.every((x) => x.dept));
+  });
+  await T('依範本建立專案：任務依範本帶部門且未指派', () => {
+    eq(PHASE_TEMPLATE[2][3][0], ['殺菌條件驗證（F0 值）', 'd-pe']);
+  });
+  await T('模板庫預覽顯示負責部門', () => {
+    ui.page = 'templates'; render();
+    ok(document.getElementById('main').textContent.includes('採購負責'));
   });
 
   // ── 新測試加在這一行上面 ──

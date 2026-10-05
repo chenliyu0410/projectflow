@@ -448,11 +448,11 @@ const USERS = {
 // F10 欄位層級權限：機密欄位誰看得到
 const FIELD_ACCESS = { ratio: ['yu', 'chen', 'it'], price: ['yu', 'hua', 'it'], cost: ['yu', 'hua', 'it'] };
 const PHASE_TEMPLATE = [
-  ['市場與配方', '配方定案；主要原料至少 1 家供應商通過', '研發主管', ['競品分析與產品定位', '營養標準比對', '配方設計', '供應商評估']],
-  ['小量試作', '試作品經內部審核通過', '研發主管', ['小量試作', '質地與外觀調整', '原料送樣確認']],
-  ['殺菌與保存', 'F0 值達標；保存試驗符合預定保存期限', '品保主管', ['殺菌條件驗證（F0 值）', '加速保存試驗']],
-  ['檢驗與適口性', '檢驗報告符合宣稱；適口性達標；標示審查通過', '品保主管、法規', ['營養成分送驗', '適口性測試（雙碗試驗）', '包裝標示審查']],
-  ['量產上市', '首批量產完成並出貨上架', '專案負責人', ['量產 SOP', '首批量產', '包材與設備確認', '通路上架']],
+  ['市場與配方', '配方定案；主要原料至少 1 家供應商通過', '研發主管', [['競品分析與產品定位', 'd-sales'], ['營養標準比對', 'd-rd'], ['配方設計', 'd-rd'], ['供應商評估', 'd-pur']]],
+  ['小量試作', '試作品經內部審核通過', '研發主管', [['小量試作', 'd-rd'], ['質地與外觀調整', 'd-rd'], ['原料送樣確認', 'd-pur']]],
+  ['殺菌與保存', 'F0 值達標；保存試驗符合預定保存期限', '品保主管', [['殺菌條件驗證（F0 值）', 'd-pe'], ['加速保存試驗', 'd-qa']]],
+  ['檢驗與適口性', '檢驗報告符合宣稱；適口性達標；標示審查通過', '品保主管、法規', [['營養成分送驗', 'd-qa'], ['適口性測試（雙碗試驗）', 'd-rd'], ['包裝標示審查', 'd-qa']]],
+  ['量產上市', '首批量產完成並出貨上架', '專案負責人', [['量產 SOP', 'd-pe'], ['首批量產', 'd-mfg'], ['包材與設備確認', 'd-pur'], ['通路上架', 'd-sales']]],
 ];
 
 /* ================= 種子資料 ================= */
@@ -2111,7 +2111,7 @@ function pageTemplates() {
       ${t.scope === 'personal' ? `<button class="btn sm" type="button" data-publish="${t.id}" ${can('templates') ? '' : 'disabled'} title="需系統管理員">發布為組織模板</button>` : ''}</div>
       <h3 style="margin-top:8px">${esc(t.name)}</h3><p class="small muted" style="margin:0 0 8px">${esc(t.desc || '')}</p>
       <div class="small">${nodes.length} 個子任務・約 ${days} 天・${t.deps.length} 條前置${t.docs.length ? `・文件範本：${esc(t.docs.join('、'))}` : ''}</div>
-      <details style="margin-top:8px"><summary class="small">預覽結構</summary><ol class="small" style="padding-left:20px;margin:6px 0">${nodes.map((x) => `<li>${esc(x.title)} <span class="muted">（第 ${x.off} 天起，${x.dur} 天${x.dp && x.dp.length ? '，' + esc(x.dp.map(deptName).join('/')) : ''}）</span></li>`).join('')}</ol></details>
+      <details style="margin-top:8px"><summary class="small">預覽結構</summary><ol class="small" style="padding-left:20px;margin:6px 0">${nodes.map((x) => `<li>${esc(x.title)} <span class="muted">（${esc(deptName(x.dept))}負責・第 ${x.off} 天起，${x.dur} 天${x.dp && x.dp.length ? '，協作：' + esc(x.dp.map(deptName).join('/')) : ''}）</span></li>`).join('')}</ol></details>
       <button class="btn sm primary" type="button" data-apply-tpl="${ui.node}" data-tpl="${t.id}" style="margin-top:8px">套用到目前節點（${esc(node(ui.node)?.title || '')}）</button></div>`;
   }).join('')}</div>`;
 }
@@ -2380,7 +2380,7 @@ function aiAction(kind) {
       const tpl = PHASE_TEMPLATE.find((t) => t[0] === next.title);
       const have = kids(next.id).map((x) => x.title);
       const extra = { '檢驗與適口性': ['重金屬與微生物送驗', '檢驗報告判讀與宣稱比對'], '量產上市': ['首批量產品保放行', '上市後客訴追蹤機制'], '殺菌與保存': ['殺菌紀錄與設備校正確認'], '小量試作': ['試作成本初估'], '市場與配方': ['目標售價與通路調查'] }[next.title] || [];
-      const list = [...(tpl ? tpl[3] : []), ...extra].filter((t) => !have.some((h) => h.includes(t.replace(/（.*）/, ''))));
+      const list = [...(tpl ? tpl[3].map((x) => x[0]) : []), ...extra].filter((t) => !have.some((h) => h.includes(t.replace(/（.*）/, ''))));
       const tplHint = /檢驗/.test(next.title) ? '\n\n另外建議「營養成分送驗」套用「送驗流程」模板（12 個子任務）。' : '';
       return { text: `依目前進度，建議在「${next.title}」新增：\n· ${list.join('\n· ') || '（已涵蓋主要工作）'}\n\n閘門條件：${db.gates[next.id]?.criteria || '—'}${tplHint}`, actions: list.length ? [{ label: `加入 ${list.length} 項為子任務`, kind: 'addTasks', payload: { parent: next.id, titles: list } }] : [] };
     });
@@ -2739,7 +2739,7 @@ function nodeToTemplate(id, name) {
   const walk = (x, pk) => {
     const k = 'k' + nodes.length; keys[x.id] = k;
     const [a, b] = span(x);
-    nodes.push({ k: pk === null ? 'r' : k, p: pk, title: x.title, tag: x.tag, off: a - r0, dur: b - a, who: x.owner, dp: x.depts, ms: x.milestone,
+    nodes.push({ k: pk === null ? 'r' : k, p: pk, title: x.title, tag: x.tag, off: a - r0, dur: b - a, who: x.owner, dp: x.depts, dept: x.dept || TAG_DEPT[x.tag] || 'd-rd', ms: x.milestone,
       fields: fieldDefs(x.id).map(({ label, type, unit, options, required }) => ({ label, type, unit, options, required })) });
     if (pk === null) keys[x.id] = 'r';
     kids(x.id).forEach((c) => walk(c, keys[x.id]));
@@ -2756,7 +2756,8 @@ function applyTemplate(t, parentId, opt) {
   list.forEach((x) => {
     const par = x.p === null ? parentId : map[x.p];
     const s = opt.dates ? start + x.off : start, e = opt.dates ? s + x.dur : start;
-    map[x.k] = addNode(par, { title: sub(x.title), tag: x.tag, start: S(s), end: S(Math.max(s, e)), owner: opt.owners && x.who ? x.who : ui.me, depts: opt.owners ? (x.dp || []) : [], milestone: !!x.ms });
+    const dp = x.dept || TAG_DEPT[x.tag] || 'd-rd';
+    map[x.k] = addNode(par, { title: sub(x.title), tag: x.tag, start: S(s), end: S(Math.max(s, e)), dept: dp, owner: opt.owners && x.who ? x.who : null, depts: opt.owners ? (x.dp || []) : [], milestone: !!x.ms });
     (x.fields || []).forEach((f, i) => pushField(map[x.k], f, i));
   });
   if (opt.deps && opt.structure) t.deps.forEach((d) => { if (map[d.f] && map[d.t] && d.f !== 'r' && d.t !== 'r') db.deps.push({ id: newId('d'), from: map[d.f], to: map[d.t], type: d.type, lag: d.lag, enf: 'hard', cond: null, overridden: false }); });
@@ -2779,7 +2780,7 @@ function openApplyTpl(nodeId, tplId, src = 'tpl', q = '') {
     ${vars.map((v) => `<div class="field"><label>{${v}}</label><input class="tVar" data-var="${v}" value="${esc(v === '產品名' ? projectOf(n).title : '')}"></div>`).join('')}</div>
     <div class="field"><span class="lb">要帶入的內容</span><div class="chips">
       <label><input type="checkbox" id="oStruct" checked>子任務結構</label><label><input type="checkbox" id="oDeps" checked>前置條件</label>
-      <label><input type="checkbox" id="oOwners" checked>預設負責人 / 協作部門</label><label><input type="checkbox" id="oDates" checked>工期與相對日期</label><label><input type="checkbox" id="oDocs" checked>文件範本</label></div></div>
+      <label><input type="checkbox" id="oOwners" checked>預設負責人 / 協作部門（不勾＝全部未指派，由部門主管指派）</label><label><input type="checkbox" id="oDates" checked>工期與相對日期</label><label><input type="checkbox" id="oDocs" checked>文件範本</label></div></div>
     ${t ? `<div class="note">「${esc(t.name)}」：${t.nodes.length - 1} 個子任務、${t.deps.length} 條前置，約 ${Math.max(...t.nodes.map((x) => x.off + x.dur))} 天。模板存相對時間，會依開始日自動計算。</div>` : ''}
     <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn primary" type="submit">套用</button></div></form>`);
   ui.tplState = { nodeId, src, q };
@@ -2871,7 +2872,7 @@ function createProject(name, pet, due) {
     pid = newId('p');
     const s0 = T0, e0 = Math.max(D(due), T0 + 60), step = Math.floor((e0 - s0) / 5);
     const colors = ['#7A4A8C', '#A0522D', '#2E6F8E', '#6B7A3A'];
-    db.nodes[pid] = { id: pid, parent: null, type: 'project', title: name, tag: '', status: 'todo', progress: null, weight: 1, start: TODAY, end: due, milestone: false, locked: false, owner: ui.me, collabs: [], depts: [], level: 'internal', ai: false, note: '', links: [], order: 100 + projects().length, color: colors[projects().length % colors.length], goal: `為${pet}開發的新品：${name}`, due };
+    db.nodes[pid] = { id: pid, parent: null, type: 'project', title: name, tag: '', status: 'todo', progress: null, weight: 1, start: TODAY, end: due, milestone: false, locked: false, owner: ui.me, dept: null, collabs: [], depts: [], level: 'internal', ai: false, note: '', links: [], order: 100 + projects().length, color: colors[projects().length % colors.length], goal: `為${pet}開發的新品：${name}`, due };
     let prevLast = null;
     PHASE_TEMPLATE.forEach(([title, crit, appr, tasks], i) => {
       const ph = newId('n');
@@ -2880,8 +2881,8 @@ function createProject(name, pet, due) {
       db.gates[ph] = { criteria: crit, approver: appr, status: 'pending' };
       const len = Math.max(3, Math.floor(step / tasks.length));
       let prev = null;
-      tasks.forEach((t, k) => {
-        const id = addNode(ph, { title: t, ai: true, start: S(ps + k * len), end: S(Math.min(pe, ps + (k + 1) * len - 1)), tag: TAGS.find((g) => t.includes(g)) || '' });
+      tasks.forEach(([t, dp], k) => {
+        const id = addNode(ph, { title: t, dept: dp, owner: null, ai: true, start: S(ps + k * len), end: S(Math.min(pe, ps + (k + 1) * len - 1)), tag: TAGS.find((g) => t.includes(g)) || '' });
         if (prev) db.deps.push({ id: newId('d'), from: prev, to: id, type: 'FS', lag: 0, enf: 'soft', cond: null, overridden: false });
         else if (prevLast) db.deps.push({ id: newId('d'), from: prevLast, to: id, type: 'FS', lag: 0, enf: 'soft', cond: null, overridden: false });
         prev = id;
