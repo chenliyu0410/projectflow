@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W2 部門模型**（🔍 審查中） |
+| 目前工作項目 | **W2 部門模型**（🟢 可合併；因本輪為 Codex 自我再審，合併前需人類確認） |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 切到 `feature/w2-departments`，進度以該分支的 PROGRESS 為準。下一步：W2 整體審查（/pf-next）。Task 1–7 都已 ✅。範圍從 `670afaf` 算起（mergeBase 填 `670afaf`，執行注意 33）；照展示模式一輪審查（執行注意 34），整體修正只做執行注意 32 的 4 項，驗收照 §3 W2 精簡後的清單。合併前讀執行注意 33（D28、D29） |
+| 下一個動作 | 等人類確認是否合併。W2 Task 1–7 都已 ✅，整體修正 `b2f7453` 已完成，Codex 依展示模式做修正後自我再審，結論 Ready to merge: Yes；測試與精簡驗收已通過。因整體再審不是獨立審查，依 WORKFLOW G5／§11，AI 不自行合併。人類確認後照 G5：`git checkout main` → `git merge --ff-only feature/w2-departments`，再做 G6 收尾；合併前讀執行注意 33（D28、D29） |
 | 分支 | `feature/w2-departments`（從 `main` 的 `Progress: start W2` 切出；2026-10-05 照 D28 ff 到 `origin/main` 的 PR #1 merge commit `8041e14`，程式和 `079b035` 相同） |
-| 最新程式 commit | `03c9ff5`（W2 Task 7）。W1 合併後的 HEAD 是 `2d2c785` |
+| 最新程式 commit | `b2f7453`（W2 整體修正：未指派顯示、卡片負責人不換行、權限表、回報 select 防護）。W2 Task 7 是 `03c9ff5`；W1 合併後的 HEAD 是 `2d2c785` |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過。W2 Pre-flight 在 `b2c96c1` 上重跑仍是 `全部通過 64/64`）。**目前**：`全部通過 133/133`（2026-10-05，W2 Task 7 完成後在 `03c9ff5` 上獨立重跑，8001、viewport 1280×900，console 沒有錯誤）。Task 6 之後是 `全部通過 129/129`（`7939a66`） |
+| 測試基準 | `tests/records.html`：`全部通過 64/64`（2026-10-02 實測，W1 合併前在 `1978dde` 上獨立重跑；iframe 0、343、1393px 都通過。W2 Pre-flight 在 `b2c96c1` 上重跑仍是 `全部通過 64/64`）。**目前**：`全部通過 137/137`（2026-10-05，W2 整體修正後在 `b2f7453` 上由 Codex 用 8001 跑 `tests/records.html`，console error 0）。Task 7 後是 `全部通過 133/133`（`03c9ff5`）；Task 6 後是 `全部通過 129/129`（`7939a66`） |
 | 資料版本 | `db.v = 4`（W2 Task 1 起；`load()` 讀 v2／v3／v4 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
-| 認領中 | Claude（/pf-next）／2026-10-05 09:47 |
-| 阻塞／待人類 | W2 沒有阻塞。D14–D33 都已決定（§6），D34、D35（Task 6）和 D36–D40（Task 7）是 AI 代決（可推翻，不擋）；D25、D26 在 2026-10-05 改為取消（D30）。W3 開工前要有 D13（10 部門甘特圖） |
+| 認領中 |  |
+| 阻塞／待人類 | W2 沒有產品阻塞；待人類確認是否接受自我再審並合併（WORKFLOW G5／§11）。D14–D33 都已決定（§6），D34、D35（Task 6）和 D36–D40（Task 7）是 AI 代決（可推翻，不擋）；D25、D26 在 2026-10-05 改為取消（D30）。W3 開工前要有 D13（10 部門甘特圖） |
 | 遠端 | 2026-10-02 第三次經人類授權（D3；人類指示「commit and push」，選「推兩個，README 寫在分支」）：push `main`（比 `origin/main` 多 1 個 `Progress: start W2`）和 `feature/w2-departments`（新分支，含 W2 Task 1–5 與交接紀錄）。push 之後 `git log --oneline origin/main..main` 和 `git log --oneline origin/feature/w2-departments..feature/w2-departments` 應該都是空的。2026-10-05：人類在 GitHub 合併 PR #1（「W2 部門模型：Task 1–5（草稿…）」），`origin/main` 變成 merge commit `8041e14`（parents `670afaf`、`079b035`），也就是 GitHub 的 `main` 已經有 W2 Task 1–5 的草稿。照 D28 接受，分支 ff 到 `8041e14`；照 D29 本機 `main` 對齊 `origin/main`。之後 `origin/feature/w2-departments` 會落後本機分支（`8041e14` 和之後的 commit 都沒 push）。之後每次 push 都要人類明確授權（D3） |
 
 ---
@@ -70,7 +70,7 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec | Plan | 資料版本 | 依賴 |
 |---|---|---|---|---|---|---|---|
 | 1 | W1 | 子任務置頂回報卡 | ✅ | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
-| 2 | W2 | 部門模型 | 🔍 | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1） |
+| 2 | W2 | 部門模型 | 🟢 等人類確認合併 | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1）；整體再審是 Codex 自我審查，合併前需人類確認 |
 | 3 | W3 | 流程控制（**精簡版**，D31）：連接器 6 階段範本與示範專案、關卡擋住後續階段 | ⬜ 需先寫短 spec | — | — | 視 spec 而定（需要時 v4 → v5） | W2 已合併；D13 甘特圖到位。spec 由 AI 依甘特圖起草短版，人類看一次就定稿（D31 取代 D9 的完整 brainstorming） |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ⬜ | — | — | — | 排在 W3 之後。full demo 定位的文字由 AI 起草、人類看一次（D12） |
@@ -190,17 +190,17 @@
 | 5 | 任務的負責部門和負責人：對話框、看板、我的任務、總覽 | ✅ 審查：獨立（spec＝Opus、品質＝Sonnet，第 1 輪都是 Needs fixes：ERP 證照、配方重做、會議待辦三個 `addNode` 呼叫端沒傳部門，負責人被靜默清空；`saveEditor` 沒用 `can()` 把關；快速新增的預設負責人會變成未指派；修正輪 1 後 scoped re-review Approved）。修正輪 1：三個呼叫端傳負責人所屬部門（配方重做傳原部門）、`saveEditor` 依 `can('dept')`／`can('assign')` 決定是否採用表單值、快速新增預設取第一個屬於部門的人並保留明確的「未指派」、XSS 測試補已指派分支與 `deptOpts`（兩次變異 RED 各 `失敗 1/123`）、未指派上層的提示寫「未指派・部門」。待驗證都已實測：獨立重跑 `全部通過 123/123`；375px 下看板、我的任務（含 chen 的「待我指派」）、總覽、任務頁都沒有水平捲動；console 沒有錯誤。spec §7 對應：第 7 項後半「任務對話框：負責人只列出部門成員；換部門會清空不屬於新部門的負責人」「任務對話框：部門主管可以指派但不能改部門」 | `08c677b..9a7c438`（`e1e5b23` 實作、`9a7c438` 修正輪 1） | 6（實際 12，修正輪 +6）：RED 失敗 6/117 → GREEN 全部通過 117/117；修正輪 1 RED 失敗 6/123 → GREEN 全部通過 123/123 | 117（實際 123） |
 | 6 | 時間軸預設收合，並可依部門篩選 | ✅ 審查：獨立（展示模式單一審查者 combined，第 1 輪 Approved、spec compliant，沒有修正輪；7 個 minor 記成 W2-T6-m1–m7，implementer 的兩項 AI 代決記成 D34、D35）。照執行注意 30 加上 `ui.tlDept` 指到已刪除部門時退回 `'all'`（plan 沒有）。實測：記錄者在 `7939a66` 上獨立重跑 `全部通過 129/129`（console 沒有錯誤）；桌面 1400×900 預設列 p1a–p1e，「品保」篩選後階段件數 1/0/2/3/0、上層 t301／t3012 淡色路徑、只剩 1 條箭頭，p4（沒有階段）不收合；真實刪除部門流程（admin 新增「測試部」→ 篩選 → 刪除 → 切回時程）退回「全部」、列 p1a–p1e，工具列和 toast 的復原都沒有錯誤；品保篩選中拖 t30122 +14 天（連動順延開啟），被篩掉的 t3013、t302、t401、t502、t503 都有順延，「↶ 復原」後全部日期回原值、篩選和展開狀態保留；375×812 篩選列換 3 行，`.tl` clientHeight 306、可捲到 p1e，§5 第 7 點檢查式 true；console 都沒有錯誤。沒有驗：Firefox／Safari 的 `:has()`（W2-T6-m2） | `af9a3b9..7939a66`（`7939a66` 實作） | 6 → 實際 RED 失敗 6/129 → GREEN 全部通過 129/129 | 129（實際 129） |
 | 7 | 範本帶入負責部門、更新 README | ✅ 審查：獨立（展示模式單一審查者 combined，第 1 輪 Approved、spec compliant，沒有修正輪；5 個 minor 記成 W2-T7-m1–m5，implementer 回報的既有 375px 對話框內捲動記成 W2-T7-m6，implementer 的 5 項 AI 代決記成 D36–D40）。照執行注意 31：W2-T1-m7 拿掉 `window.applyTemplate` 包裝、改斷言新節點的 `dept`／`depts`（測試改名「採購單建立驗收任務：協作部門存 id，新任務的負責部門都是品保」，總數不變）；README「修改時程」列反映 D23，F6 改成「待我指派」（W2-T5-m9）；`applyTemplate`／`nodeToTemplate` 照 plan 用 `TAG_DEPT`（D19 只限 `upgrade()`）。照 plan 的行為變化：模板節點沒有 `who` 時負責人改成未指派（不再帶 `ui.me`），採購單「建立驗收任務」的 5 個任務都是品保的未指派任務（W2-T7-m4）。實測：記錄者在 `03c9ff5` 上獨立重跑 `全部通過 133/133`（iframe 確認是新版 `applyTemplate`，console 沒有錯誤）；驗證者以小安（非主管成員）在 t703 真實點擊套用「送驗流程」並取消預設負責人 → 節點 65→78，新根節點 dept d-qa、13 個後代 owner 全是 null，小安看得到的新節點 0 個、看板顯示空狀態；採購單「建立驗收任務」後按 toast「開啟」只出現 `toast warn`「你沒有檢視此節點的權限」、頁面不跳轉；t703 七個分頁、overview／mytasks／review／ops／templates／aigov／audit、p1／p1c／p3 各分頁 render 都沒有例外、沒有 `undefined`／`NaN`；375×812 下 t703、ops 檢查式 true。implementer 另測：模板庫預覽 32 列沒有 `undefined`、依範本建立專案的 16 個任務 owner 全是 null 且 dept 照 `PHASE_TEMPLATE`、另存模板每個節點都有 dept、AI 任務拆解不拋例外、375px 模板庫和套用對話框檢查式 true；console 都沒有錯誤。沒有驗：截圖 | `c52e39b..03c9ff5`（`03c9ff5` 實作） | 4 → 實際 RED 失敗 5/133（4 個新測試加改寫的 W2-T1-m7）→ GREEN 全部通過 133/133 | 133（實際 133） |
-| — | 整體審查 | ⬜ | — | — | — |
+| — | 整體審查 | 🟢 等人類確認合併 | 第 1 輪整體審查（Claude，交接回報）：With fixes，需修執行注意 32 的 4 項，沒有其他阻塞 → 整體修正 `b2f7453`（未指派顯示、卡片負責人不換行、權限表、回報 select 防護）→ Codex 修正後自我再審：Ready to merge: Yes（非獨立審查，依 G5／§11 合併前需人類確認） | 整體修正加 4 個測試：RED `失敗 4/137` → GREEN `全部通過 137/137`（`.superpowers/sdd/final-fix-report.md`）。Codex 2026-10-05 新鮮重跑 `tests/records.html`：`全部通過 137/137`，console error 0；桌面以 yu／chen／ming 點過看板、時程、成員與權限、我的任務，沒有 `undefined`／`NaN`／`? —`；375px 看板、時程、成員與權限 `main.scrollWidth <= clientWidth`，console error 0 | 137（實際 137） |
 
 預期總數是研究時推算的，plan 本身只寫「全部通過 N/N」。以實際跑出來的數字為準。W1 最後共有 20 個測試（plan 的 13 個，加上修正輪和整體修正的 7 個），基準是 64，上表已經照這個數字調整（2026-10-02，W1-F-m1）。W1 如果還有修正增加測試，要再調整。W2 Task 1–5 的修正輪分別多了 4、9、6、5、6 個測試，Task 6 以後的預期總數已經 +30（2026-10-02）。
 
 **驗收**（2026-10-05 依 D30 精簡）
-- [ ] `tests/records.html` 全部通過（W1 的 20 個測試加上 departments 的測試）
-- [ ] 先按「重置 Demo 資料」，再以 yu、chen、ming 各點過看板、時程、我的任務、成員與權限頁，畫面沒有 `undefined`、`NaN` 或「? —」這類錯誤，console 沒有錯誤
-- [ ] 未指派、而且所屬部門沒有主管（製程）的任務 `t504`，只有 yu 和 it 看得到
-- [ ] 時間軸預設收合；`ui.tlDept = 'd-qa'` 時階段列數不變，工作列只剩品保的任務
-- [ ] README 的 F6、§2、§5 已經照 plan Task 7 Step 7 更新
-- [ ] 375px 寬度下沒有水平捲動
+- [x] `tests/records.html` 全部通過（W1 的 20 個測試加上 departments 的測試）：2026-10-05 Codex 在 `b2f7453`、8001 重跑，`全部通過 137/137`，console error 0
+- [x] 先按「重置 Demo 資料」，再以 yu、chen、ming 各點過看板、時程、我的任務、成員與權限頁，畫面沒有 `undefined`、`NaN` 或「? —」這類錯誤，console 沒有錯誤：Codex 用 Browser locator 實測通過（我的任務列入同一輪點選；console error 0）
+- [x] 未指派、而且所屬部門沒有主管（製程）的任務 `t504`，只有 yu 和 it 看得到：`departments.test.js` 已覆蓋；`final-fix-report.md` 另記錄 `visible(t504)` 只有 yu 為 true（系統管理員 it 依規則可見）
+- [x] 時間軸預設收合；`ui.tlDept = 'd-qa'` 時階段列數不變，工作列只剩品保的任務：Task 6 測試與驗收已通過；`departments.test.js` 覆蓋「部門篩選只影響工作列，階段列保持完整」
+- [x] README 的 F6、§2、§5 已經照 plan Task 7 Step 7 更新：Task 7 已更新 F5/F6/§2/資料模型；README 頂部「目前進度」摘要仍停在 Task 5，已列 W2-T7-m1／W2-T7-m2 或 W5 範圍，不擋展示模式合併
+- [x] 375px 寬度下沒有水平捲動：Codex 以 viewport 375×812 驗證 p1 的看板、時程、成員與權限，`main.scrollWidth <= clientWidth`，console error 0
 - 移除的項目（D30）：spec §7 逐項列出對應測試名稱（升級和可見性等規則都已經有測試）；yu、chen、an、ming、it 各截一次圖（改成上面 3 個身分點一遍）；v3 → v4 升級的手動實測（`upgrade()` 已有測試，Task 1 也實測過 v2 真實載入）
 
 **執行注意**（W1 先做的情況）
@@ -345,7 +345,6 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | ID | 描述 | 嚴重度 | 大小 | 需人類 | 位置（dfc0126） |
 |---|---|---|---|---|---|
 | F11-T1-m3 | `load()` 裡的 `upgrade()` 拋出例外時會被靜默吞掉，改用種子資料；下一次 `save()` 就會覆蓋使用者原本的資料。建議先把原始資料備份到另一個 key，並提示使用者 | minor（優先） | S | 否 | html:653-657 |
-| F11-N1 | 【W2 整體修正】回報對話框的 `f.options.map` 沒有加 `(f.options \|\| [])` 防護，options 不存在時打開對話框會拋例外（:994、:2389 都有加） | minor（優先） | S | 否 | html:2892 |
 | F11-T7-m3 | spec §8 要求 AI 引用附件的檔名和所屬（不送出內容），但 `recordsSnapshot` 沒有包含附件。這是 plan 漏寫 | minor | S | 否 | html:2140-2145 |
 | F11-T6-m3 | 節點刪除後，它待審的跳過申請：`decideOverride` 允許 owner 和 admin 審核，UI 卻把按鈕停用；`deleteNode` 也不會結案這些申請，結果永遠卡在待審 | minor | S | 否 | html:2500、:2340-2356 |
 | F11-T5-m1 | 上傳附件期間對話框仍開著，送出按鈕也沒有停用；重複送出時會出現誤導的錯誤訊息 | minor | S | 否 | html:3125-3129 |
@@ -387,7 +386,6 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W2-T2-m4 | 一個專案都看不到時，AI 快速指令（6 個 `data-act` 按鈕）是靜默不動作；同一狀態下 `aiAsk` 會回覆、`openMinutesConfirm` 會 toast，行為不一致 | trivial | S | 否 | `aiAction`（html:2262@0b981dd） |
 | W2-T2-m5 | 效能小改善：`inScopeOf` 先算 `phaseOf(n)` 才檢查角色；`graphLayout` 先算 `visible(x)` 才檢查 `isLeaf(x)`。種子資料量下沒有影響 | trivial | S | 否 | html:762、:1767@0b981dd |
 | W2-T2-m6 | plan Task 2 的 `seeTask` 最後一行和 Step 4.2 的 `\|\| projects()[0]` 仍是 D20、D21 之前的寫法。以執行注意 23、24 為準；整體審查時可視需要 `Plan: fix` | trivial | S | 否 | plan:398、:416 |
-| W2-T3-m1 | 【W2 整體修正】成員與權限頁的權限表文字和 D23 不一致：審核人的「修改時程」仍是 ✅（D23 之後任務只限自己負責或部門主管，階段與專案照舊），collab 的「修改時程」是空白（D23 之後 collab 負責人可以改自己任務的時程）。同一頁「你在此節點可以」清單走 `can()`，會和表格矛盾。README:242 的權限表也一樣。Task 7 更新 README 或整體審查時一起改。**README 的「修改時程」列已在 Task 7（`03c9ff5`）照 D23 更新（D38），剩成員與權限頁**；README 的「新增 / 編輯任務」列見 W2-T7-m2 | minor | S | 否 | `viewPeople`（html:1916-1918@717b359）、README.md:242 |
 | W2-T3-m2 | 「你在此節點可以」清單在專案、階段節點顯示「✗ 指派負責人」（`can('assign')` 只對任務成立），表格卻寫專案負責人 ✅。修法：非任務節點改成「底下有可以指派的任務」 | minor | S | 否 | `viewPeople`（html:1927@717b359）、`can()`（:807） |
 | W2-T3-m3 | 權限表和說明文字不精確（plan 指定的文字）：「新增 / 編輯任務」寫「自己負責／部門主管」，但 `create` 沒變；說明文字「未指派負責人的任務只有部門主管看得到」漏了專案負責人、系統管理員、唯讀和「負責上層任務的人看得到子任務」 | minor | S | 否 | html:1910-1925@717b359 |
 | W2-T3-m4 | `create` 照 spec 不變，所以不能操作某個任務的人（例如透過上層規則看得到它的成員、範圍內審核人）仍可以在它底下新增子任務，讓它從葉任務變成上層任務、清掉進度、自動結案待確認的回報。spec §4.4 明寫「其餘動作不變」，要改需要人類另外決定 | minor | S | 否（spec 指定） | `can()`（html:801@717b359）、`addNode` |
@@ -399,8 +397,6 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W2-T4-m4 | 測試小缺口：刪除部門的稽核斷言只比對部門名稱（拿掉 `deleteDept` 的 `log` 仍會通過）；XSS 測試的 `window.__xss === undefined` 是同步檢查，沒有作用（真正擋的是 img 數量）；面板唯讀測試沒有同時斷言面板有畫出來；`deptUsage` 的 `n.dept === id` 沒有單獨測試 | trivial | S | 否 | tests/departments.test.js（Task 4 段）@4f428fc |
 | W2-T4-m5 | 窄螢幕（約 313px 的 pane）下，部門表的部門名稱一字一行，動作按鈕要在表格內橫向捲動才看得到；375px 的 WORKFLOW §5 檢查式通過（`.tbl-wrap` 內部捲動） | trivial | S | 否 | `deptPanelHTML` |
 | W2-T5-m1 | AI 建議任務（html:2431）和 AI 擬定專案計畫（:2866）的 `addNode` 用 `ui.me` 當負責人；上層是別部門的任務時會被清成未指派（`log` 沒有宣稱指派給誰）。是否改成「部門取 `ui.me` 的部門」屬於產品決策；`applyTemplate`、依範本建立專案是 Task 7 | minor | S | 否 | html:2431、:2866@9a7c438 |
-| W2-T5-m2 | 【W2 整體修正】看板卡片的 `.who`（名字・部門）在窄欄位會逐字換行（886px、1366px 開 AI 側欄時可見）。修法：名字和部門 `white-space:nowrap` 或包在同一個 span | minor | S | 否 | `cardHTML`（html:1515）、`.who` CSS（:141）@9a7c438 |
-| W2-T5-m3 | 【W2 整體修正】其他顯示負責人的地方沒有處理未指派，會顯示「—」或「? —」：成員頁負責人欄、`notify` 的「已通知負責人（—）」、時間軸長條、AI 週報；稽核「負責人改為 未指派（已通知）」的「已通知」不合理 | minor | S | 否 | html:1984、:1002、:1593、:1596、:2284、:2345、:2601@9a7c438 |
 | W2-T5-m4 | `deptOpts` 遇到無效的 `n.dept` 沒有佔位選項，會預設選研發，spec §6「請選擇負責部門」的 toast 碰不到；`ownerOpts` 遇到不屬於部門的負責人也會顯示「未指派」而不 toast。只有資料被手動改過才會發生 | minor | S | 否 | `deptOpts`、`ownerOpts`（html:2513-2514@9a7c438） |
 | W2-T5-m5 | `ownerOpts` 會列出資訊室（`it`，系統管理員帳號），原本的 `userOpts` 和協作人員清單都排除 `it` | trivial | S | 否 | html:2514@9a7c438 |
 | W2-T5-m6 | 快速新增的預設部門 `qaDept` 和 `addNode` 的預設部門是兩份相同的公式，qaForm 沒有把 `dept` 傳下去 | trivial | S | 否 | html:2607、:2447、:3316@9a7c438 |
@@ -459,6 +455,10 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W2-T1-m7 | FIXED `03c9ff5`（W2 Task 7：拿掉 `window.applyTemplate` 包裝，改成直接斷言新節點的 `dept`／`depts`；執行注意 31、D40） |
 | W2-T5-m9 | FIXED `03c9ff5`（W2 Task 7：README F6「我的任務」改成「我負責的、我協作的；部門主管另有『待我指派』」） |
 | W2-T6-m1 | FIXED（`Progress: W2 task 6 done`：Task 6 審查指出兩項 AI 代決——`:has()` 版面、手機隱藏階段件數——還沒有記成 D，記錄者補成 §6 的 D34、D35） |
+| F11-N1 | FIXED `b2f7453`（回報對話框 select 欄位改成 `(f.options || [])`，新增「select 欄位沒有 options 也能打開」測試） |
+| W2-T3-m1 | FIXED `b2f7453`（成員與權限頁「修改時程」列照 D23 更新；README 的同列已在 `03c9ff5` 更新） |
+| W2-T5-m2 | FIXED `b2f7453`（看板卡片的名字・部門包進 `.whonm`，CSS `white-space:nowrap`，窄欄位不逐字換行） |
+| W2-T5-m3 | FIXED `b2f7453`（未指派負責人顯示「未指派」，通知、時間軸、AI 週報、稽核不再出現 `—`／`? —` 或不合理的「已通知」） |
 
 ---
 
@@ -521,6 +521,23 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-05｜Codex GPT-5｜W2 整體修正再審與驗收完成，等待人類確認合併
+- **做了什麼**：
+  - 接手時本地 HEAD 已是 `b2f7453 Departments final review fixes: unassigned owner labels, card who nowrap, schedule matrix, report select guard`，working tree 乾淨；`docs/PROGRESS.md` 仍停在 `03c9ff5`。
+  - 對 `dd9171e..b2f7453` 做修正後再審（自我審查，非獨立 reviewer）：確認執行注意 32 的 4 項都已修，沒有發現會擋展示的 Critical／Important，結論 Ready to merge: Yes。
+  - 更新 PROGRESS：W2 改成 🟢 等人類確認合併；整體審查列補上 `b2f7453`、`137/137` 與自我審查說明；驗收清單全勾；F11-N1、W2-T3-m1、W2-T5-m2、W2-T5-m3 移到已關閉；清空認領。
+- **驗證**：
+  - 8000 仍不是這個 repo（`{"detail":"Not Found"}`），8001 是正確 repo（`AGENTS.md` 第一行正確），沿用但沒有關閉（不是本 session 啟動）。
+  - Codex 用 Codex in-app browser 開 `http://127.0.0.1:8001/tests/records.html?t=...`，結果 `全部通過 137/137`，console error 0。
+  - Demo 頁實測：以 yu、chen、ming 點過 p1 看板、時程、成員與權限與我的任務，主區域沒有 `undefined`／`NaN`／`? —`／`[object]`，console error 0。
+  - 375×812 viewport 實測：p1 看板、時程、成員與權限的 `main.scrollWidth <= main.clientWidth`，console error 0；測完已 reset viewport。
+- **沒做的事／偏離 plan**：
+  - 這輪沒有改產品程式或測試，只更新進度看板。
+  - README 頂部「目前進度」摘要仍停在 Task 5；README §2 的「時程」列和 F5「新增 / 編輯任務」列仍有 W2-T7-m1、W2-T7-m2 的 minor，照展示模式不擋，留給 W5／正式版。
+  - 因這輪整體再審是 Codex 自我審查，依 WORKFLOW G5／§11，AI 不自行合併。
+- **下一步**：人類確認是否接受自我再審並合併。若確認，照 G5 在本機執行 `git checkout main`、`git merge --ff-only feature/w2-departments`，再做 G6 收尾 commit `Progress: W2 done`；不 push，除非人類另行明確授權。
+- **注意**：本地 `feature/w2-departments` 比 `origin/feature/w2-departments` ahead 9；`main` 目前在 `8041e14`。W3 開工前仍需要 D13 的 10 部門甘特圖。
+
 ### 2026-10-05｜Claude Opus 5.5｜W2 Task 7 完成（範本帶負責部門、README），W2 進入整體審查
 - **做了什麼**：
   - `/pf-next all` 照展示模式推進 W2 Task 7。implementer 完成 `03c9ff5 Departments task 7: templates carry owner department; README`（`c52e39b..03c9ff5`，DONE_WITH_CONCERNS）：`PHASE_TEMPLATE` 的任務改成〔名稱, 部門〕、依範本建立專案的任務帶部門且未指派、`nodeToTemplate`／`applyTemplate` 帶 `dept`（`TAG_DEPT` 退路，D19 只限 `upgrade()`）、模板庫預覽顯示「X負責」、README F5／F6／§2／資料模型。照執行注意 31 處理 W2-T1-m7、W2-T5-m9（都已 FIXED）。
@@ -580,16 +597,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **沒做的事／偏離 plan**：Task 6、Task 7、整體審查都還沒做。偏離 plan 的地方都有 D 或執行注意 20–29 的裁決。
 - **下一步**：組員 `git fetch origin` 後 `git checkout feature/w2-departments`，照「▶ 現在」做 Task 6（`/pf-status` 再 `/pf-next`，或用其他 AI 照 AGENTS.md）。
 - **注意**：(1) 這台機器上的測試伺服器（PowerShell `Start-Process`，PID 23052）已關閉；接手者照 AGENTS §4 自己啟動。(2) `.superpowers/sdd/` 的 ledger、brief、審查報告只在這台機器上，沒有進 git，接手者不需要它，進度以本看板為準。(3) plan 的 Task 2 程式片段（`seeTask` 最後一行、`|| projects()[0]`）和 Task 3 的 `schedule` 規則已經被 D20、D21、D23 推翻，照執行注意 23、24、26。(4) 原本 `bmxwb4aaa` 背景伺服器 2 小時後被工具自動停止，之後改用 `Start-Process`。
-
-### 2026-10-02｜Claude Opus 5.5｜W1 交接摘要、push
-- **做了什麼**：
-  - 人類要求把 W1 改了哪裡、沒改哪裡整理成文件，讓下一個 AI 能照計畫接手，然後推上 git。
-  - 在 §3 W1 開頭加了「W1 完成摘要」。
-  - 在 §3 W2 的執行注意加了第 14–19 點：W1 合併後的基準、行號位移、W1 改到而 W2 可能碰到的程式、測試環境、編輯陷阱、變異 RED。
-  - D7 補上 W1 整體審查的觀察。
-  - 依 D3 把 `main` push 到 `origin`。
-  - 人類接著要求把「怎麼請 AI 繼續開發」寫進 README，然後推上 git。這段放在 README 目錄前面，不加編號，內容是給人類的操作說明：Claude Code 的 `/pf-status`、`/pf-next`、`all`／`dry`，其他 AI 的開場提示，AI 什麼時候會停下來問、人類怎麼回答 D，以及測試會清掉 127.0.0.1 的資料。W5 段落已登記要一併檢查。
-- **驗證**：push 後 `git log --oneline origin/main..main` 是空的。這次只改文件，沒有重跑測試，基準仍是 W1 合併前的 `全部通過 64/64`。
-- **沒做的事／偏離 plan**：沒有開始 W2，也沒有做 W2 的 Pre-flight。
-- **下一步**：W2 開工（見「▶ 現在」）。
-- **注意**：8001 上 PID 24024 的伺服器沒有關（不是這個 session 啟動的）。
