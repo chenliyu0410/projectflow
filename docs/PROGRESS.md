@@ -17,13 +17,13 @@
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
 | 下一個動作 | W5 已完成。請人類用 `projectflow-full-demo.html` 做展示確認；若要繼續開發正式產品軌，先決定 D11／P0。 |
 | 分支 | `main`（W3 已 ff 合併；`feature/w3-workflow-architecture` 可保留作歷史參考） |
-| 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 只更新 README／PROGRESS，沒有改產品程式。 |
+| 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 文件同步 `aafc5ca`，只更新 README／PROGRESS，沒有改產品程式。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 149/149`（2026-10-05，W3 ff 合併到 `main` 後 Codex 用 8001 重跑）。歷史基準：W2 合併後 `全部通過 137/137`；W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
 | 資料版本 | `db.v = 5`（W3 起；`load()` 讀 v2／v3／v4／v5 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | — |
 | 阻塞／待人類 | D10、D11 仍待人類但不擋 Demo 軌；D12 已由 AI 起草並更新 README，待人類可推翻；D34–D42 是 AI 代決或人類調整（可推翻）。 |
-| 遠端 | 2026-10-05：人類授權「確認後推上去」後，已把 W3 合併後的 `main` push 到 `origin/main`（`dee40fb`）。每次 push 都要人類明確授權（D3）。 |
+| 遠端 | 2026-10-05：人類授權「確認後推上去」與「git 上的 readme 也要記得更新進度」後，已把 W3 與 W5 README 更新 push 到 `origin/main`（`aafc5ca`）。每次 push 都要人類明確授權（D3）。 |
 
 ---
 
@@ -498,7 +498,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 |---|---|---|---|---|
 | D1 | W1、W2 | W1 和 W2 的執行順序 | **先做 W1，再做 W2。** 理由：W1 的測試數（44→51→57）和「db.v 維持 3」只有先做才成立；W2 只需要調整一個片段；W1 的測試可以當作 W2 改寫權限時的回歸網 | 採預設 |
 | D2 | 流程 | 分支與合併方式 | 每個工作項目開一個分支 `feature/<wid>-<slug>`，直接在主 checkout 開，**不用 worktree**。plan 或 skill 要求用 worktree 時，以這條為準。整體審查結論是 Ready to merge、測試全部通過，而且所有審查都是獨立進行的（不是自我審查），這時 **AI 可以在本地用 `git merge --ff-only` 合併進 `main`**，然後刪除分支（WORKFLOW G5，比照 F11 的先例）。不 push | 採預設（人類可以改成「合併前一律問我」） |
-| D3 | 流程 | 要不要 push 到 `origin` | 由人類執行，或由人類明確授權。AI 不會自己 push | 已決定 2026-10-01：人類授權 push 交接系統（連同 `edf46b6`、`dfc0126`），已完成。2026-10-01 第二次授權：人類指示「完成後上傳到GIT」，W1 完成並合併進 `main` 後，把 `main` push 到 `origin`。2026-10-02：人類指示「推上 git」，W1 合併後已把 `main` push 到 `origin`（不 force，只推 `main`）。每次授權都只限該次，之後每次 push 仍要人類明確授權。2026-10-02 第三次：人類指示「你這個階段做完就先暫停，幫我 commit and push」，W2 Task 5 完成後 push `main` 和 `feature/w2-departments`（人類選「推兩個，README 寫在分支」）。2026-10-05：人類指示「push上去」，Codex 已 push `main` 到 `origin/main`（`8041e14..a2f7e85`），沒有 push 或刪除遠端 feature 分支 |
+| D3 | 流程 | 要不要 push 到 `origin` | 由人類執行，或由人類明確授權。AI 不會自己 push | 已決定 2026-10-01：人類授權 push 交接系統（連同 `edf46b6`、`dfc0126`），已完成。2026-10-01 第二次授權：人類指示「完成後上傳到GIT」，W1 完成並合併進 `main` 後，把 `main` push 到 `origin`。2026-10-02：人類指示「推上 git」，W1 合併後已把 `main` push 到 `origin`（不 force，只推 `main`）。每次授權都只限該次，之後每次 push 仍要人類明確授權。2026-10-02 第三次：人類指示「你這個階段做完就先暫停，幫我 commit and push」，W2 Task 5 完成後 push `main` 和 `feature/w2-departments`（人類選「推兩個，README 寫在分支」）。2026-10-05：人類指示「push上去」，Codex 已 push `main` 到 `origin/main`（`8041e14..a2f7e85`），沒有 push 或刪除遠端 feature 分支。2026-10-05：人類指示「確認後推上去」與「git 上的 readme 也要記得更新進度」，Codex 已 push `main` 到 `origin/main`（`f1a9c74..aafc5ca`） |
 | D4 | F11（W4） | F11-T1-m5：重置 Demo 時要不要把角色重設回 yu | 建議重設回 yu | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
 | D5 | F11（W4） | F11-T4-m2：SVG 附件改成下載，還是用 `<img>` 或 sandbox 顯示 | 建議排除 SVG 預覽，改成下載（安全優先） | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
 | D6 | F11（W4） | F11-T4-m4：附件全部上傳失敗時，回報要不要整份不送出 | 建議先寫入 blob，失敗就不建立回報 | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
@@ -544,6 +544,17 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
+
+### 2026-10-05｜Codex GPT-5｜W5 README 對齊現況並推上 GitHub
+- **做了什麼**：
+  - 更新 README 頂部摘要：W1／W2／W3／W5 改為完成、W4 取消，並說明 W3 先完成功能架構，個別工作流內容由使用者之後自行添加。
+  - 更新 README §1 快速開始：改以 `projectflow-full-demo.html` 為準，補上測試頁路徑，註明 `projectflow-petfood-demo.html` 是階段 0 存檔。
+  - 更新 README §2 Demo 功能總覽與已知限制，反映 full demo 的節點、看板、時程、關卡、模板庫、部門權限、審核中心、文件紀錄、AI 副手、研發營運資料與目前沒有後端／多人同步。
+  - 更新 PROGRESS：W5 改 ✅，目前工作項目切到「Demo 驗收／等待人類確認展示」，D12 改為 AI 已起草、可由人類推翻。
+- **驗證**：`git diff --check -- README.md docs/PROGRESS.md` 乾淨。這輪只改文件，沒有重跑瀏覽器產品測試。
+- **沒做的事／偏離 plan**：README §5、§7、§8 照 D30 精簡範圍留到正式版；沒有改產品程式。
+- **下一步**：人類用 `projectflow-full-demo.html` 做展示確認；若要進正式產品軌，先決定 D11／P0。
+- **注意**：已依人類授權 push 到 `origin/main`；每次之後再 push 仍要重新授權。
 
 ### 2026-10-05｜Codex GPT-5｜W3 工作流架構完成，準備 ff 合併與 push
 - **做了什麼**：
@@ -606,38 +617,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
   - D36–D40 是 AI 代決，人類可以推翻。
   - 8000 仍是別的伺服器（回應 `{"detail":"Not Found"}`，沒有動）。記錄者自己在 8001 啟動的伺服器（PID 29460）已經關掉，8001 目前沒有 listener。
   - 認領保留給 `/pf-next all`，接著做整體審查。
-
-### 2026-10-05｜Claude Opus 5.5｜W2 Task 6 完成（時間軸預設收合、部門篩選）
-- **做了什麼**：
-  - `/pf-next all` 照展示模式推進 W2 Task 6。implementer 完成 `7939a66 Departments task 6: timeline collapses to phases with department filter`（`af9a3b9..7939a66`，DONE_WITH_CONCERNS）：`ui.tlDept`、`resetAll()` 清 `tlDept`、專案總覽圖的階段預設收合、`tlDeptMatch()`／`tlCount()`、部門篩選列、淡色路徑、階段件數、`drawArrows()` 篩掉不符合的相依。照執行注意 30 加上部門被刪除時退回 `'all'`。
-  - 兩項版面的 AI 代決記成 D34（`:has()` flex 版面）、D35（手機隱藏階段件數）。
-  - 審查報告存在 `.superpowers/sdd/review-af9a3b9..7939a66-combined-r0.md`，ledger 加上 Task 6 complete。
-- **驗證**：RED 失敗 6/129 → GREEN 全部通過 129/129。記錄者在 `7939a66` 上獨立重跑，結果是 `全部通過 129/129`，console 沒有錯誤。待驗證 3 項都實測通過：真實刪除部門流程退回「全部」（含兩種復原）、篩選中拖曳改期＋連動順延＋復原、375×812 篩選列換行後 `.tl` 可捲動，檢查式 true。審查：獨立（/pf-next），展示模式單一審查者 Approved，沒有修正輪。
-- **沒做的事／偏離 plan**：
-  - plan 沒有的改動：執行注意 30 的退回 `'all'`、D34、D35。
-  - 7 個 minor 記成 W2-T6-m1–m7。m1 已由 D34、D35 處理，其他照展示模式不修。
-  - 沒有驗 Firefox／Safari 的 `:has()`（W2-T6-m2）。
-- **下一步**：W2 Task 7（範本帶入負責部門、更新 README），見「▶ 現在」。
-- **注意**：
-  - D34、D35 是 AI 代決，人類可以推翻。
-  - 8000 仍是別的伺服器（PID 16860，沒有動）。記錄者自己在 8001 啟動的伺服器（PID 24492）已經關掉，8001 目前沒有 listener。
-  - 認領保留給 `/pf-next all`，接著做 Task 7。
-
-### 2026-10-05｜Claude Opus 5.5｜同步 origin（D28、D29）、改成展示模式（D30–D33）
-- **做了什麼**：
-  - 人類要求「更新下來最新的，然後確認目前進度」。`git fetch` 後發現：GitHub 的 `main` 已經合併 PR #1（`8041e14`，W2 Task 1–5 草稿）；本機 `main` 有 2 個沒 push 的 Progress commit，和 `origin/main` 分岔。
-  - 照 AGENTS §2 切到 `feature/w2-departments`，跑 `/pf-status`，然後問人類，記成 D28、D29（`2a02554`）。
-  - 照 D28 把分支 ff 到 `8041e14`。照 D29 建本機 tag `backup/local-main-2026-10-02`，再用 `git branch -f main origin/main` 對齊本機 `main`。8001、8080 的現況寫進 W2 執行注意 17，G5 的說明寫成執行注意 33。
-  - 人類接著指示「展示用，以最快的速度完成整個專案」，要 AI 提出要改哪些任務目標。AI 提案，人類回答 4 題，記成 D30–D33，D25、D26 改為取消。
-    - 看板：「▶ 現在」加「模式」欄；§1 Demo 完成條件精簡；§2 的 W3 改精簡版、W4 取消、W5 精簡；W2 驗收和執行注意 32 改寫，新增執行注意 34；§5 標出 W2 整體修正要修的 4 項；D4–D9、D12、D13 更新狀態。
-    - 流程：WORKFLOW 新增 §13 展示模式，§8、§10 和閱讀指引加上指引；AGENTS §5、CLAUDE.md 補一段；README「給接手的人」更新進度摘要。
-    - `/pf-next`（`.claude/workflows/pf-next.js`）改成依「模式」欄決定：展示模式一位審查者、最多一輪修正、plan-mandated important 直接修並記成 AI 代決；`full` 參數單次用完整流程。另外修正提示裡寫死 8000 埠的地方（8000 不是這個 repo 時改用 8001），以及 mergeBase 可以照執行注意指定（W2 是 `670afaf`）。
-  - 這次沒有改產品程式或測試。
-- **驗證**：
-  - `/pf-status` 在 `079b035` 上用 8001 跑測試頁，`全部通過 123/123`，Demo 載入後 `db.v = 4`，console 沒有錯誤；它自己啟動的 8001 伺服器已經關掉。`git diff --stat 079b035 8041e14` 是空的。
-  - `pf-next.js` 包成 async 函式後用 `node --check` 通過。用假的 agent 模擬 `all`：展示模式下只有一位 `review:combined` 審查者，plan-mandated important 會進修正輪，修完再審一次就記錄；`all full` 仍是 spec＋quality 兩位，遇到 plan-mandated 會停。
-- **沒做的事／偏離 plan**：沒有開始 Task 6。沒有 push（D3）。
-- **下一步**：W2 Task 6（見「▶ 現在」），可以直接 `/pf-next all` 跑完 W2。
-- **注意**：
-  - 本機分支比 `origin/feature/w2-departments` 多 `8041e14` 和這兩次的 Progress／Docs commit。要讓其他組員接手，push 前要先取得人類授權。
-  - W3 開工前需要人類提供 D13 的 10 部門甘特圖。
