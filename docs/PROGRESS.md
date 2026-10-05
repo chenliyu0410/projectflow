@@ -15,7 +15,7 @@
 |---|---|
 | 目前工作項目 | **Demo 驗收／等待人類確認展示** |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | W5 已完成，Demo 走查也已通過（§1 第 4 點第 3 項）。請人類用 `projectflow-full-demo.html` 做展示確認，並回答 D43（工作流編輯器要不要改成表單式，不擋展示）；若要繼續開發正式產品軌，先決定 D11／P0。 |
+| 下一個動作 | W5 已完成，README 已依系統架構圖重新整理，Demo 走查也已通過（§1 第 4 點第 3 項）。請人類用 `projectflow-full-demo.html` 做展示確認，並回答 D43（工作流編輯器要不要改成表單式，不擋展示）；若要繼續開發正式產品軌，先決定 D11／P0。 |
 | 分支 | `main`（W3 已 ff 合併；`feature/w3-workflow-architecture` 可保留作歷史參考） |
 | 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 文件同步 `aafc5ca`，只更新 README／PROGRESS，沒有改產品程式。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
@@ -335,6 +335,11 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - README §2 已更新 full demo 功能總覽與已知限制，涵蓋節點、看板、時程、前置與關卡、模板庫、部門權限、我的任務／審核中心、文件紀錄、AI 副手、研發營運資料，以及目前沒有後端／多人同步。
 - D12 由 AI 起草完成，狀態改為「待人類可推翻」。
 
+**追加整理（2026-10-05，Codex）**：
+- 依人類指定的深色部署圖版型新增 `docs/projectflow-system-architecture.svg`，用青綠／橘／灰色標示 Demo 已完成、正式版待建、外部整合。
+- README §6 改成引用該圖，並分成「目前已完成的 Demo 架構」「正式產品軌尚未完成」「下一步判讀」。
+- README §7 專案結構補上 `AGENTS.md`、`docs/`、`tests/`、`.claude/` 與架構圖檔。
+
 ---
 
 ## 4. 已完成
@@ -347,7 +352,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W1 | 子任務置頂回報卡：葉任務頁標題下方固定顯示回報卡（狀態與下一步動作），「紀錄」分頁排第一並作為預設；D15 桌面版紀錄等分頁可捲動，D16 卡片摘要最多約 6 行，D17 新增第一個子任務後切到看板 | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)、[plan](superpowers/plans/2026-10-01-subtask-report-card.md)；commits `8aed7d6..2d2c785`（2 個 Task、2 輪 Task 修正、D15、1 次整體修正），以 fast-forward 合併進 `main`；測試 64/64；`db.v` 維持 3。審查全部獨立（每個 Task spec＋品質各 2 輪，整體審查 2 輪）。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-10-01-subtask-report-card/`（不在 git 裡；重要內容已整理到本看板 §3 W1、§5、§6） |
 | W2 | 部門模型：`db.departments` 可設定、預設 10 部門；任務必填負責部門且負責人可未指派；任務可見性與操作權限依負責人、部門主管、專案負責人、系統管理員等規則；時間軸預設收合成階段並可依負責部門篩選；模板帶入負責部門 | [spec](superpowers/specs/2026-10-01-department-model-design.md)、[plan](superpowers/plans/2026-10-01-department-model.md)；commits `670afaf..5f326ab`（Task 1–7、展示模式流程調整、整體修正與等待合併進度），以 fast-forward 合併進 `main`；測試 `全部通過 137/137`；`db.v = 4`。Task 1–5 是完整流程獨立審查，Task 6–7 是展示模式單一審查者，整體修正後由 Codex 自我再審並經人類確認合併。 |
 | W3 | 工作流架構：`db.workflows[]`、工作流模板 CRUD、從工作流建立專案、工作流專案的前序階段關卡硬性擋住後續階段 | [spec](superpowers/specs/2026-10-05-process-control-design.md)、[plan](superpowers/plans/2026-10-05-workflow-architecture.md)；commits `6ea8d08..9bb9a52`；測試 `全部通過 149/149`；`db.v = 5`。展示模式單一 reviewer 找到 1 個 Important（generic 前置覆寫可繞過 pending workflow gate），已修正。 |
-| W5 | README 對齊現況（精簡）：頂部進度摘要、§1 快速開始、§2 Demo 功能總覽更新到 full demo／W3 後狀態 | 2026-10-05 完成；只改 README／PROGRESS，沒有改產品程式。驗證 `git diff --check`。 |
+| W5 | README 對齊現況（精簡）：頂部進度摘要、§1 快速開始、§2 Demo 功能總覽、§6 系統架構圖、§7 專案結構更新到 full demo／W3 後狀態 | 2026-10-05 完成；只改 README／PROGRESS／架構圖，沒有改產品程式。驗證 `git diff --check`。 |
 | 規劃文件 | W1 的 spec 和 plan、W2 的 spec 和 plan | `3a24c52`、`ed3e24f`、`edf46b6`、`dfc0126` |
 | 交接系統 | `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、本看板、`docs/WORKFLOW.md`、`.claude/workflows/pf-status.js`、`.claude/workflows/pf-next.js`、`.gitignore` | 2026-10-01 建立；commit 用 `git log --grep "Docs: handoff system"` 查 |
 

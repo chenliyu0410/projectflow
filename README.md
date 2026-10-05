@@ -36,7 +36,8 @@
 - Demo 驗證軌的主要功能架構已完成：F1–F11、W1、W2、W3 都在 `main`。
 - 目前測試基準：`tests/records.html` 為 `全部通過 149/149`（W3 合併後重跑）。
 - W3 依 2026-10-05 人類指示改成「先完成功能架構」：系統支援工作流模板、從工作流建立專案、階段關卡；每個部門的實際工作流內容可由使用者之後自行添加。
-- 正式產品軌（React／FastAPI／資料庫／內網部署等）尚未啟動，需等人類決定 D11。
+- Demo 走查已通過；最後只等人類確認可以拿來展示，以及決定 D43（工作流編輯器是否要做成表單式，不擋展示）。
+- 正式產品軌（React／FastAPI／PostgreSQL／內網部署／真 AI／ERP 整合等）尚未啟動，需等人類決定 D11；啟動後第一步是 P0（正式版技術骨架與開發規則）。
 
 **和 plan 不同、已由人類決定的地方**：PROGRESS §6 的 D19–D33，以及 §3 W2「執行注意」第 20–34 點。例如 D23：任務的時程只有負責人、負責部門主管、專案負責人和系統管理員能改。接手前請先讀這些條目，不要照 plan 的舊寫法改回去。
 
@@ -633,31 +634,36 @@ sync_logs
 
 ## 6. 系統架構
 
-```text
-                公司內網（不對外）
-┌──────────────────────────────────────────────────┐
-│ 使用者瀏覽器                                       │
-└────────────────────────┬─────────────────────────┘
-                         │ HTTPS（內部憑證）
-┌────────────────────────▼─────────────────────────┐
-│ 內網主機（Docker Compose）                         │
-│  ├─ Nginx        反向代理、靜態檔案                  │
-│  ├─ Web 前端      React + TypeScript               │
-│  ├─ API 後端      FastAPI                          │
-│  │   ├─ 專案 / 任務 / 權限                          │
-│  │   ├─ 營運資料：供應商、原料、配方、採購、工單       │
-│  │   └─ ERP 轉接層：同步、推送、衝突處理              │
-│  ├─ PostgreSQL   主資料庫（含 pgvector）             │
-│  ├─ 檔案儲存      本地磁碟 / MinIO / NAS             │
-│  ├─ 本地 AI       Ollama / vLLM（小型 LLM + 嵌入）   │
-│  └─ AI 閘道       分級判斷、遮罩 / 還原、路由、稽核    │
-└──────┬──────────────┬──────────────┬─────────────┘
-       │ 每日備份       │ 同步           │ 僅公開 / 遮罩後內容（可關閉）
-       ▼              ▼              ▼
-  備份主機 / NAS    公司 ERP、AD      雲端 LLM API（企業方案）
-```
+目前請用這張圖判讀系統架構與完成狀態：
 
-> 以上技術選擇為建議，可依團隊熟悉度調整。
+![ProjectFlow 系統架構圖](docs/projectflow-system-architecture.svg)
+
+### 6.1 目前已完成的 Demo 架構
+
+青綠色代表已完成並可展示的 Demo 範圍：
+
+- `projectflow-full-demo.html` 是目前的主產品 Demo，使用原生 HTML／CSS／JavaScript，不需要 build。
+- 資料存在瀏覽器 `localStorage`，key 是 `projectflow-demo-v2`；附件存在 IndexedDB。
+- Demo Services 已涵蓋 Project、Node、Workflow、Gate、RBAC、回報、筆記、附件、研發營運資料模擬與 AI 副手模擬。
+- 測試基準是 `tests/records.html`：目前 `全部通過 149/149`。
+
+### 6.2 正式產品軌尚未完成
+
+橘色代表正式版才會建立的技術架構，尚未開工：
+
+- Web：React + TypeScript 正式前端。
+- API：FastAPI 後端，負責專案、節點、權限、工作流、文件紀錄、AI 編排與 ERP／AD 整合介面。
+- DB：PostgreSQL，承接 users、departments、projects、nodes、workflows、gates、reports、logs、ops data 等資料。
+- Files：MinIO／NAS，用於任務附件、文件版本與匯入檔。
+- AI：Ollama／vLLM、AI Gateway、資料分級、遮罩還原、pgvector／RAG。
+
+灰色代表外部系統整合目標：ERP、AD／LDAP、備份主機或 NAS。這些都要等正式產品軌啟動後才會接。
+
+### 6.3 下一步判讀
+
+- **要展示 Demo**：直接使用 `projectflow-full-demo.html`。
+- **要補工作流內容**：可以先在 Demo 的工作流模板庫新增、複製、編輯。
+- **要做正式產品**：先決定 D11，然後做 P0，重新定正式版技術骨架、資料庫、測試、部署與開發規則。
 
 ---
 
@@ -667,9 +673,17 @@ sync_logs
 
 ```text
 projectflow/
-├─ README.md
-├─ projectflow-petfood-demo.html   # 階段 0 單檔 Demo
-└─ projectflow-full-demo.html      # F1–F11 完整互動 Demo（單檔）
+├─ AGENTS.md                       # AI 接手入口
+├─ README.md                       # 產品說明、架構、規格
+├─ projectflow-full-demo.html      # 目前主 Demo（F1–F11 + W1/W2/W3）
+├─ projectflow-petfood-demo.html   # 階段 0 存檔，不再修改
+├─ docs/
+│  ├─ PROGRESS.md                  # 唯一進度看板
+│  ├─ WORKFLOW.md                  # 開發流程
+│  ├─ projectflow-system-architecture.svg
+│  └─ superpowers/                 # specs / plans
+├─ tests/                          # 瀏覽器測試頁與測試檔
+└─ .claude/                        # Claude Code 工作流設定
 ```
 
 預計（階段 1 之後）：
@@ -680,7 +694,7 @@ projectflow/
 ├─ demo/                  # 保留原始 Demo
 ├─ web/                   # 前端
 ├─ api/                   # 後端
-├─ deploy/                # docker-compose.yml、Nginx、備份腳本
+├─ deploy/                # Docker Compose、Nginx、備份腳本
 ├─ templates/             # 預設任務模板（JSON）
 └─ docs/                  # 規格、部署與使用說明
 ```

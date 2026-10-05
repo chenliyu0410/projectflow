@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1350" viewBox="0 0 2400 1350" role="img" aria-labelledby="title desc">
+  <title id="title">ProjectFlow 系統架構</title>
+  <desc id="desc">ProjectFlow 展示版與正式版建置規劃架構圖。</desc>
+  <defs>
+    <style>
+      .bg{fill:#fbfdff}
+      .ink{fill:#0b2a5b}
+      .muted{fill:#465f82}
+      .demoFill{fill:#d7fbf5}
+      .demoStroke{stroke:#12bfb7}
+      .todoFill{fill:#fff5dc}
+      .todoStroke{stroke:#e69a00}
+      .externalFill{fill:#f7fbff}
+      .externalStroke{stroke:#4e729b;stroke-dasharray:12 10}
+      .box{stroke-width:3}
+      .thin{stroke-width:2}
+      .line{stroke:#0b4a82;stroke-width:4;fill:none;marker-end:url(#arrow)}
+      .dashLine{stroke:#4e729b;stroke-width:4;fill:none;stroke-dasharray:12 10;marker-end:url(#arrowMuted)}
+      .demoLine{stroke:#12bfb7;stroke-width:4;fill:none;stroke-dasharray:12 8;marker-end:url(#arrowDemo)}
+      .title{font:700 66px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#071f4d}
+      .subtitle{font:700 38px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#123969}
+      .h1{font:700 34px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#08275c}
+      .h2{font:700 28px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#08275c}
+      .body{font:500 25px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#173b68}
+      .small{font:500 21px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#465f82}
+      .tag{font:700 22px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#08275c}
+      .tagFill{fill:#ffc44d}
+    </style>
+    <marker id="arrow" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto">
+      <path d="M1,1 L14,8 L1,15 Z" fill="#0b4a82"/>
+    </marker>
+    <marker id="arrowMuted" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto">
+      <path d="M1,1 L14,8 L1,15 Z" fill="#4e729b"/>
+    </marker>
+    <marker id="arrowDemo" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto">
+      <path d="M1,1 L14,8 L1,15 Z" fill="#12bfb7"/>
+    </marker>
+    <filter id="softShadow" x="-5%" y="-8%" width="110%" height="122%">
+      <feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#0b2a5b" flood-opacity=".12"/>
+    </filter>
+  </defs>
+
+  <rect class="bg" width="2400" height="1350"/>
+
+  <text class="title" x="70" y="92">ProjectFlow 系統架構</text>
+  <text class="subtitle" x="72" y="145">目前展示版與正式版建置規劃</text>
+
+  <!-- Legend -->
+  <rect class="demoFill demoStroke box" x="1460" y="70" width="56" height="42" rx="8"/>
+  <text class="body" x="1532" y="101">已完成展示版</text>
+  <rect class="todoFill todoStroke box" x="1740" y="70" width="56" height="42" rx="8"/>
+  <text class="body" x="1812" y="101">正式版待建置</text>
+  <rect class="externalFill externalStroke box" x="2040" y="70" width="56" height="42" rx="8"/>
+  <text class="body" x="2112" y="101">外部整合目標</text>
+
+  <!-- Deployment boundary -->
+  <rect class="externalFill externalStroke box" x="420" y="205" width="1935" height="940" rx="24"/>
+  <text class="h2" x="458" y="253">公司內網部署規劃</text>
+  <text class="small" x="1690" y="253">（同一份 Docker Compose；正式版部署於公司內網主機）</text>
+
+  <!-- User -->
+  <rect class="externalFill" stroke="#0b4a82" stroke-width="3" x="40" y="595" width="260" height="180" rx="14" filter="url(#softShadow)"/>
+  <text class="h1" x="112" y="662">使用者</text>
+  <text class="body" x="66" y="707">員工、專案經理、主管</text>
+  <text class="body" x="96" y="746">管理者、老闆</text>
+
+  <path class="line" d="M300 685 H420"/>
+  <text class="h2" x="322" y="664">HTTPS</text>
+
+  <!-- Web -->
+  <rect class="todoFill todoStroke box" x="470" y="560" width="365" height="230" rx="14" filter="url(#softShadow)"/>
+  <text class="h1" x="565" y="623">網頁前端 Web</text>
+  <text class="body" x="570" y="670">React 正式版</text>
+  <text class="body" x="500" y="710">待建置；目前由展示版代替</text>
+  <rect class="tagFill" x="580" y="735" width="150" height="42" rx="18"/>
+  <text class="tag" x="623" y="764">待建置</text>
+
+  <path class="line" d="M835 680 H925"/>
+  <text class="h2" x="858" y="660">/api</text>
+
+  <!-- Demo completed -->
+  <rect class="demoFill demoStroke box" x="470" y="295" width="510" height="140" rx="14" filter="url(#softShadow)"/>
+  <text class="h2" x="515" y="342">目前已完成｜展示版</text>
+  <text class="body" x="515" y="382">projectflow-full-demo.html</text>
+  <text class="body" x="515" y="417">localStorage / IndexedDB</text>
+  <path class="demoLine" d="M625 435 C650 500 695 520 710 560"/>
+  <text class="h2" x="685" y="498" fill="#12bfb7">現有展示範圍</text>
+
+  <!-- API -->
+  <rect class="todoFill todoStroke box" x="930" y="475" width="355" height="370" rx="14" filter="url(#softShadow)"/>
+  <text class="h1" x="980" y="545">ProjectFlow API</text>
+  <text class="body" x="1012" y="592">FastAPI 正式版</text>
+  <text class="body" x="990" y="635">專案、節點、權限</text>
+  <text class="body" x="990" y="672">工作流、Gate、前置</text>
+  <text class="body" x="990" y="709">文件、稽核、AI 編排</text>
+  <rect class="tagFill" x="1030" y="745" width="150" height="42" rx="18"/>
+  <text class="tag" x="1073" y="774">待建置</text>
+
+  <!-- DB -->
+  <rect class="todoFill todoStroke box" x="1460" y="445" width="430" height="355" rx="14" filter="url(#softShadow)"/>
+  <text class="h1" x="1585" y="500">PostgreSQL</text>
+  <rect class="todoFill todoStroke thin" x="1490" y="535" width="370" height="58" rx="9"/>
+  <text class="body" x="1560" y="573">ProjectFlow 資料表</text>
+  <rect class="todoFill todoStroke thin" x="1490" y="608" width="370" height="58" rx="9"/>
+  <text class="body" x="1562" y="646">AI View（唯讀）</text>
+  <rect class="todoFill todoStroke thin" x="1490" y="681" width="370" height="58" rx="9"/>
+  <text class="body" x="1538" y="719">文件段落 + pgvector</text>
+  <rect class="tagFill" x="1515" y="748" width="250" height="42" rx="18"/>
+  <text class="tag" x="1566" y="777">正式版資料庫待建置</text>
+
+  <path class="line" d="M1285 555 H1460"/>
+  <text class="h2" x="1335" y="535">存取</text>
+  <path class="line" d="M1285 635 H1460"/>
+  <text class="h2" x="1318" y="616">唯讀查詢</text>
+  <path class="line" d="M1285 715 H1460"/>
+  <text class="h2" x="1328" y="696">找段落</text>
+
+  <!-- Ollama -->
+  <path class="line" d="M1108 475 V315 H1960"/>
+  <text class="h2" x="1450" y="290">算向量 / 本地推理</text>
+  <rect class="todoFill todoStroke box" x="1960" y="250" width="335" height="180" rx="14" filter="url(#softShadow)"/>
+  <text class="h1" x="2060" y="313">Ollama</text>
+  <text class="body" x="2000" y="358">向量嵌入 Embedding</text>
+  <text class="body" x="2025" y="395">大型語言模型 LLM</text>
+  <rect class="tagFill" x="2070" y="400" width="145" height="42" rx="18"/>
+  <text class="tag" x="2100" y="429">待建置</text>
+
+  <!-- AI gateway -->
+  <rect class="todoFill todoStroke box" x="1960" y="542" width="335" height="365" rx="14" filter="url(#softShadow)"/>
+  <text class="h1" x="2012" y="602">人工智慧閘道</text>
+  <text class="h1" x="2045" y="642">AI Gateway</text>
+  <rect class="todoFill todoStroke thin" x="2000" y="675" width="255" height="58" rx="9"/>
+  <text class="body" x="2074" y="713">資料分級</text>
+  <rect class="todoFill todoStroke thin" x="2000" y="748" width="255" height="58" rx="9"/>
+  <text class="body" x="2064" y="786">遮罩還原</text>
+  <rect class="todoFill todoStroke thin" x="2000" y="821" width="255" height="58" rx="9"/>
+  <text class="body" x="2054" y="859">雲端 AI 可關閉</text>
+  <rect class="tagFill" x="2070" y="870" width="145" height="42" rx="18"/>
+  <text class="tag" x="2100" y="899">待建置</text>
+
+  <path class="line" d="M1285 795 H1960"/>
+  <text class="h2" x="1500" y="833">週報 / 風險 / 文件問答</text>
+
+  <!-- File storage -->
+  <path class="line" d="M1108 845 V965"/>
+  <text class="h2" x="1135" y="905">存文件</text>
+  <rect class="todoFill todoStroke box" x="930" y="965" width="800" height="160" rx="14" filter="url(#softShadow)"/>
+  <text class="h1" x="1158" y="1018">MinIO / NAS / 檔案儲存</text>
+  <text class="body" x="1080" y="1060">附件、文件版本、Excel 匯入</text>
+  <rect class="tagFill" x="1250" y="1080" width="145" height="42" rx="18"/>
+  <text class="tag" x="1280" y="1109">待建置</text>
+
+  <!-- Company systems -->
+  <rect class="externalFill externalStroke box" x="1960" y="965" width="335" height="160" rx="14" filter="url(#softShadow)"/>
+  <text class="h1" x="2072" y="1025">公司系統</text>
+  <text class="body" x="2045" y="1068">ERP / AD / LDAP</text>
+  <text class="body" x="2055" y="1105">外部整合目標</text>
+  <path class="dashLine" d="M1730 1045 H1960"/>
+  <text class="h2" x="1772" y="1018">同步 / 登入</text>
+
+  <!-- Return loop -->
+  <path class="line" d="M2295 715 H2348 V1210 H150"/>
+  <path class="line" d="M150 1210 V775"/>
+  <text class="h2" x="630" y="1195">結果回傳介面：看板、甘特圖、工作流、風險警示、文件問答、任務更新、管理儀表板</text>
+
+  <!-- Footer -->
+  <text class="small" x="70" y="1300">部署：同一份 Docker Compose；正式版部署於公司內網主機。現有展示版為單檔 HTML，可直接於瀏覽器開啟。</text>
+  <text class="small" x="1400" y="1300">API：應用程式介面　AI：人工智慧　LLM：大型語言模型　NAS：網路附加儲存</text>
+</svg>
