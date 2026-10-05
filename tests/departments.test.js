@@ -536,6 +536,53 @@
     closeDlg();
   });
 
+  // ── Task 6：時間軸收合與部門篩選 ──
+  const tlRowIds = () => [...document.querySelectorAll('#tl .tl-row[data-row]')].map((r) => r.dataset.row);
+  await T('時間軸：專案預設只顯示階段列', () => {
+    as('yu'); ui.page = 'node'; ui.node = 'p1'; ui.tab = 'timeline'; render();
+    eq(tlRowIds(), ['p1a', 'p1b', 'p1c', 'p1d', 'p1e']);
+  });
+  await T('時間軸：點階段展開，可同時展開多個', () => {
+    ui.page = 'node'; ui.node = 'p1'; ui.tab = 'timeline'; render();
+    document.querySelector('[data-twist="p1c"]').click();
+    document.querySelector('[data-twist="p1d"]').click();
+    const ids = tlRowIds();
+    ok(ids.includes('t301') && ids.includes('t401'), ids.join(','));
+    ok(!ids.includes('t101'), '未展開的階段不顯示工作');
+  });
+  await T('時間軸：部門篩選只影響工作列，階段列保持完整', () => {
+    ui.page = 'node'; ui.node = 'p1'; ui.tab = 'timeline';
+    ['p1a', 'p1b', 'p1c', 'p1d', 'p1e'].forEach((p) => { ui.expanded['t' + p] = true; });
+    render();
+    document.querySelector('[data-tl-dept="d-qa"]').click();
+    const ids = tlRowIds();
+    ['p1a', 'p1b', 'p1c', 'p1d', 'p1e'].forEach((p) => ok(ids.includes(p), '階段列 ' + p));
+    const tasks = ids.map(node).filter((x) => x.type === 'task');
+    ok(tasks.length > 0, '應有品保的工作');
+    ok(tasks.every((x) => x.dept === 'd-qa' || descendants(x.id).some((d) => d.dept === 'd-qa')), tasks.map((x) => x.id).join(','));
+    ok(ids.includes('t404'), '品保的未指派工作（專案負責人看得到）');
+    ok(!ids.includes('t102'), '研發的工作（沒有品保子任務）被篩掉');
+    ok(document.querySelector('[data-tl-dept="d-qa"][aria-pressed="true"]'));
+  });
+  await T('時間軸：篩選後作為路徑的上層任務以淡色顯示', () => {
+    ui.page = 'node'; ui.node = 'p1'; ui.tab = 'timeline'; ui.expanded.tp1c = true; ui.expanded.tt301 = true; ui.expanded.tt3012 = true; ui.tlDept = 'd-qa'; render();
+    ok(document.querySelector('#tl .tl-row.dim[data-row="t301"]'), 't301 是製程的任務，因子任務 t30122 屬於品保而以淡色路徑出現');
+    ok(!document.querySelector('#tl .tl-row.dim[data-row="t30122"]'), '符合篩選的任務不淡化');
+  });
+  await T('時間軸：沒有階段的專案不收合，篩選直接套用', () => {
+    ui.page = 'node'; ui.node = 'p4'; ui.tab = 'timeline'; ui.tlDept = 'd-pur'; render();
+    const ids = tlRowIds();
+    ok(ids.includes('t801') && ids.includes('t802'), ids.join(','));
+    ui.tlDept = 'd-fin'; render();
+    eq(tlRowIds(), []);
+  });
+  await T('時間軸篩選狀態不寫入資料、不進復原紀錄', () => {
+    const before = undoStack.length;
+    ui.page = 'node'; ui.node = 'p1'; ui.tab = 'timeline'; render();
+    document.querySelector('[data-tl-dept="d-qa"]').click();
+    eq(undoStack.length, before); ok(!('tlDept' in db));
+  });
+
   // ── 新測試加在這一行上面 ──
   return results;
 })()

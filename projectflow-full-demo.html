@@ -156,6 +156,14 @@ h2{font-size:18px;margin:0}
 .tl-inner{position:relative}
 .tl-row{display:flex;height:34px;border-top:1px solid #F0EDE6;position:relative}
 .tl-row.tlh{height:40px;border-top:none;position:sticky;top:0;z-index:4;background:var(--surface);border-bottom:1px solid var(--line)}
+.deptbar{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;flex-shrink:0}
+.view:has(> .deptbar){display:flex;flex-direction:column}
+.deptbar + .tl{flex:1 1 0;min-height:0;height:auto}
+.deptbar button{height:30px;padding:0 10px;border:1px solid var(--line2);border-radius:15px;background:#fff;font-size:13px}
+.deptbar button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+.deptbar button.zero{opacity:.5}
+.tl-row.dim .tl-label .nm,.tl-row.dim .gb{opacity:.45}
+.tl-label .cnt{margin-left:6px;font-size:12px;color:var(--muted);white-space:nowrap}
 .tl-label{width:270px;flex-shrink:0;position:sticky;left:0;z-index:3;background:var(--surface);display:flex;align-items:center;gap:4px;padding-right:6px;font-size:13px;border-right:1px solid var(--line);white-space:nowrap;overflow:hidden}
 .tl-row.tlh .tl-label{z-index:5;font-size:12px;font-weight:700;color:var(--muted);padding-left:12px}
 .tl-label .tw{border:none;background:transparent;width:20px;height:20px;padding:0;color:var(--muted);flex-shrink:0;border-radius:4px}
@@ -344,6 +352,7 @@ dialog.drawer{margin:0 0 0 auto;height:100vh;max-height:100vh;border-radius:14px
   .pagehead h1,h1{font-size:23px}
   .docs,.grid2,.grid3{grid-template-columns:1fr}
   .tl-label{width:150px}
+  .tl-label .cnt{display:none}
   .phases{overflow:auto}
   .phase{min-width:110px}
   .view{min-height:420px}
@@ -642,7 +651,7 @@ function seedOps() {
 /* ================= 狀態、儲存、復原 ================= */
 const KEY = 'projectflow-demo-v2';
 let db, audit;
-const ui = { me: 'yu', page: 'node', node: 'p1', tab: 'board', expanded: {}, scale: 'week', cascade: true, crit: false, chat: [], opsTab: 'suppliers', opsSel: null, docsAll: false, connect: null, fv: [3, 4], trace: 'T260912-01', gsel: null };
+const ui = { me: 'yu', page: 'node', node: 'p1', tab: 'board', expanded: {}, scale: 'week', cascade: true, crit: false, chat: [], opsTab: 'suppliers', opsSel: null, docsAll: false, connect: null, fv: [3, 4], trace: 'T260912-01', gsel: null, tlDept: 'all' };
 const undoStack = [];
 
 function freshAudit() {
@@ -1034,7 +1043,7 @@ const fileStore = (() => {
 function resetAll() {
   try { localStorage.removeItem(KEY); } catch (err) { /* 忽略 */ }
   db = seed(); audit = freshAudit(); undoStack.length = 0;
-  Object.assign(ui, { page: 'node', node: 'p1', tab: 'board', chat: [], expanded: {}, redteam: '' });
+  Object.assign(ui, { page: 'node', node: 'p1', tab: 'board', chat: [], expanded: {}, redteam: '', tlDept: 'all' });
   render();
   return fileStore.clear();
 }
@@ -1530,11 +1539,14 @@ function viewBoard(n) {
 /* ---------- 時程（F3） ---------- */
 const PPD = { day: 26, week: 8, month: 2.6 };
 let TL = null; // 目前時程的排版資訊，給連線與拖曳使用
-// 總覽圖（專案層）預設展開各階段；個別任務展開圖只列出自己與下一層
-function tlOpen(x) { const k = ui.expanded['t' + x.id]; if (k !== undefined) return k; const n = node(ui.node); return n.type === 'project' && x.parent === n.id; }
+// 總覽圖（專案層）的階段預設收合；沒有階段的專案，第一層任務預設展開；個別任務展開圖只列出自己與下一層
+function tlOpen(x) { const k = ui.expanded['t' + x.id]; if (k !== undefined) return k; const n = node(ui.node); return n.type === 'project' && x.parent === n.id && x.type !== 'phase'; }
+// 部門篩選：只看負責部門；子任務符合時上層任務留著當路徑；階段與專案不受影響
+function tlDeptMatch(x) { return ui.tlDept === 'all' || x.type !== 'task' || x.dept === ui.tlDept || descendants(x.id).some((d) => d.type === 'task' && d.dept === ui.tlDept); }
+function tlCount(x) { return descendants(x.id).filter((d) => d.type === 'task' && visible(d) && (ui.tlDept === 'all' || d.dept === ui.tlDept)).length; }
 function tlRows(n) {
   const rows = [];
-  const walk = (x, lvl) => kids(x.id).filter(visible).forEach((c) => {
+  const walk = (x, lvl) => kids(x.id).filter((c) => visible(c) && tlDeptMatch(c)).forEach((c) => {
     rows.push({ n: c, lvl });
     if (kids(c.id).length && tlOpen(c)) walk(c, lvl + 1);
   });
@@ -1554,6 +1566,7 @@ function extBars(n) {
   return out;
 }
 function viewTimeline(n) {
+  if (ui.tlDept !== 'all' && !db.departments.some((d) => d.id === ui.tlDept)) ui.tlDept = 'all'; // 篩選中的部門被刪除時退回「全部」
   if (ui.scaleNode !== n.id) { ui.scale = autoScale(n); ui.scaleNode = n.id; }
   const rows = tlRows(n);
   const ext = extBars(n);
@@ -1579,7 +1592,10 @@ function viewTimeline(n) {
     if (ui.scale === 'day') ticks += `<span class="sub" style="left:${X(d)}px">${dom}</span>`;
   }
   const bg = ui.scale === 'month' ? '' : `background:repeating-linear-gradient(90deg,transparent 0,transparent ${ppd * 7 - 1}px,#F5F2EC ${ppd * 7 - 1}px,#F5F2EC ${ppd * 7}px);background-position:${X(r0 + ((8 - new Date(r0 * 864e5).getUTCDay()) % 7))}px 0`;
-  let html = `<div class="tl" id="tl"><div class="tl-inner" style="width:${W + 270}px">
+  const pool = descendants(n.id).filter((d) => d.type === 'task' && visible(d));
+  const cnt = (id) => (id === 'all' ? pool.length : pool.filter((d) => d.dept === id).length);
+  const bar = `<div class="deptbar" role="group" aria-label="依負責部門篩選工作">${[['all', '全部'], ...db.departments.map((d) => [d.id, d.name])].map(([id, nm]) => `<button type="button" data-tl-dept="${id}" aria-pressed="${ui.tlDept === id}" class="${cnt(id) ? '' : 'zero'}">${esc(nm)} ${cnt(id)}</button>`).join('')}</div>`;
+  let html = bar + `<div class="tl" id="tl"><div class="tl-inner" style="width:${W + 270}px">
     <div class="tl-row tlh"><div class="tl-label">${n.type === 'project' ? `總覽圖・任務（${rows.length}）` : `展開圖・子任務（${rows.length - 1}）`}</div><div class="tl-track" style="width:${W}px"><div class="tl-scale">${ticks}</div></div></div>`;
   rows.forEach(({ n: x, lvl, self }) => {
     const hasK = kids(x.id).length > 0;
@@ -1596,9 +1612,10 @@ function viewTimeline(n) {
         : `<div class="${cls}" data-bar="${x.id}" style="left:${X(a)}px;width:${w}px;background:${color}" title="${esc(x.title)} ${md(S(a))}–${md(S(b))}${tip}"><span class="h l"></span>${w > 50 ? esc(uname(x.owner)) : ''}<span class="h r"></span></div>`;
     const pe = pr.leaves[x.id];
     const proj = !hasK && pe && pe[1] > b && !DONE(x.status) ? `<div class="proj" style="left:${X(b + 1)}px;width:${(pe[1] - b) * ppd}px" title="預測結束 ${md(S(pe[1]))}（延後 ${pe[1] - b} 天）"></div>` : '';
-    html += `<div class="tl-row ${hasK ? 'parent' : ''} ${self ? 'self' : ''}" data-row="${x.id}"><div class="tl-label" style="padding-left:${8 + lvl * 16}px">
+    const dim = ui.tlDept !== 'all' && x.type === 'task' && x.dept !== ui.tlDept;
+    html += `<div class="tl-row ${hasK ? 'parent' : ''} ${self ? 'self' : ''} ${dim ? 'dim' : ''}" data-row="${x.id}"><div class="tl-label" style="padding-left:${8 + lvl * 16}px">
       ${hasK && !self ? `<button class="tw" type="button" data-twist="${x.id}" aria-label="${open ? '收合' : '展開'}">${open ? '▾' : '▸'}</button>` : '<span style="width:20px;flex-shrink:0"></span>'}
-      <span class="dot ${x.status}"></span>${self ? `<span class="nm">${x.milestone ? '◆ ' : ''}${esc(x.title)}</span>` : `<button class="nm" type="button" data-enter="${x.id}" title="進入「${esc(x.title)}」的展開圖">${x.milestone ? '◆ ' : ''}${esc(x.title)}</button>`}
+      <span class="dot ${x.status}"></span>${self ? `<span class="nm">${x.milestone ? '◆ ' : ''}${esc(x.title)}</span>` : `<button class="nm" type="button" data-enter="${x.id}" title="進入「${esc(x.title)}」的展開圖">${x.milestone ? '◆ ' : ''}${esc(x.title)}</button>`}${x.type === 'phase' ? `<span class="cnt">${open ? '▾' : '▸'} ${tlCount(x)} 件</span>` : ''}
       <button class="ed" type="button" data-edit="${x.id}" title="編輯">✎</button>
       ${can('create', x) ? `<button class="plus" type="button" data-add-child="${x.id}" title="新增子任務">＋</button>` : ''}</div>
       <div class="tl-track" style="width:${W}px;${bg}">${bar}${proj}</div></div>`;
@@ -1650,6 +1667,7 @@ function drawArrows() {
   let normal = '', critical = '', warns = '';
   db.deps.forEach((d) => {
     if (d.cond || !node(d.from) || !node(d.to)) return;
+    if (ui.tlDept !== 'all' && (!tlDeptMatch(node(d.from)) || !tlDeptMatch(node(d.to)))) return;
     const a = visibleOf(d.from), b = visibleOf(d.to);
     if (!a || !b || a === b) return;
     const A = pos[a], B = pos[b];
@@ -3167,6 +3185,7 @@ document.addEventListener('click', (e) => {
   if (ds.tab) { ui.tab = ds.tab; ui.connect = null; ui.gsel = null; return render(); }
   if (ds.edit) return openEditor(ds.edit);
   if (ds.expand) { ui.expanded['b' + ds.expand] = !ui.expanded['b' + ds.expand]; return render(); }
+  if (ds.tlDept) { ui.tlDept = ds.tlDept; return render(); }
   if (ds.twist) { const x = node(ds.twist); ui.expanded['t' + x.id] = !tlOpen(x); return render(); }
   if (ds.scale) { ui.scale = ds.scale; return render(); }
   if ('crit' in ds) { ui.crit = !ui.crit; return render(); }
