@@ -15,12 +15,12 @@
 |---|---|
 | 目前工作項目 | **P1a後端核心執行中（至P1c已授權）** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 依P1a plan Native TDD執行Task4（Report、Audit API與真PostgreSQL migration／seed驗收）。D53已授權中間自行推進，重大問題才停下來問。 |
+| 下一個動作 | 依P1a plan 進入G4整體審查（全分支公司隔離／權限／migration／正式回歸）；D53已授權中間自行推進，重大問題才停下來問。 |
 | 分支 | `feature/p1a-backend-core`；P0分支已ff-only合併並依G6刪除。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
-| 最新程式 commit | P1a Task3修正 `c8c806b`；Demo仍為W6 `0934e48`，未修改。 |
+| 最新程式 commit | P1a Task4 `995b7b8`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | 2026-10-08 P1a Task3：RED workflow/gate `5 failed, 1 warning`；GREEN workflow/gate `6 passed, 1 warning`、完整API `29 passed, 1 warning in 15.54s`、`git diff --check` exit0。Task1另有pip check無broken、Alembic SQLite smoke exit0；Demo仍`全部通過 174/174`，P1a未改Demo。 |
-| 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17僅健康探測，尚無業務schema／migration（P1a引入）。 |
+| 測試基準 | 2026-10-08 P1a Task4：RED report/audit `2 failed, 2 passed, 1 warning`；GREEN report/migration `7 passed, 1 warning`、完整API `34 passed, 1 warning in 24.91s`、Vitest `6 passed (6)`、build exit0、Playwright `4 passed`、Compose PostgreSQL migration／seed／HTTP smoke通過、`git diff --check` exit0。Demo仍`全部通過 174/174`，P1a未改Demo。 |
+| 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17使用migration `20261008_0001_p1a_core` 建立P1a核心schema。 |
 | 認領中 | Codex GPT-5，2026-10-08 P1a Native execution |
 | 阻塞／待人類 | 無；D53指示中間自行進行，只在重大範圍／安全／無法照plan時詢問。D51整體授權不變，D43、D10不擴大MVP。 |
 | 遠端 | 2026-10-08已成功push origin main `4539e41..981362f`，ls-remote確認，包含完整P0與G6；本筆發布紀錄隨後同步。僅main，無force／PR／其他分支。 |
@@ -428,15 +428,15 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | 1 | Session登入、資料庫層、Alembic migration骨架 | ✅ Bohr獨立審查第1輪Needs fixes：Alembic config Critical、composite FK與workflow content Important、logout精準撤銷與EOF Minor；修正commit後測試化覆蓋並通過 | RED：依賴安裝成功後，pytest `ModuleNotFoundError: No module named 'app.database'` exit1。GREEN：auth/migration `7 passed, 1 warning`、完整API `15 passed, 1 warning in 2.95s`、pip check無broken、Alembic SQLite smoke exit0。reviewer fix RED：3 failed（logout只撤目前session、Alembic config、migration FK/content）→ GREEN 7 passed | `038ce64..014c0b3`（`ae292e7`實作、`014c0b3`修正） |
 | 2 | Project／Department／Node API、`can_view`／`can_work`與audit helper | ✅ Ptolemy獨立審查第1輪Needs fixes：create-node缺寫入權限Critical、readonly-owner可寫與status未限制Important；修正commit後測試化覆蓋並通過 | RED：project/node `5 failed, 1 warning`（routes missing）。GREEN：auth+project `10 passed, 1 warning`、完整API `20 passed, 1 warning`；reviewer fix RED：3 failed（readonly新增、readonly-owner狀態、非法status）→ GREEN project/node `8 passed, 1 warning`、完整API `23 passed, 1 warning in 9.07s` | `5ac1c60..df2e526`（`ae8a1b6`實作、`df2e526`修正） |
 | 3 | Workflow建立專案與Gate阻擋 | ✅ Godel獨立審查第1輪Needs fixes：project_owner不能從workflow建立專案Important、override payload測試過鬆Minor；修正commit後測試化覆蓋並通過 | RED：workflow/gate `5 failed, 1 warning`（routes missing）。GREEN：workflow/gate `5 passed, 1 warning`、完整API `28 passed, 1 warning`；reviewer fix RED：project_owner建立回403 → GREEN workflow/gate `6 passed, 1 warning`、完整API `29 passed, 1 warning in 15.54s` | `ca6f902..c8c806b`（`a7e7291`實作、`c8c806b`修正） |
-| 4 | Report、Audit API與真PostgreSQL migration／seed驗收 | 🔨 執行中 | 新增report/audit測試；完整API pytest、Vitest、build、P0 E2E回歸；Compose PostgreSQL實跑migration與seed | `P1a task 4: add reports audit and database acceptance` |
+| 4 | Report、Audit API與真PostgreSQL migration／seed驗收 | ✅ Volta獨立審查No findings；確認report route、audit scope、SQLAlchemy URL修正與Demo無diff | RED：report/audit `2 failed, 2 passed, 1 warning`（report route missing）。GREEN：report/migration `7 passed, 1 warning`、完整API `34 passed, 1 warning in 24.91s`、Vitest `6 passed (6)`、build exit0、Playwright `4 passed`；Compose API rebuild healthy，container內Alembic PostgreSQL upgrade head、seed exit0，HTTP login/me/projects smoke 200且看見「成貓主食罐正式版」 | `995b7b8`；`P1a task 4: add reports audit and database acceptance` |
 
 **P1a驗收**
-- [ ] 登入／登出／me端點使用HttpOnly `pf_session`，不能用前端公司參數切換公司。
-- [ ] Alembic migration建立organization-scoped核心表；業務資料都有`organization_id`並由session限制。
-- [ ] 種子資料至少兩家公司、不同使用者／部門／專案／節點／工作流。
-- [ ] Project、Node、Department、Workflow、Gate、Report、AuditLog API都強制公司隔離與後端權限檢查。
-- [ ] 猜測他公司project/node/workflow/report/audit ID不可讀寫。
-- [ ] pending gate不能被直接status API或override payload繞過。
+- [x] 登入／登出／me端點使用HttpOnly `pf_session`，不能用前端公司參數切換公司。
+- [x] Alembic migration建立organization-scoped核心表；業務資料都有`organization_id`並由session限制。
+- [x] 種子資料至少兩家公司、不同使用者／部門／專案／節點／工作流。
+- [x] Project、Node、Department、Workflow、Gate、Report、AuditLog API都強制公司隔離與後端權限檢查。
+- [x] 猜測他公司project/node/workflow/report/audit ID不可讀寫。
+- [x] pending gate不能被直接status API或override payload繞過。
 - [ ] API pytest、React Vitest、production build、P0 health E2E均通過；README／正式開發指南／PROGRESS更新並審查。
 
 **執行注意**
