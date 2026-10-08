@@ -53,28 +53,26 @@ def test_readonly_cannot_create_node(client):
     assert response.status_code == 403
 
 
-def test_readonly_owner_still_cannot_update_node_status(client):
-    login(client, "food", "yu")
-    project = client.get("/projects").json()["items"][0]
-    me = client.get("/auth/me").json()
-    # Create a node assigned to readonly user lin, then verify ownership alone is not enough.
+def test_readonly_owner_still_cannot_update_node_status(client, engine):
+    from sqlalchemy import select
+    from sqlalchemy.orm import Session
+    from app.models import Node, User, Project, AuditLog
+    login(client)
+    with Session(engine) as db:
+        user = db.scalars(select(User).where(User.username == "lin")).one()
+        project = db.scalars(select(Project).where(Project.organization_id == user.organization_id)).one()
+        node = Node(organization_id=user.organization_id, project_id=project.id,
+                    kind="task", title="歷史唯讀指派", owner_user_id=user.id)
+        db.add(node)
+        db.commit()
+        node_id = node.id
+        before = list(db.scalars(select(AuditLog.id)))
     client.post("/auth/logout")
-    login(client, "food", "lin", "demo-lin")
-    readonly_id = client.get("/auth/me").json()["user"]["id"]
-    client.post("/auth/logout")
-    login(client, "food", "yu")
-    created = client.post(f"/projects/{project['id']}/nodes", json={
-        "title": "唯讀負責節點",
-        "kind": "task",
-        "owner_user_id": readonly_id,
-    })
-    assert created.status_code == 201
-    node_id = created.json()["id"]
-    client.post("/auth/logout")
-    login(client, "food", "lin", "demo-lin")
-    denied = client.patch(f"/nodes/{node_id}/status", json={"status": "doing"})
-    assert denied.status_code == 403
-    assert me["organization"]["key"] == "food"
+    login(client, username="lin")
+    assert client.patch(f"/nodes/{node_id}/status", json={"status":"doing"}).status_code == 403
+    with Session(engine) as db:
+        assert db.get(Node, node_id).status == "todo"
+        assert list(db.scalars(select(AuditLog.id))) == before
 
 
 def test_invalid_status_and_override_payload_are_rejected(client):
@@ -124,4 +122,6 @@ def test_member_detail_filters_nodes_and_hidden_gate_metadata(client):
     for username in ["yu", "chen", "lin", "owner"]:
         client.post("/auth/logout")
         login(client, username=username)
-        assert client.get(f"/projects/{hidden['id']}").json() == hidden_detail
+        detail = client.get(f"/projects/{hidden['id']}").json()
+        assert {n['id'] for n in detail['nodes']} == {n['id'] for n in hidden_detail['nodes']}
+        assert detail['gates'] == hidden_detail['gates']

@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
+from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -107,6 +107,7 @@ class Node(Base):
     __tablename__ = "nodes"
     __table_args__ = (
         UniqueConstraint("organization_id", "id"),
+        CheckConstraint("start_date IS NULL OR due_date IS NULL OR start_date <= due_date", name="ck_nodes_date_order"),
         ForeignKeyConstraint(["organization_id", "project_id"], ["projects.organization_id", "projects.id"]),
         ForeignKeyConstraint(["organization_id", "parent_id"], ["nodes.organization_id", "nodes.id"]),
         ForeignKeyConstraint(["organization_id", "department_id"], ["departments.organization_id", "departments.id"]),
@@ -122,6 +123,8 @@ class Node(Base):
     status: Mapped[str] = mapped_column(String(40), default="todo", nullable=False)
     owner_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     department_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     sort_order: Mapped[int] = mapped_column(default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)

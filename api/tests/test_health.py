@@ -71,11 +71,13 @@ def test_only_health_routes_exist():
         "/health",
         "/health/acceptance",
         "/health/ready",
+        "/nodes/{node_id}",
         "/nodes/{node_id}/reports",
         "/nodes/{node_id}/status",
         "/projects",
         "/projects/from-workflow",
         "/projects/{project_id}",
+        "/projects/{project_id}/assignment-options",
         "/projects/{project_id}/nodes",
         "/workflows",
     }

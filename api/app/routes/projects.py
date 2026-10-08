@@ -6,28 +6,15 @@ from app.audit import log_audit
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.models import Department, Gate, Node, Project, User
-from app.permissions import can_view_node, can_view_project, can_work_node, can_work_project
-from app.schemas import NodeCreate, NodeStatusUpdate, ProjectCreate
+from app.permissions import can_view_node, can_view_project, can_work_node, can_manage_project, can_edit_node
+from app.schemas import NodeCreate, NodeUpdate, NodeStatusUpdate, ProjectCreate
+from app.services.node_policy import node_out, json_value, validate_assignments, validate_dates
 
 router = APIRouter(tags=["projects"])
 
 
 def project_out(current: CurrentUser, project: Project) -> dict:
-    return {"id": project.id, "title": project.title, "organization_key": current.organization.key, "owner_user_id": project.owner_user_id}
-
-
-def node_out(node: Node) -> dict:
-    return {
-        "id": node.id,
-        "project_id": node.project_id,
-        "parent_id": node.parent_id,
-        "kind": node.kind,
-        "title": node.title,
-        "status": node.status,
-        "owner_user_id": node.owner_user_id,
-        "department_id": node.department_id,
-        "sort_order": node.sort_order,
-    }
+    return {"id": project.id, "title": project.title, "organization_key": current.organization.key, "owner_user_id": project.owner_user_id, "capabilities": {"create_node": can_manage_project(current, project)}}
 
 
 def gate_out(gate: Gate) -> dict:
@@ -115,9 +102,11 @@ def get_project(project_id: str, current: CurrentUser = Depends(require_session)
     ).scalars()
     visible_nodes = [node for node in nodes if can_view_node(current, node)]
     visible_ids = {node.id for node in visible_nodes}
+    users = {u.id: u for u in db.scalars(select(User).where(User.organization_id == current.organization.id))}
+    departments = {d.id: d for d in db.scalars(select(Department).where(Department.organization_id == current.organization.id))}
     return {
         **project_out(current, project),
-        "nodes": [node_out(node) for node in visible_nodes],
+        "nodes": [node_out(db, current, project, node, users=users, departments=departments) for node in visible_nodes],
         "gates": [gate_out(gate) for gate in gates if gate.node_id in visible_ids],
     }
 
@@ -125,23 +114,21 @@ def get_project(project_id: str, current: CurrentUser = Depends(require_session)
 @router.post("/projects/{project_id}/nodes", status_code=status.HTTP_201_CREATED)
 def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     project = get_project_or_404(db, current, project_id)
-    if not can_work_project(current, project):
+    if not can_manage_project(current, project):
         raise HTTPException(status_code=403, detail="沒有新增節點權限")
     parent = None
-    if payload.parent_id:
+    if payload.parent_id is not None:
         parent = db.execute(
             select(Node).where(Node.organization_id == current.organization.id, Node.id == payload.parent_id, Node.project_id == project.id)
         ).scalar_one_or_none()
-        if parent is None:
+        if parent is None or not can_view_node(current, parent):
             raise HTTPException(status_code=400, detail="父節點不屬於此專案")
-    if payload.owner_user_id is not None:
-        owner = db.execute(select(User).where(User.organization_id == current.organization.id, User.id == payload.owner_user_id)).scalar_one_or_none()
-        if owner is None:
-            raise HTTPException(status_code=400, detail="負責人不屬於此公司")
-    if payload.department_id is not None:
-        department = db.execute(select(Department).where(Department.organization_id == current.organization.id, Department.id == payload.department_id)).scalar_one_or_none()
-        if department is None:
-            raise HTTPException(status_code=400, detail="部門不屬於此公司")
+    if parent is not None and (
+        parent.kind not in {"project", "phase", "task"}
+        or (parent.kind in {"phase", "task"} and payload.kind != "task")
+    ):
+        raise HTTPException(status_code=400, detail="無法在此父節點新增此種類")
+    validate_assignments(db, current, payload.model_dump())
     next_order = db.execute(
         select(Node.sort_order).where(Node.organization_id == current.organization.id, Node.project_id == project.id).order_by(Node.sort_order.desc())
     ).scalar()
@@ -153,14 +140,16 @@ def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Dep
         title=payload.title,
         owner_user_id=payload.owner_user_id,
         department_id=payload.department_id,
+        start_date=payload.start_date,
+        due_date=payload.due_date,
         sort_order=(next_order or 0) + 10,
     )
     db.add(node)
     db.flush()
-    log_audit(db, current, "node.create", node_id=node.id, payload={"project_id": project.id, "title": payload.title})
+    log_audit(db, current, "node.create", node_id=node.id, payload={"project_id": project.id, **payload.model_dump(mode="json")})
     db.commit()
     db.refresh(node)
-    return node_out(node)
+    return node_out(db, current, project, node)
 
 
 @router.patch("/nodes/{node_id}/status")
@@ -176,4 +165,42 @@ def update_node_status(node_id: str, payload: NodeStatusUpdate, current: Current
     log_audit(db, current, "node.status", node_id=node.id, payload={"status": payload.status})
     db.commit()
     db.refresh(node)
-    return node_out(node)
+    project = db.get(Project, node.project_id)
+    return node_out(db, current, project, node)
+
+
+@router.get("/projects/{project_id}/assignment-options")
+def assignment_options(project_id: str, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    project = get_project_or_404(db, current, project_id)
+    if not can_manage_project(current, project):
+        raise HTTPException(status_code=403, detail="沒有指派權限")
+    users = db.scalars(select(User).where(User.organization_id == current.organization.id, User.role != "readonly").order_by(User.display_name, User.id))
+    departments = db.scalars(select(Department).where(Department.organization_id == current.organization.id).order_by(Department.name, Department.id))
+    return {
+        "users": [{"id": u.id, "display_name": u.display_name} for u in users],
+        "departments": [{"id": d.id, "name": d.name} for d in departments],
+    }
+
+
+@router.patch("/nodes/{node_id}")
+def update_node(node_id: str, payload: NodeUpdate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    node = db.scalar(select(Node).where(Node.organization_id == current.organization.id, Node.id == node_id))
+    if node is None or not can_view_node(current, node):
+        raise HTTPException(status_code=404, detail="找不到節點")
+    project = get_project_or_404(db, current, node.project_id)
+    if not can_edit_node(db, current, project, node):
+        raise HTTPException(status_code=403, detail="沒有編輯此節點的權限")
+    fields = payload.model_dump(exclude_unset=True)
+    if {"owner_user_id", "department_id"} & fields.keys() and not can_manage_project(current, project):
+        raise HTTPException(status_code=403, detail="沒有指派權限")
+    validate_dates(fields.get("start_date", node.start_date), fields.get("due_date", node.due_date))
+    validate_assignments(db, current, fields)
+    changes = {key: {"before": json_value(getattr(node, key)), "after": json_value(value)}
+               for key, value in fields.items() if getattr(node, key) != value}
+    if changes:
+        for key in changes:
+            setattr(node, key, fields[key])
+        log_audit(db, current, "node.update", node_id=node.id, payload=changes)
+        db.commit()
+        db.refresh(node)
+    return node_out(db, current, project, node)
