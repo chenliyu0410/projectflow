@@ -15,11 +15,11 @@
 |---|---|
 | 目前工作項目 | **P2a 🔨 執行中；G3隔離基準通過** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | Task2已通過獨立審查；依Task3進行可見總覽／本人任務API TDD。P1c人類簽核仍未完成。 |
+| 下一個動作 | Task3已通過獨立審查；依Task4進行導覽與多層工作區UI TDD。P1c人類簽核仍未完成。 |
 | 分支 | `feature/p2a-task-workspace`（由主checkout建立，無worktree）。 |
-| 最新程式 commit | P2a Task2 `92d798d`；Demo仍W6 `0934e48`未改。 |
+| 最新程式 commit | P2a Task3 `417fa42`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | 本次G3隔離verify：API80/1warning/29.39s、Vitest56/12.77s、build0、E2E6/12.7s，最終exit0；1280/375 pageerror與非預期HTTP/console皆0。acceptance保留運行，primary未啟動或寫入。 |
+| 測試基準 | Task3最新API182passed1skip/123.91s exit0（真PG測試Task1另實跑1passed）；UI基準Vitest56/build0/E2E6。Task6新旅程2failed RED仍待UI。acceptance保留運行，primary未啟動或寫入。 |
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17新增migration `20261008_0002_p2a_node_dates`；SQLite及專用PG驗證通過，acceptance尚在0001，primary未觸碰。 |
 | 認領中 | Codex：P2a逐Task實作與審查，2026-10-08。 |
 | 阻塞／待人類 | D56已核准；D57已完成，WSL2.7.13／Docker29.8.2引擎可用。P1c人類簽核、D43／D10未完成；LAN部署未授權。 |
@@ -119,7 +119,7 @@
 |---|---|---|---|
 | 1 | 日期migration、metadata／指派API | ✅ | b917edc..e992a8c（plan補正4b1f1f1）；RED30failed19passed/exit1→目標GREEN49/exit0；完整API120passed1skip/65.61s/exit0。真PG専用DB另跑1passed/0.18s/exit0（ID/status/parent/owner/dept/audit保留、日期null/持久化/CHECK）。review_task1獨立spec及quality Approved，無issue |
 | 2 | 多層Gate防繞過 | ✅ | cbe3586..92d798d；RED21failed18passed/39.70s/exit1；targettodo補RED12failed12passed18deselected/21.90s/exit1→GREEN51/50.07s；最終API155passed1skip3warnings/104.59s/exit0。review_task1獨立spec及quality Approved，無issue |
-| 3 | 可見總覽／本人任務API | ⬜ | 未執行 |
+| 3 | 可見總覽／本人任務API | ✅ | 5fb2c35..417fa42；RED26failed/24.59s/exit1→GREEN26/25.26s/exit0；完整API182passed1skip/123.91s/exit0。review_task1独立spec/quality Approved無issue；30專案增量仍最多5 SELECT |
 | 4 | 導覽與多層工作區 | ⬜ | 未執行 |
 | 5 | 新增／編輯表單、總覽與我的任務 | ⬜ | 未執行 |
 | 6 | 隔離整合驗收與文件交付 | 🔨 旅程RED已取得 | BASE acf176e；Playwright workspace兩案1280／375因缺工作區導覽失敗：2 failed，exit1。後续Task6驗收待實作完成 |
