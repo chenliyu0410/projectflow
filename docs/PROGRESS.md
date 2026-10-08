@@ -15,12 +15,12 @@
 |---|---|
 | 目前工作項目 | **W6 多公司產業範例 — 🔨 執行中** |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 切到 `feature/w6-multi-company-industry-demo`，依該分支看板從 Task 1 RED 執行。P0 規劃保留在 `paused/p0-formal-product-plan`。 |
+| 下一個動作 | W6 Task 2：公司選擇器與原子切換，先 RED。P0 保留暫停。 |
 | 分支 | `feature/w6-multi-company-industry-demo`（主 checkout；P0 保留於 `paused/p0-formal-product-plan`） |
 | 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 文件同步 `aafc5ca`，只更新 README／PROGRESS，沒有改產品程式。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 149/149`（2026-10-05，W3 ff 合併到 `main` 後 Codex 用 8001 重跑；同日 Claude 在 `cfd5f72` 上重跑仍是 `全部通過 149/149`）。歷史基準：W2 合併後 `全部通過 137/137`；W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
-| 資料版本 | `db.v = 5`（W3 起；`load()` 讀 v2／v3／v4／v5 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
+| 資料版本 | `db.v = 6`；v6 公司容器，`load()` 讀 v2–v6；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | Codex GPT-6，2026-10-08，W6 Task 1–6 Native execution |
 | 阻塞／待人類 | W6 無；D43 待人類（不擋 W6）；D10 仍待人類但不擋 Demo 軌；P0 規劃依 D45 暫停。 |
 | 遠端 | 2026-10-05：人類授權「確認後推上去」與「git 上的 readme 也要記得更新進度」後，已把 W3、W5 README 更新與本看板收尾 push 到 `origin/main`。每次 push 都要人類明確授權（D3）。 |
@@ -360,7 +360,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | Task | 內容 | 狀態 | commits | 測試（預期 → 實際） | plan 指定的 commit 主旨 |
 |---|---|---|---|---|---|
 | 0 | pre-flight、歷史 W3 分支改名、基準測試、建立 W6 分支 | ✅ | BASE `8aaa3ec`；本次 start commit | `149/149` → `全部通過 149/149`；Edge headless，無 page error；8001，PID 4312（本 session 啟動）。W3 ancestor 成立，改名 `completed/w3-workflow-architecture` | `Progress: start W6 implementation` |
-| 1 | v6 公司容器、v2–v5 遷移與部分損壞修復 | ⬜ | — | RED → GREEN | `W6 task 1: add v6 company storage` |
+| 1 | v6 公司容器、v2–v5 遷移與部分損壞修復 | ✅ | `d879db1..4f3a0e6` | RED `失敗 11/153`（4 項 W6 與 7 項既有版本／路徑）→ GREEN `全部通過 153/153`；審查發現配方陣列缺失／null 成員未修復，補斷言 RED `失敗 1/153` → GREEN `全部通過 153/153`。獨立審查修正後通過；Edge 重載 v5、兩種損壞 v6 都正確，僅重建毛研、保留他公司並顯示提示，無 page error。 | `W6 task 1: add v6 company storage` |
 | 2 | 左下角公司選擇器、原子切換與暫態 UI 清理 | ⬜ | — | RED → GREEN | `W6 task 2: add company switching` |
 | 3 | 五家公司成員、部門、專案、工作流與稽核種子資料 | ⬜ | — | RED → GREEN | `W6 task 3: seed five industry companies` |
 | 4 | 設定驅動的產業營運資料、連結、狀態與條件 | ⬜ | — | RED → GREEN | `W6 task 4: render industry operations` |
