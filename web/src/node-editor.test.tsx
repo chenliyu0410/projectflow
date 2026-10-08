@@ -31,6 +31,31 @@ function setup(write: () => Promise<unknown> = async () => response(task), role 
 }
 
 describe('P2a node editor', () => {
+  it.each(['create', 'edit'])('preserves a replacement %s editor draft when an older saved-node reload completes', async mode => {
+    let reads = 0; let finishReload!: (value: unknown) => void;
+    const manageable = { ...detail, nodes: [{ ...task, capabilities: { edit_metadata: true, assign: true, create_child: true } }], capabilities: { create_node: true } };
+    const fetcher = vi.fn(async (path: string) => {
+      if (path === '/api/auth/me') return response({ ...identity, user: { ...identity.user, role: 'admin' } });
+      if (path === '/api/projects') return response({ items: [summary] });
+      if (path === '/api/workspace/overview') return response(overview);
+      if (path === '/api/projects/p') return ++reads === 1 ? response(manageable) : new Promise(resolve => { finishReload = resolve; });
+      if (path.endsWith('/assignment-options')) return response(options);
+      if (path === '/api/nodes/n') return response({ ...task, title: '已儲存舊表單' });
+      throw Error('unexpected path');
+    });
+    vi.stubGlobal('fetch', fetcher); render(<App />); await openEditor();
+    await screen.findByRole('option', { name: '成員' });
+    fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '已儲存舊表單' } });
+    fireEvent.click(screen.getByRole('button', { name: '儲存' }));
+    await waitFor(() => expect(reads).toBe(2));
+    fireEvent.click(screen.getByRole('button', { name: mode === 'create' ? '新增子節點' : '編輯節點' }));
+    await screen.findByRole('option', { name: '成員' });
+    fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '新表單草稿' } });
+    await act(async () => { finishReload(response(manageable)); });
+    expect(screen.getByLabelText('節點名稱')).toHaveValue('新表單草稿');
+    expect(screen.getByRole('button', { name: '儲存' })).not.toBeDisabled();
+  });
+
   it('retries failed project reload after PATCH using only GET', async () => {
     let reads = 0;
     const fetcher = vi.fn(async (path: string) => {

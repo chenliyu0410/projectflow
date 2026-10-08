@@ -29,6 +29,7 @@ export default function App() {
   const [creationOpen, setCreationOpen] = useState(false);
   const [creationMode, setCreationMode] = useState<'workflow' | 'blank'>('workflow');
   const [editor, setEditor] = useState<'create' | 'edit' | null>(null);
+  const [editorGeneration, setEditorGeneration] = useState(0);
   const [workflows, setWorkflows] = useState<WorkflowSummary[] | null>(null);
   const [workflowLoading, setWorkflowLoading] = useState(false);
   const [workflowId, setWorkflowId] = useState('');
@@ -229,6 +230,10 @@ export default function App() {
   const selectedNode = project?.nodes.find(node => node.id === selectedNodeId) ?? null;
   const canAddNode = session?.user.role !== 'readonly' && (selectedNode ? selectedNode.capabilities?.create_child : project?.capabilities?.create_node);
   const canEditNode = session?.user.role !== 'readonly' && selectedNode?.kind !== 'project' && selectedNode?.capabilities?.edit_metadata;
+  function openNodeEditor(mode: 'create' | 'edit') {
+    if (busy || mutating || creationOpen) return;
+    begin(); setEditorGeneration(value => value + 1); setEditor(mode);
+  }
   function expireSession() { begin(); clearSession(); setBusy(false); setMessage('登入已失效，請重新登入'); }
   async function reloadNode(nodeId: string) {
     if (!project) return;
@@ -273,10 +278,10 @@ export default function App() {
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
           {state === 'ready' && route.page === 'my-tasks' && <MyTasks openNode={(projectId, nodeId) => navigate({ page: 'project', projectId, nodeId })} expired={expireSession} />}
           {state === 'ready' && route.page === 'project' && project && <><div className="project-toolbar">
-            {canAddNode && <button disabled={busy || mutating || creationOpen} onClick={() => setEditor('create')}>新增子節點</button>}
-            {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => setEditor('edit')}>編輯節點</button>}
+            {canAddNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('create')}>新增子節點</button>}
+            {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
           </div>
-          {editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
+          {editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
             canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} />}
           <NodeWorkspace key={project.id} project={project} selectedNodeId={selectedNodeId} select={selectNode}
             readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)} /></>}
