@@ -17,7 +17,9 @@ def initialize_env(path: Path, web_port: int, api_port: int, acceptance: bool) -
         with path.open('x', encoding='utf-8', newline='\n') as handle:
             handle.write(f'POSTGRES_PASSWORD={secrets.token_hex(32)}\n'
                          f'WEB_PORT={web_port}\nAPI_PORT={api_port}\n'
-                         f'PF_ACCEPTANCE_MODE={str(acceptance).lower()}\n')
+                         f'PF_ACCEPTANCE_MODE={str(acceptance).lower()}\n'
+                         'PF_ATTACHMENT_ROOT=/var/lib/projectflow-files\n'
+                         'PF_ATTACHMENT_QUOTA_BYTES=1000000000\n')
         path.chmod(0o600)
     except FileExistsError:
         return

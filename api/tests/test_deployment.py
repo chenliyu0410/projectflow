@@ -275,3 +275,25 @@ def test_verify_uses_returned_loopback_acceptance_port(tmp_path, verify_module, 
         'env_file': str(tmp_path / '.superpowers/p1c/acceptance.env')})
     assert verify_module.verify(tmp_path, keep_running=True) == 0
     assert all(call[1]['env']['PF_BASE_URL'] == 'http://127.0.0.1:15177' for call in verification_commands)
+
+
+def test_attachment_volume_runtime_and_proxy_contracts():
+    root=Path(__file__).resolve().parents[2]
+    docker=(root/'deploy/api.Dockerfile').read_text()
+    compose=(root/'deploy/docker-compose.yml').read_text()
+    nginx=(root/'deploy/nginx.conf').read_text()
+    assert '10001' in docker and '0700' in docker
+    assert docker.index('/var/lib/projectflow-files') < docker.index('USER appuser')
+    assert 'files:/var/lib/projectflow-files' in compose and 'nocopy' not in compose
+    assert 'PF_ATTACHMENT_ROOT:' in compose and 'PF_ATTACHMENT_QUOTA_BYTES:' in compose
+    assert 'client_max_body_size 10000000;' in nginx
+    assert 'proxy_read_timeout 8s;' in nginx
+    assert 'proxy_read_timeout 120s;' in nginx
+
+
+def test_new_env_includes_attachment_configuration(tmp_path,start_module):
+    path=tmp_path/'attachment.env'
+    start_module.initialize_env(path,15177,18004,True)
+    values=dict(line.split('=',1) for line in path.read_text().splitlines())
+    assert values['PF_ATTACHMENT_ROOT']=='/var/lib/projectflow-files'
+    assert values['PF_ATTACHMENT_QUOTA_BYTES']=='1000000000'

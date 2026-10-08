@@ -144,3 +144,71 @@ def test_postgresql_notes_and_collaborators_prevent_lost_updates(monkeypatch):
                 assert len(list(db.scalars(select(AuditLog).where(AuditLog.node_id==nid,AuditLog.action=='collaborators.update'))))==1
     finally:
         app.dependency_overrides.clear();engine.dispose()
+
+
+def test_postgresql_attachment_quota_binding_and_delete_races(monkeypatch,tmp_path):
+    import threading
+    from sqlalchemy import delete
+    from app.models import Attachment,AttachmentQuota,TaskNote
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url:pytest.skip('Dedicated p2b_test PostgreSQL URL required')
+    parsed=make_url(url)
+    assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
+    assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
+    monkeypatch.setenv('DATABASE_URL',url)
+    root=tmp_path/'files';root.mkdir()
+    monkeypatch.setenv('PF_ATTACHMENT_ROOT',str(root))
+    monkeypatch.setenv('PF_ATTACHMENT_QUOTA_BYTES','5')
+    command.upgrade(Config('api/alembic.ini'),'head')
+    engine=create_engine(sqlalchemy_url(url),pool_size=5)
+    with Session(engine) as db:
+        seed_demo_data(db);db.commit()
+        member=db.scalars(select(User).where(User.username=='ming')).one();org=member.organization_id
+        project=db.scalars(select(Project).where(Project.organization_id==org)).first()
+        node=Node(organization_id=org,project_id=project.id,kind='task',title=f'PG files {uuid4()}',owner_user_id=member.id)
+        db.add(node);db.execute(delete(AttachmentQuota).where(AttachmentQuota.organization_id==org));db.commit();nid=node.id
+    app=create_app()
+    def session():
+        with Session(engine) as db:yield db
+    app.dependency_overrides[get_session]=session
+    def race(calls,sql_match):
+        barrier=Barrier(2);local=threading.local()
+        def at_lock(conn,cursor,statement,parameters,context,executemany):
+            if sql_match(statement) and not getattr(local,'waited',False):
+                local.waited=True;barrier.wait(timeout=15)
+        event.listen(engine,'before_cursor_execute',at_lock)
+        try:
+            with ThreadPoolExecutor(max_workers=2) as pool:return list(pool.map(lambda f:f(),calls))
+        finally:event.remove(engine,'before_cursor_execute',at_lock)
+    try:
+        with TestClient(app) as one,TestClient(app) as two:
+            for client in [one,two]:
+                assert client.post('/auth/login',json={'organization_key':'food','username':'ming','password':'demo-ming'}).status_code==200
+            def upload(client):return client.post(f'/nodes/{nid}/attachments?filename=pg.txt',content=b'hello',headers={'Content-Type':'application/octet-stream'})
+            responses=race([lambda:upload(one),lambda:upload(two)],lambda s:'INSERT INTO attachment_quotas' in s)
+            assert sorted(r.status_code for r in responses)==[201,413]
+            aid=next(r.json()['id'] for r in responses if r.status_code==201)
+            with Session(engine) as db:
+                assert db.get(AttachmentQuota,org).charged_bytes==5
+                assert len(list(db.scalars(select(Attachment).where(Attachment.node_id==nid))))==1
+            payload={'result':'達成','summary':'file','finished_on':'2026-10-08','attachment_ids':[aid]}
+            responses=race([lambda:one.post(f'/nodes/{nid}/reports',json=payload),lambda:two.delete(f'/attachments/{aid}')],
+                           lambda s:'FROM nodes' in s and 'FOR UPDATE' in s)
+            assert sorted(r.status_code for r in responses) in [[201,409],[200,422]]
+            with Session(engine) as db:
+                row=db.get(Attachment,aid)
+                assert (row.report_id is not None) != (row.deleted_at is not None)
+                assert db.get(AttachmentQuota,org).charged_bytes==5
+            monkeypatch.setenv('PF_ATTACHMENT_QUOTA_BYTES','20')
+            uploaded=upload(one);assert uploaded.status_code==201
+            aid=uploaded.json()['id']
+            responses=race([lambda:one.post(f'/nodes/{nid}/notes',json={'body':'one','attachment_ids':[aid]}),
+                            lambda:two.post(f'/nodes/{nid}/notes',json={'body':'two','attachment_ids':[aid]})],
+                           lambda s:'FROM nodes' in s and 'FOR UPDATE' in s)
+            assert sorted(r.status_code for r in responses)==[201,422]
+            with Session(engine) as db:
+                row=db.get(Attachment,aid)
+                assert row.note_id and len(list(db.scalars(select(TaskNote).where(TaskNote.node_id==nid))))==1
+                assert db.get(AttachmentQuota,org).charged_bytes==10
+    finally:
+        app.dependency_overrides.clear();engine.dispose()

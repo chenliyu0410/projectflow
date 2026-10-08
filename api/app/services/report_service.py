@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.audit import log_audit
+from app.services.attachment_store import bind_attachments, attachments_for, attachment_out
 from app.auth import CurrentUser
 from app.models import Node, Project, TaskReport, now_utc
 from app.permissions import can_manage_project, can_view_node, can_view_project
@@ -33,7 +34,7 @@ def require_gate(db, current, node):
         raise HTTPException(status_code=409, detail="前一階段閘門尚未通過")
 
 
-def report_out(report, node, context):
+def report_out(report, node, context, attachments=()):
     author = context.users.get(report.submitted_by)
     reviewer = context.users.get(report.reviewed_by)
     return {
@@ -45,7 +46,7 @@ def report_out(report, node, context):
         'reviewed_by': report.reviewed_by, 'reviewed_by_display_name': reviewer.display_name if reviewer else None,
         'reviewed_at': report.reviewed_at.isoformat() if report.reviewed_at else None,
         'review_comment': report.review_comment, 'self_approved': report.self_approved,
-        'node_status': node.status, 'attachments': [],
+        'node_status': node.status, 'attachments': [attachment_out(a, context.users) for a in attachments if a.report_id == report.id],
     }
 
 
@@ -55,8 +56,6 @@ def submit_report(db, current, node_id, payload):
         raise HTTPException(status_code=403, detail="沒有回報此節點的權限")
     if payload.self_approve and not can_self_approve_report(db, current, project, node, context=context):
         raise HTTPException(status_code=403, detail="沒有送出並確認權限")
-    if payload.attachment_ids:
-        raise HTTPException(status_code=422, detail="附件關聯尚未開放，請勿提交附件")
     if node.status not in {'todo', 'doing', 'review'} or node.id in context.pending_reports:
         conflict()
     require_gate(db, current, node)
@@ -69,6 +68,7 @@ def submit_report(db, current, node_id, payload):
     db.add(report)
     try:
         db.flush()
+        bind_attachments(db, current, node, payload.attachment_ids, report_id=report.id)
         node.status = 'done' if payload.self_approve else 'review'
         log_audit(db, current, 'report.submit', node_id=node.id, payload={'report_id':report.id,'version':report.version,'result':report.result})
         if payload.self_approve:
@@ -78,7 +78,7 @@ def submit_report(db, current, node_id, payload):
         db.rollback()
         conflict()
     db.refresh(report)
-    return report_out(report, node, context)
+    return report_out(report, node, context, attachments_for(db, current.organization.id, [node.id]))
 
 
 def review_report(db, current, report_id, payload):
@@ -105,7 +105,7 @@ def review_report(db, current, report_id, payload):
               payload={'report_id':report.id,'version':report.version,'comment':payload.comment,'self_approved':False})
     db.commit()
     db.refresh(report)
-    return report_out(report, node, context)
+    return report_out(report, node, context, attachments_for(db, current.organization.id, [node.id]))
 
 
 def lifecycle(db, current, node_id, payload):

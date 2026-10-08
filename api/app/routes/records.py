@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.audit import log_audit
+from app.services.attachment_store import bind_attachments, attachments_for, attachment_out
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.models import Node, Project, TaskNote, TaskReport, now_utc
@@ -20,12 +21,13 @@ from app.services.report_service import lock_node, report_out, conflict
 router = APIRouter(tags=['records'])
 
 
-def note_out(note, context):
+def note_out(note, context, attachments=()):
     author = context.users.get(note.author_id)
     return {'id': note.id, 'node_id': note.node_id, 'body': note.body,
             'author_id': note.author_id, 'author_display_name': author.display_name if author else None,
             'revision': note.revision, 'created_at': note.created_at.isoformat(),
-            'edited_at': note.edited_at.isoformat() if note.edited_at else None, 'attachments': []}
+            'edited_at': note.edited_at.isoformat() if note.edited_at else None,
+            'attachments': [attachment_out(a, context.users) for a in attachments if a.note_id == note.id]}
 
 
 def require_write(db, current, node, project, context):
@@ -37,14 +39,13 @@ def require_write(db, current, node, project, context):
 def create_note(node_id: str, payload: NoteCreate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     node, project, context = lock_node(db, current, node_id)
     require_write(db, current, node, project, context)
-    if payload.attachment_ids:
-        raise HTTPException(status_code=422, detail='附件關聯尚未開放，請勿提交附件')
     note = TaskNote(organization_id=current.organization.id, node_id=node.id, author_id=current.user.id, body=payload.body)
     db.add(note)
     db.flush()
+    bind_attachments(db, current, node, payload.attachment_ids, note_id=note.id)
     log_audit(db, current, 'note.create', node_id=node.id, payload={'note_id': note.id, 'body': note.body, 'revision': note.revision})
     db.commit()
-    return note_out(note, context)
+    return note_out(note, context, attachments_for(db, current.organization.id, [node.id]))
 
 
 @router.patch('/notes/{note_id}')
@@ -68,7 +69,7 @@ def update_note(note_id: str, payload: NoteUpdate, current: CurrentUser = Depend
         log_audit(db, current, 'note.update', node_id=node.id,
                   payload={'note_id': note.id, 'before': before, 'after': {'body': note.body, 'revision': note.revision}})
         db.commit()
-    return note_out(note, context)
+    return note_out(note, context, attachments_for(db, current.organization.id, [node.id]))
 
 
 def timestamp(value):
@@ -130,12 +131,18 @@ def list_records(node_id: str, scope: Literal['self', 'subtree'] = 'self',
             pending.extend(children.get(nid, []))
     # Query record content only for the final authorized node set, before pagination.
     entries = []
+    attachments = attachments_for(db, org, nodes)
+    for attachment in attachments:
+        if attachment.report_id is None and attachment.note_id is None:
+            key = (timestamp(attachment.created_at), attachment.id, 'attachment')
+            entries.append((key, {**attachment_out(attachment, context.users), 'type': 'attachment',
+                                  'node_title': nodes[attachment.node_id].title}))
     for note in db.scalars(select(TaskNote).where(TaskNote.organization_id == org, TaskNote.node_id.in_(nodes))):
         key = (timestamp(note.created_at), note.id, 'note')
-        entries.append((key, {**note_out(note, context), 'type': 'note', 'node_title': nodes[note.node_id].title}))
+        entries.append((key, {**note_out(note, context, attachments), 'type': 'note', 'node_title': nodes[note.node_id].title}))
     for report in db.scalars(select(TaskReport).where(TaskReport.organization_id == org, TaskReport.node_id.in_(nodes))):
         key = (timestamp(report.submitted_at), report.id, 'report')
-        entries.append((key, {**report_out(report, nodes[report.node_id], context), 'type': 'report',
+        entries.append((key, {**report_out(report, nodes[report.node_id], context, attachments), 'type': 'report',
                               'created_at': report.submitted_at.isoformat(), 'node_title': nodes[report.node_id].title}))
     entries.sort(key=lambda entry: entry[0])
     if after is not None:

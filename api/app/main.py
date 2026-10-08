@@ -1,11 +1,12 @@
 import os
+from contextlib import asynccontextmanager
 from collections.abc import Callable
 
 import psycopg
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from app.routes import audit_logs, auth, departments, projects, reports, workflows, workspace, records, collaborators
+from app.routes import audit_logs, auth, departments, projects, reports, workflows, workspace, records, collaborators, attachments
 
 
 def database_ready() -> bool:
@@ -20,7 +21,16 @@ def database_ready() -> bool:
 
 
 def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
-    application = FastAPI(title="ProjectFlow API")
+    @asynccontextmanager
+    async def lifespan(application):
+        if os.environ.get("PF_ATTACHMENT_ROOT"):
+            from app.services.attachment_store import storage_root, runtime_lock
+            with runtime_lock(storage_root()):
+                yield
+        else:
+            yield
+
+    application = FastAPI(title="ProjectFlow API", lifespan=lifespan)
     probe = checker if checker is not None else database_ready
     application.include_router(auth.router)
     application.include_router(departments.router)
@@ -31,6 +41,7 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     application.include_router(workspace.router)
     application.include_router(records.router)
     application.include_router(collaborators.router)
+    application.include_router(attachments.router)
 
     @application.get("/health")
     def health():
