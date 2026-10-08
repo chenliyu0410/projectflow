@@ -251,3 +251,64 @@ def test_p2b_postgresql_migration_constraints_and_parallel_pending(monkeypatch):
     with Session(engine) as db:
         assert len(list(db.scalars(select(TaskReport).where(TaskReport.node_id==nid))))==1
     engine.dispose()
+
+
+def check_p2c_migration_preserves_collaboration(url,monkeypatch):
+    from datetime import date
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine,text,select
+    from sqlalchemy.orm import Session
+    from app.seed import seed_demo_data
+    from app.models import Node,Workflow,TaskReport,TaskNote,Attachment,AuditLog,User
+    monkeypatch.setenv('DATABASE_URL',url)
+    config=Config('api/alembic.ini');command.upgrade(config,'20261008_0003')
+    engine=create_engine(sqlalchemy_url(url))
+    with Session(engine) as db:
+        seed_demo_data(db);db.commit()
+        user=db.scalars(select(User).where(User.username=='yu')).one()
+        node=db.scalars(select(Node).where(Node.organization_id==user.organization_id,Node.kind=='task')).first()
+        node.status='done';node.start_date=date(2026,10,9);node.due_date=date(2026,10,12)
+        workflow=db.scalars(select(Workflow).where(Workflow.organization_id==user.organization_id)).first();workflow.content={'legacy':'保留'}
+        report=TaskReport(organization_id=user.organization_id,node_id=node.id,submitted_by=user.id,result='legacy-custom',summary='historical')
+        note=TaskNote(organization_id=user.organization_id,node_id=node.id,author_id=user.id,body='preserved note')
+        db.add_all([report,note]);db.flush()
+        db.add(Attachment(organization_id=user.organization_id,node_id=node.id,uploaded_by=user.id,original_name='saved.txt',storage_key='b'*32,size_bytes=5,state='ready',sha256='c'*64,note_id=note.id))
+        db.add(AuditLog(organization_id=user.organization_id,node_id=node.id,actor_user_id=user.id,action='note.create',payload={'note_id':note.id,'body':note.body}))
+        db.commit()
+    tables=['organizations','users','departments','department_members','projects','nodes','workflows','workflow_nodes','gates','task_reports','task_notes','attachments','audit_logs','attachment_quotas','node_collaborators']
+    def snapshot():
+        with engine.connect() as db:return {table:[tuple(row) for row in db.execute(text('SELECT * FROM '+table+' ORDER BY '+('organization_id' if table=='attachment_quotas' else 'id')))] for table in tables}
+    before=snapshot();command.upgrade(config,'head');assert snapshot()==before
+    with engine.connect() as db:assert db.execute(text('SELECT count(*) FROM node_dependencies')).scalar_one()==0
+    engine.dispose()
+
+
+def test_p2c_migration_preserves_existing_collaboration(tmp_path,monkeypatch):
+    check_p2c_migration_preserves_collaboration(f"sqlite:///{tmp_path/'p2c-migration.db'}",monkeypatch)
+
+
+def test_p2c_postgresql_migration_and_dependency_constraints(monkeypatch):
+    import os,pytest
+    from sqlalchemy import create_engine,select
+    from sqlalchemy.engine import make_url
+    from sqlalchemy.orm import Session
+    from sqlalchemy.exc import IntegrityError
+    from app.models import Node,Project,NodeDependency,User
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url:pytest.skip('Fresh dedicated p2b_test PostgreSQL URL required for P2c migration')
+    parsed=make_url(url)
+    assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
+    assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
+    check_p2c_migration_preserves_collaboration(url,monkeypatch)
+    engine=create_engine(sqlalchemy_url(url))
+    try:
+        with Session(engine) as db:
+            first=db.scalars(select(Node).where(Node.kind=='task')).first()
+            second=Node(organization_id=first.organization_id,project_id=first.project_id,kind='task',title='successor');db.add(second);db.commit()
+            values={'organization_id':first.organization_id,'project_id':first.project_id,'predecessor_id':first.id,'successor_id':second.id,'created_by':first.owner_user_id}
+            db.add(NodeDependency(**values));db.commit()
+            for change in [{},{'successor_id':first.id},{'project_id':'missing'}]:
+                with pytest.raises(IntegrityError):db.add(NodeDependency(**{**values,**change}));db.commit()
+                db.rollback()
+    finally:engine.dispose()

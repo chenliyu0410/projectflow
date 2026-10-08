@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.audit import log_audit
+from app.services.dependency_service import require_dependencies
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.models import Department, Gate, Node, Project, User
@@ -135,6 +136,8 @@ def update_node_status(node_id: str, payload: NodeStatusUpdate, current: Current
         raise HTTPException(status_code=409, detail="前一階段閘門尚未通過")
     if node.kind == "task" and (node.status not in {"todo", "doing"} or payload.status not in {"todo", "doing"} or node.id in context.pending_reports):
         conflict()
+    if node.kind == "task" and node.status == "todo" and payload.status == "doing":
+        require_dependencies(db, current, node)
     node.status = payload.status
     log_audit(db, current, "node.status", node_id=node.id, payload={"status": payload.status})
     db.commit()

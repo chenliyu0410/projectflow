@@ -55,6 +55,7 @@ def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *,
             'manage_collaborators': manage,
             'lifecycle': manage and node.kind == 'task',
         },
+        'blocked': node.kind == 'task' and node.id in context.blocked_node_ids,
         'state_actions': state_actions(db, current, project, node, context=context),
     }
 

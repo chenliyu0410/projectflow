@@ -43,7 +43,7 @@ def test_postgresql_report_transactions_serialize_real_api_requests(monkeypatch)
     def race(clients,path,payloads):
         barrier=Barrier(2)
         def at_node_lock(conn,cursor,statement,parameters,context,executemany):
-            if 'FROM nodes' in statement and 'FOR UPDATE' in statement:
+            if 'FROM projects' in statement and 'FOR UPDATE' in statement:
                 barrier.wait(timeout=15)
         event.listen(engine,'before_cursor_execute',at_node_lock)
         try:
@@ -110,7 +110,7 @@ def test_postgresql_notes_and_collaborators_prevent_lost_updates(monkeypatch):
     def race(clients,method,path,payloads):
         barrier=Barrier(2)
         def at_lock(conn,cursor,statement,parameters,context,executemany):
-            if 'FROM nodes' in statement and 'FOR UPDATE' in statement:barrier.wait(timeout=15)
+            if 'FROM projects' in statement and 'FOR UPDATE' in statement:barrier.wait(timeout=15)
         event.listen(engine,'before_cursor_execute',at_lock)
         try:
             with ThreadPoolExecutor(max_workers=2) as pool:
@@ -193,7 +193,7 @@ def test_postgresql_attachment_quota_binding_and_delete_races(monkeypatch,tmp_pa
                 assert len(list(db.scalars(select(Attachment).where(Attachment.node_id==nid))))==1
             payload={'result':'達成','summary':'file','finished_on':'2026-10-08','attachment_ids':[aid]}
             responses=race([lambda:one.post(f'/nodes/{nid}/reports',json=payload),lambda:two.delete(f'/attachments/{aid}')],
-                           lambda s:'FROM nodes' in s and 'FOR UPDATE' in s)
+                           lambda s:'FROM projects' in s and 'FOR UPDATE' in s)
             assert sorted(r.status_code for r in responses) in [[201,409],[200,422]]
             with Session(engine) as db:
                 row=db.get(Attachment,aid)
@@ -204,7 +204,7 @@ def test_postgresql_attachment_quota_binding_and_delete_races(monkeypatch,tmp_pa
             aid=uploaded.json()['id']
             responses=race([lambda:one.post(f'/nodes/{nid}/notes',json={'body':'one','attachment_ids':[aid]}),
                             lambda:two.post(f'/nodes/{nid}/notes',json={'body':'two','attachment_ids':[aid]})],
-                           lambda s:'FROM nodes' in s and 'FOR UPDATE' in s)
+                           lambda s:'FROM projects' in s and 'FOR UPDATE' in s)
             assert sorted(r.status_code for r in responses)==[201,422]
             with Session(engine) as db:
                 row=db.get(Attachment,aid)
@@ -212,3 +212,43 @@ def test_postgresql_attachment_quota_binding_and_delete_races(monkeypatch,tmp_pa
                 assert db.get(AttachmentQuota,org).charged_bytes==10
     finally:
         app.dependency_overrides.clear();engine.dispose()
+
+
+def test_postgresql_p2c_parallel_edges_cannot_create_cycle(monkeypatch):
+    from app.models import NodeDependency
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url:pytest.skip('Dedicated p2b_test PostgreSQL URL required')
+    parsed=make_url(url)
+    assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
+    assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
+    monkeypatch.setenv('DATABASE_URL',url)
+    command.upgrade(Config('api/alembic.ini'),'head')
+    engine=create_engine(sqlalchemy_url(url),pool_size=5)
+    with Session(engine) as db:
+        seed_demo_data(db);db.commit()
+        user=db.scalars(select(User).where(User.username=='yu')).one()
+        project=Project(organization_id=user.organization_id,title=f'PG dependencies {uuid4()}',owner_user_id=user.id);db.add(project);db.flush()
+        nodes=[Node(organization_id=user.organization_id,project_id=project.id,kind='task',title=str(i),owner_user_id=user.id) for i in range(2)]
+        db.add_all(nodes);db.commit();pid=project.id;ids=[node.id for node in nodes]
+    app=create_app()
+    def session():
+        with Session(engine) as db:yield db
+    app.dependency_overrides[get_session]=session
+    try:
+        with TestClient(app) as one,TestClient(app) as two:
+            for client in [one,two]:assert client.post('/auth/login',json={'organization_key':'food','username':'yu','password':'demo-yu'}).status_code==200
+            barrier=Barrier(2)
+            def before(conn,cursor,statement,parameters,context,executemany):
+                if 'FROM projects' in statement and 'FOR UPDATE' in statement:barrier.wait(timeout=15)
+            event.listen(engine,'before_cursor_execute',before)
+            try:
+                def add(args):
+                    client,a,b=args
+                    return client.post(f'/projects/{pid}/dependencies',json={'predecessor_id':a,'successor_id':b})
+                with ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(add,[(one,*ids),(two,*reversed(ids))]))
+            finally:event.remove(engine,'before_cursor_execute',before)
+            assert sorted(r.status_code for r in results)==[201,409]
+            with Session(engine) as db:
+                assert len(list(db.scalars(select(NodeDependency).where(NodeDependency.project_id==pid))))==1
+                assert len(list(db.scalars(select(AuditLog).where(AuditLog.node_id.in_(ids),AuditLog.action=='dependency.create'))))==1
+    finally:app.dependency_overrides.clear();engine.dispose()

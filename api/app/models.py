@@ -107,6 +107,7 @@ class Node(Base):
     __tablename__ = "nodes"
     __table_args__ = (
         UniqueConstraint("organization_id", "id"),
+        UniqueConstraint("organization_id", "project_id", "id", name="uq_nodes_project_id"),
         CheckConstraint("start_date IS NULL OR due_date IS NULL OR start_date <= due_date", name="ck_nodes_date_order"),
         ForeignKeyConstraint(["organization_id", "project_id"], ["projects.organization_id", "projects.id"]),
         ForeignKeyConstraint(["organization_id", "parent_id"], ["nodes.organization_id", "nodes.id"]),
@@ -304,3 +305,22 @@ class AttachmentQuota(Base):
     __table_args__ = (CheckConstraint("charged_bytes >= 0", name="ck_quota_nonnegative"),)
     organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), primary_key=True)
     charged_bytes: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0", nullable=False)
+
+
+class NodeDependency(Base):
+    __tablename__ = "node_dependencies"
+    __table_args__ = (
+        UniqueConstraint("organization_id", "project_id", "predecessor_id", "successor_id", name="uq_dependencies_edge"),
+        CheckConstraint("predecessor_id != successor_id", name="ck_dependencies_not_self"),
+        ForeignKeyConstraint(["organization_id", "project_id"], ["projects.organization_id", "projects.id"]),
+        ForeignKeyConstraint(["organization_id", "project_id", "predecessor_id"], ["nodes.organization_id", "nodes.project_id", "nodes.id"]),
+        ForeignKeyConstraint(["organization_id", "project_id", "successor_id"], ["nodes.organization_id", "nodes.project_id", "nodes.id"]),
+        ForeignKeyConstraint(["organization_id", "created_by"], ["users.organization_id", "users.id"]),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
+    organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
+    project_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    predecessor_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    successor_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    created_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)

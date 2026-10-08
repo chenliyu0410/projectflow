@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth import CurrentUser
-from app.models import Department, Node, NodeCollaborator, Project, TaskReport, User
+from app.models import Department, Node, NodeCollaborator, Project, TaskReport, User, NodeDependency
 from app.permissions import can_manage_project, can_view_node, can_view_project, can_work_node
 
 
@@ -18,6 +18,7 @@ class PolicyContext:
     collaborator_node_ids: set[str]
     pending_reports: dict[str, TaskReport]
     latest_versions: dict[str, int]
+    blocked_node_ids: set[str]
 
 
 def load_policy_context(db: Session, current: CurrentUser) -> PolicyContext:
@@ -35,7 +36,12 @@ def load_policy_context(db: Session, current: CurrentUser) -> PolicyContext:
         versions[report.node_id] = max(versions.get(report.node_id, 0), report.version)
         if report.status == 'submitted':
             pending[report.node_id] = report
-    return PolicyContext(org, current.user.id, users, departments, collaboration, pending, versions)
+    predecessor = Node.__table__.alias('predecessor')
+    blocked = set(db.scalars(select(NodeDependency.successor_id).outerjoin(predecessor,
+        (predecessor.c.id == NodeDependency.predecessor_id) & (predecessor.c.organization_id == NodeDependency.organization_id)
+        & (predecessor.c.project_id == NodeDependency.project_id)).where(NodeDependency.organization_id == org,
+        predecessor.c.id.is_(None) | predecessor.c.status.not_in(['done', 'skipped']))))
+    return PolicyContext(org, current.user.id, users, departments, collaboration, pending, versions, blocked)
 
 
 def is_collaborator(current: CurrentUser, node: Node, *, context: PolicyContext) -> bool:

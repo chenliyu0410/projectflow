@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.audit import log_audit
+from app.services.dependency_service import lock_project, require_dependencies
 from app.services.attachment_store import bind_attachments, attachments_for, attachment_out
 from app.auth import CurrentUser
 from app.models import Node, Project, TaskReport, now_utc
@@ -18,11 +19,15 @@ def conflict():
 
 
 def lock_node(db: Session, current: CurrentUser, node_id: str, *, require_visible=True):
-    node = db.scalar(select(Node).where(Node.id == node_id, Node.organization_id == current.organization.id)
+    project_id = db.scalar(select(Node.project_id).where(Node.id == node_id, Node.organization_id == current.organization.id))
+    if project_id is None:
+        raise HTTPException(status_code=404, detail="找不到節點")
+    # Global order: optional AttachmentQuota -> Project -> Node -> Attachment.
+    project = lock_project(db, current, project_id)
+    node = db.scalar(select(Node).where(Node.id == node_id, Node.organization_id == current.organization.id, Node.project_id == project.id)
                      .with_for_update().execution_options(populate_existing=True))
     if node is None:
         raise HTTPException(status_code=404, detail="找不到節點")
-    project = db.scalar(select(Project).where(Project.id == node.project_id, Project.organization_id == current.organization.id))
     context = load_policy_context(db, current)
     if project is None or not can_view_project(current, project) or (require_visible and not can_view_node(current, node, context=context)):
         raise HTTPException(status_code=404, detail="找不到節點")
@@ -59,6 +64,7 @@ def submit_report(db, current, node_id, payload):
     if node.status not in {'todo', 'doing', 'review'} or node.id in context.pending_reports:
         conflict()
     require_gate(db, current, node)
+    require_dependencies(db, current, node)
     report = TaskReport(organization_id=current.organization.id, node_id=node.id,
         result=payload.result, summary=payload.summary, finished_on=payload.finished_on,
         submitted_by=current.user.id, workflow_version=2, version=context.latest_versions.get(node.id, 0) + 1,

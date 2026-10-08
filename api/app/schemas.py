@@ -91,7 +91,18 @@ class ProjectFromWorkflowCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     workflow_id: str
-    title: str
+    title: str = Field(min_length=1, max_length=200)
+    start_date: date | None = None
+
+    @field_validator('start_date', mode='before')
+    @classmethod
+    def calendar_start(cls, value):
+        return NodeMetadata.calendar_date(value)
+
+    @field_validator('title', mode='before')
+    @classmethod
+    def trim_title(cls, value):
+        return value.strip() if isinstance(value, str) else value
 
 
 class GateStatusUpdate(BaseModel):
@@ -196,3 +207,41 @@ class CollaboratorsUpdate(BaseModel):
     user_ids: list[str] = Field(default_factory=list)
     department_ids: list[str] = Field(default_factory=list)
     expected_revision: int = Field(ge=0, strict=True)
+
+
+class WorkflowNodeInput(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    id: str = Field(min_length=1, max_length=36)
+    parent_id: str | None = Field(default=None, min_length=1, max_length=36)
+    kind: Literal['phase', 'task']
+    title: str = Field(min_length=1, max_length=200)
+    sort_order: int = Field(default=0, ge=0, strict=True)
+    gate_after: bool = False
+    start_offset: int | None = Field(default=None, ge=0, strict=True)
+    due_offset: int | None = Field(default=None, ge=0, strict=True)
+
+    @model_validator(mode='after')
+    def valid_node(self):
+        if self.gate_after and self.kind != 'phase':
+            raise ValueError('只有階段可以設定閘門')
+        if self.start_offset is not None and self.due_offset is not None and self.start_offset > self.due_offset:
+            raise ValueError('開始日偏移不得晚於截止日')
+        return self
+
+
+class DependencyCreate(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    predecessor_id: str = Field(min_length=1, max_length=36)
+    successor_id: str = Field(min_length=1, max_length=36)
+
+
+class WorkflowWrite(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    name: str = Field(min_length=1, max_length=160)
+    nodes: list[WorkflowNodeInput]
+    dependencies: list[DependencyCreate] = Field(default_factory=list)
+
+
+class WorkflowCopy(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    name: str | None = Field(default=None, min_length=1, max_length=160)
