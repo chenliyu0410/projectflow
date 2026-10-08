@@ -28,7 +28,7 @@
 
 api/app/models.py、schemas.py、main.py；routes/{workflows,projects,reports,workspace,dependencies}.py；services/{node_policy,record_policy,report_service,dependency_service,workflow_service}.py；alembic/versions/20261009_0004_p2c_schedule_workflow.py。
 web/src/{App.tsx,api.ts,types.ts,styles.css}；components/{WorkspaceShell,NodeWorkspace,WorkflowLibrary,TimelineView,DependencyPanel,DependencyGraph}.tsx。
-api/tests/{test_health,test_workflows,test_dependencies,test_migrations,test_collaboration_postgresql,test_report_lifecycle,test_node_metadata,test_mvp_acceptance}.py；web/src/{timeline,workflow-library,dependencies,App,workspace}.test.tsx；web/e2e/{schedule,health,mvp,workspace,collaboration,attachments}.spec.ts；deploy/verify.py（只加必要migration/PG驗證相依鎖）；README、PROGRESS、formal-development、mvp-trial-checklist。本文件修正可記錄。需要清單外變更先說明原因。
+api/tests/{test_record_permissions,test_workspace,test_health,test_workflows,test_dependencies,test_migrations,test_collaboration_postgresql,test_report_lifecycle,test_node_metadata,test_mvp_acceptance}.py；web/src/{timeline,workflow-library,dependencies,App,workspace}.test.tsx；web/e2e/{schedule,health,mvp,workspace,collaboration,attachments}.spec.ts；deploy/verify.py（只加必要migration/PG驗證相依鎖）；README、PROGRESS、formal-development、mvp-trial-checklist。本文件修正可記錄。需要清單外變更先說明原因。
 
 ## 實作步驟與驗收
 
@@ -41,3 +41,5 @@ api/tests/{test_health,test_workflows,test_dependencies,test_migrations,test_col
 實作commit可按後端／UI／驗收拆分（P2c: …，AI-Assisted-By: Codex GPT-6）；只在階段交付更新一次PROGRESS，阻塞或中斷另留最小紀錄。測試/審查未執行不得寫通過。
 
 實作注意：新增API需同步test_health既有精確route集合，列入測試清單；只更新路由契約斷言，不變更健康端點或擴產品範圍。
+
+整合注意：前置安全投影新增一次批次查詢，固定query cap由7變8；test_record_permissions／test_workspace只調此契約並保留資料增長前後查詢數相同斷言，不放寬成長性要求。模板層級沿既有create_node：phase僅頂層，task可頂層或phase/task下，不新增巢狀phase。
