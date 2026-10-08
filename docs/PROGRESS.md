@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2a Demo功能移植第一階段：G1範圍確認中** |
+| 目前工作項目 | **P2a規格與計畫草案已完成；G1待D56審閱** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 人類審閱docs/formal-feature-roadmap.md四階段任務提案，D55確認P2a範圍後spec→plan→TDD；P1c人類簽核仍未完成。 |
-| 分支 | `main`，已ff-only合併P1c；舊paused／completed分支保留。 |
+| 下一個動作 | 審閱P2a spec／配套plan及D56建議規則；同意後定稿G1／G2，再依G3跑基準與TDD。P1c人類簽核仍未完成。 |
+| 分支 | `main`；本機無feature分支，文件草案提交於本機main；Git身分已依人類提供資料設定於此repo。 |
 | 最新程式 commit | P1c Task3 `717e443`；合併點`b816c5b`（文件修正`a5048e3`）；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | P1c合併後main：API `80 passed,1 warning in 35.71s`、Vitest56、build0、E2E6/10.2s、預設cleanup0；acceptance容器停/volume保留；shared count12/hash不變/marker404/ready200。全部exit0，Demo未改。 |
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變。P1c測試隔離DB；既有共享12專案保留。 |
-| 認領中 | 無產品實作認領；Codex已完成P2a G1唯讀盤點，待D55。 |
-| 阻塞／待人類 | D55第一階段設計範圍／新spec確認；D54已授權四階段移植，尚非不存在的spec／plan核准。P1c人類簽核、D43／D10未完成；LAN部署未授權。 |
-| 遠端 | 2026-10-08依D50成功push origin main `affc597..878b8e4`，P1c工程交付／審查／main驗收均發布。本筆發布紀錄接續同步；僅main，無force／PR。 |
+| 認領中 | 無產品實作認領；P2a文件草案已交付，待D56。 |
+| 阻塞／待人類 | D55已授權撰寫規格與計畫；D56具體產品規則／G1定稿待審閱。P1c人類簽核、D43／D10未完成；LAN部署未授權。 |
+| 遠端 | 2026-10-08本機source已fetch並ff-only同步origin/main `9c2fe9e`；本次P2a審閱草案提交於本機；尚未推送。 |
 
 ---
 
@@ -87,7 +87,7 @@
 
 | 順位 | ID | 工作項目 | 狀態 | Spec／Plan | 依賴 |
 |---|---|---|---|---|---|
-| 下一項 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✏️ G1；待D55確認 | 尚未撰寫，依WORKFLOW §8先確認新spec | P1c工程交付完成 |
+| 下一項 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✏️ G1；草案待D56 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan草案](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
 | 後續1 | P2b | 回報／審核、筆記、附件與稽核介面 | ⬜ | 各階段另訂spec／plan | P2a |
 | 後續2 | P2c | 時程、模板管理、前置相依與相依圖 | ⬜ | 各階段另訂spec／plan | P2a，順序依人類本次選擇 |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
@@ -105,15 +105,35 @@
 
 ## 3. 工作項目明細
 
-### P2a 完整任務操作 — G1範圍確認中
+### P2a 完整任務操作 — G1草案待審閱
+
+**本次授權（2026-10-08）**：同步遠端並依路線圖繼續P2a規格與計畫；先產出可審閱spec與配套plan草案，不把文件撰寫授權當成產品規則已核准。
 
 **意圖**：人類明確要求开始進行先前建議的四階段，正式版需有接近Demo且能實際操作的功能，不只後端與測試完成。先聚焦可見的工作區與任務管理；正式軌流程、API公司／角色權限、單一寫入者及隔離驗收維持。
 
 **唯讀盤點**：現有project/node可建立、讀取與更新status；尚無完整metadata編輯、Node起迄日期、工作區總覽與我的任務。Demo的pageOverview／pageMyTasks／openEditor可作功能參照，不搬入假ERP／備份／通知數據。日期需要正式migration，不重設資料庫；未改產品／測試、未新增依賴或啟動feature分支。
 
-**2026-10-08規劃交接**：四階段任務與驗收已存formal-feature-roadmap.md：P2a六項、P2b六項、P2c六項，P2d拆文件／營運／AI／整體對照；規劃文件未實跑產品測試，基準仍引用P1c最後驗收。D55及各階段未定規則仍待確認；下一步審閱路線圖與P2a spec。沒有修改產品、測試或部署服務，不推送尚未完成審閱的規劃工作。
+**2026-10-08文件交付**：[spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)與[配套plan](superpowers/plans/2026-10-08-p2a-task-workspace.md)已完成審閱草案。D55授權已記錄；D56定案前維持✏️，不視為已規劃或准予修改產品。未跑產品測試，測試基準仍引用P1c歷史結果。
 
-**建議第一階段設計（待D55）**：工作區導覽、可見專案／任務統計、本人任務跨專案列表、專案／節點詳情與看板、任務新增／編輯（名稱、負責人、部門、起迄日期）及重開持久化；保留既有Gate。權限細則對照Demo後在spec列明，與正式版既有policy差異須明示，不默默擴權。時程圖、回報／筆記／附件、模板編輯與AI不混入本階段。1280／375與角色／公司邊界為驗收條件。
+| Task | 範圍 | 狀態 | 測試／commit |
+|---|---|---|---|
+| 1 | 日期migration、metadata／指派API | 草案待定稿 | 未執行 |
+| 2 | 多層Gate防繞過 | 草案待定稿 | 未執行 |
+| 3 | 可見總覽／本人任務API | 草案待定稿 | 未執行 |
+| 4 | 導覽與多層工作區 | 草案待定稿 | 未執行 |
+| 5 | 新增／編輯表單、總覽與我的任務 | 草案待定稿 | 未執行 |
+| 6 | 隔離整合驗收與文件交付 | 草案待定稿 | 未執行；旅程RED前移至Task1前 |
+
+**驗收清單（尚未執行）**
+- [ ] 四層節點新增／metadata編輯／日期清除與重新登入持久化。
+- [ ] 權限矩陣、跨公司隔離、readonly-owner與稽核原子性。
+- [ ] 可見範圍統計、我的任務搜尋／狀態篩選／跨專案定位。
+- [ ] 深層Gate阻擋與核准，既有工作流／隱藏父節點相容。
+- [ ] 真PostgreSQL migration保留資料、隔離重啟與完整回歸。
+- [ ] 1280／375走查、獨立審查、文件更新；人類試用另簽核。
+
+**執行注意**：現有Report submit只新增TaskReport及稽核，不修改Node.status；不可把P2b狀態轉換混入P2a。日期採nullable DATE；新規則與權限見D56建議，未核准不得實作。Demo與tests/保持原樣。
+
 
 ### W1 子任務置頂回報卡 — ✅
 
@@ -762,7 +782,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | D52 | P0計畫審閱 | 人類回覆「好開始」 | 確認2026-10-08-p0-formal-foundation計畫，立即Native執行Task1–3；正式軌按完整安全／獨立審查標準驗收 | 已決定2026-10-08；解除P0計畫待審閱 |
 | D53 | P1a執行方式 | 人類指示「繼續進行，我只會審核成品的部分，中間你可以自己進行，除非有重大的東西需要詢問」 | 確認P1a計畫可進入Native執行；中間Task由AI自行依計畫TDD與審查流程推進，不逐步請人類審閱。遇到重大範圍變更、安全敏感、plan無法照做、破壞性操作、遠端／合併異常等WORKFLOW §8仍停下來問 | 已決定2026-10-08；解除P1a plan待審閱 |
 | D54 | P1c後續方向 | 人類選取四階段Demo功能移植建議並指示「開始進行」 | 按完整任務操作→回報協作→時程流程→其餘Demo模組推進；先P2a。不是完整產品功能已完成，真AI／ERP另定範圍 | 已決定；2026-10-08直接授權開展G1，不代替新spec／plan審閱 |
-| D55 | P2a G1 | WORKFLOW §8新spec與新增日期資料模型／編輯流程需要設計確認 | 建議第一階段包含工作區、總覽、我的任務、任務新增／編輯、負責人／部門／起迄日期；以migration保留資料，其他模組後續處理 | 待人類確認第一階段設計範圍，然後撰寫spec |
+| D55 | P2a G1 | WORKFLOW §8新spec與新增日期資料模型／編輯流程需要設計確認 | 建議第一階段包含工作區、總覽、我的任務、任務新增／編輯、負責人／部門／起迄日期；以migration保留資料，其他模組後續處理 | 2026-10-08人類明確指示「依 docs/formal-feature-roadmap.md 繼續 P2a 規格與計畫」，已授權撰寫兩份文件；具體產品規則及G1定稿仍待審閱 |
+| D56 | P2a spec／plan審閱 | 新增／改派、一般編輯權限、層級、日期及完成率如何定案 | 推薦spec §2整組：管理者新增／改派，可見且可操作者編輯名稱日期；日期可空；完成率done/(task-skipped)，只計可見task；保留既有讀／status／Gate角色政策 | 待人類審阅具體草案；更嚴替代為metadata僅管理者可改。D55只授權撰寫，不自動批准此產品規則 |
 | D50 | 全專案發布 | 人類指示「做完一段就推上去github，然後每個階段都要更新readme，讓所有人知道目前進度在哪」 | 持續授權每個已完成且驗證／審查通過的階段：同步README與PROGRESS、依既有流程ff-only合併到main、`git push origin main`。不force、不推其他分支、不自動開PR；授權發布不等於授權尚未確認的產品範圍。此後階段推送不必逐次重問，直到人類更改指示 | 已決定2026-10-08；涵蓋本次P0規劃文件恢復與先前尚未發布的W6。D3的每次需另行授權由本項持續授權滿足；遠端分岔仍依§8確認 |
 | D49 | P0 恢復規劃 | 舊paused分支與main分岔，無法ff恢復最新基準 | 保留paused分支，從最新main建立feature/p0-formal-product-plan，僅帶回既有spec／plan後對齊W6；以新規劃分支為主，檢查後ff-only合併回main。不rebase、不覆蓋W6、不push | 已決定2026-10-08：人類回答「是，並且以此分支為主，合併回去main」。只授權規劃分支恢復與本地合併，不視為授權正式產品實作 |
 | D48 | W6 Task 6 審查 | 新公司沒有配方比例權限，既有機密文件判斷因此讓所有角色都無法再開啟已存文件 | 毛研保留原有 ratio 判斷；新公司機密文件限目前公司 owner／admin 且節點可見者開啟，其他角色維持拒絕。新公司 ratio 仍為 false，不借用毛研欄位權限 | AI 代決 2026-10-08（可推翻）：展示模式最小修正，修復文件被永久鎖住；自動化覆蓋四公司建立、儲存、重新開啟與未授權拒絕 |
@@ -773,6 +794,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
+
+### 2026-10-08｜Codex GPT-6｜本機同步與P2a規格／計畫草案
+- **做了什麼**：source乾淨main由e452173 ff-only至origin/main 9c2fe9e；先讀AGENTS／PROGRESS／WORKFLOW／路線圖，依人類指示記錄D55並完成P2a兩份草案。列出權限、層級、日期migration、API、可見統計、UI狀態、六Task及TDD驗收命令。
+- **驗證**：對照現有models／permissions／projects／reports／workflows／React與verify入口；文件連結及git diff檢查。本次沒有跑產品測試、DB migration或部署，不宣稱P2a GREEN。
+- **文件獨立審查**：review_p2a唯讀審查無Critical／Important，可供人類審閱；兩項Minor已補：歷史readonly指派fixture及新metadata 404與原status契約的界線。此為文件審查，不是G1人類核准或產品驗收。
+- **環境／清理**：僅文件變更，未啟動服務／瀏覽器、未碰.env或DB；先前commit因Git身分缺失失敗；人類提供姓名與email後已設定repo-local身分並提交文件於本機main，未push。
+- **下一步**：人類審閱D56／spec；依同意內容定稿spec與plan後才進G3。P1c人類簽核保留未完成。
+
 
 ### 2026-10-08｜Codex GPT-6｜P1c本機MVP工程交付完成
 - **做了什麼**：依人類「繼續下一個階段」與D51／D53，完成三Task一鍵安全啟動、隔離marker／真角色驗收、節點讀取權限與孤兒任務修正、一鍵verify及試用清單。逐Task spec Lagrange與quality Feynman Approved；G4 Lagrange Ready to merge: Yes，舊文件Minor已修正且Feynman Approved；ff-only main。
@@ -798,9 +827,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **驗證／審查**：Task1 Bohr、Task2 Ptolemy、Task3 Godel、Task4 Volta皆已獨立審查；G4 Linnaeus第1輪With fixes，scoped re-review No findings／Ready to merge: Yes。RED/GREEN均已記錄；最後回歸為API `35 passed, 1 warning`、Vitest `6 passed (6)`、production build exit0、Playwright `4 passed`、Compose PostgreSQL rebuild healthy、Alembic upgrade head／seed exit0、HTTP login/me/projects 200。Demo檔與`tests/` diff exit0。
 - **環境／清理**：保留Compose服務健康供人類試用，入口仍是http://127.0.0.1:15173，API loopback port依`deploy/.env`。`deploy/.env`、`api/.venv`、`web/node_modules`均ignored；沒有force、hard reset或刪volume。`.superpowers/sdd/2026-10-08-p1a-backend-core/`為本機gitignored ledger，不提交。
 - **下一步**：細化P1b React業務流程計畫，再照TDD與獨立審查進行。P1a不是P1c完成，P2以後真AI／ERP／AD／完整RAG仍不在本輪MVP。
-
-### 2026-10-08｜Codex GPT-5｜P0 Native foundation完成
-- **做了什麼**：D52記錄人類「好開始」確認P0計畫；主checkout建立feature/p0-formal-foundation，正式規則切換後逐Task TDD完成API／React／Compose，依D2 ff-only合併main。更新README、正式開發指南及進度看板；依D50已push `4539e41..981362f`並核對遠端，本筆發布紀錄同步推送。
-- **驗證／審查**：API RED缺app.main→8passed；React RED缺App→6passed；E2E RED4connection refused→4passed。真DBlive200／ready503不洩漏→恢復200、volume不變；1280／375截圖、重試、5秒timeout及遲到回應均通過，非預期console／page errors空。Task1 Arendt、Task2 Faraday、Task3 Goodall Approved；Hilbert整體Ready to merge: Yes。合併後pytest8／Vitest6／E2E4及build再次exit0；兩minor記§5。
-- **環境／清理**：保留健康Compose供人類使用，入口http://127.0.0.1:15173；DB無host埠、API18000loopback。密碼僅ignored deploy/.env，不進Git。只關本次Demo8001 PID30892，未動8000或其他容器，未刪DB volume。Demo174/174再驗證，兩HTML與tests無diff；舊paused分支不動。
-- **下一步**：P1a登入／公司授權隔離／migration／核心API的詳細plan，再依正常審閱與TDD；D51已授權到P1c，不重新問是否開始。P0不含登入、專案或工作流業務功能，不得標P1c完成。每階段README／PROGRESS與GitHub同步。
