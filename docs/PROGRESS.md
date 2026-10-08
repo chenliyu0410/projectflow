@@ -15,15 +15,15 @@
 |---|---|
 | 目前工作項目 | **P2b 🔨 執行中；G3隔離基準通過** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
-| 下一個動作 | G3完整隔離基準通過；切feature/p2b-collaboration，先前移旅程RED，再Task1 migration／協作policy TDD與雙獨立審查。P2a人類簽核未完成。 |
+| 下一個動作 | Task1 migration／協作policy已雙審Approved；接Task2回報審核與task生命週期TDD。P2a人類簽核未完成。 |
 | 分支 | `feature/p2b-collaboration`（主checkout、無worktree）；main於feature期間凍結。 |
-| 最新程式 commit | P2a Task6 `8dc914a`（產品最後修正`a5d1594`），G4／合併HEAD `d8499cd`；Demo仍W6 `0934e48`未改。 |
+| 最新程式 commit | P2b Task1 `885e266`，驗收補強`a7102e8`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | G6 main隔離verify：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s、cleanup及最終exit0；專用真PG另1passed/0.41s，無seed重啟detail相等；1280/375無水平溢出或非預期錯誤。 |
-| 資料版本 | Demo v6/key不變；正式PostgreSQL17 migration `20261008_0002` head。日期nullable DATE，舊資料保留驗證通過。15173新本機試用環境已初始化，acceptance volume保留且容器停止。 |
+| 測試基準 | P2b Task1 API197passed2skip/176.77s；目標85passed2skip；真PG1passed；修正輪SQLite7passed2skip/1.89s、真PG1passed/0.33s，均exit0。P2b旅程E2E先行RED2failed（缺回報UI），尚未交付。 |
+| 資料版本 | Demo v6/key不變；程式migration head `20261008_0003`，專用PG保留驗證通過；primary15173及acceptance15175仍0002，資料volume保留，未升級primary。 |
 | 認領中 | Codex：P2b G3基準與逐Task實作，2026-10-08。 |
 | 阻塞／待人類 | P2b無待決產品規則；D59–D64已決；P1c／P2a人類試用簽核、D43／D10未完成。P2b依D64開工；LAN未授權。 |
-| 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b僅本機G1文件草案，未push。 |
+| 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b定稿與Task1僅本機feature，未push。 |
 
 ---
 
@@ -105,28 +105,30 @@
 
 ## 3. 工作項目明細
 
-### P2b 回報與協作 — 🔨 G3執行中
+### P2b 回報與協作 — 🔨 逐Task實作中
 
 **授權**：人類於P2a完成後指示「繼續進行」（D58），接續路線圖B1–B6；不是P2a試用簽核通過或新產品規則已核准。
 
-**本次交付**：[完整spec送審稿](superpowers/specs/2026-10-08-p2b-collaboration-design.md)。核對既有reports／status／audit API、permissions、models、Compose與README F6／F11。核心差異是Report POST不改status，但status PATCH可直接done；D59人類已選A：送出review→核准done／退回doing，新版本保留歷史，API不可繞過；D60已選A，管理員／實際專案擁有者可在有送出權時明確送出並確認並保留稽核；D61已選A：指定協作人員與協作部門主管，指定節點不繼承；D62已選A：筆記作者修訂不刪、單檔10 MB及完整附件保留規則；D63已選A，固定回報欄位與管理者單任務生命週期操作，自訂欄位延P2c、跳過申請／覆寫另列後續。
+**本次交付**：[完整spec定稿](superpowers/specs/2026-10-08-p2b-collaboration-design.md)。核對既有reports／status／audit API、permissions、models、Compose與README F6／F11。核心差異是Report POST不改status，但status PATCH可直接done；D59人類已選A：送出review→核准done／退回doing，新版本保留歷史，API不可繞過；D60已選A，管理員／實際專案擁有者可在有送出權時明確送出並確認並保留稽核；D61已選A：指定協作人員與協作部門主管，指定節點不繼承；D62已選A：筆記作者修訂不刪、單檔10 MB及完整附件保留規則；D63已選A，固定回報欄位與管理者單任務生命週期操作，自訂欄位延P2c、跳過申請／覆寫另列後續。
 
 **獨立文件審查**：review_finalized_docs（spec）與review_task1（plan品質）均Approved。第1輪提出commit結果不明不能刪成功附件、nonroot新files volume可寫初始化兩Important，已補spec§7.2／§9及Task4故障／fresh-volume驗收並複審關閉；舊待定措辭同步修正。此為文件審查，不是G3授權或產品GREEN。
 
-**狀態**：D59–D63均已定案為A；完整spec與八Task plan依D64核准，G3完整隔離基準API182passed1skip／Vitest96／build0／E2E9(19.3s)全部exit0，專用PG另1passed(0.44s)。primary已pg_dump備份及env指紋存ignored .superpowers/p2b/，未改業務資料。由主checkout開feature，先前移E2E RED，再Task1。
+**狀態**：D59–D63均已定案為A；完整spec與八Task plan依D64核准，G3完整隔離基準API182passed1skip／Vitest96／build0／E2E9(19.3s)全部exit0，專用PG另1passed(0.44s)。primary已pg_dump備份及env指紋存ignored .superpowers/p2b/，未改業務資料。主checkout feature已完成旅程RED及Task1雙獨立審查，接Task2。
 
 | Task | 範圍 | 狀態 | 測試／commit |
 |---|---|---|---|
-| 1 | 保留資料migration與共用協作policy | 🔨 | G3已通過，開始前移旅程RED與Task1 TDD |
-| 2 | 回報審核與task生命週期 | ⬜ | 未執行 |
+| 1 | 保留資料migration與共用協作policy | ✅ | `a76bdb1..a7102e8`；RED12failed4passed1skip exit1→目標85passed2skip／全API197passed2skip exit0；專用PG1passed/0.36s。修正輪1補歷史review與非空父子／部門保留：SQLite7passed2skip、真PG1passed/0.33s exit0。spec／品質複審均Approved，原驗收缺口關閉，無剩餘finding。 |
+| 2 | 回報審核與task生命週期 | 🔨 | Task1已核准，開始TDD |
 | 3 | 筆記、協作管理與紀錄查詢 | ⬜ | 未執行 |
 | 4 | 持久化附件與故障恢復 | ⬜ | 未執行 |
 | 5 | 任務紀錄、回報與協作UI | ⬜ | 未執行 |
 | 6 | 審核中心與安全稽核API | ⬜ | 未執行 |
 | 7 | 審核中心與稽核UI | ⬜ | 未執行 |
-| 8 | 隔離整合、恢復、文件交付 | ⬜ | 未執行 |
+| 8 | 隔離整合、恢復、文件交付 | ⬜ | 依Task1前移旅程RED：`ef39cdd..a76bdb1`，1280／375缺「成果說明」2failed exit1；其餘尚未執行。 |
 
 **G3證據**：ignored .superpowers/p2b/g3-baseline.txt（verify --keep-running exit0），g3-postgresql.txt（專用DB p2a_migration_a1d830b188e1，1passed/0.44s exit0）。acceptance15175保留供逐Task；primary15173不跑業務測試。primary-before.sql為本次唯讀pg_dump備份、primary-env-sha256.txt為設定指紋，均不進Git、不輸出內容。
+
+**Task1證據**：ignored `.superpowers/p2b/task1-{red,target,full,pg}.txt`、`task1-fix1-{sqlite,pg}.txt`及`task8-journey-red.txt`。專用PG `p2b_test_483189ad3e04413f88b65bbf091b3b9d`、`p2b_test_62fcbfab1bbe43e9b794452cab619d49`保留；只在專用DB驗證，不改primary。DB兩連線pending唯一性已驗，業務送審／審核競態屬Task2。
 
 **待執行工程驗收**
 - [ ] D59–D63角色／公司／可見性與無副作用矩陣。
