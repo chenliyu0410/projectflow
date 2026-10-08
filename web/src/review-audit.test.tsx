@@ -379,3 +379,21 @@ describe('queue and audit read boundaries', () => {
     );
   });
 });
+it.each(['__proto__', 'constructor', 'toString'])(
+  'safely labels unknown prototype action %s',
+  async (action) => {
+    await setup('稽核紀錄', (p) =>
+      p.startsWith('/api/audit-logs')
+        ? response({
+            items: [{ ...audit, action, payload: { secret: 'PRIVATE' } }],
+            next_cursor: null,
+          })
+        : undefined,
+    );
+    expect(
+      await screen.findByRole('heading', { name: '其他業務事件' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('同事', { exact: false })).toBeInTheDocument();
+    expect(screen.queryByText('PRIVATE')).not.toBeInTheDocument();
+  },
+);

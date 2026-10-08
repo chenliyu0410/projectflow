@@ -244,7 +244,11 @@ export default function AuditLogView({
       <div className="audit-list">
         {items.map((item) => (
           <article className="record-panel" key={item.id}>
-            <h3>{actions[item.action] ?? '其他業務事件'}</h3>
+            <h3>
+              {Object.hasOwn(actions, item.action)
+                ? actions[item.action]
+                : '其他業務事件'}
+            </h3>
             <p className="record-meta">
               {item.actor_display_name ?? '未設定'} ·{' '}
               {formatRecordTime(item.created_at)}
