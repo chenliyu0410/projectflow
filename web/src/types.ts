@@ -15,3 +15,9 @@ export interface GateItem { id: string; project_id: string; node_id: string; sta
 export interface ProjectDetail extends ProjectSummary { nodes: NodeItem[]; gates: GateItem[]; capabilities: { create_node: boolean }; }
 export type WorkspaceRoute = { page: 'overview' | 'my-tasks' } | { page: 'project'; projectId: string | null; nodeId: string | null };
 export interface WorkflowSummary { id: string; name: string; }
+export interface AssignmentOptions { users: { id: string; display_name: string }[]; departments: { id: string; name: string }[]; }
+export interface NodeMetadata { title: string; owner_user_id: string | null; department_id: string | null; start_date: string | null; due_date: string | null; }
+export interface NodeCreate extends NodeMetadata { kind: 'phase' | 'task'; parent_id: string | null; }
+export type TaskCounts = Record<NodeStatus, number>;
+export interface WorkspaceOverviewData { project_count: number; task_counts: TaskCounts; completion_percent: number | null; projects: { id: string; title: string; task_counts: TaskCounts; completion_percent: number | null }[]; }
+export interface MyTask extends NodeItem { project_title: string; }

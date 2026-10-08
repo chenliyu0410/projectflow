@@ -5,6 +5,11 @@ import { api } from './api';
 
 const session = { user: { id: 'u1', username: 'yu', display_name: '游專案', role: 'admin' }, organization: { id: 'o1', key: 'food', name: '毛研食品' } };
 const projects = { items: [{ id: 'p1', title: '成貓主食罐正式版', organization_key: 'food', owner_user_id: 'u1' }] };
+function stubFetch(fetcher: (path: string, init?: RequestInit) => unknown) {
+  vi.stubGlobal('fetch', (path: string, init?: RequestInit) => path === '/api/workspace/overview'
+    ? Promise.resolve(response({ project_count: 0, task_counts: { todo: 0, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: null, projects: [] }))
+    : path.startsWith('/api/workspace/my-tasks') ? Promise.resolve(response({ items: [] })) : fetcher(path, init));
+}
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
 const detail = { ...projects.items[0], nodes: [
   { id: 'root', project_id: 'p1', parent_id: null, kind: 'project', title: '成貓主食罐正式版', status: 'todo', owner_user_id: 'u1', department_id: null, sort_order: 0 },
@@ -43,7 +48,7 @@ describe('P1b workflow creation', () => {
   it('creates via workflow using only workflow/title and selects the new project', async () => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response(workflowList)).mockResolvedValueOnce(response(secondProject, 201))
       .mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(secondDetail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     await fillCreation();
@@ -56,7 +61,7 @@ describe('P1b workflow creation', () => {
 
   it('requires both fields, cancels cleanly and caches templates', async () => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response(workflowList));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
@@ -75,7 +80,7 @@ describe('P1b workflow creation', () => {
   it.each([403, 404, 500])('maps creation errors safely and permits retry (%s)', async status => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response(workflowList)).mockResolvedValueOnce(response({ detail: 'private-secret' }, status))
       .mockResolvedValueOnce(response(secondProject, 201)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(secondDetail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     await fillCreation();
@@ -88,7 +93,7 @@ describe('P1b workflow creation', () => {
   });
 
   it('retries template loading after failure', async () => {
-    vi.stubGlobal('fetch', kanbanFetch().mockRejectedValueOnce(new Error('private-secret')).mockResolvedValueOnce(response(workflowList)));
+    stubFetch(kanbanFetch().mockRejectedValueOnce(new Error('private-secret')).mockResolvedValueOnce(response(workflowList)));
     render(<App />);
     await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
@@ -101,7 +106,7 @@ describe('P1b workflow creation', () => {
     let resolveCreate!: (value: ReturnType<typeof response>) => void;
     const fetcher = kanbanFetch().mockResolvedValueOnce(response(workflowList)).mockImplementationOnce(() => new Promise(resolve => { resolveCreate = resolve; }))
       .mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(secondDetail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     await fillCreation();
@@ -114,7 +119,7 @@ describe('P1b workflow creation', () => {
   });
 
   it('hides creation from readonly', async () => {
-    vi.stubGlobal('fetch', kanbanFetch(gateDetail, { ...session, user: { ...session.user, role: 'readonly' } }));
+    stubFetch(kanbanFetch(gateDetail, { ...session, user: { ...session.user, role: 'readonly' } }));
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -127,7 +132,7 @@ describe('P1b workflow creation', () => {
     const fetcher = kanbanFetch();
     if (stage === 'create') fetcher.mockResolvedValueOnce(response(workflowList));
     fetcher.mockImplementationOnce(() => new Promise(resolve => { resolveOld = resolve; })).mockResolvedValueOnce(response(undefined, 204));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     if (stage === 'create') { await fillCreation(); fireEvent.click(screen.getByRole('button', { name: '建立專案' })); }
@@ -147,7 +152,7 @@ function kanbanFetch(value = gateDetail, identity = session) {
 }
 
 it('renders an owned task with hidden parent as a selectable root and kanban item', async () => {
-  vi.stubGlobal('fetch', kanbanFetch({ ...detail, nodes: [taskNode], gates: [] },
+  stubFetch(kanbanFetch({ ...detail, nodes: [taskNode], gates: [] },
     { ...session, user: { ...session.user, role: 'member' } }));
   render(<App />);
   await openWorkspace();
@@ -164,7 +169,7 @@ it('renders an owned task with hidden parent as a selectable root and kanban ite
 describe('P1b kanban and gates', () => {
   it('renders four task-only columns and moves a task after status selection', async () => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response({ ...taskNode, status: 'doing' }));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -178,7 +183,7 @@ describe('P1b kanban and gates', () => {
   });
 
   it.each([409, 403, 500])('keeps old status and maps mutation errors safely (%s)', async status => {
-    vi.stubGlobal('fetch', kanbanFetch().mockResolvedValueOnce(response({ detail: 'private-secret' }, status)));
+    stubFetch(kanbanFetch().mockResolvedValueOnce(response({ detail: 'private-secret' }, status)));
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -193,7 +198,7 @@ describe('P1b kanban and gates', () => {
   it('disables duplicate mutations while pending', async () => {
     let resolveMove!: (value: ReturnType<typeof response>) => void;
     const fetcher = kanbanFetch().mockImplementationOnce(() => new Promise(resolve => { resolveMove = resolve; }));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -211,7 +216,7 @@ describe('P1b kanban and gates', () => {
   it('shows pending gate warning and reloads after approval', async () => {
     const approved = { ...pendingGate, status: 'approved' };
     const fetcher = kanbanFetch().mockResolvedValueOnce(response(approved)).mockResolvedValueOnce(response({ ...detail, gates: [approved] }));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     expect(await screen.findByText('尚有階段閘門待核准，後續階段可能被阻擋')).toBeInTheDocument();
@@ -223,7 +228,7 @@ describe('P1b kanban and gates', () => {
 
   it('maps approval denial safely and permits retry without changing pending gate', async () => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response({ detail: 'private-secret' }, 403)).mockResolvedValueOnce(response({ ...pendingGate, status: 'approved' })).mockResolvedValueOnce(response(detail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: '核准閘門' }));
@@ -238,7 +243,7 @@ describe('P1b kanban and gates', () => {
     ['readonly', 'u1', false, false], ['member', 'u1', true, true],
     ['member', 'other', true, false], ['reviewer', 'other', true, true], ['admin', 'other', true, true],
   ] as const)('shows controls for role %s owner %s without replacing API authorization', async (role, owner, taskControl, gateControl) => {
-    vi.stubGlobal('fetch', kanbanFetch({ ...gateDetail, owner_user_id: owner }, { ...session, user: { ...session.user, role } }));
+    stubFetch(kanbanFetch({ ...gateDetail, owner_user_id: owner }, { ...session, user: { ...session.user, role } }));
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -252,7 +257,7 @@ describe('P1b kanban and gates', () => {
     let resolveMove!: (value: ReturnType<typeof response>) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(gateDetail))
       .mockImplementationOnce(() => new Promise(resolve => { resolveMove = resolve; })).mockResolvedValueOnce(response(secondDetail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -270,7 +275,7 @@ describe('P1b kanban and gates', () => {
     let resolveGate!: (value: ReturnType<typeof response>) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(gateDetail))
       .mockImplementationOnce(() => new Promise(resolve => { resolveGate = resolve; })).mockResolvedValueOnce(response(secondDetail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: '核准閘門' }));
@@ -282,7 +287,7 @@ describe('P1b kanban and gates', () => {
   });
 
   it('clears session on mutation expiry', async () => {
-    vi.stubGlobal('fetch', kanbanFetch().mockResolvedValueOnce(response({}, 401)));
+    stubFetch(kanbanFetch().mockResolvedValueOnce(response({}, 401)));
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -295,7 +300,7 @@ describe('P1b kanban and gates', () => {
   it('ignores a late mutation after logout', async () => {
     let resolveMove!: (value: ReturnType<typeof response>) => void;
     const fetcher = kanbanFetch().mockImplementationOnce(() => new Promise(resolve => { resolveMove = resolve; })).mockResolvedValueOnce(response(undefined, 204));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -311,7 +316,7 @@ describe('P1b kanban and gates', () => {
 
 describe('P1b project navigation', () => {
   it('loads detail, orders the tree and selects a leaf with full breadcrumbs', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail)));
+    stubFetch(vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail)));
     render(<App />);
     await openWorkspace();
     expect(await screen.findByRole('heading', { name: detail.title })).toBeInTheDocument();
@@ -328,7 +333,7 @@ describe('P1b project navigation', () => {
 
   it('switches project and resets node selection, including empty trees', async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(detail)).mockResolvedValueOnce(response(secondDetail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -348,7 +353,7 @@ describe('P1b project navigation', () => {
     if (failure === '500') fetcher.mockResolvedValueOnce(response({ detail: 'private-secret' }, 500));
     else fetcher.mockRejectedValueOnce(new Error('private-secret'));
     fetcher.mockResolvedValueOnce(response(detail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     expect(await screen.findByRole('alert')).toHaveTextContent('無法載入專案資料');
@@ -360,7 +365,7 @@ describe('P1b project navigation', () => {
   });
 
   it('clears session on detail expiry', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response({}, 401)));
+    stubFetch(vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response({}, 401)));
     render(<App />);
     await openWorkspace();
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
@@ -372,7 +377,7 @@ describe('P1b project navigation', () => {
     let resolveDetail!: (value: ReturnType<typeof response>) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] }))
       .mockImplementationOnce(() => new Promise(resolve => { resolveDetail = resolve; })).mockResolvedValueOnce(response(secondDetail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: secondProject.title }));
@@ -388,7 +393,7 @@ describe('P1b project navigation', () => {
     let resolveDetail!: (value: ReturnType<typeof response>) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects))
       .mockImplementationOnce(() => new Promise(resolve => { resolveDetail = resolve; })).mockResolvedValueOnce(response(undefined, 204));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
     await screen.findByRole('button', { name: detail.title });
@@ -409,7 +414,7 @@ describe('P1b typed API client', () => {
   it('loads project detail using cookies without organization context', async () => {
     const detail = { ...projects.items[0], nodes: [], gates: [] };
     const fetcher = vi.fn().mockResolvedValue(response(detail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     const signal = new AbortController().signal;
     expect(await api.project('p1', signal)).toEqual(detail);
     expect(fetcher).toHaveBeenCalledWith('/api/projects/p1', expect.objectContaining({ credentials: 'include', signal }));
@@ -419,7 +424,7 @@ describe('P1b typed API client', () => {
   it('updates node status with only the status payload', async () => {
     const node = { id: 'n1', status: 'doing' };
     const fetcher = vi.fn().mockResolvedValue(response(node));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     const signal = new AbortController().signal;
     expect(await api.updateNodeStatus('n1', 'doing', signal)).toEqual(node);
     expect(fetcher).toHaveBeenCalledWith('/api/nodes/n1/status', expect.objectContaining({ method: 'PATCH', credentials: 'include', signal }));
@@ -429,7 +434,7 @@ describe('P1b typed API client', () => {
   it('loads workflow templates using cookies without organization context', async () => {
     const workflows = { items: [{ id: 'w1', name: '食品新品開發' }] };
     const fetcher = vi.fn().mockResolvedValue(response(workflows));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     const signal = new AbortController().signal;
     expect(await api.workflows(signal)).toEqual(workflows);
     expect(fetcher).toHaveBeenCalledWith('/api/workflows', expect.objectContaining({ credentials: 'include', signal }));
@@ -438,7 +443,7 @@ describe('P1b typed API client', () => {
 
   it('creates a project with only workflow and title payload', async () => {
     const fetcher = vi.fn().mockResolvedValue(response(projects.items[0], 201));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     const payload = { workflow_id: 'w1', title: '成貓主食罐正式版' };
     const signal = new AbortController().signal;
     expect(await api.createFromWorkflow(payload, signal)).toEqual(projects.items[0]);
@@ -449,7 +454,7 @@ describe('P1b typed API client', () => {
   it('approves a gate with only approved status payload', async () => {
     const gate = { id: 'g1', project_id: 'p1', node_id: 'n1', status: 'approved' };
     const fetcher = vi.fn().mockResolvedValue(response(gate));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     const signal = new AbortController().signal;
     expect(await api.approveGate('g1', signal)).toEqual(gate);
     expect(fetcher).toHaveBeenCalledWith('/api/gates/g1', expect.objectContaining({ method: 'PATCH', credentials: 'include', signal }));
@@ -459,7 +464,7 @@ describe('P1b typed API client', () => {
 
 describe('P1b session UI', () => {
   it('shows login without an active session', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response({}, 401)));
+    stubFetch(vi.fn().mockResolvedValue(response({}, 401)));
     render(<App />);
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
     expect(screen.getByLabelText('公司')).toHaveValue('food');
@@ -467,7 +472,7 @@ describe('P1b session UI', () => {
 
   it('logs in and loads projects using cookies only', async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response({}, 401)).mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await login();
     await openWorkspace();
@@ -479,14 +484,14 @@ describe('P1b session UI', () => {
   });
 
   it('restores a session and handles an empty project list', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [] })));
+    stubFetch(vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [] })));
     render(<App />);
     expect(await screen.findByText('目前沒有專案')).toBeInTheDocument();
     expect(screen.getByLabelText('目前公司')).toHaveTextContent('毛研食品');
   });
 
   it.each([401, 422, 500])('maps login errors safely (%s)', async status => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response({}, 401)).mockResolvedValueOnce(response({ detail: 'private-secret' }, status)));
+    stubFetch(vi.fn().mockResolvedValueOnce(response({}, 401)).mockResolvedValueOnce(response({ detail: 'private-secret' }, status)));
     render(<App />);
     await login();
     expect(await screen.findByRole('alert')).toHaveTextContent(status === 401 ? '帳號或密碼錯誤' : '操作失敗，請稍後再試');
@@ -495,7 +500,7 @@ describe('P1b session UI', () => {
   });
 
   it('returns to login on expired project session', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({}, 401)));
+    stubFetch(vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({}, 401)));
     render(<App />);
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
     expect(screen.queryByLabelText('目前公司')).not.toBeInTheDocument();
@@ -506,7 +511,7 @@ describe('P1b session UI', () => {
     if (failure === '500') fetcher.mockResolvedValueOnce(response({ detail: 'private-secret' }, 500));
     else fetcher.mockRejectedValueOnce(new Error('private-secret'));
     fetcher.mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     await login();
     expect(await screen.findByRole('alert')).toHaveTextContent('無法載入專案資料');
@@ -521,7 +526,7 @@ describe('P1b session UI', () => {
   });
 
   it('retries after a safe network error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValueOnce(new Error('private-secret')).mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail)));
+    stubFetch(vi.fn().mockRejectedValueOnce(new Error('private-secret')).mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail)));
     render(<App />);
     expect(await screen.findByRole('alert')).toHaveTextContent('無法連線，請稍後再試');
     expect(document.body).not.toHaveTextContent('private-secret');
@@ -533,7 +538,7 @@ describe('P1b session UI', () => {
   it('logs out and ignores late projects even when fetch ignores abort', async () => {
     let resolveProjects!: (value: ReturnType<typeof response>) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockImplementationOnce(() => new Promise(resolve => { resolveProjects = resolve; })).mockResolvedValueOnce(response(undefined, 204));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: '登出' }));
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
@@ -545,7 +550,7 @@ describe('P1b session UI', () => {
   });
 
   it('permits retry when logout fails', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail)).mockResolvedValueOnce(response({ detail: 'private-secret' }, 500)).mockResolvedValueOnce(response(undefined, 204)));
+    stubFetch(vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail)).mockResolvedValueOnce(response({ detail: 'private-secret' }, 500)).mockResolvedValueOnce(response(undefined, 204)));
     render(<App />);
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
@@ -559,7 +564,7 @@ describe('P1b session UI', () => {
 
   it('aborts the request on unmount', () => {
     const fetcher = vi.fn(() => new Promise(() => {}));
-    vi.stubGlobal('fetch', fetcher);
+    stubFetch(fetcher);
     const { unmount } = render(<App />);
     const signal = (fetcher.mock.calls as unknown as [string, RequestInit][])[0][1].signal;
     unmount();

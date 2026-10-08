@@ -84,6 +84,16 @@ aside button[aria-pressed="true"] { border-color: #21684f; background: #edf6f0; 
 .node-detail dt { color: #616a6c; font-size: 13px; }
 .node-detail dd { margin: 4px 0 0; overflow-wrap: anywhere; }
 .skipped-list { grid-column: 1 / -1; }
+.node-editor { padding: 20px; background: #fff; border: 1px solid #a9b5b8; border-radius: 6px; min-width: 0; }
+.overview-statistics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.overview-statistics > div { background: #fff; padding: 12px; border: 1px solid #d8dedf; border-radius: 6px; }
+.overview-projects, .my-task-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; min-width: 0; }
+.overview-projects li, .my-task-list li { border: 1px solid #d8dedf; border-radius: 6px; padding: 12px; display: grid; gap: 12px; min-width: 0; background: #fff; }
+.overview-projects button, .my-task-list button { text-align: left; overflow-wrap: anywhere; min-width: 0; }
+.task-filters { display: grid; gap: 12px; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; align-items: end; }
+.my-task-list dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.my-task-list dt { font-size: 13px; color: #616a6c; }
+.my-task-list dd { margin: 4px 0 0; overflow-wrap: anywhere; }
 .gate-banner { border-left: 3px solid #b68d20; background: #fff8dc; padding: 12px; display: grid; gap: 12px; }
 .project-toolbar, .form-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 .creation-form { border-block: 1px solid #d8dedf; padding: 16px 0; }
@@ -108,6 +118,7 @@ select:focus-visible { outline: 3px solid #397793; outline-offset: 2px; }
   .workspace-navigation nav:not(.expanded) { display: none; }
   .workspace-navigation nav.expanded { display: grid; }
   .node-detail dl { grid-template-columns: minmax(0, 1fr); }
+  .task-filters, .my-task-list dl, .overview-statistics { grid-template-columns: minmax(0, 1fr); }
   .node-tree ul ul { padding-left: 8px; margin-left: 2px; }
 }
 @media (max-width: 480px) {
