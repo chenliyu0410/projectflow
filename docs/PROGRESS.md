@@ -15,11 +15,11 @@
 |---|---|
 | 目前工作項目 | **P2a 🔨 執行中；G3隔離基準通過** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | Task4已完成修正並通過獨立複審；依Task5進行表單、總覽與我的任務UI TDD。P1c人類簽核仍未完成。 |
+| 下一個動作 | Task5已完成修正並通過兩位獨立複審；依Task6進行隔離整合、真PG升級與重啟驗收、文件更新。P1c人類簽核仍未完成。 |
 | 分支 | `feature/p2a-task-workspace`（由主checkout建立，無worktree）。 |
-| 最新程式 commit | P2a Task4 `ae1c366`；Demo仍W6 `0934e48`未改。 |
+| 最新程式 commit | P2a Task5 `a5d1594`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | Task3最新API182passed1skip/123.91s exit0（真PG測試Task1另實跑1passed）；UI最新Vitest69/build0；既有E2E6基準待Task6調整新導覽。Task6新旅程2failed RED仍待UI。acceptance保留運行，primary未啟動或寫入。 |
+| 測試基準 | Task3最新API182passed1skip/123.91s exit0（真PG測試Task1另實跑1passed）；UI最新Vitest96/3.43s/build0；既有E2E6基準待Task6調整新導覽。Task6前移旅程2failed RED，待整合GREEN。acceptance保留運行，primary未啟動或寫入。 |
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17新增migration `20261008_0002_p2a_node_dates`；SQLite及專用PG驗證通過，acceptance已依Task4重建升級0002，primary未觸碰。 |
 | 認領中 | Codex：P2a逐Task實作與審查，2026-10-08。 |
 | 阻塞／待人類 | D56已核准；D57已完成，WSL2.7.13／Docker29.8.2引擎可用。P1c人類簽核、D43／D10未完成；LAN部署未授權。 |
@@ -121,7 +121,7 @@
 | 2 | 多層Gate防繞過 | ✅ | cbe3586..92d798d；RED21failed18passed/39.70s/exit1；targettodo補RED12failed12passed18deselected/21.90s/exit1→GREEN51/50.07s；最終API155passed1skip3warnings/104.59s/exit0。review_task1獨立spec及quality Approved，無issue |
 | 3 | 可見總覽／本人任務API | ✅ | 5fb2c35..417fa42；RED26failed/24.59s/exit1→GREEN26/25.26s/exit0；完整API182passed1skip/123.91s/exit0。review_task1独立spec/quality Approved無issue；30專案增量仍最多5 SELECT |
 | 4 | 導覽與多層工作區 | ✅ | 8ec231a..ae1c366（實作5eb4d0a）；RED4failed56passed/exit1→GREEN64；独立review Important登出中node導航中斷request，補RED5failed8passed後fix ae1c366，最終Vitest69passed/build0，review_task1複審Approved。1280/375 nooverflow/console0/pageerror0，鍵盤/四層/孤兒/日期/下一層/skipped通過，主代理亦已看最終截圖 |
-| 5 | 新增／編輯表單、總覽與我的任務 | ⬜ | 未執行 |
+| 5 | 新增／編輯表單、總覽與我的任務 | ✅ | c39246f..a5d1594（實作adb70ce）；RED5failed69passed/exit1→GREEN94；雙獨立審查Important舊reload清新表單草稿，fix1 RED1failed18passed/exit1→最終Vitest96passed/3.43s/build0，review_task1與review_finalized_docs複審Approved。1280/375表單、鍵盤、本人定位、readonly/nooverflow/console0通過 |
 | 6 | 隔離整合驗收與文件交付 | 🔨 旅程RED已取得 | BASE acf176e；Playwright workspace兩案1280／375因缺工作區導覽失敗：2 failed，exit1。後续Task6驗收待實作完成 |
 
 **G3恢復（2026-10-08）**：人類重啟後指示繼續；WSL2.7.13／Docker29.8.2 engine可用。fetch + ff-only已最新；完整隔離verify（keep-running）API80／Vitest56／build／E2E6 exit0。D57解除，正式開工。
@@ -137,6 +137,8 @@
 - [ ] 深層Gate阻擋與核准，既有工作流／隱藏父節點相容。
 - [ ] 真PostgreSQL migration保留資料、隔離重啟與完整回歸。
 - [ ] 1280／375走查、獨立審查、文件更新；人類試用另簽核。
+
+**Task5證據與審查補核**：ignored .superpowers/p2a/task5-red.txt、task5-fix1-red.txt、task5-fix1-green.txt、task5-fix1-build.txt、task5-ui-results.json及form/workspace-{1280,375}.png。主代理已實看兩寬表單。普通editor無指派、日期清除、取消不寫、鍵盤提交、跨專案定位通過；每寬3筆未登入auth/me 401為預期，其餘console/pageerror為0。第一輪修正已關閉舊reload競態；主代理重跑96passed與build0保存證據。review_finalized_docs另補足Task1–4第二位品質審查，均Approved、無新增issue；各Task先前review_task1的spec及quality結論保留。
 
 **Task4走查證據**：ignored .superpowers/p2a/task4-ui.mjs、task4-ui-results.json、task4-1280.png／task4-375.png。主代理已實際view_image；desktop4欄/mobile1欄，長名稱可換行。審查登出race Important已在第1修正輪關閉，無遺留。
 
