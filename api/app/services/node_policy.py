@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.auth import CurrentUser
 from app.models import Department, Gate, Node, Project, User
 from app.permissions import can_edit_node, can_manage_project, can_view_node, can_view_project
+from app.services.record_policy import load_policy_context, can_submit_report, can_review_report, can_write_record, state_actions
 
 
 def json_value(value):
@@ -30,15 +31,13 @@ def validate_assignments(db: Session, current: CurrentUser, fields: dict):
             raise HTTPException(status_code=400, detail="無法指派此部門")
 
 
-def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *, users=None, departments=None) -> dict:
-    # Callers with a collection can supply company-scoped maps to avoid per-node queries.
-    if users is None:
-        users = {u.id: u for u in db.scalars(select(User).where(User.organization_id == current.organization.id))}
-    if departments is None:
-        departments = {d.id: d for d in db.scalars(select(Department).where(Department.organization_id == current.organization.id))}
+def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *, users=None, departments=None, context=None) -> dict:
+    context = context or load_policy_context(db, current)
+    users = users if users is not None else context.users
+    departments = departments if departments is not None else context.departments
     owner = users.get(node.owner_user_id)
     department = departments.get(node.department_id)
-    visible = can_view_project(current, project) and can_view_node(current, node)
+    visible = can_view_project(current, project) and can_view_node(current, node, context=context)
     manage = visible and can_manage_project(current, project)
     return {
         **{key: json_value(getattr(node, key)) for key in (
@@ -47,10 +46,16 @@ def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *,
         'owner_display_name': owner.display_name if owner is not None and owner.organization_id == current.organization.id else None,
         'department_name': department.name if department is not None and department.organization_id == current.organization.id else None,
         'capabilities': {
-            'edit_metadata': can_edit_node(db, current, project, node, departments=departments),
+            'edit_metadata': can_edit_node(db, current, project, node, departments=departments, context=context),
             'assign': manage and node.kind in {'phase','task'},
             'create_child': manage and node.kind in {'project','phase','task'},
+            'write_record': can_write_record(db, current, project, node, context=context),
+            'submit_report': can_submit_report(db, current, project, node, context=context),
+            'review_report': can_review_report(db, current, project, node, context=context),
+            'manage_collaborators': manage,
+            'lifecycle': manage and node.kind == 'task',
         },
+        'state_actions': state_actions(db, current, project, node, context=context),
     }
 
 
@@ -100,8 +105,9 @@ def blocked_by_pending_gate(db: Session, current: CurrentUser, node: Node) -> bo
     ).limit(1)) is not None
 
 
-def visible_workspace_nodes(db: Session, current: CurrentUser) -> tuple[dict[str, Project], list[Node]]:
+def visible_workspace_nodes(db: Session, current: CurrentUser, *, context=None) -> tuple[dict[str, Project], list[Node]]:
     """Authorize the complete company-scoped collection before aggregation/filtering."""
+    context = context or load_policy_context(db, current)
     projects = {
         project.id: project
         for project in db.scalars(select(Project).where(
@@ -111,6 +117,6 @@ def visible_workspace_nodes(db: Session, current: CurrentUser) -> tuple[dict[str
     }
     nodes = [
         node for node in db.scalars(select(Node).where(Node.organization_id == current.organization.id))
-        if node.project_id in projects and can_view_node(current, node)
+        if node.project_id in projects and can_view_node(current, node, context=context)
     ]
     return projects, nodes

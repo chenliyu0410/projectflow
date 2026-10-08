@@ -15,10 +15,13 @@ def can_work_project(current: CurrentUser, project: Project) -> bool:
     )
 
 
-def can_view_node(current: CurrentUser, node: Node) -> bool:
+def can_view_node(current: CurrentUser, node: Node, *, context=None) -> bool:
     if node.organization_id != current.organization.id:
         return False
-    return current.user.role in {"admin", "project_owner", "reviewer", "readonly"} or node.owner_user_id == current.user.id
+    return current.user.role in {"admin", "project_owner", "reviewer", "readonly"} or node.owner_user_id == current.user.id or (
+        context is not None and context.organization_id == current.organization.id
+        and context.user_id == current.user.id and node.id in context.collaborator_node_ids
+    )
 
 
 def can_work_node(db: Session, current: CurrentUser, node: Node, *, departments=None) -> bool:
@@ -46,12 +49,12 @@ def can_manage_project(current: CurrentUser, project: Project) -> bool:
     return current.user.role != "readonly" and can_work_project(current, project)
 
 
-def can_edit_node(db: Session, current: CurrentUser, project: Project, node: Node, *, departments=None) -> bool:
+def can_edit_node(db: Session, current: CurrentUser, project: Project, node: Node, *, departments=None, context=None) -> bool:
     return (
         node.kind in {"phase", "task"}
         and current.user.role != "readonly"
         and node.project_id == project.id
         and can_view_project(current, project)
-        and can_view_node(current, node)
+        and can_view_node(current, node, context=context)
         and (can_manage_project(current, project) or can_work_node(db, current, node, departments=departments))
     )

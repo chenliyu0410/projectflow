@@ -10,6 +10,8 @@ from app.permissions import can_view_node, can_view_project, can_work_node, can_
 from app.schemas import NodeCreate, NodeUpdate, NodeStatusUpdate, ProjectCreate
 from app.services.node_policy import node_out, json_value, validate_assignments, validate_dates, blocked_by_pending_gate
 
+from app.services.record_policy import load_policy_context
+
 router = APIRouter(tags=["projects"])
 
 
@@ -63,19 +65,18 @@ def create_project(payload: ProjectCreate, current: CurrentUser = Depends(requir
 @router.get("/projects/{project_id}")
 def get_project(project_id: str, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     project = get_project_or_404(db, current, project_id)
+    context = load_policy_context(db, current)
     nodes = db.execute(
         select(Node).where(Node.organization_id == current.organization.id, Node.project_id == project.id).order_by(Node.sort_order, Node.created_at)
     ).scalars()
     gates = db.execute(
         select(Gate).where(Gate.organization_id == current.organization.id, Gate.project_id == project.id).order_by(Gate.created_at)
     ).scalars()
-    visible_nodes = [node for node in nodes if can_view_node(current, node)]
+    visible_nodes = [node for node in nodes if can_view_node(current, node, context=context)]
     visible_ids = {node.id for node in visible_nodes}
-    users = {u.id: u for u in db.scalars(select(User).where(User.organization_id == current.organization.id))}
-    departments = {d.id: d for d in db.scalars(select(Department).where(Department.organization_id == current.organization.id))}
     return {
         **project_out(current, project),
-        "nodes": [node_out(db, current, project, node, users=users, departments=departments) for node in visible_nodes],
+        "nodes": [node_out(db, current, project, node, context=context) for node in visible_nodes],
         "gates": [gate_out(gate) for gate in gates if gate.node_id in visible_ids],
     }
 
@@ -83,6 +84,7 @@ def get_project(project_id: str, current: CurrentUser = Depends(require_session)
 @router.post("/projects/{project_id}/nodes", status_code=status.HTTP_201_CREATED)
 def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     project = get_project_or_404(db, current, project_id)
+    context = load_policy_context(db, current)
     if not can_manage_project(current, project):
         raise HTTPException(status_code=403, detail="沒有新增節點權限")
     parent = None
@@ -90,7 +92,7 @@ def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Dep
         parent = db.execute(
             select(Node).where(Node.organization_id == current.organization.id, Node.id == payload.parent_id, Node.project_id == project.id)
         ).scalar_one_or_none()
-        if parent is None or not can_view_node(current, parent):
+        if parent is None or not can_view_node(current, parent, context=context):
             raise HTTPException(status_code=400, detail="父節點不屬於此專案")
     if parent is not None and (
         parent.kind not in {"project", "phase", "task"}
@@ -118,11 +120,12 @@ def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Dep
     log_audit(db, current, "node.create", node_id=node.id, payload={"project_id": project.id, **payload.model_dump(mode="json")})
     db.commit()
     db.refresh(node)
-    return node_out(db, current, project, node)
+    return node_out(db, current, project, node, context=context)
 
 
 @router.patch("/nodes/{node_id}/status")
 def update_node_status(node_id: str, payload: NodeStatusUpdate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    context = load_policy_context(db, current)
     node = db.execute(select(Node).where(Node.organization_id == current.organization.id, Node.id == node_id)).scalar_one_or_none()
     if node is None:
         raise HTTPException(status_code=404, detail="找不到節點")
@@ -137,12 +140,13 @@ def update_node_status(node_id: str, payload: NodeStatusUpdate, current: Current
     db.commit()
     db.refresh(node)
     project = db.get(Project, node.project_id)
-    return node_out(db, current, project, node)
+    return node_out(db, current, project, node, context=context)
 
 
 @router.get("/projects/{project_id}/assignment-options")
 def assignment_options(project_id: str, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     project = get_project_or_404(db, current, project_id)
+    context = load_policy_context(db, current)
     if not can_manage_project(current, project):
         raise HTTPException(status_code=403, detail="沒有指派權限")
     users = db.scalars(select(User).where(User.organization_id == current.organization.id, User.role != "readonly").order_by(User.display_name, User.id))
@@ -155,11 +159,12 @@ def assignment_options(project_id: str, current: CurrentUser = Depends(require_s
 
 @router.patch("/nodes/{node_id}")
 def update_node(node_id: str, payload: NodeUpdate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    context = load_policy_context(db, current)
     node = db.scalar(select(Node).where(Node.organization_id == current.organization.id, Node.id == node_id))
-    if node is None or not can_view_node(current, node):
+    if node is None or not can_view_node(current, node, context=context):
         raise HTTPException(status_code=404, detail="找不到節點")
     project = get_project_or_404(db, current, node.project_id)
-    if not can_edit_node(db, current, project, node):
+    if not can_edit_node(db, current, project, node, context=context, departments=context.departments):
         raise HTTPException(status_code=403, detail="沒有編輯此節點的權限")
     fields = payload.model_dump(exclude_unset=True)
     if {"owner_user_id", "department_id"} & fields.keys() and not can_manage_project(current, project):
@@ -174,4 +179,4 @@ def update_node(node_id: str, payload: NodeUpdate, current: CurrentUser = Depend
         log_audit(db, current, "node.update", node_id=node.id, payload=changes)
         db.commit()
         db.refresh(node)
-    return node_out(db, current, project, node)
+    return node_out(db, current, project, node, context=context)

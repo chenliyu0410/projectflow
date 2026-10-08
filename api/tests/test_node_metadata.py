@@ -31,7 +31,7 @@ def test_create_dates_and_complete_audit(client, engine, dates):
     assert n['title'] == '日期任務' and n['status'] == 'todo'
     assert n['start_date'] == dates.get('start_date') and n['due_date'] == dates.get('due_date')
     assert n['owner_display_name'] == '明成員' and n['department_name'] == '品保'
-    assert n['capabilities'] == {'edit_metadata':True,'assign':True,'create_child':True}
+    assert {k: n['capabilities'][k] for k in ('edit_metadata','assign','create_child')} == {'edit_metadata':True,'assign':True,'create_child':True}
     with Session(engine) as db:
         audit = db.scalars(select(AuditLog).where(AuditLog.node_id == n['id'])).one()
         for k in ('title','kind','parent_id','owner_user_id','department_id','start_date','due_date'):
@@ -99,7 +99,7 @@ def test_metadata_permission_matrix(client,engine,actor,project_owner,node_owner
     nodes={n['id']:n for n in detail['nodes']}
     assert (nid in nodes)==visible
     if visible:
-        assert nodes[nid]['capabilities']=={'edit_metadata':edit,'assign':manage,'create_child':manage}
+        assert {k: nodes[nid]['capabilities'][k] for k in ('edit_metadata','assign','create_child')}=={'edit_metadata':edit,'assign':manage,'create_child':manage}
     before=snapshot(engine)
     r=client.patch(f'/nodes/{nid}',json={'title':'changed'})
     assert r.status_code==(200 if edit else 403 if visible else 404)
@@ -140,7 +140,7 @@ def test_hierarchy_legacy_and_hidden_parent(client,engine):
     pid,nid,_,users=setup_ids(client,engine)
     root_project=client.post('/projects',json={'title':'root'}).json()['id']
     root=client.get(f'/projects/{root_project}').json()['nodes'][0]
-    assert root['capabilities']=={'edit_metadata':False,'assign':False,'create_child':True}
+    assert {k: root['capabilities'][k] for k in ('edit_metadata','assign','create_child')}=={'edit_metadata':False,'assign':False,'create_child':True}
     before=snapshot(engine)
     assert client.patch(f"/nodes/{root['id']}",json={'title':'no'}).status_code==403
     assert snapshot(engine)==before

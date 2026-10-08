@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, Index, text, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -123,6 +123,7 @@ class Node(Base):
     status: Mapped[str] = mapped_column(String(40), default="todo", nullable=False)
     owner_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     department_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    collaborators_revision: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     sort_order: Mapped[int] = mapped_column(default=0, nullable=False)
@@ -182,6 +183,16 @@ class TaskReport(Base):
     __tablename__ = "task_reports"
     __table_args__ = (
         UniqueConstraint("organization_id", "id"),
+        UniqueConstraint("organization_id", "node_id", "id", name="uq_reports_node_id"),
+        UniqueConstraint("organization_id", "node_id", "version", name="uq_reports_node_version"),
+        ForeignKeyConstraint(["organization_id", "reviewed_by"], ["users.organization_id", "users.id"], name="fk_reports_reviewer"),
+        CheckConstraint("workflow_version IS NULL OR (workflow_version = 2 AND version IS NOT NULL AND version > 0 AND finished_on IS NOT NULL AND result IN ('達成','部分達成','未達成') AND status IN ('submitted','approved','rejected'))", name="ck_reports_workflow"),
+        CheckConstraint("workflow_version IS NULL OR (status = 'submitted' AND reviewed_by IS NULL AND reviewed_at IS NULL AND self_approved = false) OR (status IN ('approved','rejected') AND reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL)", name="ck_reports_review_fields"),
+        CheckConstraint("workflow_version IS NULL OR status != 'rejected' OR (review_comment IS NOT NULL AND length(trim(review_comment)) > 0)", name="ck_reports_reject_comment"),
+        CheckConstraint("NOT self_approved OR (workflow_version IS NOT NULL AND workflow_version = 2 AND status = 'approved' AND reviewed_by = submitted_by)", name="ck_reports_self_approved"),
+        Index("uq_reports_pending", "organization_id", "node_id", unique=True,
+              sqlite_where=text("workflow_version = 2 AND status = 'submitted'"),
+              postgresql_where=text("workflow_version = 2 AND status = 'submitted'")),
         ForeignKeyConstraint(["organization_id", "node_id"], ["nodes.organization_id", "nodes.id"]),
         ForeignKeyConstraint(["organization_id", "submitted_by"], ["users.organization_id", "users.id"]),
     )
@@ -189,11 +200,19 @@ class TaskReport(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
     organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
     node_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    workflow_version: Mapped[int | None] = mapped_column(nullable=True)
+    version: Mapped[int | None] = mapped_column(nullable=True)
+    finished_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    reviewed_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    review_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    self_approved: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"), nullable=False)
     result: Mapped[str] = mapped_column(String(80), nullable=False)
     summary: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(40), default="submitted", nullable=False)
     submitted_by: Mapped[str] = mapped_column(String(36), nullable=False)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
 
 
 class AuditLog(Base):
@@ -211,3 +230,77 @@ class AuditLog(Base):
     action: Mapped[str] = mapped_column(String(80), nullable=False)
     payload: Mapped[dict] = mapped_column(JsonType, default=dict, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class NodeCollaborator(Base):
+    __tablename__ = "node_collaborators"
+    __table_args__ = (
+        UniqueConstraint("organization_id", "node_id", "user_id", name="uq_collaborator_user"),
+        UniqueConstraint("organization_id", "node_id", "department_id", name="uq_collaborator_department"),
+        CheckConstraint("(user_id IS NOT NULL AND department_id IS NULL) OR (user_id IS NULL AND department_id IS NOT NULL)", name="ck_collaborator_target"),
+        ForeignKeyConstraint(["organization_id", "node_id"], ["nodes.organization_id", "nodes.id"]),
+        ForeignKeyConstraint(["organization_id", "user_id"], ["users.organization_id", "users.id"]),
+        ForeignKeyConstraint(["organization_id", "department_id"], ["departments.organization_id", "departments.id"]),
+        ForeignKeyConstraint(["organization_id", "created_by"], ["users.organization_id", "users.id"]),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
+    organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
+    node_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    department_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class TaskNote(Base):
+    __tablename__ = "task_notes"
+    __table_args__ = (
+        UniqueConstraint("organization_id", "node_id", "id", name="uq_notes_node_id"),
+        CheckConstraint("revision > 0", name="ck_notes_revision"),
+        ForeignKeyConstraint(["organization_id", "node_id"], ["nodes.organization_id", "nodes.id"]),
+        ForeignKeyConstraint(["organization_id", "author_id"], ["users.organization_id", "users.id"]),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
+    organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
+    node_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    author_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    revision: Mapped[int] = mapped_column(default=1, server_default="1", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class Attachment(Base):
+    __tablename__ = "attachments"
+    __table_args__ = (
+        CheckConstraint("size_bytes >= 0", name="ck_attachments_size"),
+        CheckConstraint("state IN ('pending','ready','failed')", name="ck_attachments_state"),
+        CheckConstraint("report_id IS NULL OR note_id IS NULL", name="ck_attachments_target"),
+        CheckConstraint("state != 'ready' OR (sha256 IS NOT NULL AND length(sha256) = 64)", name="ck_attachments_ready_hash"),
+        ForeignKeyConstraint(["organization_id", "node_id"], ["nodes.organization_id", "nodes.id"]),
+        ForeignKeyConstraint(["organization_id", "uploaded_by"], ["users.organization_id", "users.id"]),
+        ForeignKeyConstraint(["organization_id", "deleted_by"], ["users.organization_id", "users.id"]),
+        ForeignKeyConstraint(["organization_id", "node_id", "report_id"], ["task_reports.organization_id", "task_reports.node_id", "task_reports.id"]),
+        ForeignKeyConstraint(["organization_id", "node_id", "note_id"], ["task_notes.organization_id", "task_notes.node_id", "task_notes.id"]),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
+    organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
+    node_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    uploaded_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    original_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    storage_key: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+    size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    state: Mapped[str] = mapped_column(String(16), default="pending", server_default="pending", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    report_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    note_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+
+class AttachmentQuota(Base):
+    __tablename__ = "attachment_quotas"
+    __table_args__ = (CheckConstraint("charged_bytes >= 0", name="ck_quota_nonnegative"),)
+    organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), primary_key=True)
+    charged_bytes: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0", nullable=False)
