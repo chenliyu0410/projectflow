@@ -95,7 +95,7 @@ def decode_cursor(cursor, organization_id, node_id, scope):
         if timestamp(datetime.fromisoformat(key[0])) != key[0]:
             raise ValueError()
         return tuple(key)
-    except (ValueError, TypeError, KeyError, UnicodeError):
+    except (ValueError, TypeError, KeyError, UnicodeError, OverflowError, RecursionError):
         raise HTTPException(status_code=422, detail='無效的分頁游標') from None
 
 

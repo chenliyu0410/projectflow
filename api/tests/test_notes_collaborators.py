@@ -203,3 +203,28 @@ def test_subtree_excludes_foreign_project_and_company_links(client,engine):
         db.commit()
     result=client.get(f'/nodes/{nid}/records',params={'scope':'subtree'})
     assert result.status_code==200 and result.json()=={'items':[],'next_cursor':None}
+
+
+@pytest.mark.parametrize('key_time', ['0001-01-01T00:00:00+01:00', '9999-12-31T23:59:59-01:00'])
+def test_record_cursor_timezone_overflow_returns_safe_422(client,engine,key_time):
+    import base64,json
+    nid,_,_=setup(client,engine)
+    with Session(engine) as db:org=db.get(Node,nid).organization_id
+    cursor=base64.urlsafe_b64encode(json.dumps({'organization_id':org,'node_id':nid,'scope':'self',
+                                              'key':[key_time,'record-id','note']}).encode()).decode()
+    client._transport.raise_server_exceptions=False
+    result=client.get(f'/nodes/{nid}/records',params={'cursor':cursor})
+    assert result.status_code==422
+    assert result.json()=={'detail':'無效的分頁游標'}
+
+
+def test_record_cursor_nested_json_returns_safe_422(client,engine):
+    import base64
+    nid,_,_=setup(client,engine)
+    # Within the encoded-length limit, while deeply nested enough to exercise parsing.
+    cursor=base64.urlsafe_b64encode(('['*760+'0'+']'*760).encode()).decode()
+    assert len(cursor)<=2048
+    client._transport.raise_server_exceptions=False
+    result=client.get(f'/nodes/{nid}/records',params={'cursor':cursor})
+    assert result.status_code==422
+    assert result.json()=={'detail':'無效的分頁游標'}
