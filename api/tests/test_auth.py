@@ -34,6 +34,21 @@ def test_me_requires_valid_session_and_logout_revokes_it(client):
     assert client.get("/auth/me").status_code == 401
 
 
+def test_logout_revokes_only_current_session(client):
+    first = client.post("/auth/login", json={"organization_key": "food", "username": "yu", "password": "demo-yu"})
+    first_cookie = first.cookies.get("pf_session")
+    second = client.post("/auth/login", json={"organization_key": "food", "username": "yu", "password": "demo-yu"})
+    assert second.status_code == 200
+    second_cookie = second.cookies.get("pf_session")
+    assert first_cookie != second_cookie
+
+    client.cookies.set("pf_session", first_cookie)
+    assert client.post("/auth/logout").status_code == 204
+
+    client.cookies.set("pf_session", second_cookie)
+    assert client.get("/auth/me").status_code == 200
+
+
 def test_user_cannot_forge_organization_in_me_payload(client):
     assert client.post("/auth/login", json={"organization_key": "food", "username": "yu", "password": "demo-yu"}).status_code == 200
     response = client.get("/auth/me?organization_key=electronics")

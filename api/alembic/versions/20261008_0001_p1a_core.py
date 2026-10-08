@@ -48,6 +48,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=120), nullable=False),
         sa.Column("head_user_id", sa.String(length=36), nullable=True),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"]),
+        sa.ForeignKeyConstraint(["organization_id", "head_user_id"], ["users.organization_id", "users.id"]),
         sa.UniqueConstraint("organization_id", "id"),
         sa.UniqueConstraint("organization_id", "name"),
     )
@@ -96,6 +97,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(length=36), primary_key=True),
         sa.Column("organization_id", sa.String(length=36), nullable=False),
         sa.Column("name", sa.String(length=160), nullable=False),
+        sa.Column("content", postgresql.JSONB(astext_type=sa.Text()).with_variant(sa.JSON(), "sqlite"), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"]),
         sa.UniqueConstraint("organization_id", "id"),
@@ -112,6 +114,7 @@ def upgrade() -> None:
         sa.Column("gate_after", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"]),
         sa.ForeignKeyConstraint(["organization_id", "workflow_id"], ["workflows.organization_id", "workflows.id"]),
+        sa.ForeignKeyConstraint(["organization_id", "parent_template_id"], ["workflow_nodes.organization_id", "workflow_nodes.id"]),
         sa.UniqueConstraint("organization_id", "id"),
     )
     op.create_table("gates",
@@ -137,6 +140,7 @@ def upgrade() -> None:
         sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"]),
         sa.ForeignKeyConstraint(["organization_id", "node_id"], ["nodes.organization_id", "nodes.id"]),
+        sa.ForeignKeyConstraint(["organization_id", "submitted_by"], ["users.organization_id", "users.id"]),
         sa.UniqueConstraint("organization_id", "id"),
     )
     op.create_table("audit_logs",
@@ -145,9 +149,11 @@ def upgrade() -> None:
         sa.Column("actor_user_id", sa.String(length=36), nullable=False),
         sa.Column("node_id", sa.String(length=36), nullable=True),
         sa.Column("action", sa.String(length=80), nullable=False),
-        sa.Column("payload", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column("payload", postgresql.JSONB(astext_type=sa.Text()).with_variant(sa.JSON(), "sqlite"), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"]),
+        sa.ForeignKeyConstraint(["organization_id", "actor_user_id"], ["users.organization_id", "users.id"]),
+        sa.ForeignKeyConstraint(["organization_id", "node_id"], ["nodes.organization_id", "nodes.id"]),
         sa.UniqueConstraint("organization_id", "id"),
     )
 

@@ -16,6 +16,7 @@ SESSION_DAYS = 7
 class CurrentUser:
     user: User
     organization: Organization
+    token: str
 
 
 def session_expires_at() -> datetime:
@@ -35,4 +36,4 @@ def require_session(request: Request, db: Session = Depends(get_session)) -> Cur
     if row is None:
         raise HTTPException(status_code=401, detail="請先登入")
     _, user, organization = row
-    return CurrentUser(user=user, organization=organization)
+    return CurrentUser(user=user, organization=organization, token=token)

@@ -39,7 +39,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_s
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(response: Response, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
-    db.execute(delete(SessionToken).where(SessionToken.user_id == current.user.id, SessionToken.organization_id == current.organization.id))
+    db.execute(delete(SessionToken).where(SessionToken.token == current.token))
     db.commit()
     response.delete_cookie(COOKIE_NAME)
     return None

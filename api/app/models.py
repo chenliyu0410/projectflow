@@ -65,6 +65,7 @@ class Department(Base):
     __table_args__ = (
         UniqueConstraint("organization_id", "id"),
         UniqueConstraint("organization_id", "name"),
+        ForeignKeyConstraint(["organization_id", "head_user_id"], ["users.organization_id", "users.id"]),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
@@ -89,7 +90,10 @@ class DepartmentMember(Base):
 
 class Project(Base):
     __tablename__ = "projects"
-    __table_args__ = (UniqueConstraint("organization_id", "id"),)
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        ForeignKeyConstraint(["organization_id", "owner_user_id"], ["users.organization_id", "users.id"]),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
     organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
@@ -133,6 +137,7 @@ class Workflow(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
     organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(160), nullable=False)
+    content: Mapped[dict] = mapped_column(JsonType, default=dict, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
 
 
@@ -141,6 +146,7 @@ class WorkflowNode(Base):
     __table_args__ = (
         UniqueConstraint("organization_id", "id"),
         ForeignKeyConstraint(["organization_id", "workflow_id"], ["workflows.organization_id", "workflows.id"]),
+        ForeignKeyConstraint(["organization_id", "parent_template_id"], ["workflow_nodes.organization_id", "workflow_nodes.id"]),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
@@ -174,6 +180,7 @@ class TaskReport(Base):
     __table_args__ = (
         UniqueConstraint("organization_id", "id"),
         ForeignKeyConstraint(["organization_id", "node_id"], ["nodes.organization_id", "nodes.id"]),
+        ForeignKeyConstraint(["organization_id", "submitted_by"], ["users.organization_id", "users.id"]),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
@@ -188,7 +195,11 @@ class TaskReport(Base):
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
-    __table_args__ = (UniqueConstraint("organization_id", "id"),)
+    __table_args__ = (
+        UniqueConstraint("organization_id", "id"),
+        ForeignKeyConstraint(["organization_id", "actor_user_id"], ["users.organization_id", "users.id"]),
+        ForeignKeyConstraint(["organization_id", "node_id"], ["nodes.organization_id", "nodes.id"]),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
     organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)

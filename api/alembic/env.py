@@ -8,7 +8,7 @@ from app.database import Base
 import app.models  # noqa: F401
 
 config = context.config
-if config.config_file_name is not None:
+if config.config_file_name is not None and "loggers" in config.file_config:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
