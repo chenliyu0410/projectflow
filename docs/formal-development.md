@@ -104,11 +104,12 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yml ps
 
 ## 整合驗收與恢復
 
-E2E保留API存活／就緒與未知路由檢查，1280px／375px測試登入、指定seed專案、建立唯一測試專案、gate阻擋／核准／狀態更新及readonly。每次重跑另建專案，不修改seed節點狀態；測試專案會留在本機資料庫，沒有刪除API。
+E2E保留API存活／就緒與未知路由檢查，1280px／375px測試登入、指定seed專案、建立唯一測試專案、gate阻擋／核准／狀態更新及readonly。每次重跑只在隔離資料庫另建專案；角色測試暫時修改seed節點狀態，於finally恢復。測試專案與回報／稽核會留在隔離資料庫，沒有刪除API。
 
-先啟動完整Compose，再逐行執行：
+先啟動隔離Compose，再逐行執行（也可直接使用一鍵verify）：
 
 ```powershell
+api/.venv/Scripts/python.exe deploy/start.py --acceptance --seed-demo
 api/.venv/Scripts/python.exe -m pytest -c api/pyproject.toml api/tests -q
 npm.cmd --prefix web ci
 npm.cmd --prefix web test
@@ -118,20 +119,20 @@ try { npm.cmd exec -- playwright install chromium } finally { Pop-Location }
 npm.cmd --prefix web run e2e
 ```
 
-如果WEB_PORT不是15173，在E2E之前設定`$env:PF_BASE_URL = 'http://127.0.0.1:<實際WEB_PORT>'`。登入、建立、gate阻擋／核准、readonly截圖位於被忽略的`web/test-results/`。每階段檢查水平溢出；pageerror必須0，HTTP及Chrome resource console錯誤僅按URL+status排除初始`/api/auth/me` 401與測試task的預期409，其他錯誤必須0，不宣稱console全空。
+E2E預設15175；若隔離環境WEB_PORT不同，先設定`$env:PF_BASE_URL = 'http://127.0.0.1:<隔離實際WEB_PORT>'`。共享15173一律拒絕，每項測試写入前確認acceptance marker。登入、建立、gate阻擋／核准、readonly截圖位於被忽略的`web/test-results/`。每階段檢查水平溢出；pageerror必須0，HTTP及Chrome resource console錯誤僅精確允許初始`/api/auth/me` 401與測試task的預期409各一次，其他錯誤必須0，不宣稱console全空。
 
-只對本專案測試資料庫中斷：
+只對隔離驗收資料庫中斷（先確認acceptance服務已啟動）：
 
 ```powershell
 try {
-  docker compose --env-file deploy/.env -f deploy/docker-compose.yml stop db
+  docker compose --project-name projectflow-acceptance --env-file .superpowers/p1c/acceptance.env -f deploy/docker-compose.yml stop db
   if ($LASTEXITCODE -ne 0) { throw 'Cannot stop database' }
-  curl.exe -s -o NUL -w '%{http_code}' http://127.0.0.1:15173/api/health
-  curl.exe -s -o NUL -w '%{http_code}' http://127.0.0.1:15173/api/health/ready
+  curl.exe -s -o NUL -w '%{http_code}' http://127.0.0.1:15175/api/health
+  curl.exe -s -o NUL -w '%{http_code}' http://127.0.0.1:15175/api/health/ready
   # 預期存活200、就緒503；登入UI的資料載入會顯示安全錯誤。
   Read-Host '確認HTTP狀態後按Enter恢復資料庫'
 } finally {
-  docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --wait db
+  docker compose --project-name projectflow-acceptance --env-file .superpowers/p1c/acceptance.env -f deploy/docker-compose.yml up -d --wait db
   if ($LASTEXITCODE -ne 0) { throw 'Database recovery failed' }
 }
 ```
