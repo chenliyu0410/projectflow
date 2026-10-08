@@ -1,6 +1,6 @@
 # P2a Task Workspace Implementation Plan
 
-**狀態：配套審閱草案。** 2026-10-08；spec及D56未定稿，尚不可執行G3。進度只記PROGRESS，不在本檔打勾。
+**狀態：G2定稿。** 2026-10-08人類同意spec／plan與D56推薦規則，可依G3執行。進度只記PROGRESS，不在本檔打勾。
 
 **Goal:** 依[spec](../specs/2026-10-08-p2a-task-workspace-design.md)交付工作區、任務metadata編輯、多層Gate、可見總覽與本人任務。
 
@@ -8,12 +8,12 @@
 
 ## Global Constraints
 
-- D55授權撰寫文件；D56及spec審閱通過才把PROGRESS改📋，依WORKFLOW G3跑基準並在主checkout開`feature/p2a-task-workspace`。只有一位寫入者，不用worktree。
+- D56及spec／plan已經人類核准，PROGRESS改📋，依WORKFLOW G3跑基準並在主checkout開`feature/p2a-task-workspace`。只有一位寫入者，不用worktree。
 - 只修改以下File Structure；正式DB唯一變更是spec日期migration，Demo v6及tests/維持。不得重設DB、覆寫.env、刪volume或歷史專案。
 - 新增can_manage_project、can_edit_node；讀取沿can_view_project／can_view_node；status沿can_work_node。readonly管理權必須明確拒絕。新能力不得默默擴大Gate授權。
 - 業務寫入與稽核同交易。日期／指派／權限拒絕後資料及稽核不變。React預設跳脫，繁體中文，session退出清除資料。
 - 不新增依賴；不修改lockfile。公司來源只能是session。
-- 自動驗收只用隔離Compose／marker，15173供人類試用。G4及合併後回歸通过才依D50發布；本草案不構成發布完成。
+- 自動驗收只用隔離Compose／marker，15173供人類試用。G4及合併後回歸通过才依D50發布；本計畫不構成發布完成。
 - 每Task記錄BASE、真實RED失敗名稱／摘要／exit code、GREEN摘要／exit code，commit後交另一agent/session做獨立spec及quality審查，按WORKFLOW最多兩輪修正。不能把工具缺失算RED。
 
 ## File Structure（允許清單）
