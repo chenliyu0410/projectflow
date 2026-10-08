@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **🟢 P0 G4通過，可依D2 ff-only合併** |
+| 目前工作項目 | **P0完成並合併main；下一階段P1a後端核心計畫（至P1c已授權）** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | Hilbert整體審查Ready to merge: Yes；依D2 ff-only到main、合併後複驗，G6更新README／PROGRESS並依D50推送。下一階段P1a細化計畫，至P1c授權不變。 |
-| 分支 | `feature/p0-formal-foundation`；舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
-| 最新程式 commit | 正式版P0 Task3 `18df1ea`；Demo仍為W6 `0934e48`，未修改。 |
+| 下一個動作 | 本筆G6完成後依D50推送origin/main並驗證遠端；下一階段細化P1a登入／公司隔離／migration／核心API可執行計畫，正常審閱後Native TDD。不要再次詢問是否啟動正式版；D51已授權到P1c。 |
+| 分支 | `main`；已ff-only合併`feature/p0-formal-foundation`，G6後刪除。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
+| 最新程式 commit | 正式版P0 Task3 `18df1ea`，合併HEAD `435af43`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 174/174`（2026-10-08，W6 ff 合併到 main 後 Edge headless 8001 實跑，無 page error）。原有149項＋25項W6；桌面1280／375px 共508畫面、10項重載、console/page errors空。歷史：W3 149/149、W2 137/137、W1 64/64。 |
-| 資料版本 | `db.v = 6`；v6 公司容器，`load()` 讀 v2–v6；localStorage key 是 `projectflow-demo-v2` |
-| 認領中 | Codex GPT-5，2026-10-08，Native P0 Task1–3 |
-| 阻塞／待人類 | 無；D52確認P0計畫，D51授權至P1c。D43、D10不自動擴大MVP範圍。 |
-| 遠端 | `origin/main = 4539e41`（P0計畫已推送）；依D50完成階段更新README／PROGRESS並push main，無force、無其他分支。 |
+| 測試基準 | 2026-10-08 P0合併後：pytest `8 passed, 1 warning in 0.48s`、Vitest `6 passed (6)`、Playwright `4 passed (968ms)`、build均exit0；真DB中斷／恢復、同volume、1280／375px、5秒逾時與遲到回應已驗證。Demo仍`全部通過 174/174`，本輪再次實跑、page errors空。 |
+| 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17僅健康探測，尚無業務schema／migration（P1a引入）。 |
+| 認領中 | 無；P0執行與獨立審查已結束 |
+| 阻塞／待人類 | 無P0阻塞。下一階段先細化P1a計畫並審閱，D51整體授權不變；D43、D10不擴大MVP。 |
+| 遠端 | 上一基準`origin/main = 4539e41`；P0已本地合併，G6文件commit後依D50推送並核對。無force、無其他分支。 |
 
 ---
 
@@ -53,7 +53,7 @@
      - README §8 的勾選框只用來追蹤正式版。Demo 已經做出來的功能**不能**拿去勾階段 1–9。
      - 何時啟動由人類決定（D11）。啟動後第一個工作項目是 P0。
 3. **目前里程碑**：依序完成 W1 → W2 → W3（精簡版，D31／D42），讓 Demo 具備可自行新增、編輯、套用工作流的功能架構。2026-10-05 起依 D42，個別工作流內容之後由使用者自行添加；D41 的兩份現有專流只作內建範例與測試素材。
-   - **展示模式**（D30，人類 2026-10-05 指示「這個專案是展示用的，先以完成主要功能能使用為主，不用花太多時間在細節的修飾。以最快的速度完成整個專案」）：Demo 軌就是這次要完成的「整個專案」，正式產品軌（P0–P9）不在範圍內。W4 取消，W5 精簡，§5 的 minor 除非有指定，一律延到正式版。
+   - **Demo歷史展示模式**（D30，2026-10-05）：當時範圍僅Demo，W4取消、W5精簡；2026-10-08 D51／D52已另授權正式P0至P1c，正式軌恢復完整審查與安全標準。Demo歷史minor不自動擴張目前plan。
 4. **Demo 驗證軌的完成條件**（2026-10-05 依 D30 精簡）
    - [x] W1、W2、W3（精簡版）都是 ✅
    - [x] W5 ✅：README §1 快速開始、§2 功能總覽反映 full demo 的現況
@@ -75,8 +75,8 @@
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
-| — | P0 | 正式軌技術骨架與規則 | 🟢 Ready to merge: Yes | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4均獨立審查通過，API8／React6／E2E4及真實DB恢復已驗收 |
-| — | P1a–P1c | 正式版MVP：核心後端、React流程、部署／測試／驗收 | 已授權，依序待P0完成（D51） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 各階段開工前細化 | 正式DB另管migration | P0→P1a→P1b→P1c；P2以後的真AI／ERP／AD／完整RAG不在本輪 |
+| — | P0 | 正式軌技術骨架與規則 | ✅ 已合併main，發布收尾 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
+| — | P1a–P1c | 正式版MVP：核心後端、React流程、部署／測試／驗收 | 已授權；下一步P1a計畫（D51） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 各階段開工前細化 | 正式DB另管migration | P0已完成；P1a→P1b→P1c，P2以後的真AI／ERP／AD／完整RAG不在本輪 |
 
 **排程規則**
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -381,7 +381,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ---
 
-### P0 正式版技術骨架與規則 — 🟢 可合併
+### P0 正式版技術骨架與規則 — ✅ 已合併main
 
 **授權**：D51已授權做到P1c；D52「好開始」確認P0計畫。Native執行與逐Task獨立審查，正式規則於Task1啟用後安裝依賴。
 
@@ -404,7 +404,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - [x] API8、React6、E2E4實際通過，逐Task RED/GREEN見上表。
 - [x] 真實PostgreSQL就緒、中斷503、不洩漏連線資訊、恢復成功且volume不被刪除。
 - [x] 1280／375畫面可用、資產載入、無水平溢出／意外console error；已看截圖。
-- [x] README／正式開發指南／看板更新，三Task與G4獨立審查通過。G5／G6合併發布緊接執行，尚未push。
+- [x] README／正式開發指南／看板更新，三Task與G4獨立審查通過，G5已ff-only合併，合併後完整正式測試通過。G6收尾後push。
 
 **G4**：Hilbert唯讀審查`e6082f9..9b95836`，`Ready to merge: Yes`；無Critical／Important／plan-mandated，P0-T1-m1／m2允許延後。獨立實跑pytest8、Vitest6、型別／production build、pip check、HTTP及資產比對均通過，額外9個API負向案例通過。本次協調者再次Demo `全部通過 174/174` exit0、page errors空；兩Demo blob完全一致。
 
@@ -439,6 +439,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W5 | README 對齊現況（精簡）：頂部進度摘要、§1 快速開始、§2 Demo 功能總覽、§6 系統架構圖、§7 專案結構更新到 full demo／W3 後狀態 | 2026-10-05 完成；只改 README／PROGRESS／架構圖，沒有改產品程式。驗證 `git diff --check`。 |
 | 規劃文件 | W1 的 spec 和 plan、W2 的 spec 和 plan | `3a24c52`、`ed3e24f`、`edf46b6`、`dfc0126` |
 | W6 | 五個公司空間、公司預設身分與原子切換、四產業專案／工作流／營運模組、v6 舊資料遷移與損壞修復、附件隔離與單公司重設、AI／權限／稽核隔離 | `d879db1..f3a61ec`；每Task TDD及獨立審查、整體審查一輪修正後 Ready to merge: Yes；2026-10-08 ff-only 到本地main，合併後174/174，508畫面狀態驗收通過。只為固定Demo，沒有公司CRUD／登入隔離／後端多租戶。 |
+| P0 | 正式規則、FastAPI健康檢查、React狀態介面、Compose／真實PostgreSQL骨架與開發指南 | `e6082f9..435af43`；Native三Task TDD及獨立審查，Hilbert G4 Ready to merge: Yes，ff-only合併main。合併後8pytest／6Vitest／4Playwright與build通過，DB故障恢復同volume、桌面手機／逾時重試通過，Demo未變。P1a–P1c尚未實作。 |
 | 交接系統 | `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、本看板、`docs/WORKFLOW.md`、`.claude/workflows/pf-status.js`、`.claude/workflows/pf-next.js`、`.gitignore` | 2026-10-01 建立；commit 用 `git log --grep "Docs: handoff system"` 查 |
 
 ---
@@ -653,6 +654,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-5｜P0 Native foundation完成
+- **做了什麼**：D52記錄人類「好開始」確認P0計畫；主checkout建立feature/p0-formal-foundation，正式規則切換後逐Task TDD完成API／React／Compose，依D2 ff-only合併main。更新README、正式開發指南及進度看板；本筆G6後依D50推送。
+- **驗證／審查**：API RED缺app.main→8passed；React RED缺App→6passed；E2E RED4connection refused→4passed。真DBlive200／ready503不洩漏→恢復200、volume不變；1280／375截圖、重試、5秒timeout及遲到回應均通過，非預期console／page errors空。Task1 Arendt、Task2 Faraday、Task3 Goodall Approved；Hilbert整體Ready to merge: Yes。合併後pytest8／Vitest6／E2E4及build再次exit0；兩minor記§5。
+- **環境／清理**：保留健康Compose供人類使用，入口http://127.0.0.1:15173；DB無host埠、API18000loopback。密碼僅ignored deploy/.env，不進Git。只關本次Demo8001 PID30892，未動8000或其他容器，未刪DB volume。Demo174/174再驗證，兩HTML與tests無diff；舊paused分支不動。
+- **下一步**：P1a登入／公司授權隔離／migration／核心API的詳細plan，再依正常審閱與TDD；D51已授權到P1c，不重新問是否開始。P0不含登入、專案或工作流業務功能，不得標P1c完成。每階段README／PROGRESS與GitHub同步。
+
 ### 2026-10-08｜Codex GPT-5｜D51 授權到 P1c，P0 計畫待審閱
 - **做了什麼**：人類明確指示「開始做到P1c」，已記D51並解除D11啟動待決；更新README／spec／舊outline的過時授權文字。以既有MVP範圍補齊P0三Task可執行計畫，包含正式軌規則轉換、完整檔案／依賴、API8測試、React6測試、Compose與4項E2E、真實DB outage/recovery、獨立審查與D50發布。
 - **驗證**：只讀環境預檢確認Node/Python/Docker daemon/Compose可用；npm／PyPI查版本。計畫中2份Python程式以AST解析、2份JSON解析、7段PowerShell語法解析均通過；這些不是產品測試GREEN。文件連結與diff check另在commit前檢查。
@@ -678,10 +685,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **沒做的事／偏離 plan**：尚未建立 W6 feature 分支、修改產品程式或測試；沒有 push。P0 仍依 D45 暫停。
 - **下一步**：人類審閱 `docs/superpowers/plans/2026-10-08-multi-company-industry-demo.md` 並選擇執行方式；建議 Native execution。開始後照 Task 0 先確認／改名歷史 W3 feature branch、跑 `149/149` 基準，再建立 `feature/w6-multi-company-industry-demo`。
 - **注意**：執行時 `resetAll()` 保留為測試用完整重設，產品左下角改走 `resetActiveCompany()`；v6 執行期投影不得掃描其他公司，切換／重設必須先成功持久化候選資料。
-
-### 2026-10-08｜Codex GPT-5｜W6 多公司產業範例 spec 待審
-- **做了什麼**：依人類逐項確認的設計新增 W6；五個固定公司空間採完整資料隔離、平衡版種子資料、產業化營運模組與獨立成員。P0 規劃經人類同意後保留為 `paused/p0-formal-product-plan`；在 main 登記 D44、D45 並完成 W6 written spec。
-- **驗證**：spec 已做 placeholder、內部一致性、範圍與歧義檢查；修正了「切換公司後的身分」文字，明確定為切換時回到該公司預設專案負責人、只在重新整理同一家公司時保留身分。`git diff --check` 通過。這輪只改文件，沒有執行產品測試。
-- **沒做的事／偏離 plan**：尚未寫 implementation plan，沒有修改產品程式或測試，沒有 push。
-- **下一步**：人類審閱 written spec；批准後依 brainstorming 流程進 G2，用 `superpowers:writing-plans` 寫實作 plan。
-- **注意**：localStorage 預計 v5 → v6；既有資料歸入毛研食品，IndexedDB 新附件 key 加公司前綴。實作前仍要照 WORKFLOW 跑基準測試與 pre-flight。
