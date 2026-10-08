@@ -13,10 +13,10 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **🔍 P0 三Task已完成並独立審查；進行G4整體審查** |
+| 目前工作項目 | **🔍 P0 三Task已完成並獨立審查；進行G4整體審查** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
 | 下一個動作 | G4審查整個P0分支、複驗後依D2 ff-only到main；更新README／PROGRESS，依D50推送。下一階段P1a需細化計畫，整體至P1c授權不變。 |
-| 分支 | `feature/p0-formal-foundation`（G3開工commit後建立）；舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
+| 分支 | `feature/p0-formal-foundation`；舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
 | 最新程式 commit | 正式版P0 Task3 `18df1ea`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 174/174`（2026-10-08，W6 ff 合併到 main 後 Edge headless 8001 實跑，無 page error）。原有149項＋25項W6；桌面1280／375px 共508畫面、10項重載、console/page errors空。歷史：W3 149/149、W2 137/137、W1 64/64。 |
