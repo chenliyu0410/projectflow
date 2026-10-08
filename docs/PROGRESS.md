@@ -15,12 +15,12 @@
 |---|---|
 | 目前工作項目 | **P2a 🔨 執行中；G3隔離基準通過** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 切到feature/p2a-task-workspace，進度以該分支PROGRESS為準；先Task6關鍵旅程RED，再Task1日期／metadata TDD。P1c人類簽核仍未完成。 |
+| 下一個動作 | Task1已通過獨立審查；依Task2進行多層Gate TDD。P1c人類簽核仍未完成。 |
 | 分支 | `feature/p2a-task-workspace`（由主checkout建立，無worktree）。 |
-| 最新程式 commit | P1c Task3 `717e443`；合併點`b816c5b`（文件修正`a5048e3`）；Demo仍W6 `0934e48`未改。 |
+| 最新程式 commit | P2a Task1 `e992a8c`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | 本次G3隔離verify：API80/1warning/29.39s、Vitest56/12.77s、build0、E2E6/12.7s，最終exit0；1280/375 pageerror與非預期HTTP/console皆0。acceptance保留運行，primary未啟動或寫入。 |
-| 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變。P1c測試隔離DB；既有共享12專案保留。 |
+| 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17新增migration `20261008_0002_p2a_node_dates`；SQLite及專用PG驗證通過，acceptance尚在0001，primary未觸碰。 |
 | 認領中 | Codex：P2a逐Task實作與審查，2026-10-08。 |
 | 阻塞／待人類 | D56已核准；D57已完成，WSL2.7.13／Docker29.8.2引擎可用。P1c人類簽核、D43／D10未完成；LAN部署未授權。 |
 | 遠端 | 2026-10-08本次fetch + ff-only確認origin/main `ff0cdbe`已同步。定稿文件`544f48b`與環境交接僅在本機main；P2a未完成驗收，尚未push。 |
@@ -117,7 +117,7 @@
 
 | Task | 範圍 | 狀態 | 測試／commit |
 |---|---|---|---|
-| 1 | 日期migration、metadata／指派API | ⬜ | 未執行 |
+| 1 | 日期migration、metadata／指派API | ✅ | b917edc..e992a8c（plan補正4b1f1f1）；RED30failed19passed/exit1→目標GREEN49/exit0；完整API120passed1skip/65.61s/exit0。真PG専用DB另跑1passed/0.18s/exit0（ID/status/parent/owner/dept/audit保留、日期null/持久化/CHECK）。review_task1獨立spec及quality Approved，無issue |
 | 2 | 多層Gate防繞過 | ⬜ | 未執行 |
 | 3 | 可見總覽／本人任務API | ⬜ | 未執行 |
 | 4 | 導覽與多層工作區 | ⬜ | 未執行 |
@@ -137,6 +137,8 @@
 - [ ] 深層Gate阻擋與核准，既有工作流／隱藏父節點相容。
 - [ ] 真PostgreSQL migration保留資料、隔離重啟與完整回歸。
 - [ ] 1280／375走查、獨立審查、文件更新；人類試用另簽核。
+
+**Task1補正與證據**：plan漏列精確路由測試api/tests/test_health.py，依已授權新增端點同步必要測試，先獨立commit Plan: fix（4b1f1f1），保留精確斷言，沒有產品範圍擴充。RED/GREEN log位於ignored .superpowers/p2a-task1-*.txt；真PG DB p2a_migration_6ef86f59f7ce495d902fa6be98c3f511保留，未降版現有acceptance。
 
 **執行注意**：現有Report submit只新增TaskReport及稽核，不修改Node.status；不可把P2b狀態轉換混入P2a。日期採nullable DATE；新規則與權限已依D56核准。Demo與tests/保持原樣。
 
