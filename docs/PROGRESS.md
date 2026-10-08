@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P1a後端核心計畫待審閱（至P1c已授權）** |
+| 目前工作項目 | **P1a後端核心執行中（至P1c已授權）** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 請人類審閱P1a登入／公司隔離／migration／核心API可執行計畫；確認後依Native TDD執行Task1。不要再次詢問是否啟動正式版；D51已授權到P1c。 |
-| 分支 | `main`；P0分支已ff-only合併並依G6刪除，無活動feature分支。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
+| 下一個動作 | 切到 `feature/p1a-backend-core`，進度以該分支的 PROGRESS 為準；依P1a plan Native TDD執行Task1。D53已授權中間自行推進，重大問題才停下來問。 |
+| 分支 | `feature/p1a-backend-core`（準備建立）；P0分支已ff-only合併並依G6刪除。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
 | 最新程式 commit | 正式版P0 Task3 `18df1ea`，合併HEAD `435af43`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | 2026-10-08 P0合併後：pytest `8 passed, 1 warning in 0.48s`、Vitest `6 passed (6)`、Playwright `4 passed (968ms)`、build均exit0；真DB中斷／恢復、同volume、1280／375px、5秒逾時與遲到回應已驗證。Demo仍`全部通過 174/174`，本輪再次實跑、page errors空。 |
+| 測試基準 | 2026-10-08 P1a開工前重跑：pytest `8 passed, 1 warning in 0.69s`、Vitest `6 passed (6)`、Playwright `4 passed (999ms)`、build exit0；P0真DB中斷／恢復、同volume、1280／375px、5秒逾時與遲到回應仍引用P0驗收。Demo仍`全部通過 174/174`，P1a未改Demo。 |
 | 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17僅健康探測，尚無業務schema／migration（P1a引入）。 |
-| 認領中 | 無；P1a計畫已落檔，待審閱 |
-| 阻塞／待人類 | P1a plan需人類審閱確認後才能進入G3執行；D51整體授權不變，D43、D10不擴大MVP。 |
+| 認領中 | Codex GPT-5，2026-10-08 P1a Native execution |
+| 阻塞／待人類 | 無；D53指示中間自行進行，只在重大範圍／安全／無法照plan時詢問。D51整體授權不變，D43、D10不擴大MVP。 |
 | 遠端 | 2026-10-08已成功push origin main `4539e41..981362f`，ls-remote確認，包含完整P0與G6；本筆發布紀錄隨後同步。僅main，無force／PR／其他分支。 |
 
 ---
@@ -76,7 +76,7 @@
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
 | — | P0 | 正式軌技術骨架與規則 | ✅ 已發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
-| — | P1a | 正式版MVP：登入、公司隔離、migration與核心後端API | 📋 plan待審閱（D51） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1a計畫](superpowers/plans/2026-10-08-p1a-backend-core.md) | 正式PostgreSQL migration `20261008_0001_p1a_core` | P0已完成；審閱後Native TDD，P2以後的真AI／ERP／AD／完整RAG不在本輪 |
+| — | P1a | 正式版MVP：登入、公司隔離、migration與核心後端API | 🔨 執行中（D53） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1a計畫](superpowers/plans/2026-10-08-p1a-backend-core.md) | 正式PostgreSQL migration `20261008_0001_p1a_core` | P0已完成；Native TDD，P2以後的真AI／ERP／AD／完整RAG不在本輪 |
 | — | P1b–P1c | 正式版MVP：React流程、部署／測試／內部試用驗收 | 已授權；待P1a完成後細化 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 各階段開工前細化 | 沿P1a正式DB | P1a→P1b→P1c |
 
 **排程規則**
@@ -417,15 +417,15 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - 實測image ID：API `sha256:d0267bda4bd990e4f4c9e1750007f2c2d4cb897a8348a670ee1e1baa02ac9436`；web `sha256:8f04cf46a074f50478d111e30f35bbb9ce97626745c8403f631607ac4c75a154`；PostgreSQL `sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`。
 - 基礎映像digest：Python3.13-slim `sha256:bf44cdfcb76cd3b41e879bc058fc37ec5872002ccfde7fcb765e218cde0cd79c`；Node24-bookworm-slim `sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20`；nginx stable-alpine `sha256:0985e772fb9f729e6fa0980da05fca5d9c468e870eed43071545afa9d2e27d94`。tag為開發方便用途，不宣稱production hardening／離線部署保證。
 
-### P1a 正式版後端核心 — 📋 plan待審閱
+### P1a 正式版後端核心 — 🔨 執行中
 
-**授權**：D51已授權做到P1c；本階段不再問是否啟動正式版，但可執行計畫仍需人類審閱確認後才能進G3。
+**授權**：D51已授權做到P1c；D53確認人類只審成品，中間由AI自行依計畫推進，只有重大範圍／安全／無法照plan的問題才停下來問。
 
 **計畫**：[2026-10-08-p1a-backend-core](superpowers/plans/2026-10-08-p1a-backend-core.md)，取代舊MVP outline Task2。P1a只做後端核心；P1b才接React業務流程，P1c才做整合驗收。
 
 | Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
 |---|---|---|---|---|
-| 1 | Session登入、資料庫層、Alembic migration骨架 | ⬜ 待審閱後執行 | 新增auth／migration測試；RED缺`app.database`／`app.seed`／routes／migration，GREEN後全部auth與migration測試通過 | `P1a task 1: add sessions and migration foundation` |
+| 1 | Session登入、資料庫層、Alembic migration骨架 | 🔨 執行中 | 新增auth／migration測試；RED缺`app.database`／`app.seed`／routes／migration，GREEN後全部auth與migration測試通過 | `P1a task 1: add sessions and migration foundation` |
 | 2 | Project／Department／Node API、`can_view`／`can_work`與audit helper | ⬜ | 新增project/node權限與跨公司測試；GREEN後目前API測試全通 | `P1a task 2: add scoped projects and node permissions` |
 | 3 | Workflow建立專案與Gate阻擋 | ⬜ | 新增workflow/gate測試；含跨公司workflow ID、pending gate直接status更新阻擋 | `P1a task 3: add workflows and gate enforcement` |
 | 4 | Report、Audit API與真PostgreSQL migration／seed驗收 | ⬜ | 新增report/audit測試；完整API pytest、Vitest、build、P0 E2E回歸；Compose PostgreSQL實跑migration與seed | `P1a task 4: add reports audit and database acceptance` |
@@ -671,6 +671,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | D46 | W6 執行 | W6 plan 的執行方式 | 由目前 session 依 Task 0–6 直接實作；主 checkout、每 Task TDD 與審查、PROGRESS 為唯一進度來源 | 已決定 2026-10-08：人類選擇「Native execution」，授權開始 W6 plan |
 | D51 | 正式版啟動 | 人類指示「開始做到P1c」 | 授權完整P0→P1a→P1b→P1c的正式版MVP實作與必要規則轉換；不是僅恢復規劃。沿用React／FastAPI／PostgreSQL／Docker Compose、核心工作流與公司隔離要求。逐階段補齊可執行計畫、TDD與獨立審查；D50每段更新README並push繼續有效。P2以後非目標不自動納入 | 已決定2026-10-08。先前文件中的「未授權實作」已由本項取代；新計畫的人類審閱關卡保留，不能跳過或把草稿當可執行計畫 |
 | D52 | P0計畫審閱 | 人類回覆「好開始」 | 確認2026-10-08-p0-formal-foundation計畫，立即Native執行Task1–3；正式軌按完整安全／獨立審查標準驗收 | 已決定2026-10-08；解除P0計畫待審閱 |
+| D53 | P1a執行方式 | 人類指示「繼續進行，我只會審核成品的部分，中間你可以自己進行，除非有重大的東西需要詢問」 | 確認P1a計畫可進入Native執行；中間Task由AI自行依計畫TDD與審查流程推進，不逐步請人類審閱。遇到重大範圍變更、安全敏感、plan無法照做、破壞性操作、遠端／合併異常等WORKFLOW §8仍停下來問 | 已決定2026-10-08；解除P1a plan待審閱 |
 | D50 | 全專案發布 | 人類指示「做完一段就推上去github，然後每個階段都要更新readme，讓所有人知道目前進度在哪」 | 持續授權每個已完成且驗證／審查通過的階段：同步README與PROGRESS、依既有流程ff-only合併到main、`git push origin main`。不force、不推其他分支、不自動開PR；授權發布不等於授權尚未確認的產品範圍。此後階段推送不必逐次重問，直到人類更改指示 | 已決定2026-10-08；涵蓋本次P0規劃文件恢復與先前尚未發布的W6。D3的每次需另行授權由本項持續授權滿足；遠端分岔仍依§8確認 |
 | D49 | P0 恢復規劃 | 舊paused分支與main分岔，無法ff恢復最新基準 | 保留paused分支，從最新main建立feature/p0-formal-product-plan，僅帶回既有spec／plan後對齊W6；以新規劃分支為主，檢查後ff-only合併回main。不rebase、不覆蓋W6、不push | 已決定2026-10-08：人類回答「是，並且以此分支為主，合併回去main」。只授權規劃分支恢復與本地合併，不視為授權正式產品實作 |
 | D48 | W6 Task 6 審查 | 新公司沒有配方比例權限，既有機密文件判斷因此讓所有角色都無法再開啟已存文件 | 毛研保留原有 ratio 判斷；新公司機密文件限目前公司 owner／admin 且節點可見者開啟，其他角色維持拒絕。新公司 ratio 仍為 false，不借用毛研欄位權限 | AI 代決 2026-10-08（可推翻）：展示模式最小修正，修復文件被永久鎖住；自動化覆蓋四公司建立、儲存、重新開啟與未授權拒絕 |
