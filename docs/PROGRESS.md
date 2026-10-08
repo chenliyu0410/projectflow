@@ -122,7 +122,7 @@
 | 3 | 可見總覽／本人任務API | ⬜ | 未執行 |
 | 4 | 導覽與多層工作區 | ⬜ | 未執行 |
 | 5 | 新增／編輯表單、總覽與我的任務 | ⬜ | 未執行 |
-| 6 | 隔離整合驗收與文件交付 | ⬜ | 未執行；旅程RED前移至Task1前 |
+| 6 | 隔離整合驗收與文件交付 | 🔨 旅程RED已取得 | BASE acf176e；Playwright workspace兩案1280／375因缺工作區導覽失敗：2 failed，exit1。後续Task6驗收待實作完成 |
 
 **G3恢復（2026-10-08）**：人類重啟後指示繼續；WSL2.7.13／Docker29.8.2 engine可用。fetch + ff-only已最新；完整隔離verify（keep-running）API80／Vitest56／build／E2E6 exit0。D57解除，正式開工。
 
