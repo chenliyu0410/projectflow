@@ -16,14 +16,14 @@
 | 目前工作項目 | **P2b ✅ 工程交付完成；P2c待G1規格** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
 | 下一個動作 | 八Task雙審Approved；P2c時程／模板／相依功能進入G1規格準備，需另定spec／plan才實作；P1c／P2a／P2b人類試用仍待簽核。 |
-| 分支 | `main`（P2b已ff-only合併，G6收尾；feature將安全刪除）。 |
+| 分支 | `main`（P2b已ff-only合併，G6完成；feature已安全刪除）。 |
 | 最新程式 commit | P2b G4 fix `4d94d27`／G5 main `4d0323e`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | G6 main verify exit0：強制PG migration1+競態3；API337passed5conditional skip/265.91s；Vitest150/build0/E2E13passed34.0s。phase admin／readonly×1280／375只讀UI及cleanup均exit0。 |
 | 資料版本 | Demo v6/key不變；正式migration head `20261008_0003`，15173已保留原有全部欄位／row值與env升級，新增files持久volume。專用PG驗證保留；acceptance15175／Task4隔離容器停止，雙volume保留。 |
 | 認領中 | —（P2b完成，無實作認領）。 |
 | 阻塞／待人類 | P2b無工程阻塞；P1c／P2a／P2b人類試用簽核、D43／D10仍未完成。P2c需另訂規格／計畫；LAN未授權。 |
-| 遠端 | P2b完成D50授權交付；收尾commit後push origin main並以ls-remote核對。本輪fetch確認遠端無新增未知commit，無force。 |
+| 遠端 | P2b交付`409e9cb`已push origin main且ls-remote SHA一致；本發布紀錄隨main同步。本輪fetch確認遠端無新增未知commit，無force。 |
 
 ---
 
@@ -877,7 +877,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **完成**：D59–D64、八Task TDD與雙獨立審查；G4文件權限Important、phase文案Minor均修正，兩位Ready to merge: Yes，ff-only合併main。
 - **驗證**：G6 mandatory PG1+3、API337pass5conditional skip、Vitest150/build0/E2E13pass、四組phase真UI與隔離cleanup通過；DB+files無seed重啟、pending恢復與quota通過。全部證據ignored `.superpowers/p2b/`，失敗log亦保留，無偽造RED。
 - **資料／環境**：15173已備份後不seed升migration0003，原有全部欄位/row值與env指紋相同，health/ready200，files10001:10001/0700。acceptance/Task4容器已清、所有雙volume/專用DB保留；兩Demo未改。
-- **發布／下一步**：README／指南／試用清單／PROGRESS收尾後依D50push main並核對遠端；P2c只進G1規格準備，不自動實作未定案規則。P1c/P2a/P2b人類簽核一律未代勾；無工程阻塞。
+- **發布／下一步**：README／指南／試用清單／PROGRESS交付`409e9cb`依D50已push main且ls-remote核對一致；feature安全刪除，發布紀錄隨main同步；P2c只進G1規格準備，不自動實作未定案規則。P1c/P2a/P2b人類簽核一律未代勾；無工程阻塞。
 
 ### 2026-10-08｜Codex GPT-6｜P2b D63採A、完整規格與八Task計畫送審
 - **決策與文件**：D63人類選A，D59–D63全數已決。完整spec補共用權限、task轉換矩陣、舊回報隔離、migration0003、API／分頁、附件預留配額／故障恢復、UI與部署契約；G2送審稿列明允許檔案與八Task TDD／雙審／保留資料驗收。
