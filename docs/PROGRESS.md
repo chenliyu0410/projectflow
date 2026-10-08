@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W6 多公司產業範例 — 📋 已規劃** |
+| 目前工作項目 | **W6 多公司產業範例 — 🔨 執行中** |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 人類審閱 W6 plan 並選擇執行方式；建議在目前 session 用 Native execution 依 Task 0–6 執行。開始後先整理已合併的 W3 歷史分支、跑 `149/149` 基準，再建立 `feature/w6-multi-company-industry-demo`。P0 規劃保留在 `paused/p0-formal-product-plan`。 |
-| 分支 | `main`（G2 文件階段；P0 規劃保留於 `paused/p0-formal-product-plan`） |
+| 下一個動作 | 切到 `feature/w6-multi-company-industry-demo`，依該分支看板從 Task 1 RED 執行。P0 規劃保留在 `paused/p0-formal-product-plan`。 |
+| 分支 | `feature/w6-multi-company-industry-demo`（主 checkout；P0 保留於 `paused/p0-formal-product-plan`） |
 | 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 文件同步 `aafc5ca`，只更新 README／PROGRESS，沒有改產品程式。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 149/149`（2026-10-05，W3 ff 合併到 `main` 後 Codex 用 8001 重跑；同日 Claude 在 `cfd5f72` 上重跑仍是 `全部通過 149/149`）。歷史基準：W2 合併後 `全部通過 137/137`；W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
 | 資料版本 | `db.v = 5`（W3 起；`load()` 讀 v2／v3／v4／v5 並依序升級）；localStorage key 是 `projectflow-demo-v2` |
-| 認領中 | — |
-| 阻塞／待人類 | W6 plan 需人類審閱並選擇執行方式；D43 待人類（不擋 W6）；D10 仍待人類但不擋 Demo 軌；P0 規劃依 D45 暫停。 |
+| 認領中 | Codex GPT-6，2026-10-08，W6 Task 1–6 Native execution |
+| 阻塞／待人類 | W6 無；D43 待人類（不擋 W6）；D10 仍待人類但不擋 Demo 軌；P0 規劃依 D45 暫停。 |
 | 遠端 | 2026-10-05：人類授權「確認後推上去」與「git 上的 readme 也要記得更新進度」後，已把 W3、W5 README 更新與本看板收尾 push 到 `origin/main`。每次 push 都要人類明確授權（D3）。 |
 
 ---
@@ -74,7 +74,7 @@
 | 3 | W3 | 工作流架構（**精簡版**，D31／D42）：工作流模板 CRUD、從工作流建立專案、關卡擋住後續階段 | ✅ | [spec](superpowers/specs/2026-10-05-process-control-design.md) | [plan](superpowers/plans/2026-10-05-workflow-architecture.md) | v4 → v5 | 2026-10-05 完成；依 D42 先完成功能架構，個別工作流內容由使用者之後自行添加 |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
-| 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | 📋 已規劃（等待 plan 審閱與執行方式） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；完整設計已由人類批准（D44） |
+| 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | 🔨 執行中（Native execution，D46） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；完整設計已由人類批准（D44） |
 | — | P0 | 正式軌工作規則 | ⏸ 規劃暫停（D45） | 保留於暫停分支 | 保留於暫停分支 | — | W6 完成後恢復 `paused/p0-formal-product-plan`；尚未授權開始 P0 實作 |
 | — | P1–P9 | 正式產品軌（README §8 階段 1–9） | ⬜ 未啟動 | README §8 | — | — | P0 ✅；階段 4 以後依賴 README §9 #5–#14 |
 
@@ -341,7 +341,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - README §6 改成引用該圖，並分成「目前已完成的 Demo 架構」「正式產品軌尚未完成」「下一步判讀」。
 - README §7 專案結構補上 `AGENTS.md`、`docs/`、`tests/`、`.claude/` 與架構圖檔。
 
-### W6 多公司產業範例 — 📋
+### W6 多公司產業範例 — 🔨
 
 **目標**：把目前以寵物食品製造為主的單公司 Demo，擴充成五個可切換、資料完全獨立的公司空間，證明 ProjectFlow 能套用到不同產業。
 
@@ -359,7 +359,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | Task | 內容 | 狀態 | commits | 測試（預期 → 實際） | plan 指定的 commit 主旨 |
 |---|---|---|---|---|---|
-| 0 | pre-flight、歷史 W3 分支改名、基準測試、建立 W6 分支 | ⬜ | — | `149/149` → — | `Progress: start W6 implementation` |
+| 0 | pre-flight、歷史 W3 分支改名、基準測試、建立 W6 分支 | ✅ | BASE `8aaa3ec`；本次 start commit | `149/149` → `全部通過 149/149`；Edge headless，無 page error；8001，PID 4312（本 session 啟動）。W3 ancestor 成立，改名 `completed/w3-workflow-architecture` | `Progress: start W6 implementation` |
 | 1 | v6 公司容器、v2–v5 遷移與部分損壞修復 | ⬜ | — | RED → GREEN | `W6 task 1: add v6 company storage` |
 | 2 | 左下角公司選擇器、原子切換與暫態 UI 清理 | ⬜ | — | RED → GREEN | `W6 task 2: add company switching` |
 | 3 | 五家公司成員、部門、專案、工作流與稽核種子資料 | ⬜ | — | RED → GREEN | `W6 task 3: seed five industry companies` |
@@ -376,7 +376,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - [ ] 原有 149 項測試在毛研食品空間不回歸；新增 25 項後達 `全部通過 174/174`。
 - [ ] 五家公司在桌面與 375px 下主要頁面無溢出、重疊、`undefined`、`NaN` 或 console error。
 
-**下一步**：等待人類審閱 plan 並選擇 Native execution 或 Subagent-driven execution；目前建議 Native execution，因為產品與測試集中在同一個 HTML 執行期且六個 Task 前後相依。P0 規劃依 D45 暫停，W6 完成後恢復。
+**下一步**：人類已選擇 Native execution（D46），依 Task 0–6 執行；進度與裁決只記本看板，沿用每 Task 審查。P0 規劃依 D45 暫停，W6 完成後恢復。
 
 ---
 
@@ -588,6 +588,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | D43 | Demo 驗收 | Demo 走查發現（§5 DEMO-A-m1）：工作流的階段、任務、相依和關卡只能用 JSON 文字框編輯，而且只有系統管理員能編輯。D42 說「每個工作流我們自己添加」，要不要讓工作流可以用表單編輯（例如逐階段新增任務、選部門、設定關卡），或開放專案負責人編輯 | **展示先維持現狀**：展示時由 it 示範新增／複製，內建兩套範例已足夠說明概念。如果你們真的要自己加很多工作流，建議另排一個小工作項目做表單式編輯器（需要 spec，屬於範圍變更）。另一個選項：現在就排這個工作項目 | 待人類（不擋展示） |
 | D44 | W6 | 多公司 Demo 的範圍、產業、資料深度、隔離方式、舊資料與附件遷移 | **五個固定、完整隔離的公司空間**：毛研食品、峰曜科技、光點企劃、雲序軟體、築衡工程；採平衡版種子資料與產業化營運模組；成員、部門、權限、專案、工作流、營運資料、稽核與附件皆按公司隔離；v5 舊資料歸入毛研食品；用單一 localStorage key 的 v6 公司容器，不做公司 CRUD 或正式後端多租戶 | 已決定 2026-10-08：人類逐項採用建議並批准完整設計，可寫 written spec |
 | D45 | 全專案（流程） | W6 和目前 `feature/p0-formal-product-plan` 的優先順序 | **先暫停 P0 規劃，優先完成 W6**；保留 P0 的 spec、plan 與 commit，W6 完成後恢復 | 已決定 2026-10-08：人類批准 W6 完整設計時同意此執行順序；P0 分支已保留為 `paused/p0-formal-product-plan` |
+| D46 | W6 執行 | W6 plan 的執行方式 | 由目前 session 依 Task 0–6 直接實作；主 checkout、每 Task TDD 與審查、PROGRESS 為唯一進度來源 | 已決定 2026-10-08：人類選擇「Native execution」，授權開始 W6 plan |
 
 ---
 
