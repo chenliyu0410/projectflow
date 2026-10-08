@@ -4,11 +4,11 @@
 
 ## 公司邊界
 
-業務資料以organization_id識別公司。API從已驗證身分取得可用公司，查詢與外鍵須限制公司；不能信任前端傳來的公司參數。稽核、檔案讀寫與工作流建立同樣受限。目前P1a業務API與P1b四個Task已通過獨立審查；P1b整體審查Ready to merge: Yes。P1c部署／測試／內部試用驗收仍未完成。
+業務資料以organization_id識別公司。API從已驗證身分取得可用公司，查詢與外鍵須限制公司；不能信任前端傳來的公司參數。稽核、工作流建立同樣受限。目前P1a業務API與P1b四個Task已通過獨立審查；P1c Task1／2通過spec／品質審查，Task3自動化交付待獨立審查。人類試用簽核見[驗收清單](mvp-trial-checklist.md)，未勾選項目仍待人類完成。
 
 ## 環境需求
 
-### P1c 一鍵本機啟動（實作中）
+### P1c 一鍵本機啟動
 
 安裝Python 3.13與Docker Desktop後，可在repo根目錄執行以下單一命令。它建立缺少的本機設定、啟動Compose、執行migration，再確認HTTP就緒；已有 `.env` 不覆寫，volume不刪除。初始化本機示範帳號（含管理員yu）須明確加 `--seed-demo`，只適用本機MVP試用。
 
@@ -24,11 +24,25 @@ python deploy/start.py --seed-demo
 python deploy/start.py --acceptance --seed-demo
 ```
 
-驗收入口預設 http://127.0.0.1:15175 ，API18002；私密設定位於gitignored `.superpowers/p1c/acceptance.env`。只有隔離API的 `/health/acceptance` 回200；共享API預設404。Task2完成後E2E將強制先檢查此marker。既有P1b測試專案不會自動刪除。
+驗收入口預設 http://127.0.0.1:15175 ，API18002；私密設定位於gitignored `.superpowers/p1c/acceptance.env`。只有隔離API的 `/health/acceptance` 回200；共享API預設404。所有E2E在業務寫入前強制檢查此marker，並拒絕15173。既有測試專案不會自動刪除。
+
+### 一鍵自動驗收
+
+主機需要API `.venv` 的鎖版依賴、Web `npm ci` 的鎖版依賴與Playwright Chromium。驗收命令使用呼叫它的Python，不會代為安裝依賴：
+
+```powershell
+api/.venv/Scripts/python.exe deploy/verify.py --keep-running
+```
+
+依序執行隔離啟動（明確seed）、pytest、Vitest、build、Playwright。子程序的 `PF_BASE_URL` 來自隔離launcher回傳值，覆蓋傳入的共享網址，不修改呼叫端的環境變數。15175為目前驗收設定；合法的其他loopback驗收埠仍須marker確認。每階段失敗後停止後續測試，保留失敗exit code；orchestration錯誤只顯示固定訊息，不輸出Docker錯誤中的私密設定。
+
+不加 `--keep-running` 時，已成功啟動的驗收stack會在finally以固定 `projectflow-acceptance`／私密env／Compose檔執行 `down`，不帶 `-v`，不停止primary、不刪歷史專案。測試已失敗時，清理失敗不覆蓋原exit code；只有清理失敗也會回非零。若啟動本身失敗，命令不執行down，可能留下部分驗收服務，請檢查該隔離專案後再重試。
+
+測試輸出由各工具直接顯示；失敗依階段名稱定位。每次驗收保留新增測試專案／回報／稽核，並在finally恢復seed節點狀態。Playwright截圖位於 `web/test-results/`，下次執行會覆寫。完整自動結果與人類試用項目見[驗收清單](mvp-trial-checklist.md)。
 
 - 本機開發：Python 3.13、Node 24.15以上且小於25；套件分別使用`api/requirements.lock`及`web/package-lock.json`。
 - 完整環境：Docker Desktop的Linux容器引擎與Docker Compose。容器自帶Python／Node，不依賴主機安裝的執行環境。
-- 目前為本機MVP開發環境；P1c正式部署強化與內部試用驗收尚未完成，不可直接視為內網正式版發布。
+- 目前為loopback本機MVP；部署強化、LAN發布與人類內部試用簽核尚未完成，不可視為內網正式版發布。
 
 ## 本機API
 

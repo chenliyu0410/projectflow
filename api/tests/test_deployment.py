@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 from unittest.mock import MagicMock
@@ -141,3 +142,136 @@ def test_docker_output_is_decoded_as_utf8(start_module, monkeypatch):
     assert start_module.run(['docker', 'version']) == 'output'
     assert runner.call_args.kwargs['encoding'] == 'utf-8'
     assert runner.call_args.kwargs['errors'] == 'replace'
+
+
+@pytest.fixture
+def verify_module(monkeypatch):
+    directory = Path(__file__).resolve().parents[2] / 'deploy'
+    monkeypatch.syspath_prepend(str(directory))
+    spec = importlib.util.spec_from_file_location('trial_verify', directory / 'verify.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture
+def verification_commands(tmp_path, verify_module, monkeypatch):
+    calls = []
+    def start(root, **kwargs):
+        calls.append(('start', root, kwargs))
+        return {'project': 'projectflow-acceptance', 'web_url': 'http://127.0.0.1:15175',
+                'env_file': str(tmp_path / '.superpowers/p1c/acceptance.env')}
+    def run(args, **kwargs):
+        calls.append((args, kwargs))
+        return subprocess.CompletedProcess(args, 0)
+    monkeypatch.setattr(verify_module, 'start', start)
+    monkeypatch.setattr(verify_module.subprocess, 'run', run)
+    monkeypatch.setattr(verify_module.shutil, 'which', lambda name: name)
+    return calls
+
+
+def test_verify_command_order_and_child_env(tmp_path, verify_module, verification_commands, monkeypatch):
+    monkeypatch.setenv('PF_BASE_URL', 'http://127.0.0.1:15173')
+    before = dict(os.environ)
+    assert verify_module.verify(tmp_path) == 0
+    calls = verification_commands
+    assert calls[0] == ('start', tmp_path, {'acceptance': True, 'seed_demo': True})
+    npm = 'npm.cmd' if os.name == 'nt' else 'npm'
+    assert [call[0] for call in calls[1:5]] == [
+        [verify_module.sys.executable, '-m', 'pytest', '-c', str(tmp_path / 'api/pyproject.toml'), str(tmp_path / 'api/tests'), '-q'],
+        [npm, '--prefix', str(tmp_path / 'web'), 'test'],
+        [npm, '--prefix', str(tmp_path / 'web'), 'run', 'build'],
+        [npm, '--prefix', str(tmp_path / 'web'), 'run', 'e2e'],
+    ]
+    assert all(call[1]['cwd'] == tmp_path for call in calls[1:5])
+    assert all(call[1]['env']['PF_BASE_URL'] == 'http://127.0.0.1:15175' for call in calls[1:5])
+    assert dict(os.environ) == before
+    cleanup, options = calls[-1]
+    assert cleanup == ['docker', 'compose', '--project-name', 'projectflow-acceptance',
+                       '--env-file', str(tmp_path / '.superpowers/p1c/acceptance.env'),
+                       '-f', str(tmp_path / 'deploy/docker-compose.yml'), 'down']
+    assert options['capture_output'] is True
+    assert '-v' not in cleanup and 'projectflow-formal' not in cleanup
+
+
+@pytest.mark.parametrize('failed_stage', [0, 1, 2, 3])
+def test_verify_failure_stops_later_stages_and_preserves_exit(tmp_path, verify_module, verification_commands, monkeypatch, failed_stage):
+    stages = []
+    def run(args, **kwargs):
+        if 'down' in args:
+            verification_commands.append((args, kwargs))
+            return subprocess.CompletedProcess(args, 9, '', 'private-cleanup-secret')
+        stages.append(args)
+        return subprocess.CompletedProcess(args, 7 if len(stages) - 1 == failed_stage else 0)
+    monkeypatch.setattr(verify_module.subprocess, 'run', run)
+    assert verify_module.verify(tmp_path) == 7
+    assert len(stages) == failed_stage + 1
+    assert verification_commands[-1][0][-1] == 'down'
+
+
+def test_verify_keep_running_avoids_down(tmp_path, verify_module, verification_commands):
+    assert verify_module.verify(tmp_path, keep_running=True) == 0
+    assert len(verification_commands) == 5
+    assert not any('down' in call[0] for call in verification_commands)
+
+
+def test_verify_cleanup_failure_is_nonzero_and_sanitized(tmp_path, verify_module, verification_commands, monkeypatch, capsys):
+    original = verify_module.subprocess.run
+    def run(args, **kwargs):
+        if 'down' in args:
+            return subprocess.CompletedProcess(args, 3, 'private-secret', 'private-secret')
+        return original(args, **kwargs)
+    monkeypatch.setattr(verify_module.subprocess, 'run', run)
+    assert verify_module.verify(tmp_path) != 0
+    assert 'private-secret' not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize('failure', [RuntimeError('private-secret'), OSError('private-secret')])
+def test_verify_start_failure_does_not_stop_any_project(tmp_path, verify_module, verification_commands, monkeypatch, capsys, failure):
+    def fail(*args, **kwargs):
+        raise failure
+    monkeypatch.setattr(verify_module, 'start', fail)
+    assert verify_module.verify(tmp_path) != 0
+    assert verification_commands == []
+    assert 'private-secret' not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize('failure', [OSError('private-secret'), subprocess.TimeoutExpired(['private-secret'], 1)])
+def test_verify_subprocess_exception_is_sanitized_and_cleanup_runs(tmp_path, verify_module, verification_commands, monkeypatch, capsys, failure):
+    def run(args, **kwargs):
+        verification_commands.append((args, kwargs))
+        if 'down' not in args:
+            raise failure
+        return subprocess.CompletedProcess(args, 0)
+    monkeypatch.setattr(verify_module.subprocess, 'run', run)
+    assert verify_module.verify(tmp_path) != 0
+    assert verification_commands[-1][0][-1] == 'down'
+    assert 'private-secret' not in capsys.readouterr().out
+
+
+def test_verify_missing_npm_fails_safely_before_start(tmp_path, verify_module, verification_commands, monkeypatch, capsys):
+    monkeypatch.setattr(verify_module.shutil, 'which', lambda name: None)
+    assert verify_module.verify(tmp_path) != 0
+    assert verification_commands == []
+    assert 'npm' in capsys.readouterr().out.lower()
+
+
+@pytest.mark.parametrize('field,value', [
+    ('project', 'projectflow-formal'), ('web_url', 'http://127.0.0.1:15173'),
+    ('web_url', 'http://example.com:15175'), ('env_file', 'deploy/.env'),
+])
+def test_verify_rejects_non_acceptance_start_result(tmp_path, verify_module, verification_commands, monkeypatch, field, value):
+    result = {'project': 'projectflow-acceptance', 'web_url': 'http://127.0.0.1:15175',
+              'env_file': str(tmp_path / '.superpowers/p1c/acceptance.env')}
+    result[field] = value
+    monkeypatch.setattr(verify_module, 'start', lambda *args, **kwargs: result)
+    assert verify_module.verify(tmp_path) != 0
+    assert verification_commands == []
+
+
+def test_verify_uses_returned_loopback_acceptance_port(tmp_path, verify_module, verification_commands, monkeypatch):
+    monkeypatch.setattr(verify_module, 'start', lambda *args, **kwargs: {
+        'project': 'projectflow-acceptance', 'web_url': 'http://127.0.0.1:15177',
+        'env_file': str(tmp_path / '.superpowers/p1c/acceptance.env')})
+    assert verify_module.verify(tmp_path, keep_running=True) == 0
+    assert all(call[1]['env']['PF_BASE_URL'] == 'http://127.0.0.1:15177' for call in verification_commands)
