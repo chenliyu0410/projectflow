@@ -32,8 +32,8 @@
 | W5 README 對齊現況 | ✅ 完成 | §1 快速開始和 §2 功能總覽已對齊 full demo 現況（D30） |
 | W6 多公司產業範例 | ✅ 完成並發布 | 已合併並推送 GitHub `main`：五個公司空間、產業工作流與營運模組、v6 遷移、獨立附件與單公司重設 |
 | P0 正式版骨架 | ✅ 完成並發布GitHub main | API 8項、React 6項、Playwright 4項及build通過；Docker／PostgreSQL中斷恢復、桌面／手機驗收通過。[正式版開發](docs/formal-development.md)、[P0計畫](docs/superpowers/plans/2026-10-08-p0-formal-foundation.md) |
-| P1a 正式版後端核心 | 🔨 執行中（Task 4） | 已完成登入/session、migration骨架、Project／Node／Department API、Workflow建立專案、Gate阻擋、Report與Audit API；正在做真PostgreSQL與整體審查驗收。[P1a計畫](docs/superpowers/plans/2026-10-08-p1a-backend-core.md) |
-| P1b → P1c 正式版MVP | 已授權；待P1a完成後細化 | React工作流程 → 部署／測試／內部試用驗收；P2以後非目標未納入 |
+| P1a 正式版後端核心 | ✅ 完成並發布GitHub main | 登入/session、公司隔離、P1a migration與seed、Project／Node／Department／Workflow／Gate／Report／Audit API完成；API 35項、Vitest 6項、Playwright 4項、build與真PostgreSQL migration／seed smoke通過。[P1a計畫](docs/superpowers/plans/2026-10-08-p1a-backend-core.md) |
+| P1b → P1c 正式版MVP | 已授權；下一步細化P1b | React工作流程 → 部署／測試／內部試用驗收；P2以後非目標未納入 |
 
 **目前做到哪裡**
 
@@ -41,8 +41,8 @@
 - 目前測試基準：`tests/records.html` 為 `全部通過 174/174`（W6：既有 149 項加 25 項公司測試）。
 - W3 依 2026-10-05 人類指示改成「先完成功能架構」：系統支援工作流模板、從工作流建立專案、階段關卡；每個部門的實際工作流內容可由使用者之後自行添加。
 - Demo 走查已通過；最後只等人類確認可以拿來展示，以及決定 D43（工作流編輯器是否要做成表單式，不擋展示）。
-- 正式版P0骨架已完成：三Task與整體獨立審查通過，已ff-only合併main；合併後API 8項、React 6項、E2E 4項與production build再次通過，npm runtime audit零漏洞。真實DB中斷503／恢復、保留volume、1280／375px與逾時重試均已實測。P1a後端核心計畫已落檔，待人類審閱後才進Native TDD；不是P1c完成。
-- 本機入口：[正式版服務狀態](http://127.0.0.1:15173)，其他組員照[正式版開發指南](docs/formal-development.md)啟動自己的環境。P0尚無登入或業務流程；D51交付目標仍是做到P1c可內部試用，真AI／ERP／AD／完整RAG不在本輪MVP，不能用Demo驗收代替正式版驗收。
+- 正式版P0骨架與P1a後端核心已完成：P1a四Task逐步TDD、逐Task獨立審查與G4整體審查通過，包含登入、HttpOnly session、公司隔離、migration、seed、核心後端API、gate阻擋、report與audit。最新回歸：API 35項、React 6項、E2E 4項與production build通過；Compose真PostgreSQL migration／seed／HTTP smoke通過。P1b尚未實作React業務流程，P1c尚未做內部試用驗收。
+- 本機入口：[正式版服務狀態](http://127.0.0.1:15173)，其他組員照[正式版開發指南](docs/formal-development.md)啟動自己的環境。D51交付目標仍是做到P1c可內部試用，真AI／ERP／AD／完整RAG不在本輪MVP，不能用Demo驗收代替正式版驗收。
 
 **階段發布規則（2026-10-08，D50）**：每完成一段工作，先更新本 README 的「已完成／目前階段／下一步」與 PROGRESS，通過該段驗證及審查後合併並推送 GitHub `main`。規劃草稿與已實作功能分開標示，不把未執行測試寫成通過。
 
