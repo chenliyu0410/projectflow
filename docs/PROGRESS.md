@@ -15,9 +15,9 @@
 |---|---|
 | 目前工作項目 | **P1b React核心UI實作中** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 切到 `feature/p1b-react-core-ui`，依計畫Task 1執行登入RED→GREEN；進度以該分支PROGRESS為準。 |
+| 下一個動作 | 在 `feature/p1b-react-core-ui` 執行Task 2專案詳情、節點樹與麵包屑RED→GREEN。 |
 | 分支 | `feature/p1b-react-core-ui`（由main開出，主checkout） |
-| 最新程式 commit | P1a G4修正 `0c9fe06`；P1b目前只有plan與看板更新，尚未改產品程式；Demo仍為W6 `0934e48`，未修改。 |
+| 最新程式 commit | P1b Task1 `3298284`、修正 `4f95236`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | 2026-10-08 P1a G4：reviewer gate權限RED `1 failed, 6 passed, 1 warning` → GREEN workflow/gate `7 passed, 1 warning`、完整API `35 passed, 1 warning in 16.10s`、Vitest `6 passed (6)`、build exit0、Playwright `4 passed`、Compose PostgreSQL migration／seed／HTTP smoke通過、`git diff --check` exit0。Demo仍`全部通過 174/174`，P1a未改Demo。 |
 | 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17使用migration `20261008_0001_p1a_core` 建立P1a核心schema。 |
@@ -453,7 +453,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
 |---|---|---|---|---|
-| 1 | API client、登入／session UI | ⬜ | RED：Vitest因`api.ts`缺失與健康頁仍存在而失敗；GREEN：P1b登入測試通過、build exit0 | `P1b task 1: connect login session UI` |
+| 1 | API client、登入／session UI | ✅ `d4e90ce..4f95236` | RED `10 failed, 1 passed (11)` exit1 → GREEN11 exit0；client修正RED `5 failed, 11 passed (16)` exit1；登入後載入錯誤RED `2 failed, 16 passed (18)` exit1 → GREEN `18 passed (18)` exit0；build exit0。獨立spec Boyle／quality Ramanujan修正後均Approved，品質審查獨立重跑18/build0。真API1280／375登入／登出nooverflow/pageerror，session reload／logout reload成功，截圖已看375。初始未登入me回401產生預期Chrome resource401，非應用程式錯誤，不宣稱console全空。 | `P1b task 1: connect login session UI`；`P1b task 1 fix: complete typed API client` |
 | 2 | 專案清單、專案頁、節點樹與麵包屑 | ⬜ | RED：缺專案樹、選取與路徑；GREEN：專案導覽測試通過、build exit0 | `P1b task 2: add project detail tree navigation` |
 | 3 | 看板四欄、狀態更新與Gate阻擋提示 | ⬜ | RED：缺看板欄位與移動按鈕；GREEN：kanban／gate測試通過、build exit0 | `P1b task 3: add kanban gate workflow controls` |
 | 4 | 工作流建立專案、Playwright真後端smoke與文件 | ⬜ | RED：缺工作流建立表單；GREEN：Vitest、build、API回歸、Compose migration／seed、Playwright P1b smoke通過 | `P1b task 4: add workflow creation browser smoke` |
@@ -503,6 +503,9 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 5. 待處理問題（Issue register）
+
+**P1b新增**
+- P1b-T1-m1（minor，OPEN，不阻塞）：API client未設timeout；pending請求須等代理或連線結束，取消目前涵蓋換請求與卸載。後續網路韌性工作補強，位置 `web/src/api.ts:12`。
 
 **P0新增**
 - P0-T1-m1（minor，OPEN，不阻塞）：`api/tests/test_health.py`缺查詢結果非1、查詢階段錯誤、checker非布林的持續回歸案例；Arendt唯讀補驗均通過，後續擴充API測試時納入。
