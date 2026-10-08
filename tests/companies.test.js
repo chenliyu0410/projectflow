@@ -68,6 +68,31 @@
     finally { Storage.prototype.setItem=set; }
     eq(JSON.stringify({portfolio,ui,undoStack,db,audit}),before);eq(company.id,'petfood');
   });
+  await T('W6：五家公司符合專案與工作流最低量且角色完整',()=>{
+    Object.values(seedPortfolio().companies).forEach(c=>{ const roots=Object.values(c.db.nodes).filter(n=>n.type==='project');ok(roots.length>=2,c.id);if(c.id!=='petfood')eq(roots.length,2);
+      eq(c.db.workflows.length,2);const roles=new Set(Object.values(c.users).map(u=>u.role));['owner','reviewer','member','collab','admin'].forEach(r=>ok(roles.has(r),c.id+r));ok(c.db.departments.length>=9);
+    });
+  });
+  await T('W6：各產業主專案含關卡、前置、報告、註記、稽核與營運連結',()=>{
+    Object.values(seedPortfolio().companies).forEach(c=>{const ns=Object.values(c.db.nodes);ok(ns.some(n=>n.type==='project'));ok(Object.keys(c.db.gates).length,c.id+'關卡');ok(c.db.deps.length,c.id+'前置');
+      ok(c.db.reports.some(r=>c.db.nodes[r.node_id]),c.id+'報告');ok(c.db.notes.some(r=>c.db.nodes[r.node_id]),c.id+'註記');ok(ns.some(n=>n.links?.length),c.id+'連結');ok(c.audit.acts.length,c.id+'稽核');
+      if(c.id!=='petfood') {ok(c.db.deps.some(d=>d.cond?.kind==='ops'),c.id+'營運條件');c.db.deps.forEach(d=>ok(c.db.nodes[d.to]&&(!d.from||c.db.nodes[d.from])));}
+    });
+  });
+  await T('W6：非毛研公司不引用毛研成員',()=>{
+    const p=seedPortfolio();const ids=Object.keys(p.companies.petfood.users);
+    COMPANY_ORDER.slice(1).forEach(id=>{const c=p.companies[id];ids.forEach(uid=>ok(!JSON.stringify(c.db.nodes).includes(`"${uid}"`),id+uid));Object.values(c.db.nodes).forEach(n=>ok(!n.owner||c.users[n.owner]));});
+  });
+  await T('W6：四個新產業部門名稱正確',()=>{
+    const p=seedPortfolio();const expected={electronics:['產品企劃','硬體研發','工業設計','採購','品保','製造','認證','業務','資訊','財務'],events:['策略企劃','創意','客戶服務','活動製作','媒體','公關','採購','財務','資訊'],software:['產品','前端','後端','品質保證','DevOps','資安','客戶成功','業務','資訊'],construction:['專案管理','設計','機電','採購','工務','品管','職安','財務','行政','資訊']};
+    Object.entries(expected).forEach(([id,names])=>eq(p.companies[id].db.departments.map(d=>d.name),names,id));
+  });
+  await T('W6：五家公司種子標題與營運連結有效',()=>{
+    const p=seedPortfolio();const expected={petfood:['成貓主食罐・鮪魚雞肉','高齡犬關節保健罐','筆電新機種專流'],electronics:['AstraBook AI 筆電 NPI','65W 充電器降本','筆電 NPI 專流'],events:['夏季新品發表會','年度經銷商大會','活動執行專流'],software:['企業 SSO 上線','通知中心改版','版本發佈專流'],construction:['總部辦公室裝修','空調主機汰換','裝修工程專流']};
+    Object.entries(expected).forEach(([id,[main,secondary,wf]])=>{const c=p.companies[id],ns=Object.values(c.db.nodes);ok(ns.some(n=>n.title===main),id+main);ok(ns.some(n=>n.title===secondary),id+secondary);ok(c.db.workflows.some(w=>w.name===wf));
+      ns.flatMap(n=>n.links||[]).forEach(l=>{const list=id==='petfood'?c.db.ops[{supplier:'suppliers',formula:'formulas',po:'pos',wo:'wos'}[l.t]]:c.db.ops.records[l.t];ok(list?.some(r=>r.id===l.id),id+l.id);});
+    });
+  });
   // ── 新測試加在這一行上面 ──
   return results;
 })()

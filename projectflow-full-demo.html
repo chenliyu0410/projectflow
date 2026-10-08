@@ -916,10 +916,89 @@ function upgradeLegacy(o) {
 }
 function seedCompany(id) {
   const meta = COMPANY_META[id];
-  if (id === 'petfood') return { ...meta, me: 'yu', users: cloneData(PETFOOD_USERS), fieldAccess: cloneData(PETFOOD_FIELD_ACCESS), tags: [...PETFOOD_TAGS], tagDept: {...PETFOOD_TAG_DEPT}, opsConfig: {mode:'petfood'}, db: seed(), audit: freshAudit() };
-  const uid = meta.defaultUserId, deptId = id + '-management';
-  return { ...meta, me: uid, users: { [uid]: { name: meta.name + '負責人', short:'主', role:'owner', dept:deptId, title:'專案負責人', color:'#1F5F5B' } }, fieldAccess:{}, tags:[], tagDept:{}, opsConfig:{mode:'generic',modules:[]},
-    db: {v:6,departments:[{id:deptId,name:'專案管理',head:uid}],nodes:{},deps:[],gates:{},docs:[],templates:[],workflows:[],overrides:[],policy:'hybrid',seq:1000,erpSynced:0,reportFields:[],reports:[],notes:[],attachments:[],ops:{suppliers:[],materials:[],formulas:[],pos:[],wos:[]}}, audit:{acts:[],ai:[],sync:[],notes:[]} };
+  if (id === 'petfood') {
+    const d=seed();
+    d.notes.push({id:'nt-seed',node_id:'t3011',body:'已安排第二次殺菌條件複驗，待確認設備排程。',author:'ming',created_at:'2026/09/29 10:00',edited_at:null});
+    return { ...meta, me: 'yu', users: cloneData(PETFOOD_USERS), fieldAccess: cloneData(PETFOOD_FIELD_ACCESS), tags: [...PETFOOD_TAGS], tagDept: {...PETFOOD_TAG_DEPT}, opsConfig: {mode:'petfood'}, db:d, audit: freshAudit() };
+  }
+  return seedIndustryCompany(id);
+}
+const COMPANY_SEEDS = {
+  electronics: {
+    departments:['產品企劃','硬體研發','工業設計','採購','品保','製造','認證','業務','資訊','財務'],
+    members:[['el-lin','林怡君','owner',0],['el-hao','陳志豪','member',1],['el-mei','張雅雯','reviewer',4],['el-kai','黃冠凱','member',3],['el-ting','吳佳庭','collab',7],['el-it','資訊室','admin',8]],
+    titles:['AstraBook AI 筆電 NPI','65W 充電器降本'],workflows:['筆電 NPI 專流','ECN 變更專流'],
+    phases:[['市場立案',['市場與競品分析','Business Case 與目標成本']],['產品定義',['PRD 規格書','工業設計','法規盤點']],['設計開發',['PCB 設計','散熱模組','韌體開發']],['試產驗證',['EVT 試產','可靠度與認證','DVT/PVT 驗證']],['量產上市',['首批量產','通路上市']]],
+    secondary:[['成本分析',['目標成本拆解','替代料比價']],['替代料驗證',['替代料試驗','ECN 發行']]],
+    modules:[['supplier','供應商','精準電子'],['part','零件','低功耗散熱模組'],['bom','BOM','AstraBook 主機板 BOM'],['purchase','採購單','EVT 試產料件採購'],['pilot','試產批次','EVT 首批試產'],['verification','驗證項目','散熱可靠度複驗']],
+    blocker:['verification','EL-V-THERMAL','待複驗','通過'],color:'#216677',
+  },
+  events: {
+    departments:['策略企劃','創意','客戶服務','活動製作','媒體','公關','採購','財務','資訊'],
+    members:[['ev-jia','許嘉玲','owner',0],['ev-bo','周柏宇','member',1],['ev-xin','李欣怡','member',2],['ev-wei','劉威廷','member',3],['ev-ru','蔡佩如','reviewer',7],['ev-an','黃筱安','collab',5],['ev-it','資訊室','admin',8]],
+    titles:['夏季新品發表會','年度經銷商大會'],workflows:['活動執行專流','整合行銷專流'],
+    phases:[['策略與 brief',['受眾與 KPI','預算核准']],['創意與場地',['主題設計','場地確認']],['供應商製作',['視聽與舞台','物料製作']],['宣傳與報名',['媒體宣傳','報名頁面']],['彩排與活動',['全流程彩排','活動執行']],['結案',['成效分析','結案交付']]],
+    secondary:[['議程與講者',['議程規劃','講者邀請']],['場地與執行',['場地確認','現場執行']]],
+    modules:[['supplier','供應商','聚光舞台'],['venue','場地','松山文創展演廳'],['budget','預算','新品發表會總預算'],['purchase','採購','視聽設備租賃'],['session','場次','新品發表會主場'],['deliverable','交付物','舞台設計與搭建']],
+    blocker:['deliverable','EV-D-STAGE','待核准','已核准'],color:'#914667',
+  },
+  software: {
+    departments:['產品','前端','後端','品質保證','DevOps','資安','客戶成功','業務','資訊'],
+    members:[['sw-yi','王怡文','owner',0],['sw-jun','李明駿','member',2],['sw-ting','陳雅婷','member',1],['sw-hao','黃信豪','reviewer',3],['sw-yan','林子彥','member',4],['sw-an','張安琪','collab',5],['sw-it','資訊室','admin',8]],
+    titles:['企業 SSO 上線','通知中心改版'],workflows:['版本發佈專流','事件處理專流'],
+    phases:[['需求探索',['企業需求訪談','IdP 相容性確認']],['設計開發',['後端 SSO 整合','前端管理頁']],['測試資安',['自動化測試','滲透測試']],['發佈',['staging 驗證','production 部署']],['監控',['登入成功率監控','客戶回饋']]],
+    secondary:[['需求與開發',['通知偏好設定','推播服務開發']],['測試與上線',['跨裝置測試','灰度上線']]],
+    modules:[['requirement','需求','企業 SSO 與 IdP 整合'],['release','版本','SSO 2.0 正式版'],['defect','缺陷','Token 更新逾時'],['environment','環境','Production 主叢集'],['deployment','部署','SSO 正式環境部署'],['incident','事件','登入延遲事件']],
+    blocker:['deployment','SW-DEP-PROD','待核准','已完成'],color:'#3D6F4E',
+  },
+  construction: {
+    departments:['專案管理','設計','機電','採購','工務','品管','職安','財務','行政','資訊'],
+    members:[['ct-chen','陳建宏','owner',0],['ct-lin','林芷晴','member',1],['ct-wu','吳俊達','member',2],['ct-huang','黃冠宇','member',4],['ct-tsai','蔡美玲','reviewer',5],['ct-an','周安琪','collab',6],['ct-it','資訊室','admin',9]],
+    titles:['總部辦公室裝修','空調主機汰換'],workflows:['裝修工程專流','變更與查驗專流'],
+    phases:[['設計',['現場勘查','施工圖說','工程預算']],['採購',['承包商遴選','材料核准']],['施工',['拆除工程','機電配管','室內裝修','職安巡檢']],['查驗',['消防查驗','缺失改善']],['交付',['竣工點交','保固移交']]],
+    secondary:[['評估與採購',['負載評估','主機採購']],['施工與驗收',['設備安裝','性能驗收']]],
+    modules:[['contractor','承包商','安鼎機電'],['material','材料','防火隔間板'],['contract','合約','總部裝修工程合約'],['workorder','工單','三樓機電施工'],['inspection','查驗','消防系統複驗'],['change','變更單','會議室增設插座']],
+    blocker:['inspection','CT-INSP-FIRE','待複驗','通過'],color:'#825A35',
+  },
+};
+function buildIndustryWorkflow(definition) {
+  const {id,name,phases,departments}=definition;
+  const stages=phases.map(([title,tasks],i)=>({id:`s${i}`,title,dept:departments[i%departments.length].id,gate:{title:title+'確認',criteria:'任務完成並經階段審核'},tasks:tasks.map((title,j)=>({id:`s${i}t${j}`,title,dept:departments[(i+j)%departments.length].id,depts:[],dur:4}))}));
+  return {id,name,desc:phases.map(p=>p[0]).join(' → '),category:'產業專流',version:1,builtin:true,stages,deps:stages.flatMap(s=>s.tasks.slice(1).map((t,j)=>({from:s.tasks[j].id,to:t.id,type:'FS',lag:0,enf:'hard'})))};
+}
+function buildIndustryProject(d, definition) {
+  const {id,title,phases,users,owner,color}=definition;
+  let order=Object.keys(d.nodes).length,cursor=D('2026-09-01');
+  const members=Object.keys(users).filter(id=>users[id].role==='member'),reviewer=Object.keys(users).find(id=>users[id].role==='reviewer'),collab=Object.keys(users).find(id=>users[id].role==='collab');
+  const add=(id,parent,type,title,who,start,end,status='todo')=>d.nodes[id]={id,parent,type,title,owner:who,dept:type==='task'?users[who].dept:null,collabs:[collab],depts:[],tag:type==='task'?d.departments.find(x=>x.id===users[who].dept).name:'',status,progress:null,weight:1,start:S(start),end:S(end),milestone:false,locked:false,level:parent?null:'internal',ai:false,note:'',links:[],order:order++,color,goal:title+'按期完成',due:S(end)};
+  add(id,null,'project',title,owner,cursor,cursor+120);
+  phases.forEach(([name,tasks],i)=>{
+    const phase=`${id}-s${i+1}`,start=cursor;add(phase,id,'phase',name,owner,start,start+tasks.length*4-1,i===0?'done':'todo');
+    const taskIds=tasks.map((title,j)=>{const tid=`${phase}-t${j+1}`,who=members[(i+j)%members.length];add(tid,phase,'task',title,who,cursor,cursor+3,i===0?'done':i===1&&j===0?'doing':'todo');cursor+=4;return tid;});
+    taskIds.slice(1).forEach((to,j)=>d.deps.push({id:`${to}-dep`,from:taskIds[j],to,type:'FS',lag:0,enf:'hard',cond:null,overridden:false}));
+    d.gates[phase]={criteria:'任務與營運條件完成後確認',approver:users[reviewer].name,status:i===0?'approved':'pending',by:i===0?reviewer:null,at:i===0?'2026/09/10':null};
+  });
+  d.nodes[id].end=S(cursor-1);d.nodes[id].due=S(cursor+10);
+  return id;
+}
+function seedIndustryCompany(id) {
+  const meta=COMPANY_META[id], def=COMPANY_SEEDS[id], owner=meta.defaultUserId;
+  const departments=def.departments.map((name,i)=>({id:`${id}-d${i}`,name,head:null}));
+  const users=Object.fromEntries(def.members.map(([uid,name,role,i])=>[uid,{name,short:name==='資訊室'?'IT':name.slice(-1),role,dept:departments[i].id,title:departments[i].name+'／'+ROLES[role],color:def.color,scope:[...def.phases,...def.secondary].map(p=>p[0])}]));
+  Object.entries(users).filter(([,u])=>['owner','reviewer'].includes(u.role)).forEach(([uid,u])=>departments.find(d=>d.id===u.dept).head=uid);
+  const d={v:6,departments,nodes:{},deps:[],gates:{},docs:[],templates:[],workflows:[],overrides:[],policy:'hybrid',seq:1000,erpSynced:0,reportFields:[],reports:[],notes:[],attachments:[],ops:{suppliers:[],materials:[],formulas:[],pos:[],wos:[],records:{}}};
+  def.titles.forEach((title,i)=>buildIndustryProject(d,{id:`${id}-p${i+1}`,title,phases:i?def.secondary:def.phases,users,owner,color:def.color}));
+  d.workflows=def.workflows.map((name,i)=>buildIndustryWorkflow({id:`${id}-wf${i+1}`,name,phases:i?def.secondary:def.phases,departments}));
+  const tasks=Object.values(d.nodes).filter(n=>n.type==='task'),first=tasks[0],target=tasks.find(n=>n.status==='todo');
+  const [module,recordId,initial,need]=def.blocker;
+  def.modules.forEach(([mid,label,title],i)=>{d.ops.records[mid]=[{id:mid===module?recordId:`${id.toUpperCase()}-${mid}-01`,title,status:mid===module?initial:'進行中',node:target.id,owner,amount:120000+i*35000,date:'2026-10-15',progress:mid===module?20:60,description:label+'展示紀錄'}];});
+  target.links.push({t:module,id:recordId});
+  d.deps.push({id:`${id}-ops-dep`,from:null,to:target.id,type:'FS',lag:0,enf:'hard',cond:{kind:'ops',module,id:recordId,field:'status',need,label:def.modules.find(x=>x[0]===module)[2]},overridden:false});
+  d.reports.push({id:`${id}-r1`,node_id:first.id,version:1,result:'met',summary:first.title+'已完成，相關結果已確認。',finished_on:first.end,fields:[],status:'approved',submitted_by:first.owner,submitted_at:'2026/09/10 16:00',reviewed_by:owner,reviewed_at:'2026/09/11 09:00',review_comment:'符合本階段要求',self_approved:false});
+  d.notes.push({id:`${id}-nt1`,node_id:target.id,body:'等待'+def.modules.find(x=>x[0]===module)[2]+'，完成後接續執行。',author:owner,created_at:'2026/09/29 10:00',edited_at:null});
+  d.docs.push({id:`${id}-doc1`,node:first.parent,title:'專案範圍與交付',level:'internal',versions:[{v:1,by:owner,at:'2026/09/01',body:'# '+def.titles[0]+'\n\n'+def.phases.map(p=>'- '+p[0]).join('\n')}]});
+  const access=Object.keys(users).filter(uid=>['owner','admin'].includes(users[uid].role));
+  return {...meta,me:owner,users,fieldAccess:{cost:[...access],price:[...access],ratio:[...access]},tags:[...def.departments],tagDept:Object.fromEntries(departments.map(d=>[d.name,d.id])),opsConfig:{mode:'generic',title:meta.name+'營運資料',modules:def.modules.map(([id,label])=>({id,label}))},db:d,audit:{acts:[{at:'2026/09/29 10:00',actor:owner,node:first.id,action:'階段確認',text:first.title+'已完成確認'}],ai:[],sync:[],notes:[]}};
 }
 function seedPortfolio() { return {v:6,activeCompanyId:'petfood',companies:Object.fromEntries(COMPANY_ORDER.map(id=>[id,seedCompany(id)]))}; }
 function validCompanyState(x, id) {
@@ -981,9 +1060,9 @@ function save() {
   portfolio=candidate; return true;
 }
 function resetTransientCompanyUI() {
-  const userId=ui.me;
+  const userId=ui.me, firstProject=projects().find(visible)?.id||null;
   Object.keys(ui).forEach(k=>delete ui[k]);
-  Object.assign(ui,{me:userId,page:'overview',node:projects().find(visible)?.id||null,tab:'board',expanded:{},scale:'week',cascade:true,crit:false,chat:[],opsTab:OPS_CONFIG.mode==='petfood'?'suppliers':OPS_CONFIG.modules[0]?.id||'',opsSel:null,docsAll:false,connect:null,fv:[3,4],trace:'',gsel:null,tlDept:'all'});
+  Object.assign(ui,{me:userId,page:'overview',node:firstProject,tab:'board',expanded:{},scale:'week',cascade:true,crit:false,chat:[],opsTab:OPS_CONFIG.mode==='petfood'?'suppliers':OPS_CONFIG.modules[0]?.id||'',opsSel:null,docsAll:false,connect:null,fv:[3,4],trace:'',gsel:null,tlDept:'all'});
   undoStack.length=0; drag=null; dragId=null; TL=null;
   closeDlg(); closeDrawer(); $('dlg').innerHTML=''; $('drawer').innerHTML='';
   $('app').classList.remove('side-open','ai-open');
@@ -2652,7 +2731,7 @@ function riskText(p) {
   const waitPO = db.deps.filter((d) => d.cond && !condMet(d.cond) && node(d.to) && projectOf(node(d.to)).id === p.id);
   const parts = [];
   if (late.length) parts.push(`${late.slice(0, 2).map((x) => `「${x.title}」`).join('、')}已超過預定完成日${late.length > 2 ? `（共 ${late.length} 項）` : ''}。`);
-  waitPO.forEach((d) => { const po = db.ops.pos.find((x) => x.id === d.cond.id); parts.push(`「${node(d.to).title}」需等 ${po.id} 到貨（預計 ${md(po.expected)}）。`); });
+  waitPO.forEach((d) => { const po = d.cond.kind === 'po' && db.ops.pos.find((x) => x.id === d.cond.id); parts.push(po ? `「${node(d.to).title}」需等 ${po.id} 到貨（預計 ${md(po.expected)}）。` : `「${node(d.to).title}」等待${d.cond.label || d.cond.id}。`); });
   parts.push(sl.days ? `依相依關係推算，「${sl.target.title}」預估延後 ${sl.days} 天（${md(S(sl.planned))} → ${md(S(sl.projected))}）。` : '依相依關係推算，目前可如期完成。');
   return parts.join('');
 }
