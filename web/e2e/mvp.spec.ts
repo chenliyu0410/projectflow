@@ -83,17 +83,22 @@ for (const width of [1280, 375]) {
       await ming.getByLabel('節點樹').getByRole('button', { name: own.title }).click();
       await expect(ming.getByLabel('節點路徑')).toHaveText(`成貓主食罐正式版 / ${own.title}`);
       await expect(ming.getByLabel('節點樹')).not.toContainText(hidden.title);
-      await ming.getByRole('combobox', { name: `${own.title}狀態` }).selectOption('review');
-      await expect(ming.getByLabel('節點詳情').getByRole('combobox', { name: `${own.title}狀態` })).toHaveValue('review');
-      const report = await ming.request.post(`/api/nodes/${own.id}/reports`, { data: { result: 'pass', summary: `P1c ${randomUUID()}` } });
+      await ming.getByRole('combobox', { name: `${own.title}狀態` }).selectOption('todo');
+      await expect(ming.getByLabel('節點詳情').getByRole('combobox', { name: `${own.title}狀態` })).toHaveValue('todo');
+      const reportProject = await yu.request.post('/api/projects', { data: { title: `P2b role report ${randomUUID()}` } });
+      expect(reportProject.status()).toBe(201);
+      const reportTask = await yu.request.post(`/api/projects/${(await reportProject.json()).id}/nodes`, { data: { title: '角色回報任務', kind: 'task', owner_user_id: memberId } });
+      expect(reportTask.status()).toBe(201);
+      const reportNodeId = (await reportTask.json()).id;
+      const report = await ming.request.post(`/api/nodes/${reportNodeId}/reports`, { data: { result: '達成', summary: `P2b ${randomUUID()}`, finished_on: '2026-10-08' } });
       expect(report.status()).toBe(201);
       const reportId = (await report.json()).id;
-      const audit = await ming.request.get('/api/audit-logs');
+      const audit = await ming.request.get(`/api/audit-logs?node_id=${reportNodeId}&action=report.submit`);
       expect(audit.status()).toBe(200);
-      expect((await audit.json()).items.some((log: { action: string; node_id: string; organization_key: string; actor_username: string; payload: { report_id?: string } }) =>
-        log.action === 'report.submit' && log.node_id === own.id && log.organization_key === 'food' && log.actor_username === 'ming' && log.payload.report_id === reportId)).toBe(true);
+      expect((await audit.json()).items.some((log: { action: string; node_id: string; organization_key: string; actor_display_name: string; payload: { report_id?: string } }) =>
+        log.action === 'report.submit' && log.node_id === reportNodeId && log.organization_key === 'food' && log.actor_display_name === '明成員' && log.payload.report_id === reportId)).toBe(true);
       expect((await ming.request.patch(`/api/nodes/${hidden.id}/status`, { data: { status: 'doing' } })).status()).toBe(403);
-      expect((await ming.request.post(`/api/nodes/${hidden.id}/reports`, { data: { result: 'pass', summary: '越權' } })).status()).toBe(403);
+      expect((await ming.request.post(`/api/nodes/${hidden.id}/reports`, { data: { result: '達成', summary: '越權', finished_on: '2026-10-08' } })).status()).toBe(404);
       await snapshot(ming, 'ming');
 
       const title = `P1c E2E ${width} ${randomUUID()}`;
@@ -131,7 +136,7 @@ for (const width of [1280, 375]) {
       await expect(readonly.getByRole('button', { name: '核准閘門' })).toHaveCount(0);
       expect((await readonly.request.post('/api/projects', { data: { title: '唯讀' } })).status()).toBe(403);
       expect((await readonly.request.patch(`/api/nodes/${task.id}/status`, { data: { status: 'done' } })).status()).toBe(403);
-      expect((await readonly.request.post(`/api/nodes/${task.id}/reports`, { data: { result: 'pass', summary: '唯讀' } })).status()).toBe(403);
+      expect((await readonly.request.post(`/api/nodes/${task.id}/reports`, { data: { result: '達成', summary: '唯讀', finished_on: '2026-10-08' } })).status()).toBe(403);
       expect((await readonly.request.patch(`/api/gates/${gate.id}`, { data: { status: 'approved' } })).status()).toBe(403);
       await snapshot(readonly, 'readonly');
 
@@ -149,13 +154,15 @@ for (const width of [1280, 375]) {
       const otherWorkflow = await electronics.request.get(`/api/projects/${(await otherCreated.json()).id}`);
       expect(otherWorkflow.status()).toBe(200);
       const otherGate = (await otherWorkflow.json()).gates[0];
-      const otherReport = await electronics.request.post(`/api/nodes/${otherNode.id}/reports`, { data: { result: 'pass', summary: '電子公司' } });
+      const otherTask = await electronics.request.post(`/api/projects/${otherId}/nodes`, { data: { title: `電子回報 ${randomUUID()}`, kind: 'task' } });
+      expect(otherTask.status()).toBe(201);
+      const otherReport = await electronics.request.post(`/api/nodes/${(await otherTask.json()).id}/reports`, { data: { result: '達成', summary: '電子公司', finished_on: '2026-10-08' } });
       expect(otherReport.status()).toBe(201);
       const otherReportId = (await otherReport.json()).id;
       for (const page of [yu, chen, ming, readonly]) {
         expect((await page.request.get(`/api/projects/${otherId}?organization_key=electronics`)).status()).toBe(404);
         expect((await page.request.patch(`/api/nodes/${otherNode.id}/status`, { data: { status: 'doing' } })).status()).toBe(404);
-        expect((await page.request.post(`/api/nodes/${otherNode.id}/reports`, { data: { result: 'pass', summary: '跨公司' } })).status()).toBe(404);
+        expect((await page.request.post(`/api/nodes/${otherNode.id}/reports`, { data: { result: '達成', summary: '跨公司', finished_on: '2026-10-08' } })).status()).toBe(404);
         expect((await page.request.patch(`/api/gates/${otherGate.id}`, { data: { status: 'approved' } })).status()).toBe(404);
         const scoped = await page.request.get('/api/audit-logs?organization_key=electronics');
         expect(scoped.status()).toBe(200);

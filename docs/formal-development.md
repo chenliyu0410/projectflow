@@ -34,7 +34,7 @@ python deploy/start.py --acceptance --seed-demo
 api/.venv/Scripts/python.exe deploy/verify.py --keep-running
 ```
 
-依序執行隔離啟動（明確seed）、pytest、Vitest、build、Playwright。子程序的 `PF_BASE_URL` 來自隔離launcher回傳值，覆蓋傳入的共享網址，不修改呼叫端的環境變數。15175為目前驗收設定；合法的其他loopback驗收埠仍須marker確認。每階段失敗後停止後續測試，保留失敗exit code；orchestration錯誤只顯示固定訊息，不輸出Docker錯誤中的私密設定。
+依序執行隔離啟動（明確seed）、專用PG遷移／並行驗收、pytest、Vitest、build、Playwright。子程序的 `PF_BASE_URL` 來自隔離launcher回傳值，覆蓋傳入的共享網址，不修改呼叫端的環境變數。15175為目前驗收設定；合法的其他loopback驗收埠仍須marker確認。每階段失敗後停止後續測試，保留失敗exit code；orchestration錯誤只顯示固定訊息，不輸出Docker錯誤中的私密設定。
 
 不加 `--keep-running` 時，已成功啟動的驗收stack會在finally以固定 `projectflow-acceptance`／私密env／Compose檔執行 `down`，不帶 `-v`，不停止primary、不刪歷史專案。測試已失敗時，清理失敗不覆蓋原exit code；只有清理失敗也會回非零。若啟動本身失敗，命令不執行down，可能留下部分驗收服務，請檢查該隔離專案後再重試。
 
@@ -202,7 +202,7 @@ Invoke-WebRequest -Uri "$base/gates/<gate id>" -Method Patch -ContentType 'appli
 完成回報 API：
 
 ```powershell
-Invoke-WebRequest -Uri "$base/nodes/<node id>/reports" -Method Post -ContentType 'application/json' -Body '{"result":"達成","summary":"已完成測試"}' -WebSession $pf
+Invoke-WebRequest -Uri "$base/nodes/<node id>/reports" -Method Post -ContentType 'application/json' -Body '{"result":"達成","summary":"已完成測試","finished_on":"2026-10-08"}' -WebSession $pf
 Invoke-WebRequest -Uri "$base/audit-logs" -WebSession $pf
 ```
 
@@ -222,7 +222,7 @@ Playwright 預設使用 `http://127.0.0.1:15175`；`PF_BASE_URL` 只接受 loopb
 | lin / readonly | 公司內節點與閘門 | 狀態、回報、建立皆 403 | 403 |
 | 跨公司 ID | 專案 404 | 節點狀態／回報 404 | 閘門 404 |
 
-前端將父節點不在回應內的可見任務顯示為可選根節點，麵包屑在缺少父節點處停止。回報與稽核仍為 **API-only**，測試使用各角色真實登入的同 context cookie 呼叫，不代表已提供回報／稽核畫面。稽核 API 保持既有公司範圍，不新增節點權限規則。
+前端將父節點不在回應內的可見任務顯示為可選根節點，麵包屑在缺少父節點處停止。P1c當時回報與稽核為 **API-only**，測試使用各角色真實登入的同 context cookie 呼叫，當時尚無回報／稽核畫面與新增節點範圍規則；P2b介面與安全投影見文末。
 
 瀏覽器驗收於 1280 與 375 寬度分別以 yu、chen、ming、lin、elaine 獨立 context 登入，檢查節點樹／看板、部門與本人狀態更新、report.submit 稽核、閘門 409→核准→更新、唯讀與跨公司邊界，並保存截圖、檢查水平 overflow 與瀏覽器錯誤。Seed 節點狀態先 snapshot，finally 由 yu 恢復並比對完整節點回應；隔離環境的新增專案／回報／稽核保留。共享 15173 僅做登入與唯讀檢查。
 
@@ -253,3 +253,33 @@ Playwright 預設使用 `http://127.0.0.1:15175`；`PF_BASE_URL` 只接受 loopb
 Alembic `20261008_0002`新增nullable DATE `start_date`／`due_date`及日期順序CHECK，升級不改舊ID、status、關聯或稽核，舊日期皆null。已有環境用`python deploy/start.py`升級，不加seed、不重建env或刪volume。不要在primary或已保存日期的驗收DB降版；migration保留資料測試使用全新的`p2a_migration_*`專用資料庫，從0001填fixture後升head，另驗日期CHECK與保存。主機API測試預設只跑SQLite，未設定`P2A_MIGRATION_TEST_URL`時PG案例會skip；完整PG證據另記PROGRESS，不能把skip當通過。
 
 P2a隔離E2E覆蓋1280／375建立四層、日期清除／保存、指派、重新登入、成員編輯與唯讀拒絕；另驗真實兩公司、多角色、深層Gate與可見完成率。任何寫入前拒絕15173並檢查acceptance marker。瀏覽器只精確允許每次頁面初始me401及刻意觸發的Gate409，其他HTTP／console／pageerror須0。正常stop/start隔離服務不seed，完整專案detail需與停機前一致。人類試用項目仍由人類簽核。
+
+## P2b 回報、協作與持久附件
+
+P2b功能已實作，正在整合驗收；最終審查／合併／15173升級狀態見PROGRESS。任務預設開啟紀錄，提供完成回報卡、歷史版本、筆記、附件及協作設定；主導覽新增審核中心與稽核紀錄。紀錄／審核／稽核分頁游標讀取，先授權再篩選，點擊來源回正確節點；不補查隱藏祖先。
+
+**相容性變更**：task的一般status PATCH只處理todo／doing；review必須送出回報、done必須確認回報，不能直接PATCH繞過。POST `/nodes/{id}/reports`必填result（達成／部分達成／未達成）、summary及finished_on，可附attachment_ids；送出建立不可變新版本並進review。POST `/reports/{id}/review`使用approved／rejected，退回必填comment並回doing，新送出另建版本。管理者明確選「送出並確認」才自核；一般任務owner不能自行審核。POST `/nodes/{id}/lifecycle`為skip／reopen／restore且必填reason；不遞迴改子樹，不覆寫Gate。
+
+新增GET `/nodes/{id}/records`、POST `/nodes/{id}/notes`、PATCH `/notes/{id}`、GET／PUT `/nodes/{id}/collaborators`、GET `/workspace/reviews`與安全分頁GET `/audit-logs`。筆記只由作者修改，expected_revision防覆寫；協作替換也須expected_revision。指定協作者／指定部門主管可讀寫本節點紀錄、送回報，沒有新增的狀態／metadata／Gate操作權，不自動取得子樹權限。我的任務列出本人負責或協作task。移除協作後每次讀取／下載重新授權；readonly仍不可寫。舊版本所述report／audit API-only與公司全範圍稽核為歷史紀錄，P2b改以當下可見節點與安全欄位投影為準。
+
+附件使用raw bytes POST `/nodes/{id}/attachments?filename=...`，不使用multipart。GET `/attachments/{id}/download`每次驗權，強制attachment及nosniff、不提供公開URL或內嵌預覽；DELETE同路徑只軟刪，已提交回報附件一律鎖定不可刪。允許pdf/png/jpg/jpeg/txt/csv/docx/xlsx/pptx/zip，單檔10,000,000 bytes，API驗內容與檔名；不提供病毒掃描。公司quota預設1,000,000,000 bytes（PF_ATTACHMENT_QUOTA_BYTES）；pending也預留容量，軟刪不釋放容量或刪實體。GET `/nodes/{id}/attachment-quota`供當下可上傳者看公司剩餘容量。上傳失敗請先讀取確認，不自動重送。
+
+migration `20261008_0003`接0002，保留既有ID、status、日期、關聯及稽核；舊回報新流程欄位保持null，顯示「歷史回報（未納入新審核流程）」，不入新待審隊列、不重寫舊回報。新版回報從v1起。升級前停止API，保存同一時間點DB與files備份及既有env指紋，之後用`python deploy/start.py`升級，不seed、不覆寫env、不降版補救。新增files volume，固定UID/GID10001與0700目錄由映像首次copy-up設定；已有volume不遞迴改ownership，錯誤需保留資料處理。
+
+**完整驗收**：`api/.venv/Scripts/python.exe deploy/verify.py`先啟動隔離環境，強制在acceptance API容器內建立唯一`p2b_test_<uuid>`資料庫，先跑0002→0003保留資料／約束，再跑真PG雙連線回報、審核、筆記、協作與附件配額競態。DSN只在容器子程序，檔案使用獨立temp root；任何skip、無案例、連線／建立DB或測試失敗均使整體非零。接著跑主機API／Vitest／build／E2E，主機測試移除繼承的DATABASE_URL、P2A／P2B測試URL及附件root，避免連到既存資料。主機套件中的PG條件skip由前述強制實跑補足；專用資料庫保留作證據。結束down不加-v，保留acceptance_pgdata與acceptance_files；不清primary。
+
+### 備份與pending離線恢復
+
+DB與files是同一份業務資料，必須成套備份及還原。先停止對應stack API以凍結寫入，再由資料庫工具pg_dump備份DB並完整複製該stack的files volume，保留時間、migration版本、env指紋與附件SHA清單；既有檔案含軟刪內容，不可prune。還原時停止API、核對相同備份組與檔案ownership，DB＋files都恢復後檢查ready及SHA再開放。不要單獨恢復DB或只複製附件目錄，也不要在恢復中重新seed或自動downgrade。備份／還原不是本階段提供的一鍵產品介面。
+
+只有已查明的pending／failed、未綁定且未軟刪附件可執行恢復；停止該stack API後，傳明確公司與附件id。以下是隔離stack範例，運維處理primary時需先備份並改用正確stack設定，不能拿primary跑測試：
+
+```powershell
+docker compose --project-name projectflow-acceptance --env-file .superpowers/p1c/acceptance.env -f deploy/docker-compose.yml stop api
+docker compose --project-name projectflow-acceptance --env-file .superpowers/p1c/acceptance.env -f deploy/docker-compose.yml run --rm --no-deps api python -m app.services.attachment_recovery --organization-id <公司ID> --attachment-id <附件ID> --api-stopped
+docker compose --project-name projectflow-acceptance --env-file .superpowers/p1c/acceptance.env -f deploy/docker-compose.yml start --wait api
+```
+
+命令取獨占runtime鎖，不會清ready／綁定／歷史附件；修復指定未完成檔案、標failed並返還該筆預留容量。失敗保留資料並回非零，不手動刪未知檔案。恢復後重新登入比對既有note/report/附件中繼資料與下載SHA；下載過的副本無法撤回。
+
+仍未交付：自訂回報欄位（P2c）、跳過申請、Gate覆寫、子樹批次操作、時程拖曳、AI／ERP、LAN／TLS與正式備份排程；人類試用簽核不得由自動化代勾。

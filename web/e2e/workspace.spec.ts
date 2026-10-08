@@ -135,8 +135,10 @@ test('P2a nested gate, visible statistics and cross-company metadata boundaries'
     expect((await member.request.get(`/api/workspace/my-tasks?q=${encodeURIComponent(hidden.title)}`)).status()).toBe(200);
     expect((await (await member.request.get(`/api/workspace/my-tasks?q=${encodeURIComponent(hidden.title)}`)).json()).items).toEqual([]);
     expect((await admin.request.patch(`/api/gates/${detail.gates[0].id}`, { data: { status: 'approved' } })).status()).toBe(200);
-    expect((await member.request.patch(`/api/nodes/${visible.id}/status`, { data: { status: 'done' } })).status()).toBe(200);
-    expect((await admin.request.patch(`/api/nodes/${hidden.id}/status`, { data: { status: 'skipped' } })).status()).toBe(200);
+    const report = await member.request.post(`/api/nodes/${visible.id}/reports`, { data: { result: '達成', summary: '深層工作完成', finished_on: '2026-10-08' } });
+    expect(report.status()).toBe(201);
+    expect((await admin.request.post(`/api/reports/${(await report.json()).id}/review`, { data: { decision: 'approved' } })).status()).toBe(200);
+    expect((await admin.request.post(`/api/nodes/${hidden.id}/lifecycle`, { data: { action: 'skip', reason: '驗收略過' } })).status()).toBe(200);
     const summary = (await (await member.request.get('/api/workspace/overview')).json()).projects.find((project: { id: string }) => project.id === projectId);
     expect(summary.task_counts).toEqual({ todo: 0, doing: 0, review: 0, done: 1, skipped: 0 }); expect(summary.completion_percent).toBe(100);
     const foreign = await (await other.request.get('/api/workspace/overview')).json();

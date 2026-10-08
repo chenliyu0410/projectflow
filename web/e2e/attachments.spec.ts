@@ -1,0 +1,81 @@
+import { expect, test, type APIRequestContext } from '@playwright/test';
+import { createHash, randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+
+for (const width of [1280, 375]) {
+  test(`P2b notes collaboration attachments and self approval at ${width}px`, async ({ page, request, playwright, baseURL }, info) => {
+    test.setTimeout(90000);
+    expect(new URL(baseURL!).port).not.toBe('15173');
+    const marker=await request.get('/api/health/acceptance');
+    expect(marker.status()).toBe(200);expect(await marker.json()).toEqual({ acceptance: true });
+    const contexts: APIRequestContext[] = [];
+    const role = async (username: string, organization = 'food') => {
+      const context = await playwright.request.newContext({ baseURL }); contexts.push(context);
+      const marker=await context.get('/api/health/acceptance');
+      expect(marker.status()).toBe(200);expect(await marker.json()).toEqual({acceptance:true});
+      const response = await context.post('/api/auth/login', {data:{organization_key:organization,username,password:`demo-${username}`}});
+      expect(response.status()).toBe(200); return { request:context, user:(await response.json()).user };
+    };
+    const errors: string[] = []; const httpErrors: {path:string;status:number}[] = []; const consoleErrors: {path:string;text:string}[] = [];
+    page.on('pageerror', e => errors.push(String(e)));
+    page.on('response', r => {if(r.status()>=400)httpErrors.push({path:new URL(r.url()).pathname,status:r.status()});});
+    page.on('console', m => {if(m.type()==='error')consoleErrors.push({path:m.location().url ? new URL(m.location().url).pathname:'',text:m.text()});});
+    try {
+      const admin=await role('yu'), member=await role('ming'), readonly=await role('lin'), foreign=await role('elaine','electronics');
+      const title=`P2b files ${randomUUID()}`;
+      const project=await admin.request.post('/api/projects',{data:{title}});expect(project.status()).toBe(201); const pid=(await project.json()).id;
+      const created=await admin.request.post(`/api/projects/${pid}/nodes`,{data:{title:'附件與協作任務',kind:'task',owner_user_id:admin.user.id}});expect(created.status()).toBe(201);const nid=(await created.json()).id;
+      expect((await member.request.get(`/api/nodes/${nid}/records`)).status()).toBe(404);
+      await page.setViewportSize({width,height:900}); await page.goto('/');
+      await page.getByLabel('帳號').fill('yu');await page.getByLabel('密碼').fill('demo-yu');await page.getByRole('button',{name:'登入',exact:true}).click();
+      await expect(page.getByLabel('可見任務完成率',{exact:true})).toBeVisible();
+      if(width===375)await page.getByRole('button',{name:'切換導覽'}).click();
+      await page.getByRole('button',{name:'專案工作區',exact:true}).click();await page.getByLabel('專案清單').getByRole('button',{name:title,exact:true}).click();
+      await page.getByLabel('節點樹').getByRole('button',{name:'附件與協作任務',exact:true}).click();
+      await page.getByRole('button',{name:'協作設定',exact:true}).click();await page.getByRole('checkbox',{name:member.user.display_name,exact:true}).check();await page.getByRole('button',{name:'儲存協作',exact:true}).click();
+      await expect(page.getByRole('button',{name:'協作設定',exact:true})).toBeVisible();
+      await expect(page.getByLabel('協作人員')).toContainText(member.user.display_name);
+      expect((await member.request.post(`/api/nodes/${nid}/notes`,{data:{body:'協作筆記'}})).status()).toBe(201);
+      expect((await member.request.patch(`/api/nodes/${nid}/status`,{data:{status:'doing'}})).status()).toBe(403);
+      const bytes=Buffer.from(`P2b persistent bytes ${randomUUID()}`);const filename=`驗收附件-${'長名稱'.repeat(8)}.txt`;
+      await expect(page.getByLabel('選擇附件',{exact:true})).toBeEnabled();
+      await page.getByLabel('選擇附件',{exact:true}).setInputFiles({name:filename,mimeType:'text/plain',buffer:bytes});
+      const downloadButton=page.getByRole('button',{name:`下載 ${filename}`,exact:true});await expect(downloadButton).toBeVisible();
+      const downloaded=page.waitForEvent('download');await downloadButton.click();const download=await downloaded;
+      expect(createHash('sha256').update(await readFile((await download.path())!)).digest('hex')).toBe(createHash('sha256').update(bytes).digest('hex'));
+      await page.getByLabel('新增筆記',{exact:true}).fill('管理者原始筆記');await page.getByRole('button',{name:'新增筆記',exact:true}).click();
+      await expect(page.getByLabel('筆記',{exact:true})).toContainText('管理者原始筆記');
+      await page.getByRole('button',{name:'修改筆記',exact:true}).click();await page.getByRole('textbox',{name:'編輯筆記',exact:true}).fill('管理者修訂筆記');await page.getByRole('button',{name:'儲存筆記',exact:true}).click();
+      await expect(page.getByLabel('筆記',{exact:true})).toContainText('管理者修訂筆記');
+      const recordData=await (await admin.request.get(`/api/nodes/${nid}/records`)).json();
+      const attachment=recordData.items.find((item:{type:string})=>item.type==='attachment');expect(attachment.sha256).toBe(createHash('sha256').update(bytes).digest('hex'));
+      expect((await foreign.request.get(`/api/attachments/${attachment.id}/download`)).status()).toBe(404);
+      expect((await readonly.request.delete(`/api/attachments/${attachment.id}`)).status()).toBe(403);
+      const reportBytes=Buffer.from('locked report evidence');await expect(page.getByLabel('回報附件',{exact:true})).toBeEnabled();await page.getByLabel('回報附件',{exact:true}).setInputFiles({name:'回報證據.txt',mimeType:'text/plain',buffer:reportBytes});
+      await expect(page.getByLabel('完成回報',{exact:true})).toContainText('上傳完成');
+      await page.getByLabel('成果說明',{exact:true}).fill('管理者自行確認成果');await page.getByLabel('實際完成日',{exact:true}).fill('2026-10-08');await page.getByRole('button',{name:'送出並確認',exact:true}).click();
+      await expect(page.getByLabel('完成回報',{exact:true}).getByRole('heading',{name:'已完成',exact:true})).toBeVisible();
+      await expect(page.getByLabel('完成回報',{exact:true})).toContainText('自行確認');
+      const after=await (await admin.request.get(`/api/nodes/${nid}/records`)).json();
+      const report=after.items.find((item:{type:string})=>item.type==='report');expect(report).toMatchObject({status:'approved',self_approved:true});
+      expect(report.attachments).toHaveLength(1);expect((await admin.request.delete(`/api/attachments/${report.attachments[0].id}`)).status()).toBe(409);
+      await page.getByRole('button',{name:`移除 ${filename}`,exact:true}).click();await expect(downloadButton).toHaveCount(0);
+      expect((await admin.request.get(`/api/attachments/${attachment.id}/download`)).status()).toBe(404);
+      await page.getByRole('button',{name:'協作設定',exact:true}).click();await page.getByRole('checkbox',{name:member.user.display_name,exact:true}).uncheck();await page.getByRole('button',{name:'儲存協作',exact:true}).click();
+      await expect(page.getByLabel('協作人員')).toContainText('尚未設定協作');expect((await member.request.get(`/api/nodes/${nid}/records`)).status()).toBe(404);
+      const audit=await admin.request.get(`/api/audit-logs?node_id=${nid}`);expect(audit.status()).toBe(200);const auditText=await audit.text();
+      expect(auditText).not.toMatch(/storage_key|password_hash|session_token|\/var\/lib/);expect(auditText).toContain('note.update');
+      if(width===375)await page.getByRole('button',{name:'切換導覽'}).click();
+      await page.getByRole('button',{name:'稽核紀錄',exact:true}).click();
+      await page.getByRole('combobox',{name:'事件類型',exact:true}).selectOption('note.update');
+      const auditRow=page.getByRole('article').filter({hasText:title});
+      await expect(auditRow).toContainText('管理者修訂筆記');
+      await auditRow.getByRole('button',{name:'附件與協作任務',exact:true}).click();
+      await expect(page.getByLabel('節點詳情')).toContainText('附件與協作任務');
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+      expect(errors).toEqual([]);expect(httpErrors).toEqual([{path:'/api/auth/me',status:401}]);expect(consoleErrors).toHaveLength(1);expect(consoleErrors[0].path).toBe('/api/auth/me');expect(consoleErrors[0].text).toMatch(/^Failed to load resource:.*status of 401/);
+      await page.screenshot({path:info.outputPath(`attachments-${width}.png`),fullPage:true});
+    await page.getByLabel('節點詳情').screenshot({path:info.outputPath(`attachments-detail-${width}.png`)});console.log(`P2b attachments ${width}: hash match, noOverflow, unexpected browser errors=0`);
+    } finally {for(const context of contexts)await context.dispose();}
+  });
+}

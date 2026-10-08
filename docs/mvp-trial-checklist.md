@@ -37,7 +37,7 @@ Primary入口為 `http://127.0.0.1:15173`，驗收入口為 `http://127.0.0.1:15
 | electronics | elaine／demo-elaine | admin；驗證公司資料隔離 |
 | electronics | kai／demo-kai | member；沿用本人節點可見性 |
 
-權限由真實session cookie與API判斷，前端公司欄位／角色顯示不能擴大資料範圍。回報與稽核目前為API-only，沒有回報／稽核管理畫面；稽核沿用公司範圍。真AI／雲端AI、ERP、AD／LDAP、完整RAG、文件／附件儲存與LAN／TLS正式部署不在本輪交付。
+權限由真實session cookie與API判斷，前端公司欄位／角色顯示不能擴大資料範圍。P2b已實作回報／審核／筆記／協作／持久附件與稽核介面，整合驗收及發布狀態見PROGRESS；稽核依可見節點及安全欄位投影。真AI／雲端AI、ERP、AD／LDAP、完整RAG、文件版本與LAN／TLS正式部署不在本輪交付。
 
 ## 自動驗證
 
@@ -75,7 +75,7 @@ G4預設verify另實跑：API `80 passed,1 warning in 38.36s`、Vitest56、build
 - [ ] 新機器clone後依文件安裝／啟動並執行驗收，記錄環境與結果。
 - [ ] 試用者自行登入yu、chen、ming與lin，確認工作流程符合團隊日常需求。
 - [ ] 試用者於桌面與手機查看樹、看板與閘門提示，確認閱讀與操作體驗。
-- [ ] 試用者理解回報／稽核為API-only及本輪未提供的功能，接受本機MVP試用範圍。
+- [ ] 試用者理解目前回報／稽核介面與仍未提供的功能，接受本機MVP試用範圍。
 - [ ] 管理者確認正式帳號、密碼、備份／還原、LAN／TLS與安全部署另行規劃，不沿用示範憑證發布。
 - [ ] 試用負責人記錄意見、簽核日期與下一步；自動化通過不代替此項。
 
@@ -93,3 +93,19 @@ P2a實跑記錄：隔離Playwright 9 passed (16.8s)，涵蓋四層建立、日�
 - [ ] 桌面及手機試用總覽、折疊導覽、樹、麵包屑與下一層看板，確認操作體驗。
 - [ ] 確認「可見任務完成率」只算可見task，略過不進分母；日期不代表已有時程拖曳或自動排程。
 - [ ] 試用負責人記錄P2a意見、日期與簽核；理解P2b–P2d、LAN／TLS仍未交付。
+
+## P2b 工程驗收與人類試用
+
+P2b工程整合驗收進行中，最終審查、G6回歸及保留資料部署以PROGRESS為準。Task1前移旅程已取得真RED（a76bdb1；1280／375缺成果說明），Task8沿同旅程驗送出→退回→新版本→他人確認。新增驗收案例屬回歸，不破壞產品製造RED；verify新增強制PG階段另有真RED／GREEN。
+
+Task8實跑：verify新增強制PG階段先取得真RED（2 failed、35 deselected，exit1），實作後部署測試39 passed。完整`deploy/verify.py`最終exit0：唯一`p2b_test_326c1ff802db42519aeb33f368efee17`先migration 1 passed（0.56s）、再真API競態3 passed（1.94s），兩階段不允許skip；主機API 337 passed／5 conditional skipped／5 warnings（265.53s）、Vitest148、build0、E2E13 passed（34.1s）。PG skip故障注入另確認整體非零、不執行後續API race。初次完整E2E稽核selector逾時為11 passed／2 failed，改用語意combobox定位後定點與完整重跑通過，保留失敗證據。
+
+1280／375涵蓋前移回報旅程GREEN、管理者自核、協作增撤、筆記修訂、下載SHA、附件軟刪／回報鎖定、跨公司及唯讀拒絕、稽核安全投影／事件篩選／來源返回；精確允許初始auth/me401，非預期HTTP／console／pageerror皆0、無水平溢出。唯一資料的project／note／report／attachment及SHA於正常stop/start（不seed）前後一致；隔離offline pending修復後failed、partial檔移除、quota返還且ready綁定附件及SHA保留。最終cleanup容器清單空，`projectflow-acceptance_pgdata`與`projectflow-acceptance_files`保留；本Task未寫primary。詳細log、snapshot與截圖在ignored `.superpowers/p2b/task8-*`，人類項目仍未簽核。
+
+- [ ] 試用者在桌面／手機送出成果、閱讀退回意見、重送新版本，由另一位有權者確認完成。
+- [ ] 管理者試用明確「送出並確認」、附理由重開／略過／恢復，確認不會繞過Gate。
+- [ ] 指定協作者新增紀錄／筆記、作者修改筆記；撤銷協作後確認不可繼續讀取或下載，理解不擴張狀態與子樹權限。
+- [ ] 上傳、下載並核對附件；確認回報附件鎖定、非回報附件軟刪與容量不自動釋放的規則。
+- [ ] 查看審核中心、稽核篩選與游標載入，確認僅見授權範圍、來源導航正確。
+- [ ] 管理者確認DB＋files一致備份、公司quota、停止API後pending修復流程；理解沒有預覽／病毒掃描或公開下載連結。
+- [ ] 試用負責人記錄日期、意見與簽核，理解自訂欄位、跳過申請、Gate覆寫及P2c以後仍未交付。

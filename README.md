@@ -35,6 +35,7 @@
 | P1a 正式版後端核心 | ✅ 完成並發布GitHub main | 登入/session、公司隔離、P1a migration與seed、Project／Node／Department／Workflow／Gate／Report／Audit API完成；API 35項、Vitest 6項、Playwright 4項、build與真PostgreSQL migration／seed smoke通過。[P1a計畫](docs/superpowers/plans/2026-10-08-p1a-backend-core.md) |
 | P1b → P1c 正式版MVP | 本機工程交付與自動驗收通過；人類試用待簽核 | 登入、節點／看板、工作流／閘門、角色隔離、一鍵啟動與隔離驗收命令已實作；逐Task及整體獨立審查通過。[試用清單](docs/mvp-trial-checklist.md) |
 | P2a 完整任務工作區 | ✅ 工程交付完成；人類試用待簽核 | 總覽、我的任務、多層節點、新增／編輯、指派、可空日期與深層Gate已實作；六Task與G4獨立審查、main隔離回歸及本機部署通過；發布紀錄見PROGRESS。[P2a規格](docs/superpowers/specs/2026-10-08-p2a-task-workspace-design.md) |
+| P2b 回報與協作 | 工程整合驗收進行中；人類試用待簽核 | 回報送審／退回／確認、筆記、指定協作、持久附件、審核中心與安全稽核已實作；最終審查、合併與發布以PROGRESS為準。 |
 
 **目前做到哪裡**
 
@@ -42,7 +43,7 @@
 - 目前測試基準：`tests/records.html` 為 `全部通過 174/174`（W6：既有 149 項加 25 項公司測試）。
 - W3 依 2026-10-05 人類指示改成「先完成功能架構」：系統支援工作流模板、從工作流建立專案、階段關卡；每個部門的實際工作流內容可由使用者之後自行添加。
 - Demo 走查已通過；最後只等人類確認可以拿來展示，以及決定 D43（工作流編輯器是否要做成表單式，不擋展示）。
-- 正式版P0至P1c本機MVP工程交付與自動驗收已通過，提供可重複執行的隔離驗收命令。API 80項、Vitest 56項、Playwright 6項與build通過，逐Task及整體獨立審查完成，見[試用清單](docs/mvp-trial-checklist.md)。P2a已依D56完成：API182項、Vitest96項、Playwright9項及build通過，真PostgreSQL升級保留資料與隔離重啟驗證通過；人類試用簽核仍未完成。P2b回報協作介面、P2c時程流程、P2d其餘模組與LAN／正式部署仍未交付。
+- 正式版P0至P1c本機MVP工程交付與自動驗收已通過，提供可重複執行的隔離驗收命令。API 80項、Vitest 56項、Playwright 6項與build通過，逐Task及整體獨立審查完成，見[試用清單](docs/mvp-trial-checklist.md)。P2a已依D56完成：API182項、Vitest96項、Playwright9項及build通過，真PostgreSQL升級保留資料與隔離重啟驗證通過；人類試用簽核仍未完成。P2b已依D59–D64核准實作並進行整合驗收；P2c時程流程、P2d其餘模組與LAN／正式部署仍未交付。
 - 本機入口：[正式版](http://127.0.0.1:15173)，P2a已部署並提供總覽／我的任務／專案工作區，其他組員照[正式版開發指南](docs/formal-development.md)啟動自己的環境。以food公司的yu／demo-yu登入，可瀏覽專案、更新狀態、核准閘門及從模板建立專案；chen／ming／lin種子帳號與角色見開發指南。HttpOnly cookie識別公司，登入後沒有前端公司切換。P2a新增管理者建節點／改派、可見執行者編輯名稱日期，以及可見任務完成率done／(task−skipped)，分母0顯示「—」；日期可空，時程拖曳仍未提供。真AI／ERP／AD／完整RAG不在本輪MVP，不能用Demo驗收代替正式版驗收。
 
 **階段發布規則（2026-10-08，D50）**：每完成一段工作，先更新本 README 的「已完成／目前階段／下一步」與 PROGRESS，通過該段驗證及審查後合併並推送 GitHub `main`。規劃草稿與已實作功能分開標示，不把未執行測試寫成通過。
@@ -144,7 +145,7 @@ python deploy/start.py --seed-demo
 api/.venv/Scripts/python.exe deploy/verify.py --keep-running
 ```
 
-此命令依序啟動獨立 `projectflow-acceptance`、跑API／Vitest／build／E2E，預設入口為15175，不向共享15173寫入測試專案。拿掉 `--keep-running` 會在結束後停止驗收服務，但保留驗收資料庫volume。失敗會回傳非零exit code；詳見[試用驗收清單](docs/mvp-trial-checklist.md)。目前只交付loopback本機MVP，回報／稽核為API-only；真AI、ERP、AD、LAN正式部署不在本輪範圍，人類試用簽核仍待完成。
+此命令依序啟動獨立 `projectflow-acceptance`、先跑專用PostgreSQL遷移與並行驗收，再跑API／Vitest／build／E2E，預設入口為15175，不向共享15173寫入測試專案。拿掉 `--keep-running` 會在結束後停止驗收服務，但保留驗收DB與files兩個volume。失敗會回傳非零exit code；詳見[試用驗收清單](docs/mvp-trial-checklist.md)。目前只交付loopback本機MVP；P2b新增回報／審核／筆記／附件／協作／稽核介面，正式發布狀態以PROGRESS為準；真AI、ERP、AD、LAN正式部署不在本輪範圍，人類試用簽核仍待完成。
 
 ### 獨立 Demo
 
@@ -680,12 +681,12 @@ sync_logs
 
 ### 6.2 正式產品軌 MVP 與後續架構
 
-架構圖的橘色代表正式產品軌。P0至P1c已實作本機MVP核心，其餘仍為後續目標：
+架構圖的橘色代表正式產品軌。P0至P2a已交付，P2b已實作並進行整合驗收；本機架構與其餘目標如下：
 
-- Web：React + TypeScript已提供登入、節點樹、看板、工作流建立與閘門操作。
+- Web：React + TypeScript提供登入、總覽、我的任務、多層工作區、工作流與Gate；P2b新增回報／筆記／協作／附件、審核中心與稽核介面。
 - API：FastAPI已提供session、公司／角色授權、專案／節點、部門、工作流／閘門、回報／稽核核心API；文件、AI與ERP／AD介面待後續階段。
-- DB：PostgreSQL已保存users、departments、projects、nodes、workflows、gates、reports與audit；ops data待後續階段。
-- Files：MinIO／NAS、任務附件、文件版本與匯入檔尚未實作。
+- DB：PostgreSQL已保存users、departments、projects、nodes、workflows、gates、reports與audit；P2b新增回報版本／審核、筆記、協作與附件中繼資料／quota；ops data待後續階段。
+- Files：P2b任務附件保存於獨立持久files volume，API授權下載及SHA核對；MinIO／NAS、文件版本與匯入檔仍未實作。
 - AI：Ollama／vLLM、AI Gateway、資料分級、遮罩還原、pgvector／RAG尚未實作。
 
 灰色代表後續外部系統整合目標：ERP、AD／LDAP、備份主機或NAS；不屬於本輪MVP。

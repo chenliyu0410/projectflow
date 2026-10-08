@@ -165,6 +165,7 @@ def verification_commands(tmp_path, verify_module, monkeypatch):
         calls.append((args, kwargs))
         return subprocess.CompletedProcess(args, 0)
     monkeypatch.setattr(verify_module, 'start', start)
+    monkeypatch.setattr(verify_module, 'postgresql_acceptance', lambda *args: 0)
     monkeypatch.setattr(verify_module.subprocess, 'run', run)
     monkeypatch.setattr(verify_module.shutil, 'which', lambda name: name)
     return calls
@@ -297,3 +298,46 @@ def test_new_env_includes_attachment_configuration(tmp_path,start_module):
     values=dict(line.split('=',1) for line in path.read_text().splitlines())
     assert values['PF_ATTACHMENT_ROOT']=='/var/lib/projectflow-files'
     assert values['PF_ATTACHMENT_QUOTA_BYTES']=='1000000000'
+
+
+def test_verify_requires_postgresql_before_host_tests(tmp_path, verify_module, verification_commands, monkeypatch):
+    seen=[]
+    monkeypatch.setattr(verify_module,'postgresql_acceptance',lambda *args: seen.append(args) or 0,raising=False)
+    assert verify_module.verify(tmp_path)==0
+    assert len(seen)==1
+    assert seen[0][1]['project']=='projectflow-acceptance'
+
+
+def test_verify_postgresql_failure_stops_host_tests(tmp_path, verify_module, verification_commands, monkeypatch):
+    monkeypatch.setattr(verify_module,'postgresql_acceptance',lambda *args: 6,raising=False)
+    assert verify_module.verify(tmp_path)==6
+    assert len(verification_commands)==2
+    assert verification_commands[-1][0][-1]=='down'
+
+
+def test_verify_clears_inherited_database_and_attachment_targets(tmp_path, verify_module, verification_commands, monkeypatch):
+    for key in ('DATABASE_URL','P2B_TEST_DATABASE_URL','P2A_MIGRATION_TEST_URL','PF_ATTACHMENT_ROOT'):
+        monkeypatch.setenv(key,'private-primary-setting')
+    before=dict(os.environ)
+    assert verify_module.verify(tmp_path)==0
+    for command, options in verification_commands[1:-1]:
+        assert not any(key in options['env'] for key in ('DATABASE_URL','P2B_TEST_DATABASE_URL','P2A_MIGRATION_TEST_URL','PF_ATTACHMENT_ROOT'))
+    assert dict(os.environ)==before
+
+
+def test_postgresql_stage_uses_acceptance_container_stdin_and_propagates_failure(tmp_path,verify_module,monkeypatch):
+    folder=tmp_path/'api/tests';folder.mkdir(parents=True)
+    for name in ('test_migrations.py','test_collaboration_postgresql.py'):
+        (folder/name).write_text('# test fixture')
+    result={'project':'projectflow-acceptance','web_url':'http://127.0.0.1:15175','env_file':str(tmp_path/'.superpowers/p1c/acceptance.env')}
+    runner=MagicMock(return_value=subprocess.CompletedProcess([],6))
+    monkeypatch.setattr(verify_module.subprocess,'run',runner)
+    assert verify_module.postgresql_acceptance(tmp_path,result,{'PF_BASE_URL':result['web_url']})==6
+    command=runner.call_args.args[0];options=runner.call_args.kwargs
+    assert command[:4]==['docker','compose','--project-name','projectflow-acceptance']
+    assert command[-6:-1]==['exec','-T','api','python','-c']
+    assert 'DATABASE_URL' not in options['env']
+    assert set(json.loads(options['input']))=={'test_migrations.py','test_collaboration_postgresql.py'}
+    runner.reset_mock()
+    assert verify_module.postgresql_acceptance(tmp_path,{**result,'project':'projectflow-formal'}, {})==1
+    runner.assert_not_called()
