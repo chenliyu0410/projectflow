@@ -224,3 +224,12 @@ describe('P2a workspace navigation', () => {
     expect(screen.queryByLabelText('節點樹')).not.toBeInTheDocument();
   });
 });
+describe('phase status clarification', () => {
+  it.each([false, true])('explains manual phase status for readonly=%s but not tasks', readonly => {
+    const props = { project: detail, select: vi.fn(), readonly, canApprove: false, disabled: false, mutate: vi.fn() };
+    const { rerender } = render(<NodeWorkspace {...props} selectedNodeId="階段" />);
+    expect(within(screen.getByLabelText('節點詳情')).getByText('階段狀態為手動設定，不代表子任務完成率。')).toBeInTheDocument();
+    rerender(<NodeWorkspace {...props} selectedNodeId="父任務" />);
+    expect(screen.queryByText('階段狀態為手動設定，不代表子任務完成率。')).not.toBeInTheDocument();
+  });
+});
