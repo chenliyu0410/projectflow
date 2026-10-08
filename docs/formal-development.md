@@ -4,7 +4,7 @@
 
 ## 公司邊界
 
-後續業務資料以organization_id識別公司。API從已驗證身分取得可用公司，查詢與外鍵須限制公司；不能信任前端傳來的公司參數。稽核、檔案讀寫與工作流建立同樣受限。P0只有健康檢查，尚無業務API或登入功能。
+業務資料以organization_id識別公司。API從已驗證身分取得可用公司，查詢與外鍵須限制公司；不能信任前端傳來的公司參數。稽核、檔案讀寫與工作流建立同樣受限。P0歷史階段只有健康檢查；目前P1a業務API已完成，P1b Task 1已接登入、session還原、登出及初始專案清單，待獨立審查。
 
 ## 環境需求
 
@@ -36,7 +36,7 @@ npm.cmd --prefix web run build
 npm.cmd --prefix web run dev
 ```
 
-開啟`http://127.0.0.1:15173`。開發代理將`/api`送到`http://127.0.0.1:18000`，不需要放寬跨來源政策。API使用其他埠時，先在同一終端設定`$env:API_PROXY_TARGET = 'http://127.0.0.1:<埠號>'`。未設定資料庫時顯示「無法連線」是預期結果；完整環境以以下Compose步驟為準。
+開啟`http://127.0.0.1:15173`。開發代理將`/api`送到`http://127.0.0.1:18000`，不需要放寬跨來源政策。API使用其他埠時，先在同一終端設定`$env:API_PROXY_TARGET = 'http://127.0.0.1:<埠號>'`。目前前端先確認session，未登入時顯示登入表單；公司預設food，種子帳號見下表。登入後僅傳HttpOnly cookie，不接受前端切換公司或推斷完整操作權限；API為權限權威。專案詳情、節點樹、看板與工作流建立尚待後續Task。
 
 ## 完整容器環境
 
@@ -64,11 +64,13 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml ps
 ```
 
-開啟[專流正式版骨架](http://127.0.0.1:15173)。API存活檢查位於`http://127.0.0.1:18000/health`。前端透過同來源`/api/health/ready`確認真實DB連線；連線正常顯示「已連線」，資料庫不可用時API回503、前端顯示「無法連線」。`/health`不依賴DB。
+開啟[專流正式版](http://127.0.0.1:15173)。現有Compose仍為舊build，P1b Task 4才重建並驗收瀏覽器流程。API存活檢查位於`http://127.0.0.1:18000/health`；`/health`不依賴DB，`/health/ready`確認真實DB連線。P0歷史前端曾透過`/api/health/ready`顯示「已連線」或「無法連線」；目前原始碼主畫面已改為登入與專案清單。
 
 三個服務屬於`projectflow-formal`專案；PostgreSQL只在容器網路內開放，資料保留在`projectflow-formal_pgdata`。對外埠僅綁127.0.0.1。若埠被占用，只改本機`deploy/.env`的`WEB_PORT`／`API_PORT`，不要停掉其他人的服務；開發Vite可用`npm.cmd --prefix web run dev -- --port <空閒埠>`並同步設定API_PROXY_TARGET。本機API與Compose API不能同時占用18000。
 
-## 整合驗收與恢復
+## P0歷史整合驗收與恢復
+
+本節健康頁操作與既有E2E為P0歷史驗收；P1b瀏覽器測試將在Task 4更新，不能用舊build通過結果宣稱P1b通過。
 
 先啟動完整Compose，再逐行執行：
 
