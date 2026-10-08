@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2b 🔨 執行中；G3隔離基準通過** |
+| 目前工作項目 | **P2b 🔍 G4整體審查中；八Task完成** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
-| 下一個動作 | Task7審核中心與稽核UI已雙審Approved；接Task8隔離整合、恢復與文件交付。P2a人類簽核未完成。 |
+| 下一個動作 | 八Task雙審Approved；G4補階段狀態說明後複審，接ff-only／G6隔離回歸與保留資料部署。P2a人類簽核未完成。 |
 | 分支 | `feature/p2b-collaboration`（主checkout、無worktree）；main於feature期間凍結。 |
-| 最新程式 commit | P2b Task7 fix1 `88543a7`；Demo仍W6 `0934e48`未改。 |
+| 最新程式 commit | P2b Task8 fix1 `46859e1`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | P2b Task6 API333passed5skip/268.68s、最終目標37passed/23.06s exit0（首組35passed另存）；Task7 Vitest148passed/build0。P2b旅程E2E先行RED2failed（缺回報UI），尚未交付。 |
-| 資料版本 | Demo v6/key不變；程式migration head `20261008_0003`，專用PG保留驗證通過；primary15173及acceptance15175仍0002；Task4新隔離15177已0003，files與pgdata保留，未升級primary。 |
+| 測試基準 | Task8完整verify exit0：強制PG migration1+競態3；API337passed5conditional skip/265.53s；Vitest148/build0/E2E13passed34.1s/cleanup0。首跑E2E定位失敗保留，第二跑完整GREEN。 |
+| 資料版本 | Demo v6/key不變；程式migration head `20261008_0003`，專用PG保留驗證通過；primary15173仍0002；acceptance15175已0003且停止保留雙volume；Task4新隔離15177已0003，files與pgdata保留，未升級primary。 |
 | 認領中 | Codex：P2b G3基準與逐Task實作，2026-10-08。 |
 | 阻塞／待人類 | P2b無待決產品規則；D59–D64已決；P1c／P2a人類試用簽核、D43／D10未完成。P2b依D64開工；LAN未授權。 |
-| 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b定稿與Task1–7僅本機feature，未push。 |
+| 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b定稿與Task1–8僅本機feature，未push。 |
 
 ---
 
@@ -88,7 +88,7 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec／Plan | 依賴 |
 |---|---|---|---|---|---|
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
-| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | 🔨 G3執行中 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；D64已授權實作，G3基準執行中 | P2a |
+| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | 🔍 G4整體審查中 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；D64已授權實作，G3基準執行中 | P2a |
 | 後續2 | P2c | 時程、模板管理、前置相依與相依圖 | ⬜ | 各階段另訂spec／plan | P2a，順序依人類本次選擇 |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
@@ -105,7 +105,7 @@
 
 ## 3. 工作項目明細
 
-### P2b 回報與協作 — 🔨 逐Task實作中
+### P2b 回報與協作 — 🔍 G4整體審查中
 
 **授權**：人類於P2a完成後指示「繼續進行」（D58），接續路線圖B1–B6；不是P2a試用簽核通過或新產品規則已核准。
 
@@ -113,7 +113,7 @@
 
 **獨立文件審查**：review_finalized_docs（spec）與review_task1（plan品質）均Approved。第1輪提出commit結果不明不能刪成功附件、nonroot新files volume可寫初始化兩Important，已補spec§7.2／§9及Task4故障／fresh-volume驗收並複審關閉；舊待定措辭同步修正。此為文件審查，不是G3授權或產品GREEN。
 
-**狀態**：D59–D63均已定案為A；完整spec與八Task plan依D64核准，G3完整隔離基準API182passed1skip／Vitest96／build0／E2E9(19.3s)全部exit0，專用PG另1passed(0.44s)。primary已pg_dump備份及env指紋存ignored .superpowers/p2b/，未改業務資料。主checkout feature已完成旅程RED及Task1–7雙獨立審查，接Task8。
+**狀態**：D59–D63均已定案為A；完整spec與八Task plan依D64核准，G3完整隔離基準API182passed1skip／Vitest96／build0／E2E9(19.3s)全部exit0，專用PG另1passed(0.44s)。primary已pg_dump備份及env指紋存ignored .superpowers/p2b/，未改業務資料。主checkout feature已完成旅程RED及Task1–8雙獨立審查Approved，完整隔離驗收GREEN；G4文件Important已修正，階段UI說明Minor補強中。
 
 | Task | 範圍 | 狀態 | 測試／commit |
 |---|---|---|---|
@@ -124,7 +124,7 @@
 | 5 | 任務紀錄、回報與協作UI | ✅ | `ac13673..5f4b9b2`；初RED6fail→122passed；focus補強RED1fail22pass→23pass；修正輪1 legacy／附件假空RED4fail26pass→最終126passed/build0。隔離1280/375鍵盤、391字筆記/74字檔名、下載、自核／取消、雙角色送審退回重送v2確認、協作撤銷舊cursor/download404、無overflow/非預期console；parent實看新版及fix1圖片。雙審複審Approved，兩Important關閉。 |
 | 6 | 審核中心與安全稽核API | ✅ | `96cb223..1174932`；RED17fail1pass exit1→首組35passed／最終目標37passed23.06s／全API333passed5skip268.68s exit0。覆蓋他人最新可審、D60不擴Gate、node-nulladmin、safe actor／payload與hidden references、cursor條件／極端時間／混合key穩定分頁／固定querycount。spec／品質均Approved，無finding。 |
 | 7 | 審核中心與稽核UI | ✅ | `c0c496d..88543a7`；RED8failed exit1→145passed；fix1未知事件prototype名稱RED3failed19passed exit1→148passed/build0。隔離1280/375、鍵盤退回重送確認、Gate、安全稽核篩選與導覽、readonly權限，無overflow／非預期console。spec／品質複審Approved，Important已關閉。 |
-| 8 | 隔離整合、恢復、文件交付 | 🔨 | 依Task1前移旅程RED：`ef39cdd..a76bdb1`，1280／375缺「成果說明」2failed exit1；其餘尚未執行。 |
+| 8 | 隔離整合、恢復、文件交付 | ✅ | `c764dc7..46859e1`；前移旅程RED2failed→GREEN；verify能力RED2failed→部署39passed。完整verify PG1+3/API337pass5skip/Vitest148/build0/E2E13pass/cleanup0，exit0；no-seed重啟DB/檔案/SHA相同、offline pending恢復與quota正確、skip護欄非零。文件權限誤述fix1雙審Approved，Important關閉。 |
 
 **G3證據**：ignored .superpowers/p2b/g3-baseline.txt（verify --keep-running exit0），g3-postgresql.txt（專用DB p2a_migration_a1d830b188e1，1passed/0.44s exit0）。acceptance15175保留供逐Task；primary15173不跑業務測試。primary-before.sql為本次唯讀pg_dump備份、primary-env-sha256.txt為設定指紋，均不進Git、不輸出內容。
 
@@ -142,12 +142,14 @@
 
 **Task7證據**：ignored `.superpowers/p2b/task7-{red,green,build,ui}.txt`、`task7-ui-results.json`與`task7-fix1-{red,green,build,ui}.txt`。parent實看桌面審核、手機稽核與fix1未知事件圖片；修正採Object.hasOwn，未知事件保留為「其他業務事件」，無原始payload洩漏。隔離15177已更新；primary未變。
 
-**待執行工程驗收**
-- [ ] D59–D63角色／公司／可見性與無副作用矩陣。
-- [ ] 送審、退回重送、確認、自核及重開／略過完整流程與Gate。
-- [ ] 協作撤銷、筆記作者修訂、本人列表與安全紀錄／稽核。
-- [ ] 附件上限／配額／格式／SHA、軟刪與回報保護、故障恢復。
-- [ ] 真PG舊資料升級與並行競態、DB／files無seed重啟保留。
+**Task8證據**：ignored `task8-full-verify.txt`、首跑失敗`task8-full-verify-audit-selector-failure.txt`、`task8-verify-red.txt`／`task8-deployment-green.txt`、`task8-pg-skip-guard.txt`、`task8-restart-recovery.txt`／`task8-restart-values.json`／`task8-recovery-quota.txt`。專用PG `p2b_test_326c1ff802db42519aeb33f368efee17`保留；acceptance容器清空且雙volume保留。parent實看375完成卡detail；所有業務測試只在隔離，primary未升級。
+
+**工程驗收（G6待完成）**
+- [x] D59–D63角色／公司／可見性與無副作用矩陣。
+- [x] 送審、退回重送、確認、自核及重開／略過完整流程與Gate。
+- [x] 協作撤銷、筆記作者修訂、本人列表與安全紀錄／稽核。
+- [x] 附件上限／配額／格式／SHA、軟刪與回報保護、故障恢復。
+- [x] 真PG舊資料升級與並行競態、DB／files無seed重啟保留。
 - [ ] 1280／375／鍵盤／console、完整回歸、雙獨立審查與G6部署。
 
 以上工程項目不是人類試用簽核，P1c／P2a簽核維持未勾選。
