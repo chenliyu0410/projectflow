@@ -15,7 +15,7 @@
 |---|---|
 | 目前工作項目 | **W6 多公司產業範例 — 🔨 執行中** |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | W6 Task 5：附件鍵隔離與只重設目前公司，先 RED。P0 保留暫停。 |
+| 下一個動作 | W6 Task 6：跨公司隔離掃描、README 與最終驗收，先 RED。P0 保留暫停。 |
 | 分支 | `feature/w6-multi-company-industry-demo`（主 checkout；P0 保留於 `paused/p0-formal-product-plan`） |
 | 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 文件同步 `aafc5ca`，只更新 README／PROGRESS，沒有改產品程式。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
@@ -364,8 +364,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | 2 | 左下角公司選擇器、原子切換與暫態 UI 清理 | ✅ | `40c1f4c..c9689a4` | RED `失敗 4/157`（選擇器、切換、持久化、失敗原子性）→ GREEN `全部通過 157/157`；暫態補測 RED `失敗 1/157` → GREEN `全部通過 157/157`；獨立審查 PASS。1280／375 五公司切換 DOM 無水平溢出；截圖最終驗收再停用轉場檢查。 | `W6 task 2: add company switching` |
 | 3 | 五家公司成員、部門、專案、工作流與稽核種子資料 | ✅ | `77e2b5f..9242e35` | RED `失敗 4/162`（最低量、主專案完整、部門、標題）；非毛研引用測試原已通過 → GREEN `全部通過 162/162`。整合修正 riskText 的採購單假設及清 UI 前先找可見專案。獨立審查 Approved；五公司 overview／templates／review／mytasks／audit 及 timeline／people／records 無無效文字／page error，十套工作流驗證合法；375px 側欄截圖已檢視。 | `W6 task 3: seed five industry companies` |
 | 4 | 設定驅動的產業營運資料、連結、狀態與條件 | ✅ | `db9a240..56b94dd` | RED `失敗 4/166` → GREEN `全部通過 166/166`；legacy 事件跨公司防護 RED `失敗 1/166` → GREEN `全部通過 166/166`。獨立審查 PASS。四產業 24 分頁於1280／375 無主頁水平溢出，四筆 blocker 均可解除；手機截圖已檢視；無 page error。plan 回歸測試「採購單」改驗既有「採購」，加測七個 F10 分頁。 | `W6 task 4: render industry operations` |
-| 5 | 附件公司前綴、舊鍵相容與只重設目前公司 | ⬜ | — | RED → GREEN | `W6 task 5: isolate attachments and reset` |
-| 6 | 跨公司隔離強化、README 與桌面／375px 驗收 | ⬜ | — | RED → `174/174` | `W6 task 6: harden isolation and document demo` |
+| 5 | 附件公司前綴、舊鍵相容與只重設目前公司 | ✅ | `91f32d4..4e8c309`（實作 `9403a62`） | RED `失敗 4/170` → GREEN `全部通過 170/170`；跨公司上傳／回報補測及一輪審查修正皆 RED → GREEN，最後 `失敗 1/170` → `全部通過 170/170`（第二檔失敗路徑）；独立複審通過。真實上傳同ID、重載、UI確認重設毛研後雲序 blob 仍可讀。既有附件測試改以 metadata.storage_key 讀 blob，保留全部斷言。 | `W6 task 5: isolate attachments and reset` |
+| 6 | 跨公司隔離強化、README 與桌面／375px 驗收 | 🔨 | BASE 待本筆記錄 commit | Inventory（`4e8c309`）：共用路徑 pendingCount/pageReview、condMet/projected/extBars/riskText、secretValues/maskText/aiAsk/aiAction 需 active-only。毛研專屬 opsSuppliers/Materials/Formulas/POs/WOs/Trace/ERP、fCalc、supName/matName、poNext/woNext/erpSync、匯入／配方事件需模式防護。openNewProject/openAddLink 與 AI plan/suggest 需產業化。附件已由 Task5隔離。RED → `174/174` | `W6 task 6: harden isolation and document demo` |
 
 **驗收**：
 - [ ] 固定五家公司都能切換，選擇器位於身分上方；切換後使用目標公司的預設專案負責人。
