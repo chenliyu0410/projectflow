@@ -15,7 +15,7 @@
 |---|---|
 | 目前工作項目 | **W6 多公司產業範例 — ✏️ 規格中** |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 人類已在 2026-10-08 完成 W6 brainstorming 並批准完整設計；撰寫 spec、自我檢查後交由人類審閱。P0 規劃暫停，保留在 `paused/p0-formal-product-plan`。 |
+| 下一個動作 | W6 written spec 已完成並自我檢查，等待人類審閱 `docs/superpowers/specs/2026-10-08-multi-company-industry-demo-design.md`；批准後才能進 G2 寫 plan。P0 規劃暫停，保留在 `paused/p0-formal-product-plan`。 |
 | 分支 | `main`（G1 文件階段；P0 規劃保留於 `paused/p0-formal-product-plan`） |
 | 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 文件同步 `aafc5ca`，只更新 README／PROGRESS，沒有改產品程式。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
@@ -74,7 +74,7 @@
 | 3 | W3 | 工作流架構（**精簡版**，D31／D42）：工作流模板 CRUD、從工作流建立專案、關卡擋住後續階段 | ✅ | [spec](superpowers/specs/2026-10-05-process-control-design.md) | [plan](superpowers/plans/2026-10-05-workflow-architecture.md) | v4 → v5 | 2026-10-05 完成；依 D42 先完成功能架構，個別工作流內容由使用者之後自行添加 |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
-| 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✏️ 規格中（人類 2026-10-08 指示） | 撰寫中 | — | v5 → v6 | W3、W5 ✅；完整設計已由人類批准（D44） |
+| 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✏️ 規格中（等待 written spec 審閱） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | — | v5 → v6 | W3、W5 ✅；完整設計已由人類批准（D44） |
 | — | P0 | 正式軌工作規則 | ⏸ 規劃暫停（D45） | 保留於暫停分支 | 保留於暫停分支 | — | W6 完成後恢復 `paused/p0-formal-product-plan`；尚未授權開始 P0 實作 |
 | — | P1–P9 | 正式產品軌（README §8 階段 1–9） | ⬜ 未啟動 | README §8 | — | — | P0 ✅；階段 4 以後依賴 README §9 #5–#14 |
 
@@ -353,7 +353,9 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - localStorage key 維持 `projectflow-demo-v2`，資料從 v5 升到 v6；舊資料完整歸入毛研食品。
 - IndexedDB 附件按公司隔離；重置只影響目前公司。
 
-**下一步**：完成 written spec 與自我檢查，交由人類審閱；批准後進 G2 寫 plan。P0 規劃依 D45 暫停，W6 完成後恢復。
+**Spec**：`docs/superpowers/specs/2026-10-08-multi-company-industry-demo-design.md`。已完成 placeholder、內部一致性、範圍與歧義檢查。
+
+**下一步**：等待人類審閱 written spec；批准後進 G2 寫 plan。P0 規劃依 D45 暫停，W6 完成後恢復。
 
 ---
 
@@ -572,6 +574,13 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-5｜W6 多公司產業範例 spec 待審
+- **做了什麼**：依人類逐項確認的設計新增 W6；五個固定公司空間採完整資料隔離、平衡版種子資料、產業化營運模組與獨立成員。P0 規劃經人類同意後保留為 `paused/p0-formal-product-plan`；在 main 登記 D44、D45 並完成 W6 written spec。
+- **驗證**：spec 已做 placeholder、內部一致性、範圍與歧義檢查；修正了「切換公司後的身分」文字，明確定為切換時回到該公司預設專案負責人、只在重新整理同一家公司時保留身分。`git diff --check` 通過。這輪只改文件，沒有執行產品測試。
+- **沒做的事／偏離 plan**：尚未寫 implementation plan，沒有修改產品程式或測試，沒有 push。
+- **下一步**：人類審閱 written spec；批准後依 brainstorming 流程進 G2，用 `superpowers:writing-plans` 寫實作 plan。
+- **注意**：localStorage 預計 v5 → v6；既有資料歸入毛研食品，IndexedDB 新附件 key 加公司前綴。實作前仍要照 WORKFLOW 跑基準測試與 pre-flight。
+
 ### 2026-10-05｜Claude Opus 5.5｜Demo 走查（完成條件第 3 項）
 - **做了什麼**：
   - 接手時 `main` 在 `cfd5f72`（已 push），working tree 乾淨。這個 session 稍早的 `/pf-next all` 在 W2 整體修正（`b2f7453`）之後因為用量上限中斷，之後由 Codex 接手完成 W2 合併、W3、W5，所以沒有續跑那次 workflow。
@@ -621,20 +630,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
   - 尚未做 W5 README 精簡對齊，所以 README 頂部進度摘要仍可能不是最終狀態。
 - **下一步**：人類提供 D13「10 部門流程甘特圖（連接器新產品，6 階段）」後，AI 依 D31 起草 W3 精簡版短 spec，給人類看一次。沒有 D13 前不要自行開 W3。
 - **注意**：本機 `main` 比 `origin/main` 超前；依 D3 不 push，除非人類明確授權。
-
-### 2026-10-05｜Codex GPT-5｜W2 整體修正再審與驗收完成，等待人類確認合併
-- **做了什麼**：
-  - 接手時本地 HEAD 已是 `b2f7453 Departments final review fixes: unassigned owner labels, card who nowrap, schedule matrix, report select guard`，working tree 乾淨；`docs/PROGRESS.md` 仍停在 `03c9ff5`。
-  - 對 `dd9171e..b2f7453` 做修正後再審（自我審查，非獨立 reviewer）：確認執行注意 32 的 4 項都已修，沒有發現會擋展示的 Critical／Important，結論 Ready to merge: Yes。
-  - 更新 PROGRESS：W2 改成 🟢 等人類確認合併；整體審查列補上 `b2f7453`、`137/137` 與自我審查說明；驗收清單全勾；F11-N1、W2-T3-m1、W2-T5-m2、W2-T5-m3 移到已關閉；清空認領。
-- **驗證**：
-  - 8000 仍不是這個 repo（`{"detail":"Not Found"}`），8001 是正確 repo（`AGENTS.md` 第一行正確），沿用但沒有關閉（不是本 session 啟動）。
-  - Codex 用 Codex in-app browser 開 `http://127.0.0.1:8001/tests/records.html?t=...`，結果 `全部通過 137/137`，console error 0。
-  - Demo 頁實測：以 yu、chen、ming 點過 p1 看板、時程、成員與權限與我的任務，主區域沒有 `undefined`／`NaN`／`? —`／`[object]`，console error 0。
-  - 375×812 viewport 實測：p1 看板、時程、成員與權限的 `main.scrollWidth <= main.clientWidth`，console error 0；測完已 reset viewport。
-- **沒做的事／偏離 plan**：
-  - 這輪沒有改產品程式或測試，只更新進度看板。
-  - README 頂部「目前進度」摘要仍停在 Task 5；README §2 的「時程」列和 F5「新增 / 編輯任務」列仍有 W2-T7-m1、W2-T7-m2 的 minor，照展示模式不擋，留給 W5／正式版。
-  - 因這輪整體再審是 Codex 自我審查，依 WORKFLOW G5／§11，AI 不自行合併。
-- **下一步**：人類確認是否接受自我再審並合併。若確認，照 G5 在本機執行 `git checkout main`、`git merge --ff-only feature/w2-departments`，再做 G6 收尾 commit `Progress: W2 done`；不 push，除非人類另行明確授權。
-- **注意**：本地 `feature/w2-departments` 比 `origin/feature/w2-departments` ahead 9；`main` 目前在 `8041e14`。W3 開工前仍需要 D13 的 10 部門甘特圖。
