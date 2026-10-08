@@ -1,6 +1,6 @@
 # 正式版開發
 
-正式版目標為P0至P1c的可內部試用MVP，Demo保持獨立且不得視為正式登入／多租戶安全機制。
+P0至P1c為已交付本機MVP，P2a任務工作區已實作並進行工程整合驗收；最終審查與發布狀態以PROGRESS為準。Demo保持獨立且不得視為正式登入／多租戶安全機制。
 
 ## 公司邊界
 
@@ -68,9 +68,9 @@ npm.cmd --prefix web run build
 npm.cmd --prefix web run dev
 ```
 
-開啟`http://127.0.0.1:15173`。開發代理將`/api`送到`http://127.0.0.1:18000`，不需要放寬跨來源政策。API使用其他埠時，先在同一終端設定`$env:API_PROXY_TARGET = 'http://127.0.0.1:<埠號>'`。目前前端先確認session，未登入時顯示登入表單；公司預設food，種子帳號見下表。登入後僅傳HttpOnly cookie，不接受前端切換公司或推斷完整操作權限；API為權限權威。專案清單可切換詳情；節點樹依sort_order排列，選取節點顯示完整路徑，空專案顯示沒有節點。載入錯誤可重試，401會清除session回登入；切換或登出後不套用舊回應。admin／project_owner可開啟「新增專案」的inline表單，選擇工作流模板並填名稱建立；成功後更新清單並選取新專案，403／404使用安全訊息。
+開啟`http://127.0.0.1:15173`。開發代理將`/api`送到`http://127.0.0.1:18000`，不需要放寬跨來源政策。API使用其他埠時，先在同一終端設定`$env:API_PROXY_TARGET = 'http://127.0.0.1:<埠號>'`。目前前端先確認session，未登入時顯示登入表單；公司預設food，種子帳號見下表。登入後僅傳HttpOnly cookie，不接受前端切換公司或推斷完整操作權限；API為權限權威。登入後進總覽；主導覽提供總覽、我的任務與專案工作區，375px手機先按「導覽」展開。專案清單可切換詳情；節點樹依sort_order排列，可展開／收合，選取節點顯示可見路徑，空專案顯示沒有節點。載入錯誤可重試，401會清除session回登入；切換或登出後不套用舊回應。admin／project_owner可開啟「新增專案」的inline表單，選擇工作流模板並填名稱建立；成功後更新清單並選取新專案，403／404使用安全訊息。
 
-四欄看板只顯示task節點；狀態選單透過API更新，成功才移欄，失敗保留原狀態。pending閘門顯示警示；admin、專案owner與reviewer顯示核准操作，實際權限由API強制。readonly隱藏狀態、核准與建立操作。403／409使用固定安全訊息；請求期間停用重複寫入，切換專案或登出後忽略舊mutation回應。
+看板顯示目前選取節點的下一層節點，保留四種工作狀態及獨立「已略過」清單；狀態選單透過API更新，成功才移欄，失敗保留原狀態。pending閘門顯示警示；admin、專案owner與reviewer顯示核准操作，實際權限由API強制。readonly隱藏狀態、核准與建立操作。403／409使用固定安全訊息；請求期間停用重複寫入，切換專案或登出後忽略舊mutation回應。
 
 ## 完整容器環境
 
@@ -239,3 +239,17 @@ Playwright 預設使用 `http://127.0.0.1:15175`；`PF_BASE_URL` 只接受 loopb
 - 共享 15173 保持 projectcount 12、marker 404；Task2 未重建 primary。截圖位於 `web/test-results/`，下一次 Playwright 執行會覆寫該目錄。
 
 主checkout一次一個feature分支，TDD、每Task獨立審查、PROGRESS唯一進度來源。每階段完成更新README、驗收後ff-only到main並依D50推送，不force。正式資料庫未導入migration前，不可建立業務表或宣稱P1a完成。
+
+## P2a 任務工作區與保留資料升級
+
+管理者（admin或該專案非readonly擁有者）可新增phase／task及改派負責人／部門；可見且有操作權的非readonly執行者可編輯名稱與日期，不能改派。readonly即使歷史上是owner也不能新增、編輯或改派。實際授權以API及session公司為準；project_owner角色不等於所有專案的管理者。新增管理權不擴大原本status／Gate權限。
+
+專案容器／既有project根下可新增階段或任務，階段及任務下可新增子任務；舊project根唯讀。新增不繼承指派，日期皆可空；起迄均填時開始日不得晚於截止日。日期採YYYY-MM-DD日曆日期，沒有時區轉換。編輯時省略欄位保持原值、null清除；名稱trim後1–200字元。取消不寫入，寫入成功但重新載入失敗時只重試GET，不重送mutation。
+
+總覽統計所有可見task（含有子任務的task，各算一次），完成率為done／(task−skipped)，分母0顯示「—」。我的任務只列本人負責且可見的task，支援名稱／專案搜尋、五狀態篩選與清除；按到期日排序、未設定排最後。點擊項目定位到正確專案及節點，隱藏父節點不補查或顯示。多層Gate沿真實祖先判定，不能從子任務繞過。
+
+新增API為PATCH `/nodes/{id}`、GET `/projects/{id}/assignment-options`、GET `/workspace/overview`及GET `/workspace/my-tasks`；瀏覽器經代理時前綴為`/api`。節點回應含日期、安全顯示名稱與capabilities，後端每次寫入仍重新檢查權限。
+
+Alembic `20261008_0002`新增nullable DATE `start_date`／`due_date`及日期順序CHECK，升級不改舊ID、status、關聯或稽核，舊日期皆null。已有環境用`python deploy/start.py`升級，不加seed、不重建env或刪volume。不要在primary或已保存日期的驗收DB降版；migration保留資料測試使用全新的`p2a_migration_*`專用資料庫，從0001填fixture後升head，另驗日期CHECK與保存。主機API測試預設只跑SQLite，未設定`P2A_MIGRATION_TEST_URL`時PG案例會skip；完整PG證據另記PROGRESS，不能把skip當通過。
+
+P2a隔離E2E覆蓋1280／375建立四層、日期清除／保存、指派、重新登入、成員編輯與唯讀拒絕；另驗真實兩公司、多角色、深層Gate與可見完成率。任何寫入前拒絕15173並檢查acceptance marker。瀏覽器只精確允許每次頁面初始me401及刻意觸發的Gate409，其他HTTP／console／pageerror須0。正常stop/start隔離服務不seed，完整專案detail需與停機前一致。人類試用項目仍由人類簽核。

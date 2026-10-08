@@ -78,3 +78,18 @@ G4預設verify另實跑：API `80 passed,1 warning in 38.36s`、Vitest56、build
 - [ ] 試用者理解回報／稽核為API-only及本輪未提供的功能，接受本機MVP試用範圍。
 - [ ] 管理者確認正式帳號、密碼、備份／還原、LAN／TLS與安全部署另行規劃，不沿用示範憑證發布。
 - [ ] 試用負責人記錄意見、簽核日期與下一步；自動化通過不代替此項。
+
+## P2a 工程驗收與人類試用
+
+P2a工程整合驗收進行中；最終獨立審查、合併後回歸與本機部署狀態以PROGRESS為準。前移旅程RED已於Task1前取得（1280／375共2 failed，缺工作區導覽）；功能完成後新增的整合案例屬回歸，不破壞產品製造RED。
+
+P2a實跑記錄：隔離Playwright 9 passed (16.8s)，涵蓋四層建立、日期清除／指派／成員編輯／readonly，以及真實兩公司、多角色、深層Gate與可見完成率。真PostgreSQL專用DB `p2a_migration_b12b66168c4c`：1 passed, 4 deselected, 2 warnings (0.41s)，舊資料／稽核保留、日期null、新日期保存與反序CHECK皆通過。隔離Compose正常stop/start --wait，未seed，完整專案detail前後一致（包括start_date=null、due_date=2026-10-15、owner及department）；各階段exit0。完整`deploy/verify.py`：API 182 passed／1 skipped（專用PG另驗）／3 warnings (131.31s)、Vitest 96 passed、build exit0、E2E 9 passed (17.6s)，預設cleanup成功，最終exit0。隔離容器清單為空、`projectflow-acceptance_pgdata`保留。尚未以此代稱完成發布。
+
+以下維持人類待辦，不由自動化代勾：
+
+- [ ] 管理者實際建立專案→階段→任務→子任務，指派負責人及部門，設定／清除日期後重新登入確認。
+- [ ] 成員從「我的任務」搜尋／篩選並進入任務，編輯名稱／日期，確認沒有改派控制。
+- [ ] 唯讀者確認不能新增／編輯／改派；試用者確認公司及可見範圍符合工作安排。
+- [ ] 桌面及手機試用總覽、折疊導覽、樹、麵包屑與下一層看板，確認操作體驗。
+- [ ] 確認「可見任務完成率」只算可見task，略過不進分母；日期不代表已有時程拖曳或自動排程。
+- [ ] 試用負責人記錄P2a意見、日期與簽核；理解P2b–P2d、LAN／TLS仍未交付。

@@ -1,7 +1,8 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
-test.beforeEach(async ({ request }) => {
+test.beforeEach(async ({ request, baseURL }) => {
+  expect(new URL(baseURL!).port).not.toBe('15173');
   const marker = await request.get('/api/health/acceptance');
   expect(marker.status(), 'Acceptance requires the isolated test stack').toBe(200);
   expect(await marker.json()).toEqual({ acceptance: true });
@@ -37,6 +38,8 @@ for (const width of [1280, 375]) {
       await page.getByLabel('帳號').fill(username);
       await page.getByLabel('密碼').fill(`demo-${username}`);
       await page.getByRole('button', { name: '登入', exact: true }).click();
+      if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
+      await page.getByRole('button', { name: '專案工作區', exact: true }).click();
       await expect(page.getByLabel('專案清單')).toBeVisible();
       return page;
     };
@@ -50,7 +53,7 @@ for (const width of [1280, 375]) {
     };
     let yu: Page | undefined;
     let seedId: string | undefined;
-    let seedNodes: { id: string; status: string; kind: string; title: string; owner_user_id: string }[] = [];
+    let seedNodes: { id: string; status: string; kind: string; title: string; owner_user_id: string; parent_id: string | null }[] = [];
     try {
       yu = await role('yu');
       const projects = await yu.request.get('/api/projects');
@@ -63,6 +66,8 @@ for (const width of [1280, 375]) {
       const hidden = seedNodes.find(n => n.kind === 'phase')!;
       const chen = await role('chen');
       await openSeed(chen);
+      const ownParent = seedNodes.find(n => n.id === own.parent_id)!;
+      await chen.getByLabel('節點樹').getByRole('button', { name: ownParent.title, exact: true }).click();
       await chen.getByRole('combobox', { name: `${own.title}狀態` }).selectOption('doing');
       await expect(chen.getByLabel('進行中').getByRole('combobox', { name: `${own.title}狀態` })).toHaveValue('doing');
       await snapshot(chen, 'chen');
@@ -76,10 +81,10 @@ for (const width of [1280, 375]) {
         .toEqual(seedNodes.filter(n => n.owner_user_id === memberId).map(n => n.id).sort());
       await openSeed(ming);
       await ming.getByLabel('節點樹').getByRole('button', { name: own.title }).click();
-      await expect(ming.getByLabel('節點路徑')).toHaveText(own.title);
+      await expect(ming.getByLabel('節點路徑')).toHaveText(`成貓主食罐正式版 / ${own.title}`);
       await expect(ming.getByLabel('節點樹')).not.toContainText(hidden.title);
       await ming.getByRole('combobox', { name: `${own.title}狀態` }).selectOption('review');
-      await expect(ming.getByLabel('待確認').getByRole('combobox', { name: `${own.title}狀態` })).toHaveValue('review');
+      await expect(ming.getByLabel('節點詳情').getByRole('combobox', { name: `${own.title}狀態` })).toHaveValue('review');
       const report = await ming.request.post(`/api/nodes/${own.id}/reports`, { data: { result: 'pass', summary: `P1c ${randomUUID()}` } });
       expect(report.status()).toBe(201);
       const reportId = (await report.json()).id;
@@ -114,6 +119,7 @@ for (const width of [1280, 375]) {
       expect((await hiddenProject.json()).gates).toEqual([]);
       await yu.getByRole('button', { name: '核准閘門' }).click();
       await expect(yu.getByRole('button', { name: '核准閘門' })).toHaveCount(0);
+      await yu.getByLabel('節點樹').getByRole('button', { name: detail.nodes.find((n: { id: string }) => n.id === task.parent_id).title, exact: true }).click();
       await yu.getByRole('combobox', { name: '試作工單狀態' }).selectOption('doing');
       await expect(yu.getByLabel('進行中').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('doing');
       await snapshot(yu, 'yu');

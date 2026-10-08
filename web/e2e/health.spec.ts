@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
-test.beforeEach(async ({ request }) => {
+test.beforeEach(async ({ request, baseURL }) => {
+  expect(new URL(baseURL!).port).not.toBe('15173');
   const marker = await request.get('/api/health/acceptance');
   expect(marker.status(), 'Acceptance requires the isolated test stack').toBe(200);
   expect(await marker.json()).toEqual({ acceptance: true });
@@ -41,6 +42,8 @@ for (const width of [1280, 375]) {
       await page.getByLabel('帳號').fill(username);
       await page.getByLabel('密碼').fill(`demo-${username}`);
       await page.getByRole('button', { name: '登入', exact: true }).click();
+      if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
+      await page.getByRole('button', { name: '專案工作區', exact: true }).click();
       await expect(page.getByLabel('專案清單')).toBeVisible();
       await expect(page.getByRole('status')).toHaveCount(0);
     };
@@ -51,6 +54,7 @@ for (const width of [1280, 375]) {
     await login('yu');
     await page.getByLabel('專案清單').getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();
     await expect(page.getByRole('heading', { name: '成貓主食罐正式版', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: '展開市場與配方', exact: true }).click();
     await expect(page.getByLabel('節點樹')).toContainText('殺菌條件驗證');
     const projectList = await page.request.get('/api/projects');
     expect(projectList.status()).toBe(200);
@@ -74,6 +78,7 @@ for (const width of [1280, 375]) {
     const detail = await detailResponse.json();
     const task = detail.nodes.find((node: { title: string }) => node.title === '試作工單');
     expect(task).toBeTruthy();
+    await page.getByLabel('節點樹').getByRole('button', { name: detail.nodes.find((node: { id: string }) => node.id === task.parent_id).title, exact: true }).click();
     const statusPath = `/api/nodes/${task.id}/status`;
     expected.set(statusPath, 409);
     const blockedResponse = page.waitForResponse(response => new URL(response.url()).pathname === statusPath);
@@ -92,6 +97,7 @@ for (const width of [1280, 375]) {
     await login('lin');
     await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+    await page.getByLabel('節點樹').getByRole('button', { name: detail.nodes.find((node: { id: string }) => node.id === task.parent_id).title, exact: true }).click();
     await expect(page.getByLabel('進行中')).toContainText('試作工單');
     await expect(page.getByLabel('看板').getByRole('combobox')).toHaveCount(0);
     await expect(page.getByRole('button', { name: '新增專案' })).toHaveCount(0);
@@ -110,6 +116,7 @@ for (const width of [1280, 375]) {
     })).toEqual([]);
     expect(consoleErrors.filter(error => error.path === '/api/auth/me')).toHaveLength(1);
     expect(consoleErrors.filter(error => error.path === statusPath)).toHaveLength(1);
+    expect((await page.request.post('/api/auth/login', { data: { organization_key: 'food', username: 'yu', password: 'demo-yu' } })).status()).toBe(200);
     const seedAfter = await page.request.get(`/api/projects/${seedProject.id}`);
     expect(seedAfter.status()).toBe(200);
     expect((await seedAfter.json()).nodes).toEqual(seedNodes);
