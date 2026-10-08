@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
+import { api } from './api';
 
 const session = { user: { id: 'u1', username: 'yu', display_name: '游專案', role: 'admin' }, organization: { id: 'o1', key: 'food', name: '毛研食品' } };
 const projects = { items: [{ id: 'p1', title: '成貓主食罐正式版', organization_key: 'food', owner_user_id: 'u1' }] };
@@ -10,6 +11,58 @@ async function login() {
   fireEvent.change(screen.getByLabelText('密碼'), { target: { value: 'demo-yu' } });
   fireEvent.click(screen.getByRole('button', { name: '登入' }));
 }
+
+describe('P1b typed API client', () => {
+  it('loads project detail using cookies without organization context', async () => {
+    const detail = { ...projects.items[0], nodes: [], gates: [] };
+    const fetcher = vi.fn().mockResolvedValue(response(detail));
+    vi.stubGlobal('fetch', fetcher);
+    const signal = new AbortController().signal;
+    expect(await api.project('p1', signal)).toEqual(detail);
+    expect(fetcher).toHaveBeenCalledWith('/api/projects/p1', expect.objectContaining({ credentials: 'include', signal }));
+    expect(fetcher.mock.calls[0][1].body).toBeUndefined();
+  });
+
+  it('updates node status with only the status payload', async () => {
+    const node = { id: 'n1', status: 'doing' };
+    const fetcher = vi.fn().mockResolvedValue(response(node));
+    vi.stubGlobal('fetch', fetcher);
+    const signal = new AbortController().signal;
+    expect(await api.updateNodeStatus('n1', 'doing', signal)).toEqual(node);
+    expect(fetcher).toHaveBeenCalledWith('/api/nodes/n1/status', expect.objectContaining({ method: 'PATCH', credentials: 'include', signal }));
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ status: 'doing' });
+  });
+
+  it('loads workflow templates using cookies without organization context', async () => {
+    const workflows = { items: [{ id: 'w1', name: '食品新品開發' }] };
+    const fetcher = vi.fn().mockResolvedValue(response(workflows));
+    vi.stubGlobal('fetch', fetcher);
+    const signal = new AbortController().signal;
+    expect(await api.workflows(signal)).toEqual(workflows);
+    expect(fetcher).toHaveBeenCalledWith('/api/workflows', expect.objectContaining({ credentials: 'include', signal }));
+    expect(fetcher.mock.calls[0][1].body).toBeUndefined();
+  });
+
+  it('creates a project with only workflow and title payload', async () => {
+    const fetcher = vi.fn().mockResolvedValue(response(projects.items[0], 201));
+    vi.stubGlobal('fetch', fetcher);
+    const payload = { workflow_id: 'w1', title: '成貓主食罐正式版' };
+    const signal = new AbortController().signal;
+    expect(await api.createFromWorkflow(payload, signal)).toEqual(projects.items[0]);
+    expect(fetcher).toHaveBeenCalledWith('/api/projects/from-workflow', expect.objectContaining({ method: 'POST', credentials: 'include', signal }));
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual(payload);
+  });
+
+  it('approves a gate with only approved status payload', async () => {
+    const gate = { id: 'g1', project_id: 'p1', node_id: 'n1', status: 'approved' };
+    const fetcher = vi.fn().mockResolvedValue(response(gate));
+    vi.stubGlobal('fetch', fetcher);
+    const signal = new AbortController().signal;
+    expect(await api.approveGate('g1', signal)).toEqual(gate);
+    expect(fetcher).toHaveBeenCalledWith('/api/gates/g1', expect.objectContaining({ method: 'PATCH', credentials: 'include', signal }));
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ status: 'approved' });
+  });
+});
 
 describe('P1b session UI', () => {
   it('shows login without an active session', async () => {
@@ -52,6 +105,24 @@ describe('P1b session UI', () => {
     render(<App />);
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
     expect(screen.queryByLabelText('目前公司')).not.toBeInTheDocument();
+  });
+
+  it.each(['500', 'network'])('keeps the authenticated session and retries failed projects (%s)', async failure => {
+    const fetcher = vi.fn().mockResolvedValueOnce(response({}, 401)).mockResolvedValueOnce(response(session));
+    if (failure === '500') fetcher.mockResolvedValueOnce(response({ detail: 'private-secret' }, 500));
+    else fetcher.mockRejectedValueOnce(new Error('private-secret'));
+    fetcher.mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    await login();
+    expect(await screen.findByRole('alert')).toHaveTextContent(failure === '500' ? '操作失敗，請稍後再試' : '無法連線，請稍後再試');
+    expect(screen.getByLabelText('目前公司')).toHaveTextContent('毛研食品');
+    expect(screen.queryByRole('heading', { name: '登入專流' })).not.toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent('private-secret');
+    fireEvent.click(screen.getByRole('button', { name: '重試' }));
+    expect(await screen.findByText('成貓主食罐正式版')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(fetcher.mock.calls.filter(([path]) => path === '/api/auth/login')).toHaveLength(1);
   });
 
   it('retries after a safe network error', async () => {

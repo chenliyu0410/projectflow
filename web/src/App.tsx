@@ -61,8 +61,13 @@ export default function App() {
     setBusy(true); setMessage('');
     const payload = { organization_key: organization, username, password };
     setPassword('');
-    try { await loadProjects(request, await api.login(payload, request.controller.signal)); }
-    catch (error) { failed(error, request, true); }
+    let authenticated = false;
+    try {
+      const value = await api.login(payload, request.controller.signal);
+      authenticated = true;
+      await loadProjects(request, value);
+    }
+    catch (error) { failed(error, request, !authenticated); }
     finally { if (current(request)) setBusy(false); }
   }
   async function logout() {

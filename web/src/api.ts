@@ -1,4 +1,4 @@
-import type { ProjectSummary, SessionInfo } from './types';
+import type { GateItem, NodeItem, NodeStatus, ProjectDetail, ProjectSummary, SessionInfo, WorkflowSummary } from './types';
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -32,4 +32,12 @@ export const api = {
     requestJson<SessionInfo>('/auth/login', { method: 'POST', body: JSON.stringify(payload), signal }),
   logout: (signal?: AbortSignal) => requestJson<void>('/auth/logout', { method: 'POST', signal }),
   projects: (signal?: AbortSignal) => requestJson<{ items: ProjectSummary[] }>('/projects', { signal }),
+  project: (id: string, signal?: AbortSignal) => requestJson<ProjectDetail>(`/projects/${id}`, { signal }),
+  updateNodeStatus: (id: string, status: NodeStatus, signal?: AbortSignal) =>
+    requestJson<NodeItem>(`/nodes/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }), signal }),
+  workflows: (signal?: AbortSignal) => requestJson<{ items: WorkflowSummary[] }>('/workflows', { signal }),
+  createFromWorkflow: (payload: { workflow_id: string; title: string }, signal?: AbortSignal) =>
+    requestJson<ProjectSummary>('/projects/from-workflow', { method: 'POST', body: JSON.stringify(payload), signal }),
+  approveGate: (id: string, signal?: AbortSignal) =>
+    requestJson<GateItem>(`/gates/${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'approved' }), signal }),
 };
