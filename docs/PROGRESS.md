@@ -13,13 +13,13 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2c 🔨 精簡範圍已定案，開始實作** |
+| 目前工作項目 | **P2c 🟢 獨立審查通過，待保留資料部署** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | 依D66 A與P2c短規格／計畫實作時程、模板管理、硬性FS前置與簡單相依圖；階段完成一次獨立審查／回歸。 |
-| 分支 | `feature/p2c-schedule-workflow`（主checkout，main凍結；本紀錄後建立）。 |
-| 最新程式 commit | P2b G4 fix `4d94d27`／G5 main `4d0323e`；Demo仍W6 `0934e48`未改。 |
+| 下一個動作 | P2c獨立審查Ready to merge: Yes；ff-only合併後備份DB+files、不seed升級15173、健康與原值核對，再依人類指示push GitHub。 |
+| 分支 | `feature/p2c-schedule-workflow`（主checkout，main凍結；已建立）。 |
+| 最新程式 commit | P2c整合 `5992ce6`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | G6 main verify exit0：強制PG migration1+競態3；API337passed5conditional skip/265.91s；Vitest150/build0/E2E13passed34.0s。phase admin／readonly×1280／375只讀UI及cleanup均exit0。 |
+| 測試基準 | P2c PG6pass、API344pass7skip+兩修正target通過、Vitest167/build0、E2E15pass+剩餘target通過；一次完整回歸及窄修正驗證，未假稱原verify exit0。 |
 | 資料版本 | Demo v6/key不變；正式migration head `20261008_0003`，15173已保留原有全部欄位／row值與env升級，新增files持久volume。專用PG驗證保留；acceptance15175／Task4隔離容器停止，雙volume保留。 |
 | 認領中 | Codex：P2c實作，2026-10-09。 |
 | 阻塞／待人類 | P2b無工程阻塞；P1c／P2a／P2b人類試用簽核、D43／D10仍未完成。P2c D66已定案；LAN未授權。 |
@@ -89,7 +89,7 @@
 |---|---|---|---|---|---|
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
 | 已完成 | P2b | 回報／審核、筆記、附件與稽核介面 | ✅ 工程交付 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；八Task／G4雙審、G6隔離回歸及保留資料部署通過 | P2a |
-| 進行中 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | 🔨 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
+| 進行中 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | 🟢 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -104,6 +104,18 @@
 ---
 
 ## 3. 工作項目明細
+
+### P2c 時程、模板與前置 — 🟢 Ready to merge
+
+**授權／範圍**：D65精簡流程、D66 A；人類追加「完成後推上git」。[短規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)。已完成模板CRUD/copy、多層task/頂層phase與Gate、相對日建立專案、日週月時程/桌面拖移拉伸/手機鍵盤日期、同專案硬性FS與安全阻擋、可見簡單相依圖。改期不順延，SS/FF/延遲/關鍵路徑/子樹套用等明列延後，不宣稱完整Demo一致。
+
+**實作／審查**：`6c45e51..5992ce6`；後端`8804643`、UI`d1adbbc`、整合`5992ce6`。一位獨立審查Ready to merge: Yes，未發現展示主流程／資料／基本權限阻塞。phase層級沿既有create_node；新增一次安全blocked批查，query固定cap由7變8，保留成長前後一致與恰一次dependencies批查斷言。
+
+**實測結果**：後端先取得核心RED4fail1pass→target158pass3optional skip，最後核心8pass；專用PG0003→0004保留值/約束1pass與並行4pass。UI167pass/build0。候選完整驗收一次：mandatory三個fresh PG stages 6pass（P2b1/P2c1/races4）；API344pass7conditional skip2舊capfail→query target2pass；其後Vitest167/build0；完整E2E15pass1舊模板首項排序假設fail→nested Gate target1pass。原fullverify exit1保留，不偽稱單次全GREEN，依D65只驗修正部分。7skip中6由mandatory PG另實跑，P2a舊migration1維持歷史證據未本輪重跑。
+
+**展示／保存**：10task模板建立/copy、跨年日期、日週月、drag/resize實際變更、手機鍵盤改期/重載、FS done/skipped解鎖/Gate仍擋/20task循環拒絕、readonly/跨公司/hidden前置固定訊息；1280/375無頁面overflow及非預期HTTP/console/pageerror，parent實看兩寬度時程detail。無seed stop/start完整project/workflow/dependency snapshots相同。acceptance與p2c-backend容器已down不-v，各files/pgdata雙volume及專用DB保留。
+
+**證據**：ignored `.superpowers/p2c/` backend-red/target/final-target/pg、ui-vitest/build、full-verify（首次fail）、query-targeted、vitest/build、e2e-full、workspace-targeted、persistence、final-*及schedule/dependencies screenshots。mandatory DB `p2b_test_f172f1ebf04f48b4b673547e6e81f266`／`p2b_test_3453be12b6894c05a7a15b063c9da72e`／`p2b_test_ea31ef747c8c46aba1e1f4fe872aa6af`保留。primary仍0003未改，部署待完成，人類簽核不勾。
 
 ### P2b 回報與協作 — ✅ 工程交付完成
 
@@ -789,6 +801,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W2-T5-m3 | FIXED `b2f7453`（未指派負責人顯示「未指派」，通知、時間軸、AI 週報、稽核不再出現 `—`／`? —` 或不合理的「已通知」） |
 
 ---
+
+**P2c-m1（Minor，可延後）**：TimelineView.tsx:128桌面寬度觸控點可編輯task條可能不定位；375手機卡片與節點名稱入口可用，不阻塞主流程。獨立審查記錄，未因小問題擴大修正。
 
 ## 6. 待人類決定（Decision register）
 
