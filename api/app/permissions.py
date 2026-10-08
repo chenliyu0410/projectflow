@@ -24,6 +24,8 @@ def can_view_node(current: CurrentUser, node: Node) -> bool:
 def can_work_node(db: Session, current: CurrentUser, node: Node) -> bool:
     if node.organization_id != current.organization.id:
         return False
+    if current.user.role == "readonly":
+        return False
     if current.user.role == "admin" or node.owner_user_id == current.user.id:
         return True
     if node.department_id is None:

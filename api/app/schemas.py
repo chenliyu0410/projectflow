@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -49,4 +51,4 @@ class NodeCreate(BaseModel):
 class NodeStatusUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    status: str
+    status: Literal["todo", "doing", "review", "done", "skipped"]

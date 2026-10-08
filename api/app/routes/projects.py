@@ -81,8 +81,8 @@ def get_project(project_id: str, current: CurrentUser = Depends(require_session)
 @router.post("/projects/{project_id}/nodes", status_code=status.HTTP_201_CREATED)
 def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     project = get_project_or_404(db, current, project_id)
-    if not can_view_project(current, project):
-        raise HTTPException(status_code=404, detail="找不到專案")
+    if not can_work_project(current, project):
+        raise HTTPException(status_code=403, detail="沒有新增節點權限")
     parent = None
     if payload.parent_id:
         parent = db.execute(

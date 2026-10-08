@@ -46,6 +46,48 @@ def test_node_status_requires_can_work(client):
     assert ok.json()["status"] == "doing"
 
 
+def test_readonly_cannot_create_node(client):
+    login(client, "food", "lin", "demo-lin")
+    project = client.get("/projects").json()["items"][0]
+    response = client.post(f"/projects/{project['id']}/nodes", json={"title": "唯讀不該新增", "kind": "task"})
+    assert response.status_code == 403
+
+
+def test_readonly_owner_still_cannot_update_node_status(client):
+    login(client, "food", "yu")
+    project = client.get("/projects").json()["items"][0]
+    me = client.get("/auth/me").json()
+    # Create a node assigned to readonly user lin, then verify ownership alone is not enough.
+    client.post("/auth/logout")
+    login(client, "food", "lin", "demo-lin")
+    readonly_id = client.get("/auth/me").json()["user"]["id"]
+    client.post("/auth/logout")
+    login(client, "food", "yu")
+    created = client.post(f"/projects/{project['id']}/nodes", json={
+        "title": "唯讀負責節點",
+        "kind": "task",
+        "owner_user_id": readonly_id,
+    })
+    assert created.status_code == 201
+    node_id = created.json()["id"]
+    client.post("/auth/logout")
+    login(client, "food", "lin", "demo-lin")
+    denied = client.patch(f"/nodes/{node_id}/status", json={"status": "doing"})
+    assert denied.status_code == 403
+    assert me["organization"]["key"] == "food"
+
+
+def test_invalid_status_and_override_payload_are_rejected(client):
+    login(client, "food", "ming", "demo-ming")
+    project = client.get("/projects").json()["items"][0]
+    node = client.get(f"/projects/{project['id']}").json()["nodes"][0]
+    invalid = client.patch(f"/nodes/{node['id']}/status", json={"status": "blocked"})
+    forged = client.patch(f"/nodes/{node['id']}/status", json={"status": "doing", "override": True})
+    assert invalid.status_code == 422
+    assert forged.status_code == 422
+    assert client.get(f"/projects/{project['id']}").json()["nodes"][0]["status"] == "todo"
+
+
 def test_cross_company_project_and_node_ids_are_not_visible(client):
     login(client, "electronics", "elaine", "demo-elaine")
     other_project_id = client.get("/projects").json()["items"][0]["id"]
