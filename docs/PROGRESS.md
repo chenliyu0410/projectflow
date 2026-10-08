@@ -13,11 +13,11 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P1c部署／角色驗收實作中** |
+| 目前工作項目 | **P1c部署／角色驗收整體審查中** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 在feature/p1c-mvp-acceptance執行Task3一鍵隔離驗收與試用交接。 |
+| 下一個動作 | P1c G4完整分支獨立審查與隔離回歸；工程交付不代替人類試用簽核。 |
 | 分支 | `feature/p1c-mvp-acceptance`，主checkout；舊paused分支保留。 |
-| 最新程式 commit | P1c Task2 `a42b47b`；Demo仍為W6 `0934e48`，未修改。 |
+| 最新程式 commit | P1c Task3 `717e443`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | P1c Task1：API `56 passed, 1 warning in 17.63s` exit0（quality獨立56/18.12s）、Vitest55/build0；targeted29通過；實際隔離startup15175/migration/seed/readiness exit0、marker200/login200。共享15173 marker404/login200/project count12維持；Demo未改。E2E基準4，Task2切隔離。 |
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變，P1b只有UI與smoke測試專案。 |
@@ -478,7 +478,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 3. 若P1a API回應缺UI必需欄位，先判斷是否已在plan允許的後端變更範圍；超出時依WORKFLOW §8記D停下。
 4. Task4容器alembic設定在 `/app/alembic.ini`；實跑 `docker compose --env-file deploy/.env -f deploy/docker-compose.yml exec api python -m alembic upgrade head` exit0。計畫的 `-c api/alembic.ini` 是主機路徑，不在容器存在，按既有容器預設設定修正命令，無schema變更。
 
-### P1c 正式版部署／角色驗收 — 🔨 實作中
+### P1c 正式版部署／角色驗收 — 🔍 整體審查中
 
 **授權**：D51完整MVP範圍與本輪人類「繼續下一個階段」；沿用先前直接指示D53「只審核成品，中間可以自己進行」，依既有spec補計畫、獨立審查後繼續實作。重大範圍／安全／破壞性變更仍須問；不新增LAN發布或模組。
 
@@ -490,14 +490,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 |---|---|---|---|---|
 | 1 | 安全一鍵Compose啟動、opt-in種子、隔離驗收marker | ✅ `2acd923..7eca35d` | RED `2 failed, 11 passed, 14 errors` exit1（缺start/marker）→GREEN27；env繼承RED `1 failed,14 passed`→pass；Windows實啟cp950讀DockerUTF8失敗exit1，回歸RED `1 failed,15 passed`→targeted29pass。完整API56/1warning exit0、Vitest55/build0，真隔離startup/migration/seed0，marker200/login200/count1；共享marker404/login200/count12未變。Lagrange spec/Feynman quality均Approved，quality獨立API56。 | `P1c task 1: add safe Compose trial startup` |
 | 2 | 角色讀取權限修正與yu/chen/ming隔離瀏覽器驗收 | ✅ Lagrange spec／Feynman quality Approved | API RED `1 failed,14 passed` exit1→GREEN63/1warning exit0；Vitest RED1failed/55passed→GREEN56 exit0；E2E RED2failed→GREEN6passed(11.0s) exit0；build0。quality獨立API63/27.50s、Vitest56/build0；共享count12/marker404不變，隔離marker200；15173及false-marker拒絕exit1 | `a42b47b`；`P1c task 2: verify role boundaries and isolated workflows` |
-| 3 | 一鍵驗收與試用交接文件 | ⬜ | RED缺verify→GREEN；全套隔離驗收 | `P1c task 3: add repeatable MVP acceptance handoff` |
+| 3 | 一鍵驗收與試用交接文件 | ✅ Lagrange spec／Feynman quality Approved | targeted RED `16 passed,1 warning,17 errors in 0.54s` exit1缺verify→GREEN33/0.18s exit0；quality獨立33/0.16s exit0。verify --keep-running：API80/31.65s/1warning、Vitest56、build0、E2E6/10.0s exit0；無seed刷新shared0/count12/marker404/snapshot hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7不變；重複隔離seed七帳號/env/snapshot保持，migrationhead，marker200。預設down尚待實驗，人類簽核未勾選 | `717e443`；`P1c task 3: add repeatable MVP acceptance handoff` |
 
 **驗收**
-- [ ] 一鍵啟動實跑Compose、migration、可選seed與readiness，重跑保留既有資料。
-- [ ] 測試只在隔離Compose／volume執行，shared marker404、acceptance marker200。
-- [ ] 既有can_view_node篩選回應，member只收到自己的節點，缺父節點時仍可選取任務。
-- [ ] yu/chen/ming、readonly與跨公司權限API／真瀏覽器驗收通過；1280／375無溢出或非預期錯誤。
-- [ ] 一鍵verify各階段exit code可靠，失敗與cleanup不波及使用者環境，保留volume。
+- [x] 一鍵啟動實跑Compose、migration、可選seed與readiness，重跑保留既有資料。
+- [x] 測試只在隔離Compose／volume執行，shared marker404、acceptance marker200。
+- [x] 既有can_view_node篩選回應，member只收到自己的節點，缺父節點時仍可選取任務。
+- [x] yu/chen/ming、readonly與跨公司權限API／真瀏覽器驗收通過；1280／375無溢出或非預期錯誤。
+- [x] 一鍵verify各階段exit code可靠，失敗與cleanup不波及使用者環境，保留volume。
 - [ ] README／正式開發／試用checklist／PROGRESS審查更新，完整回歸、ff-only與D50push完成。
 - [ ] 人類內部試用簽核（AI不得代勾）。
 
