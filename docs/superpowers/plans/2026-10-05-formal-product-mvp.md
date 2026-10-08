@@ -1,6 +1,6 @@
 # Formal Product MVP Implementation Plan
 
-> **狀態：規劃草稿，不可直接執行。** 2026-10-08 依 D49 從舊規劃分支恢復，並對齊 W6。下列 Task 1–4 保留原分期提案；正式軌尚未授權，仍需確認 spec 並將 P0 細化後才可實作。文件合併不等於 P0 完成。
+> **狀態：路線圖草稿，不可直接執行。** D51已授權正式版做到P1c；下列Task 1–4保留原分期提案。P0 Task 1由[2026-10-08 P0可執行計畫](2026-10-08-p0-formal-foundation.md)取代，該新計畫仍需審閱；P1a–P1c在各階段前細化。不要用本草稿代替TDD計畫，也不要把計畫發布視為實作完成。
 
 > **For agentic workers (after approval and refinement):** Use superpowers:subagent-driven-development or superpowers:executing-plans as selected by the user. Track progress only in `docs/PROGRESS.md`; do not check off steps in this document.
 
@@ -22,13 +22,13 @@
 - Each task must leave a runnable state and document the exact test command.
 - Use the W6 v6 Demo and its 174-test baseline as the behavioral reference. Do not replace the current README or PROGRESS with versions from the paused branch.
 - Preserve the approved W6 company boundary requirement: organization-scoped models, server-side API/query/authorization checks, and organization-scoped file storage when introduced. Frontend company switching alone is not authorization; Demo IDs must not be assumed globally unique.
-- Planning-only authorization does not permit creating `web/`, `api/`, `deploy/`, installing dependencies, changing AGENTS/WORKFLOW to formal-track rules, or opening a PR. Those require separate authorization. D50 separately authorizes pushing completed, reviewed stages to GitHub main after updating README and PROGRESS; no force push.
+- D51 authorizes implementation through P1c; dependencies, new formal directories and rule changes must follow each reviewed executable plan, not this outline. D50 authorizes pushing completed, reviewed stages to GitHub main after updating README and PROGRESS; no force push or automatic PR.
 
 ## Before Implementation
 
 This restored document is a phase outline, not an execution-ready plan. Before P0 implementation:
 
-1. Confirm the scope in the linked spec and obtain explicit implementation authorization.
+1. D51 has confirmed the MVP scope and authorized implementation through P1c. Do not ask again whether to start the formal track; review the new executable plan before its product changes.
 2. Define the P0 rules transition in AGENTS/WORKFLOW/PROGRESS, allowed paths, dependency choices, and verification commands; keep Demo rules active until that transition is approved.
 3. Expand Task 1 into a complete P0 plan: dependency manifests and lockfile policy, Vite entry/config files, API package layout, Dockerfiles/Compose/environment settings, health request wiring, test configuration, exact RED/GREEN tests, and PowerShell-compatible commands from a stated working directory. The current JSX is only an example and does not fulfill the API health-call interface.
 4. Before P1a execution, specify trusted company context, organization-scoped keys/relationships and authorization tests for cross-company reads/writes, workflow creation, and audit access. Plan file isolation alongside the future file API. Do not copy the Demo company selector into authentication.
