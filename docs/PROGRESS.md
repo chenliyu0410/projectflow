@@ -13,15 +13,15 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P1a後端核心完成並發布；下一步P1b（至P1c已授權）** |
+| 目前工作項目 | **P1b React核心UI計畫已完成，待審閱／確認開工** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 細化P1b React工作流程計畫，接正式版後端核心API。 |
+| 下一個動作 | 審閱 [P1b React核心UI計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md)；確認後依G3在main做pre-flight並開 `feature/p1b-react-core-ui` Native執行。 |
 | 分支 | `main`；P1a分支已ff-only合併並依G6刪除。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
-| 最新程式 commit | P1a G4修正 `0c9fe06`；Demo仍為W6 `0934e48`，未修改。 |
+| 最新程式 commit | P1a G4修正 `0c9fe06`；P1b目前只有plan與看板更新，尚未改產品程式；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | 2026-10-08 P1a G4：reviewer gate權限RED `1 failed, 6 passed, 1 warning` → GREEN workflow/gate `7 passed, 1 warning`、完整API `35 passed, 1 warning in 16.10s`、Vitest `6 passed (6)`、build exit0、Playwright `4 passed`、Compose PostgreSQL migration／seed／HTTP smoke通過、`git diff --check` exit0。Demo仍`全部通過 174/174`，P1a未改Demo。 |
 | 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17使用migration `20261008_0001_p1a_core` 建立P1a核心schema。 |
-| 認領中 | Codex GPT-5，2026-10-08 P1a Native execution |
+| 認領中 | — |
 | 阻塞／待人類 | 無；D50授權階段完成後push GitHub main。D51整體授權不變，D43、D10不擴大MVP。 |
 | 遠端 | 2026-10-08已成功push origin main `e163de1..290c3fe`，ls-remote確認，包含完整P1a；本筆發布紀錄隨後同步。僅main，無force／PR／其他分支。 |
 
@@ -77,7 +77,7 @@
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
 | — | P0 | 正式軌技術骨架與規則 | ✅ 已發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
 | — | P1a | 正式版MVP：登入、公司隔離、migration與核心後端API | ✅ 完成並發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1a計畫](superpowers/plans/2026-10-08-p1a-backend-core.md) | 正式PostgreSQL migration `20261008_0001_p1a_core` | 四Task與G4獨立審查通過；API35／Vitest6／E2E4與build通過，真PostgreSQL migration／seed smoke通過 |
-| — | P1b–P1c | 正式版MVP：React流程、部署／測試／內部試用驗收 | 已授權；下一步細化P1b | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 各階段開工前細化 | 沿P1a正式DB | P1a→P1b→P1c |
+| — | P1b–P1c | 正式版MVP：React流程、部署／測試／內部試用驗收 | 📋 P1b plan已完成，待審閱／確認開工 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1b計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md)；P1c開工前另細化 | 沿P1a正式DB | P1a→P1b→P1c |
 
 **排程規則**
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -445,6 +445,34 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 2. P0 Compose刻意不暴露DB host port；seed實跑預設在API container內執行，不為seed臨時開DB對外埠。
 3. P1a測試可用SQLite暫存DB檢查路由與權限，但完成驗收必須在真PostgreSQL跑migration與seed。
 
+### P1b 正式版 React 核心 UI — 📋 待審閱／確認開工
+
+**授權**：D51已授權做到P1c；P1b需先依本段plan審閱後再進入G3。人類本輪指示「進行P1b」，已先完成可執行計畫，尚未修改產品程式。
+
+**計畫**：[2026-10-08-p1b-react-core-ui](superpowers/plans/2026-10-08-p1b-react-core-ui.md)。P1b只接React核心業務流程；P1c才做部署／測試／內部試用驗收。
+
+| Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
+|---|---|---|---|---|
+| 1 | API client、登入／session UI | ⬜ | RED：Vitest因`api.ts`缺失與健康頁仍存在而失敗；GREEN：P1b登入測試通過、build exit0 | `P1b task 1: connect login session UI` |
+| 2 | 專案清單、專案頁、節點樹與麵包屑 | ⬜ | RED：缺專案樹、選取與路徑；GREEN：專案導覽測試通過、build exit0 | `P1b task 2: add project detail tree navigation` |
+| 3 | 看板四欄、狀態更新與Gate阻擋提示 | ⬜ | RED：缺看板欄位與移動按鈕；GREEN：kanban／gate測試通過、build exit0 | `P1b task 3: add kanban gate workflow controls` |
+| 4 | 工作流建立專案、Playwright真後端smoke與文件 | ⬜ | RED：缺工作流建立表單；GREEN：Vitest、build、API回歸、Compose migration／seed、Playwright P1b smoke通過 | `P1b task 4: add workflow creation browser smoke` |
+
+**P1b驗收**
+- [ ] 登入、登出與session restore使用P1a `/auth/*`與HttpOnly cookie，不靠前端公司切換。
+- [ ] 專案清單、專案頁、節點樹與麵包屑渲染P1a真實資料。
+- [ ] 看板狀態更新呼叫`/nodes/{id}/status`，失敗時保留原狀態並顯示安全訊息。
+- [ ] 可從工作流模板建立專案，payload不含前端偽造的organization欄位。
+- [ ] pending gate可見，後續階段被擋時顯示後端訊息。
+- [ ] Vitest、production build、API pytest、Compose PostgreSQL migration／seed與Playwright P1b smoke通過。
+- [ ] 1280px與375px P1b核心畫面無水平溢出，smoke流程無console error。
+- [ ] README、正式開發指南與PROGRESS更新並審查。
+
+**執行注意**
+1. P1b不得新增前端依賴；用既有React、Vitest、Testing Library與Playwright。
+2. P1b只在UI payload送`organization_key`一次登入；後續專案／節點／工作流／gate請求都靠cookie session，不送organization id。
+3. 若P1a API回應缺UI必需欄位，先判斷是否已在plan允許的後端變更範圍；超出時依WORKFLOW §8記D停下。
+
 ### P0 規劃文件恢復（歷史紀錄，非 P0 實作）
 
 - **本段範圍**：D49授權從最新main帶回舊spec／plan，保留舊分支；新分支為主線。更新W6／v6／174項測試基準與已批准的公司邊界要求。
@@ -685,6 +713,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-5｜P1b React核心UI計畫完成
+- **做了什麼**：依人類指示「進行P1b」與看板下一步，讀P1a後端API、正式MVP spec、P1a plan與現有React殼，新增 [P1b React核心UI可執行計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md)。計畫拆成4個Native Task：登入/session、專案樹與麵包屑、看板／Gate、工作流建立與Playwright smoke。尚未修改產品程式。
+- **驗證／審查**：本次為G2 plan文件；已自檢placeholder掃描，計畫列出Global Constraints、Review Focus、Files、Interfaces、RED/GREEN命令、commit主旨與完成驗收。未跑產品測試，沒有宣稱P1b GREEN。
+- **環境／清理**：仍在`main`，沒有開feature分支，working tree只含plan與PROGRESS更新。Demo與正式產品程式未改；Compose狀態沿用P1a交接。
+- **下一步**：審閱P1b計畫；確認後依G3 pre-flight檢查基準、commit `Progress: start P1b`、開 `feature/p1b-react-core-ui`，再照Task 1開始RED。
+
 ### 2026-10-08｜Codex GPT-5｜P1a Native backend core完成
 - **做了什麼**：依D53在`feature/p1a-backend-core`完成P1a四個Task：HttpOnly session登入／登出／me、SQLAlchemy／Alembic migration骨架、公司隔離seed、Project／Department／Node API與`can_view`／`can_work`、Workflow建立專案與pending gate阻擋、Report submit與AuditLog API。整體審查指出reviewer可核准不相關gate，已用`0c9fe06`收斂成必須能操作該gate node。README、正式開發指南與本看板已同步P1a狀態。
 - **驗證／審查**：Task1 Bohr、Task2 Ptolemy、Task3 Godel、Task4 Volta皆已獨立審查；G4 Linnaeus第1輪With fixes，scoped re-review No findings／Ready to merge: Yes。RED/GREEN均已記錄；最後回歸為API `35 passed, 1 warning`、Vitest `6 passed (6)`、production build exit0、Playwright `4 passed`、Compose PostgreSQL rebuild healthy、Alembic upgrade head／seed exit0、HTTP login/me/projects 200。Demo檔與`tests/` diff exit0。
@@ -708,11 +742,4 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **驗證／審查**：文件commit `a1e84a6`；兩Demo與tests相對基準完全不變，四文件相對連結無缺失，diff check通過。獨立Planck給`Ready to merge: Yes`。沒有重跑產品測試，也沒有宣稱P0實作完成。
 - **Git／發布**：依D49已ff-only合併main，依D50成功push `e452173..5b02e47`，發布W6與本段P0規劃；本筆收尾同步推送。只push origin main，不force、不rebase、不開PR。舊paused分支不推送或改寫；合併後新feature分支依G6刪除，後續以main為準。
 - **下一步**：確認範圍並細化P0可執行計畫；正式產品實作仍須授權。每階段同步README與看板後發布。
-
-### 2026-10-08｜Codex GPT-6｜W6 Native execution 完成
-- **做了什麼**：依人類選擇直接執行Task 0–6，每Task TDD、獨立reviewer與進度commit。完成五公司v6容器、切換、產業化種子與營運頁、附件隔離及單公司重設、共用AI／權限／事件加固。修正審查發現的損壞資料修復、非同步失敗上傳跨公司風險、D48機密文件鎖死；修正375px配方頁溢出。
-- **驗證**：149→153→157→162→166→170→174，各Task的RED原文見§3。最後兩次新時間戳與ff合併後均 `全部通過 174/174`；1280／375px共508畫面、10項持久化重載、十工作流建立、所有營運模組與F10驗收通過，console/page errors空；截圖人工檢視。`git diff --check`通過，archive petfood檔未改。
-- **審查／Git**：六個Task與G4均由獨立子代理唯讀審查；Rawls複審 `Task 6: Approved`、`Ready to merge: Yes`。依D2本地ff-only合併到main；產品最後commit `0934e48`，進度 `f3a61ec`，G6收尾後刪除已合併feature分支。不push。
-- **偏離／代決**：D47沿用既有Gate／deps模型與plan標題；D48新公司機密文件限可見節點的owner/admin。UI驗收用外部Playwright／Edge腳本；8000非此repo，使用自行啟動的8001 PID4312，收尾關閉。W6未在`.superpowers/sdd/`產生暫存；既有W2／W3舊檔不移動。
-- **下一步**：依D45下一session恢復P0規劃（原分支保留，需先帶入W6邊界）；沒有授權P0實作。人類展示確認、D43工作流表單編輯器與push均未執行。
 
