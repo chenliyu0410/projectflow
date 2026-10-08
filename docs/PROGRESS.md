@@ -16,14 +16,14 @@
 | 目前工作項目 | **P2c ✅ 精簡範圍工程交付完成；P2d待規劃** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
 | 下一個動作 | P2d先選一個產業案例，整理文件／營運資料／規則式摘要的短規格／計畫；不自動開始未定案功能，人類試用仍待簽核。 |
-| 分支 | `main`（P2c ff-only合併及保留資料部署完成，feature待安全刪除）。 |
+| 分支 | `main`（P2c ff-only合併及保留資料部署完成，feature已安全刪除）。 |
 | 最新程式 commit | P2c整合 `5992ce6`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | P2c PG6pass、API344pass7skip+兩修正target通過、Vitest167/build0、E2E15pass+剩餘target通過；一次完整回歸及窄修正驗證，未假稱原verify exit0。 |
 | 資料版本 | Demo v6/key未改；正式migration `20261009_0004`。15173原有全部row/欄位值、檔案SHA與env保留；隔離acceptance/p2c-backend已down不-v，雙volume與專用DB保留。 |
 | 認領中 | —（P2c完成，無實作認領）。 |
 | 阻塞／待人類 | P2c無工程阻塞；P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核，P2d需定範圍；LAN未授權。 |
-| 遠端 | 人類再次授權「完成後推上git」；P2c收尾commit後依D50 push main並核對遠端。本輪fetch無未知遠端改動，無force。 |
+| 遠端 | P2c交付`65f91cb`已push main且ls-remote核對一致；本發布紀錄隨main同步。本輪fetch無未知遠端改動，無force。 |
 
 ---
 
@@ -896,7 +896,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **完成**：D66 A時程/模板/FS/簡單圖，未新增套件；一次獨立審查Ready to merge: Yes，Minor桌面寬度觸控點條記錄延後。
 - **驗證**：候選完整回歸一次，PG6通過；API344pass7skip2舊capfail→兩target通過，Vitest167/build0，E2E15pass1舊排序fail→剩餘target通過；不假稱首次verify全綠，不重跑main全量。1280/375真UI、20taskcycle、無seed資料保存通過，詳細`.superpowers/p2c/`。
 - **資料／部署**：ff-only main；15173停止API保存DB+files一致備份，不seed升0004，全部原欄位/row、檔案SHA與env不變，health/ready/web200。只跑隔離業務測試，acceptance/backend容器清空，雙volume與專用DB保留，Demo未改。
-- **發布／下一步**：更新文件後依人類「完成後推上git」push main並核對遠端；P2d先定一個產業案例與短範圍，不自動開始未核准功能。人類簽核全未代勾。
+- **發布／下一步**：交付`65f91cb`依人類「完成後推上git」已push main且遠端核對一致；feature安全刪除，發布紀錄隨main同步；P2d先定一個產業案例與短範圍，不自動開始未核准功能。人類簽核全未代勾。
 
 ### 2026-10-09｜Codex GPT-6｜D65精簡流程
 - **決策**：人類確認採簡化流程；AGENTS／WORKFLOW§14／路線圖／README同步，後續取消逐Task雙審及一般畫面強制TDD，採每階段一次獨立審查／完整回歸／交付紀錄。
