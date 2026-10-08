@@ -16,14 +16,14 @@
 | 目前工作項目 | **P2a ✅ 工程交付完成；下一項P2b尚未規格化** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
 | 下一個動作 | 人類於15173試用P2a並記錄意見；後續按路線圖進P2b G1／G2，另審規格與計畫後才實作。本次P2a授權已完成。 |
-| 分支 | `main`；P2a已ff-only合併，收尾後刪除已合併feature。 |
+| 分支 | `main`；P2a已ff-only合併，已刪除合併後的feature分支。 |
 | 最新程式 commit | P2a Task6 `8dc914a`（產品最後修正`a5d1594`），G4／合併HEAD `d8499cd`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | G6 main隔離verify：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s、cleanup及最終exit0；專用真PG另1passed/0.41s，無seed重啟detail相等；1280/375無水平溢出或非預期錯誤。 |
 | 資料版本 | Demo v6/key不變；正式PostgreSQL17 migration `20261008_0002` head。日期nullable DATE，舊資料保留驗證通過。15173新本機試用環境已初始化，acceptance volume保留且容器停止。 |
 | 認領中 | — |
 | 阻塞／待人類 | 無P2a工程阻塞；P1c／P2a人類試用簽核、D43／D10未完成。P2b–P2d未交付，LAN部署未授權。 |
-| 遠端 | 本次fetch確認origin/main `ff0cdbe`未變，完成D50交付收尾；待本commit後push origin main，成功結果另記。 |
+| 遠端 | 已依D50成功push origin/main：`ff0cdbe..0403e7b`；本次發布紀錄commit接續同步，無force。 |
 
 ---
 
@@ -816,7 +816,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **做了什麼**：依D56定稿規格／計畫，D57補裝環境；六Task逐一TDD／獨立審查／PROGRESS提交，Task4登出及Task5舊reload競態均以真RED修正。Task1–4第二位品質審查已補核，六Task最終均Approved；G4兩位Ready to merge: Yes，d8499cd ff-only合併main。
 - **驗證**：Task證據見§3；G6 .superpowers/p2a/g6-main-verify.txt：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s及cleanup exit0。跳過的專用PG另實跑1passed；旧row／audit保留，日期null／保存／CHECK通過；acceptance不seed重啟完整detail相等。1280／375截圖已實看，非預期console／HTTP／pageerror0；Demo與tests diff空。
 - **本機部署／保留**：本機部署前無deploy/.env、formal volume或15173/18000 listener（歷史P1c的12專案環境不在這台Docker主機，未重設或刪除任何資料）。G6回歸後以start.py --seed-demo初次建立本機試用環境；僅初始化新volume，之後重啟不seed。15173首頁／health／ready200、acceptance404，migration20261008_0002 head；未在primary執行自動業務測試。env ignored、不輸出私密設定，acceptance容器已停止但volume與測試資料保留。
-- **交付／下一步**：README／指南／人類試用清單已更新；本次收尾commit後依授權push main並另記成功結果。保留15173供人類以food／yu／demo-yu試用；P1c及P2a簽核均未代勾。P2b另走G1／G2，不把本次完成視為P2b–P2d或LAN已交付。
+- **交付／下一步**：README／指南／人類試用清單已更新；已依授權成功push main（ff0cdbe..0403e7b），收尾文件另經review_finalized_docs Approved；此發布紀錄接續同步。保留15173供人類以food／yu／demo-yu試用；P1c及P2a簽核均未代勾。P2b另走G1／G2，不把本次完成視為P2b–P2d或LAN已交付。
 
 ### 2026-10-08｜Codex GPT-6｜P2a定稿與G3環境檢查
 - **做了什麼**：初始Git乾淨，fetch + ff-only確認`ff0cdbe`已同步；記錄人類D56同意，定稿spec／plan。獨立review_finalized_docs指出兩項文件歷史／現況措辭，已修正。
