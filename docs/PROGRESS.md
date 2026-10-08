@@ -74,7 +74,7 @@
 | 3 | W3 | 工作流架構（**精簡版**，D31／D42）：工作流模板 CRUD、從工作流建立專案、關卡擋住後續階段 | ✅ | [spec](superpowers/specs/2026-10-05-process-control-design.md) | [plan](superpowers/plans/2026-10-05-workflow-architecture.md) | v4 → v5 | 2026-10-05 完成；依 D42 先完成功能架構，個別工作流內容由使用者之後自行添加 |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
-| 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | 🔨 執行中（Native execution，D46） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；完整設計已由人類批准（D44） |
+| 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | 🟢 可合併（D46；Task 6 `0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；完整設計已由人類批准（D44） |
 | — | P0 | 正式軌工作規則 | ⏸ 規劃暫停（D45） | 保留於暫停分支 | 保留於暫停分支 | — | W6 完成後恢復 `paused/p0-formal-product-plan`；尚未授權開始 P0 實作 |
 | — | P1–P9 | 正式產品軌（README §8 階段 1–9） | ⬜ 未啟動 | README §8 | — | — | P0 ✅；階段 4 以後依賴 README §9 #5–#14 |
 
