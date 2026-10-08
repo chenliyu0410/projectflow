@@ -13,13 +13,13 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P1b React核心UI實作中** |
+| 目前工作項目 | **P1b React核心UI審查通過，可合併** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 在 `feature/p1b-react-core-ui` 執行Task 4工作流建立專案與完整Compose／E2E驗證。 |
+| 下一個動作 | 完成最終回歸，ff-only合併P1b，依D50更新交接並push origin main。 |
 | 分支 | `feature/p1b-react-core-ui`（由main開出，主checkout） |
-| 最新程式 commit | P1b Task3 `acd4cc8`；Demo仍為W6 `0934e48`，未修改。 |
+| 最新程式 commit | P1b Task4 `1f76fea`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | P1b Task3：Vitest `45 passed (45)`、build與diff check exit0，獨立品質審查重跑；真API375 Gate409保留todo→核准→doing，1280注入gate reload500重試與401返回登入，nooverflow/pageerror。API基準35／P0容器E2E4已於G3通過；P1b完整E2E在Task4更新重跑。Demo仍174/174，未修改。 |
+| 測試基準 | P1b Task4：API `35 passed, 1 warning in 20.25s`、Vitest55、build exit0、Playwright `4 passed (3.7s)`，Compose rebuild／migration／seed exit0。1280／375 login/create/Gate409→approve→doing/readonly nooverflow、pageerror0、unexpectedHTTP/console0；各預期resource401/409兩筆。Demo仍174/174，未修改。 |
 | 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17使用migration `20261008_0001_p1a_core` 建立P1a核心schema。 |
 | 認領中 | Codex GPT-6，2026-10-08；人類已指示「開始實作」 |
 | 阻塞／待人類 | 無；D50授權階段完成後push GitHub main。D51整體授權不變，D43、D10不擴大MVP。 |
@@ -77,7 +77,7 @@
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
 | — | P0 | 正式軌技術骨架與規則 | ✅ 已發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
 | — | P1a | 正式版MVP：登入、公司隔離、migration與核心後端API | ✅ 完成並發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1a計畫](superpowers/plans/2026-10-08-p1a-backend-core.md) | 正式PostgreSQL migration `20261008_0001_p1a_core` | 四Task與G4獨立審查通過；API35／Vitest6／E2E4與build通過，真PostgreSQL migration／seed smoke通過 |
-| — | P1b–P1c | 正式版MVP：React流程、部署／測試／內部試用驗收 | 🔨 P1b實作中 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1b計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md)；P1c開工前另細化 | 沿P1a正式DB | P1a→P1b→P1c |
+| — | P1b–P1c | 正式版MVP：React流程、部署／測試／內部試用驗收 | 🟢 P1b可合併；P1c待細化 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1b計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md)；P1c開工前另細化 | 沿P1a正式DB | P1a→P1b→P1c |
 
 **排程規則**
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -445,7 +445,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 2. P0 Compose刻意不暴露DB host port；seed實跑預設在API container內執行，不為seed臨時開DB對外埠。
 3. P1a測試可用SQLite暫存DB檢查路由與權限，但完成驗收必須在真PostgreSQL跑migration與seed。
 
-### P1b 正式版 React 核心 UI — 🔨 實作中
+### P1b 正式版 React 核心 UI — 🟢 可合併
 
 **授權**：D51已授權做到P1c；人類2026-10-08指示「開始實作」，確認P1b計畫並進入G3。Pre-flight：API `35 passed, 1 warning in 29.36s`、Vitest `6 passed (6)`、build exit0、Playwright `4 passed (1.0s)`，各exit0；無feature分支，working tree乾淨。
 
@@ -456,22 +456,24 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | 1 | API client、登入／session UI | ✅ `d4e90ce..4f95236` | RED `10 failed, 1 passed (11)` exit1 → GREEN11 exit0；client修正RED `5 failed, 11 passed (16)` exit1；登入後載入錯誤RED `2 failed, 16 passed (18)` exit1 → GREEN `18 passed (18)` exit0；build exit0。獨立spec Boyle／quality Ramanujan修正後均Approved，品質審查獨立重跑18/build0。真API1280／375登入／登出nooverflow/pageerror，session reload／logout reload成功，截圖已看375。初始未登入me回401產生預期Chrome resource401，非應用程式錯誤，不宣稱console全空。 | `P1b task 1: connect login session UI`；`P1b task 1 fix: complete typed API client` |
 | 2 | 專案清單、專案頁、節點樹與麵包屑 | ✅ `3b6f699..9d41f59` | RED `9 failed, 18 passed (27)` exit1 → GREEN `27 passed (27)` exit0、build exit0；spec Boyle／quality Ramanujan均Approved，品質獨立重跑27/build0。真API1280／375任務選取路徑「市場與配方 / 殺菌條件驗證」、nooverflow/pageerror；375長專案名與節點名20倍無溢出。截圖已看375。 | `P1b task 2: add project detail tree navigation` |
 | 3 | 看板四欄、狀態更新與Gate阻擋提示 | ✅ `7aeb01d..acd4cc8` | RED `18 failed, 27 passed (45)` exit1 → GREEN `45 passed (45)` exit0、build exit0；spec Boyle／quality Ramanujan均Approved，品質獨立重跑45/build0。狀態使用select符合UI控件指示。真API375工作流試作工單409維持todo→gate核准→doing、無溢出/pageerror；1280注入gate reload500重試成功、401返回登入，nooverflow。測試專案id `f9842e65-a87a-4f06-8ade-4c94f84c06d7`，未改既有seed任務。 | `P1b task 3: add kanban gate workflow controls` |
-| 4 | 工作流建立專案、Playwright真後端smoke與文件 | ⬜ | RED：缺工作流建立表單；GREEN：Vitest、build、API回歸、Compose migration／seed、Playwright P1b smoke通過 | `P1b task 4: add workflow creation browser smoke` |
+| 4 | 工作流建立專案、Playwright真後端smoke與文件 | ✅ `f478f1d..1f76fea` | Vitest RED `9 failed, 46 passed (55)` exit1 → GREEN55 exit0；E2E RED `2 failed, 2 passed (11.8s)` exit1 → GREEN `4 passed (3.7s)` exit0；API `35 passed, 1 warning in 20.25s` exit0、build0、Compose rebuild/migration/seed0。1280/375完整login/create/Gate409→approve→doing/readonly nooverflow/pageerror0/unexpectedHTTP/console0，各預期401/409resource兩筆；seed任務前後不變。Boyle spec／Ramanujan quality均Approved，品質獨立55/build0。 | `P1b task 4: add workflow creation browser smoke` |
+| G4 | 全分支 `d4e90ce..1f76fea` 審查 | ✅ Boyle與Ramanujan均Ready to merge: Yes | 無Critical/Important；三項Minor記§5。Demo／tests無diff，diff check0；截圖已看1280 Gate阻擋及375建立表單。 | 文件驗收與G5/G6收尾 |
 
 **P1b驗收**
-- [ ] 登入、登出與session restore使用P1a `/auth/*`與HttpOnly cookie，不靠前端公司切換。
-- [ ] 專案清單、專案頁、節點樹與麵包屑渲染P1a真實資料。
-- [ ] 看板狀態更新呼叫`/nodes/{id}/status`，失敗時保留原狀態並顯示安全訊息。
-- [ ] 可從工作流模板建立專案，payload不含前端偽造的organization欄位。
-- [ ] pending gate可見，後續階段被擋時顯示後端訊息。
-- [ ] Vitest、production build、API pytest、Compose PostgreSQL migration／seed與Playwright P1b smoke通過。
-- [ ] 1280px與375px P1b核心畫面無水平溢出，smoke流程無console error。
-- [ ] README、正式開發指南與PROGRESS更新並審查。
+- [x] 登入、登出與session restore使用P1a `/auth/*`與HttpOnly cookie，不靠前端公司切換。
+- [x] 專案清單、專案頁、節點樹與麵包屑渲染P1a真實資料。
+- [x] 看板狀態更新呼叫`/nodes/{id}/status`，失敗時保留原狀態並顯示安全訊息。
+- [x] 可從工作流模板建立專案，payload不含前端偽造的organization欄位。
+- [x] pending gate可見，後續階段被擋時顯示安全的Gate訊息。
+- [x] Vitest、production build、API pytest、Compose PostgreSQL migration／seed與Playwright P1b smoke通過。
+- [x] 1280px與375px無水平溢出、pageerror0及非預期console error0；正常未登入401與測試409的resource訊息據實分列。
+- [x] README、正式開發指南與PROGRESS更新並審查。
 
 **執行注意**
 1. P1b不得新增前端依賴；用既有React、Vitest、Testing Library與Playwright。
 2. P1b只在UI payload送`organization_key`一次登入；後續專案／節點／工作流／gate請求都靠cookie session，不送organization id。
 3. 若P1a API回應缺UI必需欄位，先判斷是否已在plan允許的後端變更範圍；超出時依WORKFLOW §8記D停下。
+4. Task4容器alembic設定在 `/app/alembic.ini`；實跑 `docker compose --env-file deploy/.env -f deploy/docker-compose.yml exec api python -m alembic upgrade head` exit0。計畫的 `-c api/alembic.ini` 是主機路徑，不在容器存在，按既有容器預設設定修正命令，無schema變更。
 
 ### P0 規劃文件恢復（歷史紀錄，非 P0 實作）
 
@@ -507,6 +509,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 **P1b新增**
 - P1b-T1-m1（minor，OPEN，不阻塞）：API client未設timeout；pending請求須等代理或連線結束，取消目前涵蓋換請求與卸載。後續網路韌性工作補強，位置 `web/src/api.ts:12`。
 - P1b-T3-m1（minor，已人工驗證，不阻塞）：Vitest未直接覆蓋gate核准成功／reload失敗／重試；主代理Playwright1280注入reload500→重試成功與401→返回登入均pass。可於後續網路韌性工作補自動回歸，位置 `web/src/App.test.tsx`。
+- P1b-F-m1（minor，OPEN，不阻塞）：E2E預期resource401/409按端點與status過濾，未限制各一次，重複同端點預期錯誤會放行；後續加次數斷言。位置 `web/e2e/health.spec.ts:98`。
 
 **P0新增**
 - P0-T1-m1（minor，OPEN，不阻塞）：`api/tests/test_health.py`缺查詢結果非1、查詢階段錯誤、checker非布林的持續回歸案例；Arendt唯讀補驗均通過，後續擴充API測試時納入。
