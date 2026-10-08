@@ -31,7 +31,7 @@ def create_project_from_workflow(payload: ProjectFromWorkflowCreate, current: Cu
     ).scalar_one_or_none()
     if workflow is None:
         raise HTTPException(status_code=404, detail="找不到工作流")
-    if current.user.role != "admin":
+    if current.user.role not in {"admin", "project_owner"}:
         raise HTTPException(status_code=403, detail="沒有建立專案權限")
     project = Project(organization_id=current.organization.id, title=payload.title, owner_user_id=current.user.id)
     db.add(project)

@@ -131,6 +131,7 @@ def seed_demo_data(session: Session) -> None:
     session.flush()
 
     yu = ensure_user(session, food, "yu", "游專案", "admin", "demo-yu")
+    ensure_user(session, food, "owner", "專案負責", "project_owner", "demo-owner")
     chen = ensure_user(session, food, "chen", "陳主管", "reviewer", "demo-chen")
     ming = ensure_user(session, food, "ming", "明成員", "member", "demo-ming")
     ensure_user(session, food, "lin", "林唯讀", "readonly", "demo-lin")

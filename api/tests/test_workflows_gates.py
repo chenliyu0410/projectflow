@@ -37,6 +37,14 @@ def test_cross_company_workflow_id_cannot_instantiate_project(client):
     assert response.status_code == 404
 
 
+def test_project_owner_can_create_project_from_workflow(client):
+    login(client, "food", "owner", "demo-owner")
+    workflow_id = client.get("/workflows").json()["items"][0]["id"]
+    response = client.post("/projects/from-workflow", json={"workflow_id": workflow_id, "title": "Owner建立"})
+    assert response.status_code == 201
+    assert response.json()["title"] == "Owner建立"
+
+
 def test_pending_gate_blocks_later_stage_even_with_override_payload(client):
     login(client, "food", "yu")
     workflow_id = client.get("/workflows").json()["items"][0]["id"]
@@ -44,7 +52,7 @@ def test_pending_gate_blocks_later_stage_even_with_override_payload(client):
     detail = client.get(f"/projects/{project['id']}").json()
     later_task = next(node for node in detail["nodes"] if node["title"] == "試作工單")
     blocked = client.patch(f"/nodes/{later_task['id']}/status", json={"status": "doing", "override": True})
-    assert blocked.status_code in {409, 422}
+    assert blocked.status_code == 422
     clean_blocked = client.patch(f"/nodes/{later_task['id']}/status", json={"status": "doing"})
     assert clean_blocked.status_code == 409
     assert clean_blocked.json() == {"detail": "前一階段閘門尚未通過"}
