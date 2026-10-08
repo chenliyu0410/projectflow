@@ -19,6 +19,19 @@ api/.venv/Scripts/python.exe -m uvicorn app.main:app --app-dir api --host 127.0.
 
 GET /health檢查API存活；GET /health/ready會實際查詢PostgreSQL，未設定DATABASE_URL或DB不可用時回503。不要把DSN／密碼提交到Git。
 
+## 本機前端
+
+Node 24.15以上、25以下。在repo根目錄逐行執行：
+
+```powershell
+npm.cmd --prefix web ci
+npm.cmd --prefix web test
+npm.cmd --prefix web run build
+npm.cmd --prefix web run dev
+```
+
+開啟`http://127.0.0.1:15173`。開發代理將`/api`送到`http://127.0.0.1:18000`，不需要放寬跨來源政策。API使用其他埠時，先在同一終端設定`$env:API_PROXY_TARGET = 'http://127.0.0.1:<埠號>'`。真實資料庫尚待Task3設定，未設定時顯示「無法連線」是預期結果。Docker整合與桌面／手機畫面將在Task3验收。
+
 ## 工作流程
 
 主checkout一次一個feature分支，TDD、每Task獨立審查、PROGRESS唯一進度來源。每階段完成更新README、驗收後ff-only到main並依D50推送，不force。正式資料庫未導入migration前，不可建立業務表或宣稱P1a完成。

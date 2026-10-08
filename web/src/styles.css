@@ -1,0 +1,55 @@
+:root {
+  font-family: system-ui, "Microsoft JhengHei", sans-serif;
+  color: #232b2b;
+  background: #f6f7f8;
+  font-synthesis: none;
+  letter-spacing: 0;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+header {
+  min-height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #d8dedf;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  flex-wrap: wrap;
+}
+header span { color: #616a6c; margin-left: auto; font-size: 14px; }
+main { max-width: 960px; margin: 0 auto; padding: 28px 24px; }
+h1 { font-size: 24px; margin: 0 0 24px; }
+h2 { font-size: 16px; margin: 0; }
+section {
+  border-top: 1px solid #d8dedf;
+  padding: 20px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px 112px;
+  gap: 16px;
+  align-items: center;
+}
+p { margin: 0; font-size: 14px; }
+.ready { color: #21684f; }
+.error { color: #ad303a; }
+.loading { color: #525e64; }
+button {
+  min-height: 40px;
+  border: 1px solid #a9b5b8;
+  background: white;
+  color: #253a40;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+button:disabled { opacity: .55; cursor: wait; }
+button:focus-visible { outline: 3px solid #397793; outline-offset: 2px; }
+@media (max-width: 480px) {
+  header { padding: 12px 16px; }
+  main { padding: 24px 16px; }
+  section { grid-template-columns: minmax(0, 1fr) 112px; }
+  section h2 { grid-column: 1 / -1; }
+  header span { margin-left: 0; }
+}

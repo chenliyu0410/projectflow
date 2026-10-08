@@ -394,7 +394,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
 |---|---|---|---|---|
 | 1 | 正式軌規則、FastAPI存活／真實DB就緒檢查 | ✅ Arendt獨立審查通過，無Critical／Important | 預期新增8項pytest；RED `1 warning, 1 error in 0.81s`，exit 1：缺`app.main`（安裝中pytest不存在不算RED）；GREEN `8 passed, 1 warning in 0.49s` exit0，pip check通過。reviewer另驗9個負向行為通過；真DB留Task3 | `e6082f9..8e84a9b`；`P0 task 1: add formal rules and API health checks` |
-| 2 | React狀態介面、載入／失敗／重試 | 未開始 | 新增6項Vitest＋production build；目前未執行 | `P0 task 2: add React health surface` |
+| 2 | React狀態介面、載入／失敗／重試 | 🔨 執行中 | 預期新增6項Vitest＋production build；RED `Test Files 1 failed (1); Tests no tests`，exit1：`Failed to resolve import "./App"`；依賴安裝成功、audit零漏洞 | BASE `b35ca9dec2b5cdeeae2fe67a1252c5c98fd87583`；`P0 task 2: add React health surface` |
 | 3 | Docker Compose、PostgreSQL、桌面／手機與DB恢復 | 未開始 | 新增4項Playwright＋實際DB outage/recovery；目前未執行 | `P0 task 3: verify containerized foundation` |
 
 **環境預檢（2026-10-08，只讀）**：Node24.19.0、npm11.17.0、Python3.13.9、Docker Engine29.7.2／Compose5.4.0可用，Docker daemon可連線；15173／18000未被占用。已查npm／PyPI版本並列於plan，未安裝產品依賴。
