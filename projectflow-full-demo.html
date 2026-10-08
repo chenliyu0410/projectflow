@@ -1647,10 +1647,11 @@ async function addAttachments(nodeId, files, link = {}) {
     if (f.size > MAX_FILE) { errors.push(`「${f.name}」超過 10 MB，未上傳`); continue; }
     const sha256=await sha256Hex(f);if(!active()) return cancelled();
     const id = newId('at'), storage_key=attachmentStorageKey(id,sourceCompany);
-    try { await fileStore.put(storage_key, f); } catch (e) { errors.push(`「${f.name}」儲存失敗`); continue; }
+    try { await fileStore.put(storage_key, f); } catch (e) { if(!active()) return cancelled(); errors.push(`「${f.name}」儲存失敗`); continue; }
     written.push(storage_key);if(!active()) return cancelled();
     added.push({ id, node_id: nodeId, report_id: link.reportId || null, note_id: link.noteId || null, filename: f.name, mime: f.type || 'application/octet-stream', size: f.size, sha256, storage_key, uploaded_by:sourceUser, uploaded_at: nowStr(), deleted_at: null });
   }
+  if(!active()) return cancelled();
   if (added.length) {
     commit(`上傳 ${added.length} 個附件`, () => { db.attachments.push(...added); });
     log(nodeId, '附件', `上傳附件：${added.map((a) => a.filename).join('、')}`);

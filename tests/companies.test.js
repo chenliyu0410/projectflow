@@ -136,6 +136,12 @@
     const reporting=submitReport('t30121',{result:'met',summary:'毛研不可跨公司回報',finished_on:'2026-09-30',values:{},files:[new File(['report'],'report.txt')]});
     switchCompany('software');const unchanged=JSON.stringify({db,audit,chat:ui.chat,undoStack});
     const report=await reporting;ok(!report.ok);eq(JSON.stringify({db,audit,chat:ui.chat,undoStack}),unchanged);
+    const put=fileStore.put;let writes=0;
+    try {
+      fileStore.put=async(...args)=>{if(++writes===2){switchCompany('petfood');throw new Error('second write failed');}return put(...args);};
+      const upload=await addAttachments(Object.values(db.nodes).find(n=>n.type==='task').id,[new File(['first'],'first.txt'),new File(['second'],'second.txt')]);
+      ok(!upload.ok);eq(db.attachments.length,count,'失敗路徑不得寫進切換後的公司');eq(upload.added,[]);
+    } finally {fileStore.put=put;}
   });
   await T('W6：重設目前公司不改其他公司或其附件',async()=>{
     projects()[0].title='待重設毛研';const a=await addAttachments('t3013',[new File(['petfood'],'pf.txt')]);save();
