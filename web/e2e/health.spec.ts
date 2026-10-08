@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
+test.beforeEach(async ({ request }) => {
+  const marker = await request.get('/api/health/acceptance');
+  expect(marker.status(), 'Acceptance requires the isolated test stack').toBe(200);
+  expect(await marker.json()).toEqual({ acceptance: true });
+});
+
 test('proxy verifies actual database readiness', async ({ request }) => {
   const live = await request.get('/api/health');
   expect(live.status()).toBe(200);
@@ -93,13 +99,17 @@ for (const width of [1280, 375]) {
     await screenshot('readonly');
     expect(await page.locator('header img').evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     expect(pageErrors).toEqual([]);
-    expect(httpErrors).toContainEqual({ path: '/api/auth/me', status: 401 });
-    expect(httpErrors).toContainEqual({ path: statusPath, status: 409 });
+    expect(httpErrors).toEqual([
+      { path: '/api/auth/me', status: 401 },
+      { path: statusPath, status: 409 },
+    ]);
     expect(httpErrors.filter(error => expected.get(error.path) !== error.status)).toEqual([]);
     expect(consoleErrors.filter(error => {
       const status = expected.get(error.path);
       return !status || !error.text.startsWith('Failed to load resource:') || !error.text.includes(`status of ${status}`);
     })).toEqual([]);
+    expect(consoleErrors.filter(error => error.path === '/api/auth/me')).toHaveLength(1);
+    expect(consoleErrors.filter(error => error.path === statusPath)).toHaveLength(1);
     const seedAfter = await page.request.get(`/api/projects/${seedProject.id}`);
     expect(seedAfter.status()).toBe(200);
     expect((await seedAfter.json()).nodes).toEqual(seedNodes);

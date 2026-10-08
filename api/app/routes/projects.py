@@ -6,7 +6,7 @@ from app.audit import log_audit
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.models import Department, Gate, Node, Project, User
-from app.permissions import can_view_project, can_work_node, can_work_project
+from app.permissions import can_view_node, can_view_project, can_work_node, can_work_project
 from app.schemas import NodeCreate, NodeStatusUpdate, ProjectCreate
 
 router = APIRouter(tags=["projects"])
@@ -113,7 +113,13 @@ def get_project(project_id: str, current: CurrentUser = Depends(require_session)
     gates = db.execute(
         select(Gate).where(Gate.organization_id == current.organization.id, Gate.project_id == project.id).order_by(Gate.created_at)
     ).scalars()
-    return {**project_out(current, project), "nodes": [node_out(node) for node in nodes], "gates": [gate_out(gate) for gate in gates]}
+    visible_nodes = [node for node in nodes if can_view_node(current, node)]
+    visible_ids = {node.id for node in visible_nodes}
+    return {
+        **project_out(current, project),
+        "nodes": [node_out(node) for node in visible_nodes],
+        "gates": [gate_out(gate) for gate in gates if gate.node_id in visible_ids],
+    }
 
 
 @router.post("/projects/{project_id}/nodes", status_code=status.HTTP_201_CREATED)

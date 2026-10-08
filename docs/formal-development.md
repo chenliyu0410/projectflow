@@ -195,4 +195,32 @@ Invoke-WebRequest -Uri "$base/audit-logs" -WebSession $pf
 
 ## 工作流程
 
+### P1c Task2 隔離角色驗收
+
+Playwright 預設使用 `http://127.0.0.1:15175`；`PF_BASE_URL` 只接受 loopback HTTP，拒絕共享埠 15173。每個 E2E 在任何業務寫入前必須取得 `/api/health/acceptance` 的 200 與 `{ "acceptance": true }`。請先執行 `api/.venv/Scripts/python.exe deploy/start.py --acceptance --seed-demo`，再執行 `npm.cmd --prefix web run e2e`。不得將共享環境當測試資料庫。
+
+| 角色 | 專案 detail | 狀態／回報 | 閘門 |
+|---|---|---|---|
+| yu / admin | 公司內節點與閘門 | 公司內可操作 | 可核准 |
+| chen / reviewer | 公司內節點與閘門 | 沿用負責人／部門主管權限；可操作 seed 品保任務 | 需專案操作權限或該節點部門權限；不相關閘門 403 |
+| ming / member | 僅本人負責節點；隱藏節點的 gate 不回傳 | 本人任務可操作；不相關節點 403 | 沿用原有 API 權限 |
+| lin / readonly | 公司內節點與閘門 | 狀態、回報、建立皆 403 | 403 |
+| 跨公司 ID | 專案 404 | 節點狀態／回報 404 | 閘門 404 |
+
+前端將父節點不在回應內的可見任務顯示為可選根節點，麵包屑在缺少父節點處停止。回報與稽核仍為 **API-only**，測試使用各角色真實登入的同 context cookie 呼叫，不代表已提供回報／稽核畫面。稽核 API 保持既有公司範圍，不新增節點權限規則。
+
+瀏覽器驗收於 1280 與 375 寬度分別以 yu、chen、ming、lin、elaine 獨立 context 登入，檢查節點樹／看板、部門與本人狀態更新、report.submit 稽核、閘門 409→核准→更新、唯讀與跨公司邊界，並保存截圖、檢查水平 overflow 與瀏覽器錯誤。Seed 節點狀態先 snapshot，finally 由 yu 恢復並比對完整節點回應；隔離環境的新增專案／回報／稽核保留。共享 15173 僅做登入與唯讀檢查。
+
+2026-10-08 Task2 實跑摘要（BASE `b76606e8b3be3521af3a2b5882927c27d676712b`）：
+
+- pytest RED：`1 failed, 14 passed, 1 warning in 11.60s`，exit 1，`test_member_detail_filters_nodes_and_hidden_gate_metadata` 收到額外 yu 節點 ID。
+- Vitest RED：`Tests  1 failed | 55 passed (56)`，exit 1，孤兒任務在節點樹找不到 button。
+- E2E RED（舊驗收容器）：`2 failed`，exit 1，1280／375 的 ming 回應含隱藏階段 ID。
+- full API GREEN：`63 passed, 1 warning in 31.98s`，exit 0；既有 Starlette TestClient deprecation warning 未新增依賴處理。
+- full Vitest GREEN：`Tests  56 passed (56)`，exit 0；build：`tsc --noEmit && vite build`，exit 0。
+- acceptance launcher：`ProjectFlow ready: projectflow-acceptance at http://127.0.0.1:15175`，exit 0。
+- full E2E GREEN：`6 passed (10.4s)`，保留截圖的最後一次為 `6 passed (11.0s)`，均 exit 0。Health 每個 workflow 精確一個 me401 與一個 task409；各角色 context 精確一個初始 me401；無其他 console／HTTP／pageerror、無水平 overflow。
+- 防護：`PF_BASE_URL=http://127.0.0.1:15173` 的 `--list` 在 config 拒絕，exit 1；指向共享 API 18000 的唯讀 health 測試在 marker 404 的 beforeEach 拒絕，`1 failed`／exit 1，未執行業務寫入。
+- 共享 15173 保持 projectcount 12、marker 404；Task2 未重建 primary。截圖位於 `web/test-results/`，下一次 Playwright 執行會覆寫該目錄。
+
 主checkout一次一個feature分支，TDD、每Task獨立審查、PROGRESS唯一進度來源。每階段完成更新README、驗收後ff-only到main並依D50推送，不force。正式資料庫未導入migration前，不可建立業務表或宣稱P1a完成。

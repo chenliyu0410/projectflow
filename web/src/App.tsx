@@ -9,7 +9,10 @@ const columns: { status: NodeStatus; label: string }[] = [
   { status: 'review', label: '待確認' }, { status: 'done', label: '完成' },
 ];
 function childrenOf(nodes: NodeItem[], parentId: string | null) {
-  return nodes.filter(node => node.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order);
+  const visibleIds = new Set(nodes.map(node => node.id));
+  return nodes.filter(node => parentId === null
+    ? node.parent_id === null || !visibleIds.has(node.parent_id)
+    : node.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order);
 }
 function pathFor(nodes: NodeItem[], selectedId: string | null) {
   const byId = new Map(nodes.map(node => [node.id, node]));

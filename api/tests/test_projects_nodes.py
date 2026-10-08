@@ -95,3 +95,33 @@ def test_cross_company_project_and_node_ids_are_not_visible(client):
     login(client, "food", "yu")
     assert client.get(f"/projects/{other_project_id}").status_code == 404
     assert client.post(f"/projects/{other_project_id}/nodes", json={"title": "偷看", "kind": "task"}).status_code == 404
+
+
+def test_member_detail_filters_nodes_and_hidden_gate_metadata(client):
+    login(client)
+    project = client.get("/projects").json()["items"][0]
+    admin = client.get(f"/projects/{project['id']}").json()
+    yu_id = client.get("/auth/me").json()["user"]["id"]
+    assert client.post(f"/projects/{project['id']}/nodes", json={
+        "title": "管理員任務", "kind": "task", "owner_user_id": yu_id,
+    }).status_code == 201
+    workflow = client.get("/workflows").json()["items"][0]
+    hidden = client.post("/projects/from-workflow", json={
+        "workflow_id": workflow["id"], "title": "隱藏閘門",
+    }).json()
+    hidden_detail = client.get(f"/projects/{hidden['id']}").json()
+    assert hidden_detail["gates"]
+    client.post("/auth/logout")
+    login(client, username="ming")
+    member_id = client.get("/auth/me").json()["user"]["id"]
+    expected = {n["id"] for n in admin["nodes"] if n["owner_user_id"] == member_id}
+    assert expected
+    detail = client.get(f"/projects/{project['id']}").json()
+    assert {n["id"] for n in detail["nodes"]} == expected
+    restricted = client.get(f"/projects/{hidden['id']}").json()
+    assert restricted["nodes"] == []
+    assert restricted["gates"] == []
+    for username in ["yu", "chen", "lin", "owner"]:
+        client.post("/auth/logout")
+        login(client, username=username)
+        assert client.get(f"/projects/{hidden['id']}").json() == hidden_detail

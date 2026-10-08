@@ -128,6 +128,19 @@ function kanbanFetch(value = gateDetail, identity = session) {
   return vi.fn().mockResolvedValueOnce(response(identity)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(value));
 }
 
+it('renders an owned task with hidden parent as a selectable root and kanban item', async () => {
+  vi.stubGlobal('fetch', kanbanFetch({ ...detail, nodes: [taskNode], gates: [] },
+    { ...session, user: { ...session.user, role: 'member' } }));
+  render(<App />);
+  await screen.findByRole('heading', { name: detail.title });
+  const tree = within(screen.getByLabelText('節點樹'));
+  fireEvent.click(tree.getByRole('button', { name: taskNode.title }));
+  expect(tree.getAllByRole('button')).toHaveLength(1);
+  expect(screen.getByLabelText('節點路徑')).toHaveTextContent(taskNode.title);
+  expect(screen.getByLabelText('節點路徑')).not.toHaveTextContent('市場與配方');
+  expect(within(screen.getByLabelText('看板')).getByRole('combobox', { name: `${taskNode.title}狀態` })).toBeInTheDocument();
+});
+
 describe('P1b kanban and gates', () => {
   it('renders four task-only columns and moves a task after status selection', async () => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response({ ...taskNode, status: 'doing' }));
