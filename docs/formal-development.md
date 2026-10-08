@@ -8,6 +8,24 @@
 
 ## 環境需求
 
+### P1c 一鍵本機啟動（實作中）
+
+安裝Python 3.13與Docker Desktop後，可在repo根目錄執行以下單一命令。它建立缺少的本機設定、啟動Compose、執行migration，再確認HTTP就緒；已有 `.env` 不覆寫，volume不刪除。初始化本機示範帳號（含管理員yu）須明確加 `--seed-demo`，只適用本機MVP試用。
+
+```powershell
+python deploy/start.py --seed-demo
+```
+
+之後重啟用 `python deploy/start.py`，不重新種資料。此入口仍為 http://127.0.0.1:15173 。初次Compose會下載Python／Node／PostgreSQL映像與鎖版套件，需要網路。這不是LAN／正式環境部署或人類試用簽核。
+
+自動驗收使用另一個Compose專案、volume與loopback埠，避免寫入使用者試用資料：
+
+```powershell
+python deploy/start.py --acceptance --seed-demo
+```
+
+驗收入口預設 http://127.0.0.1:15175 ，API18002；私密設定位於gitignored `.superpowers/p1c/acceptance.env`。只有隔離API的 `/health/acceptance` 回200；共享API預設404。Task2完成後E2E將強制先檢查此marker。既有P1b測試專案不會自動刪除。
+
 - 本機開發：Python 3.13、Node 24.15以上且小於25；套件分別使用`api/requirements.lock`及`web/package-lock.json`。
 - 完整環境：Docker Desktop的Linux容器引擎與Docker Compose。容器自帶Python／Node，不依賴主機安裝的執行環境。
 - 目前為本機MVP開發環境；P1c正式部署強化與內部試用驗收尚未完成，不可直接視為內網正式版發布。

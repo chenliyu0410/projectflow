@@ -69,6 +69,7 @@ def test_only_health_routes_exist():
         "/departments",
         "/gates/{gate_id}",
         "/health",
+        "/health/acceptance",
         "/health/ready",
         "/nodes/{node_id}/reports",
         "/nodes/{node_id}/status",
@@ -78,3 +79,21 @@ def test_only_health_routes_exist():
         "/projects/{project_id}/nodes",
         "/workflows",
     }
+
+
+@pytest.mark.parametrize('mode', [None, 'false', 'TRUE', '1'])
+def test_acceptance_marker_disabled_by_default(monkeypatch, mode):
+    if mode is None:
+        monkeypatch.delenv('PF_ACCEPTANCE_MODE', raising=False)
+    else:
+        monkeypatch.setenv('PF_ACCEPTANCE_MODE', mode)
+    with TestClient(create_app(lambda: True)) as client:
+        assert client.get('/health/acceptance').status_code == 404
+
+
+def test_acceptance_marker_requires_explicit_mode(monkeypatch):
+    monkeypatch.setenv('PF_ACCEPTANCE_MODE', 'true')
+    with TestClient(create_app(lambda: True)) as client:
+        response = client.get('/health/acceptance')
+        assert response.status_code == 200
+        assert response.json() == {'acceptance': True}

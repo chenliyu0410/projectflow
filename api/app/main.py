@@ -33,6 +33,12 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     def health():
         return {"ok": True}
 
+    @application.get("/health/acceptance")
+    def acceptance_marker():
+        if os.environ.get("PF_ACCEPTANCE_MODE") != "true":
+            return JSONResponse(status_code=404, content={"detail": "Not found"})
+        return {"acceptance": True}
+
     @application.get("/health/ready")
     def readiness():
         try:
