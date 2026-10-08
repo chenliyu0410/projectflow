@@ -5,6 +5,8 @@ import psycopg
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+from app.routes import auth
+
 
 def database_ready() -> bool:
     url = os.environ.get("DATABASE_URL")
@@ -20,6 +22,7 @@ def database_ready() -> bool:
 def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     application = FastAPI(title="ProjectFlow API")
     probe = checker if checker is not None else database_ready
+    application.include_router(auth.router)
 
     @application.get("/health")
     def health():

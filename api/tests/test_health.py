@@ -61,4 +61,4 @@ def test_connection_failure_is_unavailable(monkeypatch):
 
 def test_only_health_routes_exist():
     paths = set(create_app().openapi()["paths"])
-    assert paths == {"/health", "/health/ready"}
+    assert paths == {"/auth/login", "/auth/logout", "/auth/me", "/health", "/health/ready"}

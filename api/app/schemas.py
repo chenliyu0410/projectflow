@@ -1,0 +1,30 @@
+from pydantic import BaseModel, ConfigDict
+
+
+class LoginRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    organization_key: str
+    username: str
+    password: str
+
+
+class UserOut(BaseModel):
+    id: str
+    username: str
+    display_name: str
+    role: str
+
+
+class OrganizationOut(BaseModel):
+    id: str
+    key: str
+    name: str
+
+
+class LoginResponse(BaseModel):
+    user: UserOut
+    organization: OrganizationOut
+
+
+MeResponse = LoginResponse
