@@ -15,9 +15,9 @@
 |---|---|
 | 目前工作項目 | **P1c部署／角色驗收實作中** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 在feature/p1c-mvp-acceptance執行Task2角色讀取邊界與隔離瀏覽器驗收。 |
+| 下一個動作 | 在feature/p1c-mvp-acceptance執行Task3一鍵隔離驗收與試用交接。 |
 | 分支 | `feature/p1c-mvp-acceptance`，主checkout；舊paused分支保留。 |
-| 最新程式 commit | P1c Task1 `7eca35d`；Demo仍為W6 `0934e48`，未修改。 |
+| 最新程式 commit | P1c Task2 `a42b47b`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | P1c Task1：API `56 passed, 1 warning in 17.63s` exit0（quality獨立56/18.12s）、Vitest55/build0；targeted29通過；實際隔離startup15175/migration/seed/readiness exit0、marker200/login200。共享15173 marker404/login200/project count12維持；Demo未改。E2E基準4，Task2切隔離。 |
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變，P1b只有UI與smoke測試專案。 |
@@ -489,7 +489,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | Task | 交付 | 狀態 | 驗證／commits | commit主旨 |
 |---|---|---|---|---|
 | 1 | 安全一鍵Compose啟動、opt-in種子、隔離驗收marker | ✅ `2acd923..7eca35d` | RED `2 failed, 11 passed, 14 errors` exit1（缺start/marker）→GREEN27；env繼承RED `1 failed,14 passed`→pass；Windows實啟cp950讀DockerUTF8失敗exit1，回歸RED `1 failed,15 passed`→targeted29pass。完整API56/1warning exit0、Vitest55/build0，真隔離startup/migration/seed0，marker200/login200/count1；共享marker404/login200/count12未變。Lagrange spec/Feynman quality均Approved，quality獨立API56。 | `P1c task 1: add safe Compose trial startup` |
-| 2 | 角色讀取權限修正與yu/chen/ming隔離瀏覽器驗收 | ⬜ | RED member收到他人節點／orphan樹缺失→GREEN | `P1c task 2: verify role boundaries and isolated workflows` |
+| 2 | 角色讀取權限修正與yu/chen/ming隔離瀏覽器驗收 | ✅ Lagrange spec／Feynman quality Approved | API RED `1 failed,14 passed` exit1→GREEN63/1warning exit0；Vitest RED1failed/55passed→GREEN56 exit0；E2E RED2failed→GREEN6passed(11.0s) exit0；build0。quality獨立API63/27.50s、Vitest56/build0；共享count12/marker404不變，隔離marker200；15173及false-marker拒絕exit1 | `a42b47b`；`P1c task 2: verify role boundaries and isolated workflows` |
 | 3 | 一鍵驗收與試用交接文件 | ⬜ | RED缺verify→GREEN；全套隔離驗收 | `P1c task 3: add repeatable MVP acceptance handoff` |
 
 **驗收**
@@ -537,7 +537,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 **P1b新增**
 - P1b-T1-m1（minor，OPEN，不阻塞）：API client未設timeout；pending請求須等代理或連線結束，取消目前涵蓋換請求與卸載。後續網路韌性工作補強，位置 `web/src/api.ts:12`。
 - P1b-T3-m1（minor，已人工驗證，不阻塞）：Vitest未直接覆蓋gate核准成功／reload失敗／重試；主代理Playwright1280注入reload500→重試成功與401→返回登入均pass。可於後續網路韌性工作補自動回歸，位置 `web/src/App.test.tsx`。
-- P1b-F-m1（minor，OPEN，不阻塞）：E2E預期resource401/409按端點與status過濾，未限制各一次，重複同端點預期錯誤會放行；後續加次數斷言。位置 `web/e2e/health.spec.ts:98`。
+- P1b-F-m1（minor，FIXED）：P1c Task2在E2E精確限制預期resource401/409各一次；兩位獨立reviewer確認，E2E6passed exit0。位置 `web/e2e/health.spec.ts`，commit `a42b47b`。
 
 **P0新增**
 - P0-T1-m1（minor，OPEN，不阻塞）：`api/tests/test_health.py`缺查詢結果非1、查詢階段錯誤、checker非布林的持續回歸案例；Arendt唯讀補驗均通過，後續擴充API測試時納入。
