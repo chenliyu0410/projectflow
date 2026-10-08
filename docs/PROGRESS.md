@@ -15,11 +15,11 @@
 |---|---|
 | 目前工作項目 | **P1c部署／角色驗收實作中** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 切到feature/p1c-mvp-acceptance，執行Task1安全啟動RED→GREEN；進度以該分支看板為準。 |
+| 下一個動作 | 在feature/p1c-mvp-acceptance執行Task2角色讀取邊界與隔離瀏覽器驗收。 |
 | 分支 | `feature/p1c-mvp-acceptance`，主checkout；舊paused分支保留。 |
-| 最新程式 commit | P1b Task4 `1f76fea`、文件驗收 `113345c`，均已ff-only進main；Demo仍為W6 `0934e48`，未修改。 |
+| 最新程式 commit | P1c Task1 `7eca35d`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | P1b合併後main：API `35 passed, 1 warning in 19.63s`、Vitest `55 passed (55)`、build exit0、Playwright `4 passed (3.6s)` exit0；Compose migration／seed已exit0。1280／375完整workflow/readonly nooverflow、pageerror0、unexpectedHTTP/console0；各預期resource401/409兩筆。Demo仍174/174，未修改。 |
+| 測試基準 | P1c Task1：API `56 passed, 1 warning in 17.63s` exit0（quality獨立56/18.12s）、Vitest55/build0；targeted29通過；實際隔離startup15175/migration/seed/readiness exit0、marker200/login200。共享15173 marker404/login200/project count12維持；Demo未改。E2E基準4，Task2切隔離。 |
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變，P1b只有UI與smoke測試專案。 |
 | 認領中 | Codex GPT-6，2026-10-08，P1c |
 | 阻塞／待人類 | 無；D50授權階段完成後push GitHub main。D51整體授權不變，D43、D10不擴大MVP。 |
@@ -488,7 +488,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | Task | 交付 | 狀態 | 驗證／commits | commit主旨 |
 |---|---|---|---|---|
-| 1 | 安全一鍵Compose啟動、opt-in種子、隔離驗收marker | ⬜ | RED缺launcher/marker→GREEN；原env/DB保留 | `P1c task 1: add safe Compose trial startup` |
+| 1 | 安全一鍵Compose啟動、opt-in種子、隔離驗收marker | ✅ `2acd923..7eca35d` | RED `2 failed, 11 passed, 14 errors` exit1（缺start/marker）→GREEN27；env繼承RED `1 failed,14 passed`→pass；Windows實啟cp950讀DockerUTF8失敗exit1，回歸RED `1 failed,15 passed`→targeted29pass。完整API56/1warning exit0、Vitest55/build0，真隔離startup/migration/seed0，marker200/login200/count1；共享marker404/login200/count12未變。Lagrange spec/Feynman quality均Approved，quality獨立API56。 | `P1c task 1: add safe Compose trial startup` |
 | 2 | 角色讀取權限修正與yu/chen/ming隔離瀏覽器驗收 | ⬜ | RED member收到他人節點／orphan樹缺失→GREEN | `P1c task 2: verify role boundaries and isolated workflows` |
 | 3 | 一鍵驗收與試用交接文件 | ⬜ | RED缺verify→GREEN；全套隔離驗收 | `P1c task 3: add repeatable MVP acceptance handoff` |
 
