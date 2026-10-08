@@ -117,6 +117,39 @@
     switchCompany('petfood');const html=pageOps();['配方','採購','工單','追溯'].forEach(text=>ok(html.includes(text)));
     ['suppliers','materials','formulas','pos','wos','trace','erp'].forEach(tab=>{ui.opsTab=tab;const h=pageOps();ok(h.length>100);ok(!/undefined|NaN/.test(h));});
   });
+  await T('W6：新附件鍵含公司前綴且舊毛研鍵仍可讀',async()=>{
+    eq(attachmentStorageKey('new-file'),'petfood:new-file');await fileStore.put('legacy-file',new Blob(['old']));
+    eq(await (await attachmentBlob({id:'legacy-file',storage_key:'legacy-file'})).text(),'old');
+    eq(await (await attachmentBlob({id:'legacy-file'})).text(),'old');
+    switchCompany('software');eq(attachmentStorageKey('new-file'),'software:new-file');eq(await attachmentBlob({id:'legacy-file'}),undefined);
+    eq(await attachmentBlob({id:'legacy-file',storage_key:'legacy-file'}),undefined);
+  });
+  await T('W6：相同附件 ID 在不同公司使用不同 blob',async()=>{
+    db.seq=2000;const a=await addAttachments('t3013',[new File(['petfood'],'same.txt')]);ok(a.ok);eq(a.added[0].storage_key,'petfood:at2001');
+    switchCompany('software');db.seq=2000;const n=Object.values(db.nodes).find(n=>n.type==='task');
+    const b=await addAttachments(n.id,[new File(['software'],'same.txt')]);ok(b.ok);eq(b.added[0].id,a.added[0].id);eq(b.added[0].storage_key,'software:at2001');
+    eq(await (await attachmentBlob(b.added[0])).text(),'software');eq(await attachmentBlob(a.added[0]),undefined);
+    switchCompany('petfood');eq(await (await attachmentBlob(db.attachments[0])).text(),'petfood');
+    const count=db.attachments.length;
+    const pending=addAttachments('t3013',[new File(['不可跨公司'],'pending.txt')]);switchCompany('software');
+    const result=await pending;ok(!result.ok,'切換後應中止未完成上傳');eq(db.attachments.length,1);switchCompany('petfood');eq(db.attachments.length,count);
+    const reporting=submitReport('t30121',{result:'met',summary:'毛研不可跨公司回報',finished_on:'2026-09-30',values:{},files:[new File(['report'],'report.txt')]});
+    switchCompany('software');const unchanged=JSON.stringify({db,audit,chat:ui.chat,undoStack});
+    const report=await reporting;ok(!report.ok);eq(JSON.stringify({db,audit,chat:ui.chat,undoStack}),unchanged);
+  });
+  await T('W6：重設目前公司不改其他公司或其附件',async()=>{
+    projects()[0].title='待重設毛研';const a=await addAttachments('t3013',[new File(['petfood'],'pf.txt')]);save();
+    await fileStore.put('legacy-delete',new Blob(['old']));db.attachments.push({...a.added[0],id:'legacy-delete',storage_key:'legacy-delete'});save();
+    switchCompany('software');projects()[0].title='保留雲序';const n=Object.values(db.nodes).find(n=>n.type==='task');const b=await addAttachments(n.id,[new File(['software'],'sw.txt')]);save();
+    const other=JSON.stringify(activeCompanySnapshot());switchCompany('petfood');openResetCompany();ok($('dlg').textContent.includes('毛研食品'));ok($('dlg').textContent.includes('其他四家公司'));
+    ok((await resetActiveCompany()).ok);eq(await fileStore.get(a.added[0].storage_key),undefined);eq(await fileStore.get('legacy-delete'),undefined);
+    eq(JSON.stringify(portfolio.companies.software),other);switchCompany('software');eq(projects()[0].title,'保留雲序');eq(await (await attachmentBlob(b.added[0])).text(),'software');
+  });
+  await T('W6：重設持久化失敗不改資料也不刪附件',async()=>{
+    switchCompany('software');projects()[0].title='不可遺失';const n=Object.values(db.nodes).find(n=>n.type==='task');const up=await addAttachments(n.id,[new File(['keep'],'keep.txt')]);save();
+    const before=JSON.stringify({portfolio,db,ui,audit,undoStack});ok(!(await resetActiveCompany(()=>false)).ok);eq(JSON.stringify({portfolio,db,ui,audit,undoStack}),before);
+    eq(await (await attachmentBlob(up.added[0])).text(),'keep');
+  });
   // ── 新測試加在這一行上面 ──
   return results;
 })()

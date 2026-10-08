@@ -182,7 +182,7 @@
     const a = r.added[0];
     eq([a.filename, a.size, a.uploaded_by, a.report_id, a.note_id], ['參數.txt', 10, 'ming', null, null]);
     eq(a.sha256.length, 64);
-    eq(await (await fileStore.get(a.id)).text(), '121C 30min');
+    eq(await (await fileStore.get(a.storage_key)).text(), '121C 30min');
   });
   await T('刪除附件為軟刪除；回報附件不能刪除', async () => {
     as('ming');

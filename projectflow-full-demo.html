@@ -1406,7 +1406,7 @@ function announceUnlocks(n) {
 function notify(text, title = '活動紀錄') { ui.chat.push({ title, text }); audit.notes.unshift({ at: nowStr(), text }); if (ui.chat.length > 80) ui.chat.shift(); renderChat(); }
 
 /* ================= 任務紀錄（F11）與跳過任務 ================= */
-// 附件檔案內容存在 IndexedDB（key = 附件 id），中繼資料存在 db.attachments
+// 附件內容按公司前綴存於 IndexedDB；舊毛研鍵保留，中繼資料仍在 db.attachments。
 const fileStore = (() => {
   let dbp = null;
   const open = () => dbp || (dbp = new Promise((res, rej) => {
@@ -1429,9 +1429,32 @@ const fileStore = (() => {
     async check() { try { await open(); this.ok = true; } catch (e) { this.ok = false; dbp = null; } return this.ok; },
     put: (id, blob) => tx('readwrite', (st) => st.put(blob, id)),
     get: (id) => tx('readonly', (st) => st.get(id)),
+    del: (id) => tx('readwrite', (st) => st.delete(id)),
+    removeMany: (keys) => tx('readwrite', (st) => { keys.forEach(key=>st.delete(key)); }),
     clear: () => tx('readwrite', (st) => st.clear()).catch(() => {}),
   };
 })();
+function attachmentStorageKey(attachmentId, companyId = company.id) { return `${companyId}:${attachmentId}`; }
+function attachmentKey(attachment, companyId = company.id) {
+  const key=attachment?.storage_key || (companyId==='petfood'?attachment?.id:null);
+  if(typeof key!=='string') return null;
+  return key.startsWith(companyId+':') || (companyId==='petfood' && !key.includes(':')) ? key : null;
+}
+async function attachmentBlob(attachment) {
+  const key=attachmentKey(attachment);
+  return key?fileStore.get(key).catch(()=>undefined):undefined;
+}
+async function resetActiveCompany(writer = persistPortfolio) {
+  const id=company.id, name=company.name, keys=[...new Set(db.attachments.map(a=>attachmentKey(a,id)).filter(Boolean))];
+  const candidate=syncActiveCompany(cloneData(portfolio));candidate.companies[id]=seedCompany(id);candidate.activeCompanyId=id;
+  if(!writer(candidate)) return {ok:false,error:'資料無法儲存，尚未重設公司'};
+  portfolio=candidate;activateCompany(id,{resetIdentity:true});resetTransientCompanyUI();render();
+  try { await fileStore.removeMany(keys); } catch(e) { toast('公司已重設，但附件內容清理失敗','warn');return {ok:true,warning:'附件內容清理失敗'}; }
+  toast(`已重設${name}`);return {ok:true};
+}
+function openResetCompany() {
+  openDlg(`<form id="resetCompanyForm" data-company="${esc(company.id)}"><h2>重設「${esc(company.name)}」的示範資料？</h2><p>目前公司的自訂資料與附件將移除。其他四家公司的資料與附件都會保留。</p><div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn danger" type="submit">重設目前公司</button></div></form>`);
+}
 function resetAll() {
   try { localStorage.removeItem(KEY); } catch (err) { /* 忽略 */ }
   portfolio = seedPortfolio(); activateCompany('petfood', {resetIdentity:true}); resetTransientCompanyUI();
@@ -1480,6 +1503,7 @@ function collapseUndo(mark) {
   if (undoStack.length - i > 1) undoStack.splice(i + 1);
 }
 async function submitReport(nodeId, data, opts = {}) {
+  const sourceDb=db, sourceUser=ui.me;
   const n = node(nodeId);
   if (!canReport(n)) return { ok: false, errors: ['這個任務目前不能送出完成回報'] };
   const errors = validateReport(nodeId, data);
@@ -1496,6 +1520,7 @@ async function submitReport(nodeId, data, opts = {}) {
   log(n.id, '完成回報', `送出「${n.title}」完成回報 v${r.version}：${RESULT[r.result]}`);
   if ((data.files || []).length) {
     const up = await addAttachments(n.id, data.files, { reportId: r.id });
+    if(db!==sourceDb || ui.me!==sourceUser) return {ok:false,errors:['公司或身分已切換，回報已保留於原公司']};
     if (up.errors.length) toast(up.errors.join('；'), 'warn');
   }
   setStatus(n.id, 'review', { system: '送出完成回報' });
@@ -1607,18 +1632,24 @@ async function sha256Hex(blob) {
   } catch (e) { return ''; }
 }
 async function addAttachments(nodeId, files, link = {}) {
+  const sourceDb=db, sourceCompany=company.id, sourceUser=ui.me, written=[];
+  const active=()=>db===sourceDb && company.id===sourceCompany && ui.me===sourceUser;
+  const cancelled=async()=>{await fileStore.removeMany(written).catch(()=>{});return {ok:false,errors:['公司或身分已切換，附件上傳已中止'],added:[]};};
   const n = node(nodeId);
   // 筆記的附件由能寫筆記的人上傳（協作人員、協作部門主管、範圍內審核人），而且筆記要屬於這個節點；任務附件仍要能編輯
   const note = link.noteId ? db.notes.find((x) => x.id === link.noteId) : null;
   const allowed = link.noteId ? !!note && note.node_id === nodeId && canNote(n) : can('edit', n);
   if (!n || !allowed) return { ok: false, errors: ['你的角色無權上傳附件'], added: [] };
   if (!(await fileStore.check())) return { ok: false, errors: ['此瀏覽器無法儲存檔案'], added: [] };
+  if(!active()) return cancelled();
   const errors = [], added = [];
   for (const f of files) {
     if (f.size > MAX_FILE) { errors.push(`「${f.name}」超過 10 MB，未上傳`); continue; }
-    const id = newId('at');
-    try { await fileStore.put(id, f); } catch (e) { errors.push(`「${f.name}」儲存失敗`); continue; }
-    added.push({ id, node_id: nodeId, report_id: link.reportId || null, note_id: link.noteId || null, filename: f.name, mime: f.type || 'application/octet-stream', size: f.size, sha256: await sha256Hex(f), storage_key: id, uploaded_by: ui.me, uploaded_at: nowStr(), deleted_at: null });
+    const sha256=await sha256Hex(f);if(!active()) return cancelled();
+    const id = newId('at'), storage_key=attachmentStorageKey(id,sourceCompany);
+    try { await fileStore.put(storage_key, f); } catch (e) { errors.push(`「${f.name}」儲存失敗`); continue; }
+    written.push(storage_key);if(!active()) return cancelled();
+    added.push({ id, node_id: nodeId, report_id: link.reportId || null, note_id: link.noteId || null, filename: f.name, mime: f.type || 'application/octet-stream', size: f.size, sha256, storage_key, uploaded_by:sourceUser, uploaded_at: nowStr(), deleted_at: null });
   }
   if (added.length) {
     commit(`上傳 ${added.length} 個附件`, () => { db.attachments.push(...added); });
@@ -1637,7 +1668,7 @@ function deleteAttachment(id) {
 }
 async function openAttachment(id) {
   const a = db.attachments.find((x) => x.id === id);
-  const blob = a && !a.deleted_at ? await fileStore.get(a.storage_key).catch(() => undefined) : undefined;
+  const blob = a && !a.deleted_at ? await attachmentBlob(a) : undefined;
   if (!blob) return toast('找不到檔案內容（可能是在其他瀏覽器上傳，或資料已重置）', 'warn');
   const url = URL.createObjectURL(blob);
   if (/^image\/|pdf$/.test(a.mime)) window.open(url, '_blank');
@@ -1775,7 +1806,7 @@ function renderMe() {
     <div class="row">${av(u.id, 34)}<div style="min-width:0"><div style="font-weight:500">${esc(u.name)}</div><div class="small muted">${esc(u.title)}</div></div></div>
     <label class="small muted" for="meSel">切換身分（Demo，用來體驗權限差異）</label>
     <select id="meSel">${Object.entries(USERS).map(([id, x]) => `<option value="${esc(id)}" ${id === ui.me ? 'selected' : ''}>${esc(x.name)}｜${esc(ROLES[x.role])}｜${esc(deptName(x.dept))}</option>`).join('')}</select>
-    <button class="reset" type="button" id="resetBtn">重置 Demo 資料</button>`;
+    <button class="reset" type="button" id="resetBtn">重設目前公司</button>`;
 }
 function mbar() {
   return `<div class="mbar"><button class="btn sm" type="button" data-toggle-side>☰ 選單</button><button class="btn sm" type="button" data-toggle-ai>✦ AI 副手</button></div>`;
@@ -3818,7 +3849,7 @@ document.addEventListener('click', (e) => {
     return;
   }
   if ('minPreview' in ds) { const r = maskText($('minText').value); $('minPrev').innerHTML = `<b>實際送出（${routeFor('internal') === 'masked' ? `遮罩 ${r.map.length} 項` : routeFor('internal') === 'local' ? '全本地：不送出' : '允許雲端：不遮罩'}）：</b><br>${esc(routeFor('internal') === 'masked' ? r.out : $('minText').value).replace(/\n/g, '<br>')}${r.map.length && routeFor('internal') === 'masked' ? `<br><br><b>本地對照表（不送出）：</b>${r.map.map((m) => `${esc(m.k)}＝${esc(m.v)}`).join('、')}` : ''}`; return; }
-  if (t.id === 'resetBtn') { resetAll(); return toast('已重置 Demo 資料'); }
+  if (t.id === 'resetBtn') return openResetCompany();
   if (t.id === 'newProjectBtn') return openNewProject();
 });
 
@@ -3848,6 +3879,7 @@ document.addEventListener('input', (e) => {
 });
 document.addEventListener('submit', (e) => {
   const f = e.target; e.preventDefault();
+  if(f.id==='resetCompanyForm') { if(f.dataset.company!==company.id) return closeDlg(); return resetActiveCompany().then(r=>{if(!r.ok) toast(r.error,'warn');}); }
   if (f.id === 'askForm') { const q = $('askInput').value.trim(); if (!q) return; $('askInput').value = ''; return aiAsk(q); }
   if (f.id === 'edForm') return saveEditor(f.dataset.id);
   if (f.id === 'wfForm') return submitWorkflowForm(f);
