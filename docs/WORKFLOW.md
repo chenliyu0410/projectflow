@@ -116,7 +116,7 @@
   合併後在 main 做 G6 的收尾 commit，最後才執行 `git branch -d feature/<wid>-<slug>`。
 - **不要執行 `git pull`，不要 rebase，也不要建立 merge commit。** 無法 fast-forward 時停下來問人類。
 - Claude 不要使用 `superpowers:finishing-a-development-branch` 的合併選項（它會 pull，而且不加 `--ff-only`），照本節步驟做。
-- **不 push**，除非人類明確授權（D3）。
+- **不push未授權內容**；D50已持續授權完成、獨立審查與驗收後的階段更新README／PROGRESS並push origin main，其他情況仍需人類授權。
 
 ### G6 收尾
 - 確認 README 已照 plan 更新。
@@ -158,7 +158,7 @@
 |---|---|---|
 | 1 | 記下 BASE | 執行 `git rev-parse HEAD`。不要用 `HEAD~1` 推算 |
 | 2 | 讀需求 | 讀 plan 中該 Task 的全文，加上 PROGRESS「執行注意」裡相關的條目。plan 和程式碼衝突時依 §8 處理。Claude 的子代理改回報 `NEEDS_CONTEXT` |
-| 3 | **RED** | 照 plan 寫測試，放在 `tests/records.test.js` 的 `// ── 新測試加在這一行上面 ──` 上方（或 plan 指定的檔案）。跑測試，**記下 `#sum` 原文和失敗的測試名稱**。沒有 RED 證據，這個 Task 就不算完成（F11 T4 曾經跳過這一步） |
+| 3 | **RED** | 照plan寫測試於指定檔案。Demo記`#sum`原文與失敗名稱；正式軌依當前plan命令，記pytest／Vitest／Playwright真實摘要、失敗名稱與exit code。沒有RED證據不算完成；不能把安裝工具失敗當功能RED。 |
 | 4 | **GREEN** | 實作到全部測試通過。只寫 plan 要求的東西，沿用既有寫法 |
 | 5 | UI 驗證 | 有畫面變動時，打開 Demo 實測 plan 指定的流程，確認 console 沒有錯誤。截圖不能用時改用 DOM/JS 檢查，並寫明哪些沒有實際看過 |
 | 6 | 自我檢查 | 對照 §4.1 清單 |
@@ -232,6 +232,8 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 
 ## 5. 測試程序（以此為準）
 
+**正式軌例外（D51／D52）**：`api/`、`web/`、`deploy/`依當前已審閱plan的pytest／Vitest／Playwright及真實資料庫驗收命令；記錄RED/GREEN摘要與exit code，不使用Demo的`#sum`。獨立審查與§3記錄迴圈不變。以下Demo測試程序繼續適用Demo。
+
 1. **伺服器**
    - **確認 8000 埠**：PowerShell 執行 `Get-NetTCPConnection -LocalPort 8000 -State Listen`。出現 `ObjectNotFound` 錯誤代表沒有伺服器。也可以用 `netstat -ano | findstr :8000`。
    - **確認是這個 repo**：執行 `curl.exe -s http://127.0.0.1:8000/AGENTS.md`，看第一行是否以 ASCII 的 `# AGENTS.md` 開頭。
@@ -301,7 +303,7 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 - **trailer**：寫你**實際**使用的工具和模型。
   - Claude Code 照 session 的 attribution 提示寫，例如 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。
   - plan 裡寫死的 `Co-Authored-By: Claude …` 只是範例。不是 Claude 的話就刪掉那一行，換成自己工具的慣例；沒有慣例就寫 `AI-Assisted-By: <工具> <模型>`。也不要寫兩行。
-- **禁止**：`git add -A`、`git add .`、`push`、`--force`、`reset --hard`、`checkout -- <檔案>`、`stash drop`、改寫已提交的歷史、跳過 hooks。只有人類明確要求時才可以做。
+- **禁止**：`git add -A`、`git add .`、未授權的`push`、`--force`、`reset --hard`、`checkout -- <檔案>`、`stash drop`、改寫已提交歷史、跳過hooks。D50僅持續授權已驗收階段的`git push origin main`，不包含force、其他分支或PR。
 - **換行**：`core.autocrlf=true`，所以 `projectflow-full-demo.html`、`tests/*`、`README.md` 在工作目錄是 CRLF。替換多行程式碼時用編輯器工具；用 `sed` 或 Python 配 `\n` 會比對不到。
 
 ---
@@ -334,7 +336,7 @@ Verify（從 diff 無法判斷、需要實測的項目，各附驗證方法；�
 4. 要修改允許清單以外的產品或測試檔案、改資料版本、引入外部依賴。
 5. 要寫新的 spec（G1 本來就要和人類一起做）。
 6. 照 `superpowers:systematic-debugging`（其他 AI 見 §11）修了兩輪，測試仍然失敗。
-7. 需要 push、開 PR、無法 fast-forward 的合併、`main` 出現不明的新 commit，或任何破壞性的 git 操作。
+7. 需要D50範圍外的push、開PR、無法fast-forward的合併、`main`／遠端出現不明的新commit，或任何破壞性的git操作。
 8. 看板和 `git log` 對不上，而且**無法**從 commit 判斷真實狀態。
    - 如果可以判斷，就直接修正看板，commit `Progress: reconcile <摘要>`，並寫進交接紀錄。
 

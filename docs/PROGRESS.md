@@ -389,9 +389,11 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 **計畫**：[2026-10-08-p0-formal-foundation](superpowers/plans/2026-10-08-p0-formal-foundation.md)，取代舊MVP outline Task1。P1a–P1c是已授權後續里程碑，不把本次計畫完成當P0完成。
 
+**正式規則已啟用（Task1，安裝依賴前）**：AGENTS／WORKFLOW區分正式版與Demo；正式版僅允許本plan檔案與鎖版依賴，pytest／Vitest／Playwright實跑摘要、後端公司權限與migration、秘密不得入Git，逐Task獨立審查及D50發布保持。Task1 BASE=`e6082f9199e74420f85e8135b2e8f38d0429fed9`。
+
 | Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
 |---|---|---|---|---|
-| 1 | 正式軌規則、FastAPI存活／真實DB就緒檢查 | 🔨 執行中 | 新增8項pytest；目前尚未跑RED/GREEN | `P0 task 1: add formal rules and API health checks` |
+| 1 | 正式軌規則、FastAPI存活／真實DB就緒檢查 | 🔨 執行中 | 預期新增8項pytest；RED `1 warning, 1 error in 0.81s`，exit 1：`ModuleNotFoundError: No module named 'app.main'`（依賴安裝成功後重跑；安裝中一次pytest不存在不算RED） | `P0 task 1: add formal rules and API health checks` |
 | 2 | React狀態介面、載入／失敗／重試 | 未開始 | 新增6項Vitest＋production build；目前未執行 | `P0 task 2: add React health surface` |
 | 3 | Docker Compose、PostgreSQL、桌面／手機與DB恢復 | 未開始 | 新增4項Playwright＋實際DB outage/recovery；目前未執行 | `P0 task 3: verify containerized foundation` |
 

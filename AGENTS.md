@@ -4,9 +4,10 @@
 
 ## 1. 這是什麼專案
 
-**ProjectFlow（專流）** 是以「專案」為核心的 AI 工作流工具，目前處於 **Demo 驗證階段**。
+**ProjectFlow（專流）** 是以「專案」為核心的 AI 工作流工具，目前依D51／D52進入 **正式版P0至P1c開發**，Demo保留參照。
 
-- 產品程式只有一個檔案：`projectflow-full-demo.html`。約 3,200 行，原生 HTML/CSS/JS，沒有框架，不需要建置。資料存在瀏覽器的 localStorage，附件存在 IndexedDB。
+- Demo為`projectflow-full-demo.html`，原生HTML/CSS/JS、localStorage與IndexedDB。P0不修改Demo或其測試。
+- 正式版位於`api/`（FastAPI）、`web/`（React）、`deploy/`（Compose／PostgreSQL）；執行方式見[正式版開發](docs/formal-development.md)。
 - 產品規格（F1–F11）和路線圖都寫在 `README.md`。
 - 新功能一律依序走：spec（`docs/superpowers/specs/`）→ plan（`docs/superpowers/plans/`）→ 照 plan 逐個 Task 用 TDD 實作。
 - `projectflow-petfood-demo.html` 是階段 0 的存檔，**不要修改**。
@@ -48,17 +49,25 @@
 - 輸出到 HTML 的使用者文字，一律先經過 `esc()`。
 - localStorage key 固定是 `projectflow-demo-v2`。資料結構有變動時，要升 `db.v`，並讓 `upgrade()` 能自動遷移舊版資料。目前的版本看 PROGRESS「▶ 現在」。
 
+**正式產品軌（D51／D52；P0起）**
+- 只修改當前已審閱plan明列的檔案；Demo與正式版分開驗收。
+- 正式版允許plan明列的React／FastAPI／PostgreSQL與測試依賴，需鎖版；Demo仍不引入新依賴。
+- DB變更透過後端服務與migration；有業務寫入時一併記錄稽核。公司與角色權限由API強制執行，不以切換前端狀態代替。
+- React用預設文字跳脫，不用dangerouslySetInnerHTML輸出使用者資料；密碼、token、.env不得提交或送到瀏覽器。
+- pytest、Vitest、Playwright各自記錄真實RED/GREEN摘要與exit code，沒有實跑不得標通過。
+- Git、TDD、逐Task獨立審查、單一寫入者、主checkout與ff-only規則不變；D50已持續授權完成階段更新README並push origin main。
+
 **測試**
-- 開發一律用 TDD：先寫一個會失敗的測試，記下 RED 的 `#sum` 原文，再實作到 GREEN。沒有實際跑出結果，就不能說測試通過。
+- 開發一律用TDD：先寫失敗測試，Demo記RED的`#sum`原文，正式版記測試工具摘要與exit code，再實作到GREEN。沒有實跑不能說通過。
 
 **Git**
 - 用明確路徑 `git add <file>`，不要用 `-A` 或 `.`。
 - 主旨照 plan 寫。trailer 寫你**實際**用的工具和模型：plan 裡寫死的 `Co-Authored-By: Claude …` 只是範例，不是 Claude 就換掉（WORKFLOW §6）。
 - 直接在主 checkout 開分支：`git checkout -b feature/<wid>-<slug>`，**不用 worktree**（PROGRESS D2；測試伺服器只服務主 checkout）。plan 或 skill 要求用 worktree 時，以這條為準。
 - 有 `feature/*` 分支存在期間，`main` 凍結，所有 commit 都放在該分支上（例外見 WORKFLOW §6）。同一時間只能有一個 `feature/*` 分支。合併只用 `git merge --ff-only`，不要 `git pull`。
-- **不要 push**，也不要 force、hard reset、`checkout --`、`stash drop` 這類破壞性操作。
+- D50已授權完成並審查／驗收的階段更新README、PROGRESS後push origin main；其他push要問人類。不要force、hard reset、`checkout --`、`stash drop`這類破壞性操作。
 
-正式產品軌（React、FastAPI 等）的規則，要在 PROGRESS P0 改寫後才適用。
+正式產品軌規則已依PROGRESS P0 Task1啟用；上述Demo產品限制仍適用Demo，不能挪用其驗收代替正式版。
 
 ## 4. 跑測試（細節見 WORKFLOW §5）
 
@@ -80,7 +89,7 @@
 - 任何 spec 沒有寫明的產品決策。
 - 要修改允許清單以外的產品檔或測試檔，或要改資料版本。
 - 要寫新的 spec。
-- push、PR、無法 fast-forward 的合併，或 `main` 出現來源不明的新 commit。
+- D50範圍外的push、PR、無法fast-forward的合併，或`main`／遠端出現來源不明的新commit。
 
 **展示模式**（PROGRESS「▶ 現在」的「模式」欄；細節見 [WORKFLOW §13](docs/WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)）：spec 沒寫到的小細節由 AI 代決，記進 PROGRESS §6 後繼續做；審查只擋會讓展示出問題的錯誤。上面其他情況照舊要停下來。
 

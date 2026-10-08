@@ -2,3 +2,11 @@
 .superpowers/
 # Claude Code 本機設定（權限提示「不再詢問」會寫入）
 .claude/settings.local.json
+api/.venv/
+**/__pycache__/
+.pytest_cache/
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+deploy/.env
