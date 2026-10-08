@@ -23,7 +23,7 @@
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變。P1c測試隔離DB；既有共享12專案保留。 |
 | 認領中 | 無產品實作認領；P2a文件草案已交付，待D56。 |
 | 阻塞／待人類 | D55已授權撰寫規格與計畫；D56具體產品規則／G1定稿待審閱。P1c人類簽核、D43／D10未完成；LAN部署未授權。 |
-| 遠端 | 2026-10-08本機source已fetch並ff-only同步origin/main `9c2fe9e`；本次P2a審閱草案提交於本機；尚未推送。 |
+| 遠端 | 2026-10-08本機source已fetch並ff-only同步origin/main `9c2fe9e`；人類明確指示「推送」後，P2a審閱草案已推送origin/main `9c2fe9e..6e05de2`；本筆發布紀錄接續同步。 |
 
 ---
 
@@ -799,7 +799,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **做了什麼**：source乾淨main由e452173 ff-only至origin/main 9c2fe9e；先讀AGENTS／PROGRESS／WORKFLOW／路線圖，依人類指示記錄D55並完成P2a兩份草案。列出權限、層級、日期migration、API、可見統計、UI狀態、六Task及TDD驗收命令。
 - **驗證**：對照現有models／permissions／projects／reports／workflows／React與verify入口；文件連結及git diff檢查。本次沒有跑產品測試、DB migration或部署，不宣稱P2a GREEN。
 - **文件獨立審查**：review_p2a唯讀審查無Critical／Important，可供人類審閱；兩項Minor已補：歷史readonly指派fixture及新metadata 404與原status契約的界線。此為文件審查，不是G1人類核准或產品驗收。
-- **環境／清理**：僅文件變更，未啟動服務／瀏覽器、未碰.env或DB；先前commit因Git身分缺失失敗；人類提供姓名與email後已設定repo-local身分並提交文件於本機main，未push。
+- **環境／清理**：僅文件變更，未啟動服務／瀏覽器、未碰.env或DB；先前commit因Git身分缺失失敗；人類提供姓名與email後已設定repo-local身分並提交文件於本機main；人類隨後授權「推送」，已成功發布`6e05de2`至origin/main。
 - **下一步**：人類審閱D56／spec；依同意內容定稿spec與plan後才進G3。P1c人類簽核保留未完成。
 
 
