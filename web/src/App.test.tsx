@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { api } from './api';
@@ -17,6 +17,147 @@ const secondDetail = { ...secondProject, nodes: [], gates: [] };
 function projectButton(title = projects.items[0].title) {
   return within(screen.getByLabelText('專案清單')).getByRole('button', { name: title });
 }
+
+const taskNode = detail.nodes.find(node => node.id === 'task')!;
+const pendingGate = { id: 'g1', project_id: 'p1', node_id: 'phase', status: 'pending' };
+const gateDetail = { ...detail, gates: [pendingGate] };
+function statusControl(column = '待處理') {
+  return within(screen.getByLabelText(column)).getByRole('combobox', { name: '殺菌條件驗證狀態' });
+}
+function kanbanFetch(value = gateDetail, identity = session) {
+  return vi.fn().mockResolvedValueOnce(response(identity)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(value));
+}
+
+describe('P1b kanban and gates', () => {
+  it('renders four task-only columns and moves a task after status selection', async () => {
+    const fetcher = kanbanFetch().mockResolvedValueOnce(response({ ...taskNode, status: 'doing' }));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    await screen.findByRole('heading', { name: detail.title });
+    for (const label of ['待處理', '進行中', '待確認', '完成']) expect(screen.getByLabelText(label)).toBeInTheDocument();
+    expect(within(screen.getByLabelText('看板')).queryByText('市場與配方')).not.toBeInTheDocument();
+    fireEvent.change(statusControl(), { target: { value: 'doing' } });
+    await waitFor(() => expect(statusControl('進行中')).toHaveValue('doing'));
+    expect(within(screen.getByLabelText('待處理')).queryByText(taskNode.title)).not.toBeInTheDocument();
+    expect(fetcher).toHaveBeenLastCalledWith('/api/nodes/task/status', expect.objectContaining({ method: 'PATCH', credentials: 'include', body: JSON.stringify({ status: 'doing' }) }));
+  });
+
+  it.each([409, 403, 500])('keeps old status and maps mutation errors safely (%s)', async status => {
+    vi.stubGlobal('fetch', kanbanFetch().mockResolvedValueOnce(response({ detail: 'private-secret' }, status)));
+    render(<App />);
+    await screen.findByRole('heading', { name: detail.title });
+    fireEvent.change(statusControl(), { target: { value: 'doing' } });
+    expect(await screen.findByRole('alert')).toHaveTextContent(status === 409 ? '前一階段閘門尚未通過' : status === 403 ? '沒有操作此節點的權限' : '操作失敗，請稍後再試');
+    expect(statusControl()).toHaveValue('todo');
+    expect(statusControl()).not.toBeDisabled();
+    expect(document.body).not.toHaveTextContent('private-secret');
+  });
+
+  it('disables duplicate mutations while pending', async () => {
+    let resolveMove!: (value: ReturnType<typeof response>) => void;
+    const fetcher = kanbanFetch().mockImplementationOnce(() => new Promise(resolve => { resolveMove = resolve; }));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    await screen.findByRole('heading', { name: detail.title });
+    const control = statusControl();
+    fireEvent.change(control, { target: { value: 'doing' } });
+    expect(control).toBeDisabled();
+    expect(screen.getByRole('button', { name: '核准閘門' })).toBeDisabled();
+    fireEvent.change(control, { target: { value: 'review' } });
+    expect(fetcher.mock.calls.filter(([path]) => path === '/api/nodes/task/status')).toHaveLength(1);
+    await act(async () => { resolveMove(response({ ...taskNode, status: 'doing' })); });
+    expect(statusControl('進行中')).not.toBeDisabled();
+  });
+
+  it('shows pending gate warning and reloads after approval', async () => {
+    const approved = { ...pendingGate, status: 'approved' };
+    const fetcher = kanbanFetch().mockResolvedValueOnce(response(approved)).mockResolvedValueOnce(response({ ...detail, gates: [approved] }));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    expect(await screen.findByText('尚有階段閘門待核准，後續階段可能被阻擋')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '核准閘門' }));
+    await waitFor(() => expect(screen.queryByText('尚有階段閘門待核准，後續階段可能被阻擋')).not.toBeInTheDocument());
+    expect(fetcher).toHaveBeenNthCalledWith(4, '/api/gates/g1', expect.objectContaining({ method: 'PATCH', credentials: 'include', body: JSON.stringify({ status: 'approved' }) }));
+    expect(fetcher).toHaveBeenLastCalledWith('/api/projects/p1', expect.objectContaining({ credentials: 'include' }));
+  });
+
+  it('maps approval denial safely and permits retry without changing pending gate', async () => {
+    const fetcher = kanbanFetch().mockResolvedValueOnce(response({ detail: 'private-secret' }, 403)).mockResolvedValueOnce(response({ ...pendingGate, status: 'approved' })).mockResolvedValueOnce(response(detail));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: '核准閘門' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('沒有核准此閘門的權限');
+    expect(document.body).not.toHaveTextContent('private-secret');
+    expect(screen.getByText('尚有階段閘門待核准，後續階段可能被阻擋')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '核准閘門' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: '核准閘門' })).not.toBeInTheDocument());
+  });
+
+  it.each([
+    ['readonly', 'u1', false, false], ['member', 'u1', true, true],
+    ['member', 'other', true, false], ['reviewer', 'other', true, true], ['admin', 'other', true, true],
+  ] as const)('shows controls for role %s owner %s without replacing API authorization', async (role, owner, taskControl, gateControl) => {
+    vi.stubGlobal('fetch', kanbanFetch({ ...gateDetail, owner_user_id: owner }, { ...session, user: { ...session.user, role } }));
+    render(<App />);
+    await screen.findByRole('heading', { name: detail.title });
+    expect(within(screen.getByLabelText('看板')).queryByRole('combobox', { name: '殺菌條件驗證狀態' }) !== null).toBe(taskControl);
+    expect(screen.queryByRole('button', { name: '核准閘門' }) !== null).toBe(gateControl);
+    expect(screen.getByText('尚有階段閘門待核准，後續階段可能被阻擋')).toBeInTheDocument();
+  });
+
+  it.each([200, 401, 500])('ignores stale status mutation after project switch (%s)', async status => {
+    let resolveMove!: (value: ReturnType<typeof response>) => void;
+    const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(gateDetail))
+      .mockImplementationOnce(() => new Promise(resolve => { resolveMove = resolve; })).mockResolvedValueOnce(response(secondDetail));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    await screen.findByRole('heading', { name: detail.title });
+    fireEvent.change(statusControl(), { target: { value: 'doing' } });
+    fireEvent.click(projectButton(secondProject.title));
+    await screen.findByRole('heading', { name: secondProject.title });
+    await act(async () => { resolveMove(response(status === 200 ? { ...taskNode, status: 'doing' } : {}, status)); });
+    expect(screen.getByRole('heading', { name: secondProject.title })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(within(screen.getByLabelText('看板')).queryByText(taskNode.title)).not.toBeInTheDocument();
+  });
+
+  it('ignores old approval after project switch without reloading old project', async () => {
+    let resolveGate!: (value: ReturnType<typeof response>) => void;
+    const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(gateDetail))
+      .mockImplementationOnce(() => new Promise(resolve => { resolveGate = resolve; })).mockResolvedValueOnce(response(secondDetail));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: '核准閘門' }));
+    fireEvent.click(projectButton(secondProject.title));
+    await screen.findByRole('heading', { name: secondProject.title });
+    await act(async () => { resolveGate(response({ ...pendingGate, status: 'approved' })); });
+    expect(screen.getByRole('heading', { name: secondProject.title })).toBeInTheDocument();
+    expect(fetcher.mock.calls.filter(([path]) => path === '/api/projects/p1')).toHaveLength(1);
+  });
+
+  it('clears session on mutation expiry', async () => {
+    vi.stubGlobal('fetch', kanbanFetch().mockResolvedValueOnce(response({}, 401)));
+    render(<App />);
+    await screen.findByRole('heading', { name: detail.title });
+    fireEvent.change(statusControl(), { target: { value: 'doing' } });
+    expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('看板')).not.toBeInTheDocument();
+  });
+
+  it('ignores a late mutation after logout', async () => {
+    let resolveMove!: (value: ReturnType<typeof response>) => void;
+    const fetcher = kanbanFetch().mockImplementationOnce(() => new Promise(resolve => { resolveMove = resolve; })).mockResolvedValueOnce(response(undefined, 204));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    await screen.findByRole('heading', { name: detail.title });
+    fireEvent.change(statusControl(), { target: { value: 'doing' } });
+    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    await screen.findByRole('heading', { name: '登入專流' });
+    await act(async () => { resolveMove(response({ ...taskNode, status: 'doing' })); });
+    expect(screen.getByRole('heading', { name: '登入專流' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('看板')).not.toBeInTheDocument();
+  });
+});
 
 describe('P1b project navigation', () => {
   it('loads detail, orders the tree and selects a leaf with full breadcrumbs', async () => {

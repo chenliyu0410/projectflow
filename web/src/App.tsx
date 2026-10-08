@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError } from './api';
-import type { NodeItem, ProjectDetail, ProjectSummary, SessionInfo } from './types';
+import type { NodeItem, NodeStatus, ProjectDetail, ProjectSummary, SessionInfo } from './types';
 
 type State = 'checking-session' | 'login' | 'loading' | 'ready' | 'error';
+const columns: { status: NodeStatus; label: string }[] = [
+  { status: 'todo', label: '待處理' }, { status: 'doing', label: '進行中' },
+  { status: 'review', label: '待確認' }, { status: 'done', label: '完成' },
+];
 function childrenOf(nodes: NodeItem[], parentId: string | null) {
   return nodes.filter(node => node.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order);
 }
@@ -40,11 +44,14 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [mutating, setMutating] = useState(false);
+  const mutationId = useRef<number | null>(null);
   const sequence = useRef(0);
   const controller = useRef<AbortController | null>(null);
 
   function begin() {
     controller.current?.abort();
+    mutationId.current = null; setMutating(false);
     const request = { id: ++sequence.current, controller: new AbortController() };
     controller.current = request.controller;
     return request;
@@ -138,6 +145,42 @@ export default function App() {
     finally { if (current(request)) setBusy(false); }
   }
 
+  async function mutate(action: 'status' | 'gate', id: string, status?: NodeStatus) {
+    if (!project || !session || busy || mutationId.current !== null || session.user.role === 'readonly') return;
+    const projectId = project.id;
+    const request = begin();
+    mutationId.current = request.id; setMutating(true); setMessage('');
+    try {
+      if (action === 'status' && status) {
+        const result = await api.updateNodeStatus(id, status, request.controller.signal);
+        if (!current(request)) return;
+        setProject(value => value?.id === projectId ? {
+          ...value, nodes: value.nodes.map(node => node.id === id ? { ...node, status: result.status } : node),
+        } : value);
+      } else if (action === 'gate') {
+        await api.approveGate(id, request.controller.signal);
+        if (!current(request)) return;
+        await loadDetail(projectId, request);
+      }
+    } catch (error) {
+      if (!current(request)) return;
+      if (error instanceof ApiError && error.status === 401) {
+        clearSession(); setMessage(error.message);
+      } else {
+        setMessage(error instanceof ApiError && error.status === 403
+          ? action === 'gate' ? '沒有核准此閘門的權限' : '沒有操作此節點的權限'
+          : error instanceof ApiError && error.status === 409 && action === 'status'
+            ? '前一階段閘門尚未通過'
+            : error instanceof ApiError ? error.message : '操作失敗，請稍後再試');
+      }
+    } finally {
+      if (current(request)) { mutationId.current = null; setMutating(false); }
+    }
+  }
+  const canApprove = session && project && session.user.role !== 'readonly' && (
+    session.user.role === 'admin' || session.user.id === project.owner_user_id || session.user.role === 'reviewer'
+  );
+
   return <>
     <header>
       <img src="/mark.svg" width="32" height="32" alt="" />
@@ -164,6 +207,24 @@ export default function App() {
             <section aria-label="節點樹" className="node-tree">
               <h2>節點</h2>
               {project.nodes.length === 0 ? <p>這個專案還沒有節點</p> : <NodeTree nodes={project.nodes} parentId={null} selectedId={selectedNodeId} select={setSelectedNodeId} />}
+            </section>
+            {project.gates.some(gate => gate.status === 'pending') && <div className="gate-banner">
+              <p>尚有階段閘門待核准，後續階段可能被阻擋</p>
+              {canApprove && project.gates.filter(gate => gate.status === 'pending').map(gate => <div className="gate-row" key={gate.id}>
+                <span>{project.nodes.find(node => node.id === gate.node_id)?.title ?? '階段閘門'}</span>
+                <button disabled={mutating} onClick={() => void mutate('gate', gate.id)}>核准閘門</button>
+              </div>)}
+            </div>}
+            <section aria-label="看板" className="kanban">
+              {columns.map(column => <div key={column.status} aria-label={column.label} className="kanban-column">
+                <h2>{column.label}</h2>
+                {project.nodes.filter(node => node.kind === 'task' && node.status === column.status).map(node => <article key={node.id} className="task-card">
+                  <button className="task-title" aria-pressed={node.id === selectedNodeId} onClick={() => setSelectedNodeId(node.id)}>{node.title}</button>
+                  {session?.user.role !== 'readonly' && <label>狀態<select aria-label={`${node.title}狀態`} value={node.status} disabled={mutating} onChange={event => void mutate('status', node.id, event.target.value as NodeStatus)}>
+                    {columns.map(option => <option key={option.status} value={option.status}>{option.label}</option>)}
+                  </select></label>}
+                </article>)}
+              </div>)}
             </section>
           </>}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}
