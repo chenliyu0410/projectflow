@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **正式版 P0 → P1c 已授權啟動（D51）；P0 可執行計畫已寫，待計畫審閱** |
-| 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 人類審閱2026-10-08-p0-formal-foundation計畫後，沿用Native方式執行P0 Task1；依P0→P1a→P1b→P1c逐段TDD、獨立審查、驗收，每段更新README並依D50推送。整體實作已授權，不再問是否啟動。 |
-| 分支 | `main`；新P0規劃主線已ff-only合併。舊`paused/p0-formal-product-plan`保留於`40f8cc2`備查，不再作為現行規劃來源。 |
+| 目前工作項目 | **🔨 P0 正式版技術骨架與規則；D52已確認計畫並開始執行** |
+| 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
+| 下一個動作 | 切到`feature/p0-formal-foundation`，以分支PROGRESS為準；Task1先啟用正式規則、寫API測試並實跑RED，再實作。依P0→P1a→P1b→P1c逐段驗收、更新README及依D50推送。 |
+| 分支 | `feature/p0-formal-foundation`（G3開工commit後建立）；舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
 | 最新程式 commit | 產品仍為W6 Task6 `0934e48`。正式版規劃基準`104cdc2`；本段新增P0可執行計畫及D51授權，尚未建立api／web／deploy。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 174/174`（2026-10-08，W6 ff 合併到 main 後 Edge headless 8001 實跑，無 page error）。原有149項＋25項W6；桌面1280／375px 共508畫面、10項重載、console/page errors空。歷史：W3 149/149、W2 137/137、W1 64/64。 |
 | 資料版本 | `db.v = 6`；v6 公司容器，`load()` 讀 v2–v6；localStorage key 是 `projectflow-demo-v2` |
-| 認領中 | 無 |
-| 阻塞／待人類 | 已授權實作至P1c；新可執行計畫仍依既有流程審閱，完成前不寫產品程式。D43、D10不自動擴大MVP範圍。 |
-| 遠端 | 2026-10-08已成功push origin main：`e452173..5b02e47`，包含W6與P0規劃恢復；本筆收尾隨後同步推送。依D50持續授權各完成階段更新README／PROGRESS並push main，無force、無其他分支。 |
+| 認領中 | Codex GPT-5，2026-10-08，Native P0 Task1–3 |
+| 阻塞／待人類 | 無；D52確認P0計畫，D51授權至P1c。D43、D10不自動擴大MVP範圍。 |
+| 遠端 | `origin/main = 4539e41`（P0計畫已推送）；依D50完成階段更新README／PROGRESS並push main，無force、無其他分支。 |
 
 ---
 
@@ -48,8 +48,8 @@
 
 1. **北極星**：以「專案」為核心的 AI 工作流工具，涵蓋多層任務、前置條件、權限、文件、AI 副手和研發營運資料，部署在公司內網，資料不外流（見 [README](../README.md) 開頭）。
 2. **兩條軌道**
-   - **Demo 驗證軌（目前所在）**：在單檔 `projectflow-full-demo.html` 上逐項驗證產品互動。F1–F11 已經在 Demo 層級完成，接下來照 §2 佇列擴充。
-   - **正式產品軌（還沒啟動）**：README §8 的階段 1–9，例如 Vite + React + TS、FastAPI + PostgreSQL、內網部署。
+   - **Demo 驗證軌（保留參照）**：單檔 `projectflow-full-demo.html` 的F1–F11及W6已完成Demo驗證，P0不修改。
+   - **正式產品軌（D51／D52已啟動）**：React + TS、FastAPI + PostgreSQL、內網部署；本輪到P1c。
      - README §8 的勾選框只用來追蹤正式版。Demo 已經做出來的功能**不能**拿去勾階段 1–9。
      - 何時啟動由人類決定（D11）。啟動後第一個工作項目是 P0。
 3. **目前里程碑**：依序完成 W1 → W2 → W3（精簡版，D31／D42），讓 Demo 具備可自行新增、編輯、套用工作流的功能架構。2026-10-05 起依 D42，個別工作流內容之後由使用者自行添加；D41 的兩份現有專流只作內建範例與測試素材。
@@ -75,7 +75,7 @@
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
-| — | P0 | 正式軌技術骨架與規則 | 計畫已寫待審閱（D51已授權實作） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | API與規則→React→Docker／PostgreSQL驗收；審閱後Task1先RED |
+| — | P0 | 正式軌技術骨架與規則 | 🔨 執行中（D52計畫確認） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | API與規則→React→Docker／PostgreSQL驗收；Task1先RED |
 | — | P1a–P1c | 正式版MVP：核心後端、React流程、部署／測試／驗收 | 已授權，依序待P0完成（D51） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 各階段開工前細化 | 正式DB另管migration | P0→P1a→P1b→P1c；P2以後的真AI／ERP／AD／完整RAG不在本輪 |
 
 **排程規則**
@@ -85,7 +85,7 @@
    - **已經有 `feature/*` 分支**：不可以開新分支，也不可以在 `main` 上 commit。只能做不會產生 commit 的準備工作（研究、把草稿放在 `.superpowers/`），或寫好交接紀錄後結束 session。
    - **還沒有分支**（例如 W3 在等 brainstorming，或開工前的 Pre-flight 就被擋下）：可以先在 `main` 上記錄 D，再去做下一個不需要人類決定的項目，例如 W4。
 4. 佇列做完了，但 §1 的完成條件還沒達成：不要自己發明工作項目。在本表下方加「建議（待人類排序）」，寫好交接紀錄後結束。
-5. 不可以自行開工 P 軌。
+5. 不可以自行開工未授權的P軌；D51已授權P0至P1c，D52已確認P0計畫。
 6. 人類在對話中的直接指示優先，但要先寫進看板（WORKFLOW §2「變更與暫停」）。
 
 ---
@@ -381,15 +381,17 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ---
 
-### P0 正式版技術骨架與規則 — 計畫待審閱
+### P0 正式版技術骨架與規則 — 🔨 執行中
 
-**授權**：D51已授權開始並做到P1c；先前「只恢復文件／未授權正式實作」限制已被取代。沿用Native執行與逐Task獨立審查；尚未跳過新計畫審閱關卡。
+**授權**：D51已授權做到P1c；D52「好開始」確認P0計畫。Native執行與逐Task獨立審查，正式規則於Task1啟用後安裝依賴。
+
+**開工基準**：`4539e41e92804821d273864fad31f7ccd0e946d6`，working tree乾淨、無feature分支。2026-10-08 Edge實跑`全部通過 174/174`，exit 0、page errors空；本次Demo伺服器8001 PID30892（8000為其他服務，不動）。Demo blob：full `b43ca41781cac4c0da757e21e14d482a22f28cd8`；petfood `847866a8b8a18ec5e32ab865991f24cf3db7a1ff`。15173／18000空閒。
 
 **計畫**：[2026-10-08-p0-formal-foundation](superpowers/plans/2026-10-08-p0-formal-foundation.md)，取代舊MVP outline Task1。P1a–P1c是已授權後續里程碑，不把本次計畫完成當P0完成。
 
 | Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
 |---|---|---|---|---|
-| 1 | 正式軌規則、FastAPI存活／真實DB就緒檢查 | 未開始 | 新增8項pytest；目前尚未跑RED/GREEN | `P0 task 1: add formal rules and API health checks` |
+| 1 | 正式軌規則、FastAPI存活／真實DB就緒檢查 | 🔨 執行中 | 新增8項pytest；目前尚未跑RED/GREEN | `P0 task 1: add formal rules and API health checks` |
 | 2 | React狀態介面、載入／失敗／重試 | 未開始 | 新增6項Vitest＋production build；目前未執行 | `P0 task 2: add React health surface` |
 | 3 | Docker Compose、PostgreSQL、桌面／手機與DB恢復 | 未開始 | 新增4項Playwright＋實際DB outage/recovery；目前未執行 | `P0 task 3: verify containerized foundation` |
 
@@ -623,6 +625,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | D45 | 全專案（流程） | W6 和目前 `feature/p0-formal-product-plan` 的優先順序 | **先暫停 P0 規劃，優先完成 W6**；保留 P0 的 spec、plan 與 commit，W6 完成後恢復 | 已決定 2026-10-08：人類批准 W6 完整設計時同意此執行順序；P0 分支已保留為 `paused/p0-formal-product-plan` |
 | D46 | W6 執行 | W6 plan 的執行方式 | 由目前 session 依 Task 0–6 直接實作；主 checkout、每 Task TDD 與審查、PROGRESS 為唯一進度來源 | 已決定 2026-10-08：人類選擇「Native execution」，授權開始 W6 plan |
 | D51 | 正式版啟動 | 人類指示「開始做到P1c」 | 授權完整P0→P1a→P1b→P1c的正式版MVP實作與必要規則轉換；不是僅恢復規劃。沿用React／FastAPI／PostgreSQL／Docker Compose、核心工作流與公司隔離要求。逐階段補齊可執行計畫、TDD與獨立審查；D50每段更新README並push繼續有效。P2以後非目標不自動納入 | 已決定2026-10-08。先前文件中的「未授權實作」已由本項取代；新計畫的人類審閱關卡保留，不能跳過或把草稿當可執行計畫 |
+| D52 | P0計畫審閱 | 人類回覆「好開始」 | 確認2026-10-08-p0-formal-foundation計畫，立即Native執行Task1–3；正式軌按完整安全／獨立審查標準驗收 | 已決定2026-10-08；解除P0計畫待審閱 |
 | D50 | 全專案發布 | 人類指示「做完一段就推上去github，然後每個階段都要更新readme，讓所有人知道目前進度在哪」 | 持續授權每個已完成且驗證／審查通過的階段：同步README與PROGRESS、依既有流程ff-only合併到main、`git push origin main`。不force、不推其他分支、不自動開PR；授權發布不等於授權尚未確認的產品範圍。此後階段推送不必逐次重問，直到人類更改指示 | 已決定2026-10-08；涵蓋本次P0規劃文件恢復與先前尚未發布的W6。D3的每次需另行授權由本項持續授權滿足；遠端分岔仍依§8確認 |
 | D49 | P0 恢復規劃 | 舊paused分支與main分岔，無法ff恢復最新基準 | 保留paused分支，從最新main建立feature/p0-formal-product-plan，僅帶回既有spec／plan後對齊W6；以新規劃分支為主，檢查後ff-only合併回main。不rebase、不覆蓋W6、不push | 已決定2026-10-08：人類回答「是，並且以此分支為主，合併回去main」。只授權規劃分支恢復與本地合併，不視為授權正式產品實作 |
 | D48 | W6 Task 6 審查 | 新公司沒有配方比例權限，既有機密文件判斷因此讓所有角色都無法再開啟已存文件 | 毛研保留原有 ratio 判斷；新公司機密文件限目前公司 owner／admin 且節點可見者開啟，其他角色維持拒絕。新公司 ratio 仍為 false，不借用毛研欄位權限 | AI 代決 2026-10-08（可推翻）：展示模式最小修正，修復文件被永久鎖住；自動化覆蓋四公司建立、儲存、重新開啟與未授權拒絕 |
