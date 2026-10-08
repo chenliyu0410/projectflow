@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P0 規劃文件恢復與對齊 W6 — 審查通過，準備發布；P0 未實作** |
+| 目前工作項目 | **P0 規劃文件恢復已合併／發布；下一段為範圍確認與P0計畫細化，未實作** |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | 審查恢復的P0草稿與W6銜接；更新README／PROGRESS，ff-only合併main，依D50推送GitHub。正式產品實作尚未授權。 |
-| 分支 | `feature/p0-formal-product-plan`（由最新main `39948a8`建立）；此分支為本次規劃主線，舊`paused/p0-formal-product-plan`保留備查。 |
-| 最新程式 commit | W6 Task 6 `0934e48`。本段僅文件：P0規劃恢复 `a1e84a6`；Demo與測試未修改。 |
+| 下一個動作 | 以main中的P0範圍／計畫草稿為準，先確認範圍並細化P0可執行計畫。新階段完成要更新README／PROGRESS，依D50推送GitHub。正式產品實作尚未授權。 |
+| 分支 | `main`；新P0規劃主線已ff-only合併。舊`paused/p0-formal-product-plan`保留於`40f8cc2`備查，不再作為現行規劃來源。 |
+| 最新程式 commit | W6 Task 6 `0934e48`。本段僅文件：P0規劃恢復 `a1e84a6`、審查／發布 `5b02e47`；Demo與測試未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 174/174`（2026-10-08，W6 ff 合併到 main 後 Edge headless 8001 實跑，無 page error）。原有149項＋25項W6；桌面1280／375px 共508畫面、10項重載、console/page errors空。歷史：W3 149/149、W2 137/137、W1 64/64。 |
 | 資料版本 | `db.v = 6`；v6 公司容器，`load()` 讀 v2–v6；localStorage key 是 `projectflow-demo-v2` |
 | 認領中 | 無 |
 | 阻塞／待人類 | D49已由人類確認；本次只恢復及合併規劃文件，不授權P0實作。D43、D10與展示確認維持原狀。 |
-| 遠端 | 已fetch origin/main，沒有main未知的新commit；依D50準備發布W6及本段P0規劃。階段完成持續授權push origin main，無force、無其他分支。 |
+| 遠端 | 2026-10-08已成功push origin main：`e452173..5b02e47`，包含W6與P0規劃恢復；本筆收尾隨後同步推送。依D50持續授權各完成階段更新README／PROGRESS並push main，無force、無其他分支。 |
 
 ---
 
@@ -75,7 +75,7 @@
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
-| — | P0 | 正式軌工作規則 | 規劃文件恢復已審查；實作未開始（D49／D50） | [範圍草稿](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [分期草稿](superpowers/plans/2026-10-05-formal-product-mvp.md) | Demo維持v6 | 下一步確認範圍並細化P0可執行計畫；不要照草稿直接實作 |
+| — | P0 | 正式軌工作規則 | 規劃文件恢復已合併／發布；實作未開始（D49／D50） | [範圍草稿](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [分期草稿](superpowers/plans/2026-10-05-formal-product-mvp.md) | Demo維持v6 | 下一步確認範圍並細化P0可執行計畫；不要照草稿直接實作 |
 | — | P1–P9 | 正式產品軌（README §8 階段 1–9） | ⬜ 未啟動 | README §8 | — | — | P0 ✅；階段 4 以後依賴 README §9 #5–#14 |
 
 **排程規則**
@@ -615,7 +615,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ### 2026-10-08｜Codex GPT-5｜P0 規劃恢復與階段發布
 - **做了什麼**：先確認舊P0與main互非祖先並登記D49；人類批准後，以`39948a8`建立新的`feature/p0-formal-product-plan`為主線，保留舊paused分支於`40f8cc2`。帶回兩份規劃文件、對齊W6公司邊界，明示舊計畫仍是待細化草稿；更新README／PROGRESS。新增D50記錄每完成階段更新README並push GitHub的持續授權。
 - **驗證／審查**：文件commit `a1e84a6`；兩Demo與tests相對基準完全不變，四文件相對連結無缺失，diff check通過。獨立Planck給`Ready to merge: Yes`。沒有重跑產品測試，也沒有宣稱P0實作完成。
-- **Git／發布**：依D49準備ff-only合併main，依D50發布W6與本段P0規劃；只push origin main，不force、不rebase、不開PR。舊paused分支不推送或改寫。
+- **Git／發布**：依D49已ff-only合併main，依D50成功push `e452173..5b02e47`，發布W6與本段P0規劃；本筆收尾同步推送。只push origin main，不force、不rebase、不開PR。舊paused分支不推送或改寫；合併後新feature分支依G6刪除，後續以main為準。
 - **下一步**：確認範圍並細化P0可執行計畫；正式產品實作仍須授權。每階段同步README與看板後發布。
 
 ### 2026-10-08｜Codex GPT-6｜W6 Native execution 完成

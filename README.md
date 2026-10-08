@@ -30,8 +30,8 @@
 | W3 工作流架構（精簡版） | ✅ 完成 | 已合併進 `main`，包含工作流模板 CRUD、從工作流建立專案、階段關卡擋住後續階段。個別工作流內容之後由使用者自行添加 |
 | W4 F11 遺留問題清理 | ✖ 取消 | 展示模式下不做（D30） |
 | W5 README 對齊現況 | ✅ 完成 | §1 快速開始和 §2 功能總覽已對齊 full demo 現況（D30） |
-| W6 多公司產業範例 | ✅ 完成 | 已合併至本地 `main`：五個公司空間、產業工作流與營運模組、v6 遷移、獨立附件與單公司重設 |
-| P0 正式版規劃 | 規劃文件恢復完成；P0 未實作 | [範圍草稿](docs/superpowers/specs/2026-10-05-formal-product-mvp-design.md)、[分期計畫草稿](docs/superpowers/plans/2026-10-05-formal-product-mvp.md)；已納入 W6 公司邊界要求，下一段先確認範圍並細化 P0 可執行計畫 |
+| W6 多公司產業範例 | ✅ 完成並發布 | 已合併並推送 GitHub `main`：五個公司空間、產業工作流與營運模組、v6 遷移、獨立附件與單公司重設 |
+| P0 正式版規劃 | 規劃文件已發布；P0 未實作 | [範圍草稿](docs/superpowers/specs/2026-10-05-formal-product-mvp-design.md)、[分期計畫草稿](docs/superpowers/plans/2026-10-05-formal-product-mvp.md)；已納入 W6 公司邊界要求，下一段先確認範圍並細化 P0 可執行計畫 |
 
 **目前做到哪裡**
 
