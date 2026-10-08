@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P0完成並合併main；下一階段P1a後端核心計畫（至P1c已授權）** |
+| 目前工作項目 | **P0完成並發布GitHub main；下一階段P1a後端核心計畫（至P1c已授權）** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 本筆G6完成後依D50推送origin/main並驗證遠端；下一階段細化P1a登入／公司隔離／migration／核心API可執行計畫，正常審閱後Native TDD。不要再次詢問是否啟動正式版；D51已授權到P1c。 |
-| 分支 | `main`；已ff-only合併`feature/p0-formal-foundation`，G6後刪除。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
+| 下一個動作 | 細化P1a登入／公司隔離／migration／核心API可執行計畫，正常審閱後Native TDD。不要再次詢問是否啟動正式版；D51已授權到P1c。P0已完成發布，不要重做。 |
+| 分支 | `main`；P0分支已ff-only合併並依G6刪除，無活動feature分支。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
 | 最新程式 commit | 正式版P0 Task3 `18df1ea`，合併HEAD `435af43`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | 2026-10-08 P0合併後：pytest `8 passed, 1 warning in 0.48s`、Vitest `6 passed (6)`、Playwright `4 passed (968ms)`、build均exit0；真DB中斷／恢復、同volume、1280／375px、5秒逾時與遲到回應已驗證。Demo仍`全部通過 174/174`，本輪再次實跑、page errors空。 |
 | 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17僅健康探測，尚無業務schema／migration（P1a引入）。 |
 | 認領中 | 無；P0執行與獨立審查已結束 |
 | 阻塞／待人類 | 無P0阻塞。下一階段先細化P1a計畫並審閱，D51整體授權不變；D43、D10不擴大MVP。 |
-| 遠端 | 上一基準`origin/main = 4539e41`；P0已本地合併，G6文件commit後依D50推送並核對。無force、無其他分支。 |
+| 遠端 | 2026-10-08已成功push origin main `4539e41..981362f`，ls-remote確認，包含完整P0與G6；本筆發布紀錄隨後同步。僅main，無force／PR／其他分支。 |
 
 ---
 
@@ -75,7 +75,7 @@
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
-| — | P0 | 正式軌技術骨架與規則 | ✅ 已合併main，發布收尾 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
+| — | P0 | 正式軌技術骨架與規則 | ✅ 已發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
 | — | P1a–P1c | 正式版MVP：核心後端、React流程、部署／測試／驗收 | 已授權；下一步P1a計畫（D51） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 各階段開工前細化 | 正式DB另管migration | P0已完成；P1a→P1b→P1c，P2以後的真AI／ERP／AD／完整RAG不在本輪 |
 
 **排程規則**
@@ -381,7 +381,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ---
 
-### P0 正式版技術骨架與規則 — ✅ 已合併main
+### P0 正式版技術骨架與規則 — ✅ 已發布GitHub main
 
 **授權**：D51已授權做到P1c；D52「好開始」確認P0計畫。Native執行與逐Task獨立審查，正式規則於Task1啟用後安裝依賴。
 
@@ -404,7 +404,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - [x] API8、React6、E2E4實際通過，逐Task RED/GREEN見上表。
 - [x] 真實PostgreSQL就緒、中斷503、不洩漏連線資訊、恢復成功且volume不被刪除。
 - [x] 1280／375畫面可用、資產載入、無水平溢出／意外console error；已看截圖。
-- [x] README／正式開發指南／看板更新，三Task與G4獨立審查通過，G5已ff-only合併，合併後完整正式測試通過。G6收尾後push。
+- [x] README／正式開發指南／看板更新，三Task與G4獨立審查通過，G5已ff-only合併，合併後完整正式測試通過。G6已完成並push `981362f`，ls-remote核對成功。
 
 **G4**：Hilbert唯讀審查`e6082f9..9b95836`，`Ready to merge: Yes`；無Critical／Important／plan-mandated，P0-T1-m1／m2允許延後。獨立實跑pytest8、Vitest6、型別／production build、pip check、HTTP及資產比對均通過，額外9個API負向案例通過。本次協調者再次Demo `全部通過 174/174` exit0、page errors空；兩Demo blob完全一致。
 
@@ -655,7 +655,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
 ### 2026-10-08｜Codex GPT-5｜P0 Native foundation完成
-- **做了什麼**：D52記錄人類「好開始」確認P0計畫；主checkout建立feature/p0-formal-foundation，正式規則切換後逐Task TDD完成API／React／Compose，依D2 ff-only合併main。更新README、正式開發指南及進度看板；本筆G6後依D50推送。
+- **做了什麼**：D52記錄人類「好開始」確認P0計畫；主checkout建立feature/p0-formal-foundation，正式規則切換後逐Task TDD完成API／React／Compose，依D2 ff-only合併main。更新README、正式開發指南及進度看板；依D50已push `4539e41..981362f`並核對遠端，本筆發布紀錄同步推送。
 - **驗證／審查**：API RED缺app.main→8passed；React RED缺App→6passed；E2E RED4connection refused→4passed。真DBlive200／ready503不洩漏→恢復200、volume不變；1280／375截圖、重試、5秒timeout及遲到回應均通過，非預期console／page errors空。Task1 Arendt、Task2 Faraday、Task3 Goodall Approved；Hilbert整體Ready to merge: Yes。合併後pytest8／Vitest6／E2E4及build再次exit0；兩minor記§5。
 - **環境／清理**：保留健康Compose供人類使用，入口http://127.0.0.1:15173；DB無host埠、API18000loopback。密碼僅ignored deploy/.env，不進Git。只關本次Demo8001 PID30892，未動8000或其他容器，未刪DB volume。Demo174/174再驗證，兩HTML與tests無diff；舊paused分支不動。
 - **下一步**：P1a登入／公司授權隔離／migration／核心API的詳細plan，再依正常審閱與TDD；D51已授權到P1c，不重新問是否開始。P0不含登入、專案或工作流業務功能，不得標P1c完成。每階段README／PROGRESS與GitHub同步。

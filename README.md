@@ -31,7 +31,7 @@
 | W4 F11 遺留問題清理 | ✖ 取消 | 展示模式下不做（D30） |
 | W5 README 對齊現況 | ✅ 完成 | §1 快速開始和 §2 功能總覽已對齊 full demo 現況（D30） |
 | W6 多公司產業範例 | ✅ 完成並發布 | 已合併並推送 GitHub `main`：五個公司空間、產業工作流與營運模組、v6 遷移、獨立附件與單公司重設 |
-| P0 正式版骨架 | ✅ 完成並合併main，發布收尾中 | API 8項、React 6項、Playwright 4項及build通過；Docker／PostgreSQL中斷恢復、桌面／手機驗收通過。[正式版開發](docs/formal-development.md)、[P0計畫](docs/superpowers/plans/2026-10-08-p0-formal-foundation.md) |
+| P0 正式版骨架 | ✅ 完成並發布GitHub main | API 8項、React 6項、Playwright 4項及build通過；Docker／PostgreSQL中斷恢復、桌面／手機驗收通過。[正式版開發](docs/formal-development.md)、[P0計畫](docs/superpowers/plans/2026-10-08-p0-formal-foundation.md) |
 | P1a → P1c 正式版MVP | 已授權；下一步細化P1a計畫 | 後端核心 → React工作流程 → 部署／測試／內部試用驗收；P2以後非目標未納入 |
 
 **目前做到哪裡**
