@@ -15,15 +15,15 @@
 |---|---|
 | 目前工作項目 | **P2b 🔨 執行中；G3隔離基準通過** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
-| 下一個動作 | Task5 Demo風格回報／紀錄UI已雙審Approved；接Task6審核中心與安全稽核API TDD。P2a人類簽核未完成。 |
+| 下一個動作 | Task6審核／安全稽核API已雙審Approved；接Task7審核中心與稽核UI TDD。P2a人類簽核未完成。 |
 | 分支 | `feature/p2b-collaboration`（主checkout、無worktree）；main於feature期間凍結。 |
-| 最新程式 commit | P2b Task5 `1e4a7c4`，空態／歷史標示修正`5f4b9b2`；Demo仍W6 `0934e48`未改。 |
+| 最新程式 commit | P2b Task6 `1174932`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | P2b Task5 Vitest126passed/build exit0；1280/375鍵盤、長內容、回報雙角色v2確認與協作撤銷實測通過；API沿Task4最終313passed5skip，真PG3passed。P2b旅程E2E先行RED2failed（缺回報UI），尚未交付。 |
+| 測試基準 | P2b Task6 API333passed5skip/268.68s、最終目標37passed/23.06s exit0（首組35passed另存）；Vitest沿Task5 126passed/build0。P2b旅程E2E先行RED2failed（缺回報UI），尚未交付。 |
 | 資料版本 | Demo v6/key不變；程式migration head `20261008_0003`，專用PG保留驗證通過；primary15173及acceptance15175仍0002；Task4新隔離15177已0003，files與pgdata保留，未升級primary。 |
 | 認領中 | Codex：P2b G3基準與逐Task實作，2026-10-08。 |
 | 阻塞／待人類 | P2b無待決產品規則；D59–D64已決；P1c／P2a人類試用簽核、D43／D10未完成。P2b依D64開工；LAN未授權。 |
-| 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b定稿與Task1–5僅本機feature，未push。 |
+| 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b定稿與Task1–6僅本機feature，未push。 |
 
 ---
 
@@ -113,7 +113,7 @@
 
 **獨立文件審查**：review_finalized_docs（spec）與review_task1（plan品質）均Approved。第1輪提出commit結果不明不能刪成功附件、nonroot新files volume可寫初始化兩Important，已補spec§7.2／§9及Task4故障／fresh-volume驗收並複審關閉；舊待定措辭同步修正。此為文件審查，不是G3授權或產品GREEN。
 
-**狀態**：D59–D63均已定案為A；完整spec與八Task plan依D64核准，G3完整隔離基準API182passed1skip／Vitest96／build0／E2E9(19.3s)全部exit0，專用PG另1passed(0.44s)。primary已pg_dump備份及env指紋存ignored .superpowers/p2b/，未改業務資料。主checkout feature已完成旅程RED及Task1–5雙獨立審查，接Task6。
+**狀態**：D59–D63均已定案為A；完整spec與八Task plan依D64核准，G3完整隔離基準API182passed1skip／Vitest96／build0／E2E9(19.3s)全部exit0，專用PG另1passed(0.44s)。primary已pg_dump備份及env指紋存ignored .superpowers/p2b/，未改業務資料。主checkout feature已完成旅程RED及Task1–6雙獨立審查，接Task7。
 
 | Task | 範圍 | 狀態 | 測試／commit |
 |---|---|---|---|
@@ -122,8 +122,8 @@
 | 3 | 筆記、協作管理與紀錄查詢 | ✅ | `07661ad..134955d`；RED19failed exit1→目標48passed、全API274passed4skip exit0。audit名稱對齊note.update後目標23passed／真PG2passed（回報、筆記／協作各一成功一409）；cursor修正輪1 RED2failed1passed→51passed exit0。spec／品質複審Approved，原極端日期cursor Important關閉。 |
 | 4 | 持久化附件與故障恢復 | ✅ | `333964e..a8b0e2b`；RED23failed（另部署2／長header1／故障補強2）exit1→目標80passed；最終附件34passed／API313passed5skip／真PG3passed均exit0。10MB201+SHA一致，11MB Nginx/API413；新volume10001:10001/0700、無seed重啟note/file/SHA/quota不變，live恢復拒絕、offline兩次成功無重扣。spec／品質Approved，無finding。 |
 | 5 | 任務紀錄、回報與協作UI | ✅ | `ac13673..5f4b9b2`；初RED6fail→122passed；focus補強RED1fail22pass→23pass；修正輪1 legacy／附件假空RED4fail26pass→最終126passed/build0。隔離1280/375鍵盤、391字筆記/74字檔名、下載、自核／取消、雙角色送審退回重送v2確認、協作撤銷舊cursor/download404、無overflow/非預期console；parent實看新版及fix1圖片。雙審複審Approved，兩Important關閉。 |
-| 6 | 審核中心與安全稽核API | 🔨 | Task5已核准，開始TDD |
-| 7 | 審核中心與稽核UI | ⬜ | 未執行 |
+| 6 | 審核中心與安全稽核API | ✅ | `96cb223..1174932`；RED17fail1pass exit1→首組35passed／最終目標37passed23.06s／全API333passed5skip268.68s exit0。覆蓋他人最新可審、D60不擴Gate、node-nulladmin、safe actor／payload與hidden references、cursor條件／極端時間／混合key穩定分頁／固定querycount。spec／品質均Approved，無finding。 |
+| 7 | 審核中心與稽核UI | 🔨 | Task6已核准，開始TDD |
 | 8 | 隔離整合、恢復、文件交付 | ⬜ | 依Task1前移旅程RED：`ef39cdd..a76bdb1`，1280／375缺「成果說明」2failed exit1；其餘尚未執行。 |
 
 **G3證據**：ignored .superpowers/p2b/g3-baseline.txt（verify --keep-running exit0），g3-postgresql.txt（專用DB p2a_migration_a1d830b188e1，1passed/0.44s exit0）。acceptance15175保留供逐Task；primary15173不跑業務測試。primary-before.sql為本次唯讀pg_dump備份、primary-env-sha256.txt為設定指紋，均不進Git、不輸出內容。
@@ -137,6 +137,8 @@
 **Task4證據與資源**：ignored `.superpowers/p2b/task4-{red,deploy-red,length-red,hardening-red,hardened-green,full-final,pg-final}.txt`及`task4-volume-*`／`task4-recovery-*`。專用PG `p2b_test_38bf2081c79745afa0c3fad532c25d73`保留；新隔離stack `projectflow-p2b-task4`運行於15177/18004，files及pgdata兩volume保留，私密task4.env不進Git。最後映像重驗原SHA、ZIP拒絕、舊volume可寫；不可寫root503且不fallback/chown。primary／原acceptance無业务測試。
 
 **Task5證據**：ignored `.superpowers/p2b/task5-{red,green,build,ui,review-ui}.txt`及`task5-fix1-{red,green,build,ui}.txt`（126passed/build0）。新版`task5-1280-card.png`／`task5-375-attachments.png`／`task5-rejected-375.png`、fix1 legacy／read-error圖片由parent實看；原fullpage及修整前圖片保留。UI已更新隔離15177，primary尚未更新；回報卡掃self各頁，紀錄獨立分頁，成功後read失敗只GET重試。
+
+**Task6證據**：ignored `.superpowers/p2b/task6-red.txt`、`task6-green.txt`（35passed首組）、`task6-target-final.txt`（37passed最終）、`task6-full.txt`（333passed5skip）。未改schema／交易，專用PG條件測試本輪skip，完整PG整合由Task8強制執行。無容器部署／primary業務測試；Task7先更新隔離API映像再實測。
 
 **待執行工程驗收**
 - [ ] D59–D63角色／公司／可見性與無副作用矩陣。
