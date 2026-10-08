@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P1c工程交付可合併；人類試用待簽核** |
+| 目前工作項目 | **P0至P1c本機MVP工程交付完成；人類試用待簽核** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | G4 Ready to merge: Yes；ff-only到main、合併後隔離verify與D50發布。 |
-| 分支 | `feature/p1c-mvp-acceptance`，主checkout；舊paused分支保留。 |
-| 最新程式 commit | P1c Task3 `717e443`；Demo仍為W6 `0934e48`，未修改。 |
+| 下一個動作 | 人類依docs/mvp-trial-checklist.md试用簽核；不自行啟動P2或LAN正式部署。 |
+| 分支 | `main`，已ff-only合併P1c；舊paused／completed分支保留。 |
+| 最新程式 commit | P1c Task3 `717e443`；合併點`b816c5b`（文件修正`a5048e3`）；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | P1c G4：API `80 passed,1 warning in 38.36s`、Vitest56、build0、E2E6/11.3s、預設cleanup0；acceptance容器空/volume保留；shared count12/hash不變/marker404。全部exit0，Demo未改。 |
-| 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變，P1b只有UI與smoke測試專案。 |
-| 認領中 | Codex GPT-6，2026-10-08，P1c |
-| 阻塞／待人類 | 無；D50授權階段完成後push GitHub main。D51整體授權不變，D43、D10不擴大MVP。 |
-| 遠端 | 2026-10-08依D50成功push origin main `85813ef..255f435`，包含P1b完整實作、審查與驗收紀錄；本筆發布紀錄隨後同步。僅main，無force／PR。 |
+| 測試基準 | P1c合併後main：API `80 passed,1 warning in 35.71s`、Vitest56、build0、E2E6/10.2s、預設cleanup0；acceptance容器停/volume保留；shared count12/hash不變/marker404/ready200。全部exit0，Demo未改。 |
+| 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變。P1c測試隔離DB；既有共享12專案保留。 |
+| 認領中 | 無；P1c工程交付結案。 |
+| 阻塞／待人類 | 人類試用簽核尚未完成；D51授權P0至P1c工程交付已完成，P2／LAN部署未開工。D43、D10仍待人類，不擴大MVP。 |
+| 遠端 | origin/main起點`affc597`已核對無未知更新；本地P1c已合併與驗收，依D50推送main，結果接續記錄。 |
 
 ---
 
@@ -78,7 +78,7 @@
 | — | P0 | 正式軌技術骨架與規則 | ✅ 已發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
 | — | P1a | 正式版MVP：登入、公司隔離、migration與核心後端API | ✅ 完成並發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1a計畫](superpowers/plans/2026-10-08-p1a-backend-core.md) | 正式PostgreSQL migration `20261008_0001_p1a_core` | 四Task與G4獨立審查通過；API35／Vitest6／E2E4與build通過，真PostgreSQL migration／seed smoke通過 |
 | — | P1b | 正式版MVP：React核心UI | ✅ 已合併main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1b計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md) | 沿P1a正式DB | 四Task與G4獨立審查、合併後完整回歸通過 |
-| — | P1c | 正式版MVP：部署／測試／內部試用驗收 | 🟢 工程交付可合併；人類試用待簽核 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1c計畫](superpowers/plans/2026-10-08-p1c-mvp-acceptance.md) | 沿P1a正式DB | 三Task獨立審查及G4 Ready to merge: Yes；隔離回歸/cleanup通過 |
+| — | P1c | 正式版MVP：部署／測試／內部試用驗收 | ✅ 工程交付已合併；人類試用待簽核 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1c計畫](superpowers/plans/2026-10-08-p1c-mvp-acceptance.md) | 沿P1a正式DB | 三Task獨立審查及G4 Ready to merge: Yes；main隔離回歸/cleanup通過 |
 
 **排程規則**
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -478,7 +478,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 3. 若P1a API回應缺UI必需欄位，先判斷是否已在plan允許的後端變更範圍；超出時依WORKFLOW §8記D停下。
 4. Task4容器alembic設定在 `/app/alembic.ini`；實跑 `docker compose --env-file deploy/.env -f deploy/docker-compose.yml exec api python -m alembic upgrade head` exit0。計畫的 `-c api/alembic.ini` 是主機路徑，不在容器存在，按既有容器預設設定修正命令，無schema變更。
 
-### P1c 正式版部署／角色驗收 — 🟢 工程交付可合併；人類試用待簽核
+### P1c 正式版部署／角色驗收 — ✅ 工程交付完成；人類試用待簽核
 
 **授權**：D51完整MVP範圍與本輪人類「繼續下一個階段」；沿用先前直接指示D53「只審核成品，中間可以自己進行」，依既有spec補計畫、獨立審查後繼續實作。重大範圍／安全／破壞性變更仍須問；不新增LAN發布或模組。
 
@@ -498,7 +498,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - [x] 既有can_view_node篩選回應，member只收到自己的節點，缺父節點時仍可選取任務。
 - [x] yu/chen/ming、readonly與跨公司權限API／真瀏覽器驗收通過；1280／375無溢出或非預期錯誤。
 - [x] 一鍵verify各階段exit code可靠，失敗與cleanup不波及使用者環境，保留volume。
-- [ ] README／正式開發／試用checklist／PROGRESS審查更新，完整回歸、ff-only與D50push完成。
+- [x] README／正式開發／試用checklist／PROGRESS審查更新，完整回歸與ff-only完成；D50push結果見遠端欄。
 - [ ] 人類內部試用簽核（AI不得代勾）。
 
 **執行注意**：P1c識別的既有讀取缺口：`api/app/routes/projects.py` detail未用`can_view_node`；本計畫按既有helper修正，不改role policy。P1b三項Minor中E2E預期HTTP次數由Task2順帶補強，其他保持原登錄。
@@ -519,6 +519,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | 項目 | 內容 | 證據 |
 |---|---|---|
+| P1c | 本機MVP部署與隔離驗收工程交付；人類試用簽核仍待完成 | 三Task TDD、Lagrange spec／Feynman quality Approved；G4 Ready to merge: Yes，ff-only main；API80／Vitest56／E2E6/build及預設cleanup exit0。既有共享12專案snapshot不變；只停acceptance且保留volume；Demo未變。 |
 | 階段 0 | petfood 互動 Demo（`projectflow-petfood-demo.html`） | README §8 階段 0 已打勾 ✅；早於 git 歷史，包含在 `9fdcc64` 裡 |
 | F1–F10 | full demo 的多層任務樹、模板、時程編輯、前置條件與關鍵路徑、權限與覆寫、協作、文件與版本、AI 副手（規則式）、分級路由與遮罩（模擬）、研發營運資料（模擬 ERP） | 早於 git 歷史，包含在 `9fdcc64` 裡。F6 的部門目前是寫死的，由 W2 處理 |
 | F11 | 任務紀錄與完成回報：回報與審核、自訂回報欄位、筆記、附件（IndexedDB）、主管跳過整個任務、AI 引用紀錄 | [spec](superpowers/specs/2026-09-30-task-records-and-skip-design.md)、[plan](superpowers/plans/2026-09-30-task-records-and-skip.md)；commits `9fdcc64..aebd709`（從 `2fc8f10` 到 `aebd709` 共 10 個：7 個 Task、2 輪修正、1 次整體修正），以 fast-forward 合併進 `main`；測試 44/44。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-09-30-f11-task-records/`（不在 git 裡；重要內容已整理到本看板 §5） |
@@ -750,6 +751,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-6｜P1c本機MVP工程交付完成
+- **做了什麼**：依人類「繼續下一個階段」與D51／D53，完成三Task一鍵安全啟動、隔離marker／真角色驗收、節點讀取權限與孤兒任務修正、一鍵verify及試用清單。逐Task spec Lagrange與quality Feynman Approved；G4 Lagrange Ready to merge: Yes，舊文件Minor已修正且Feynman Approved；ff-only main。
+- **驗證**：真實RED/GREEN见§3，合併後verify API80/1warning/35.71s、Vitest56、build0、E2E6/10.2s、cleanup及最終exit0。shared count12／hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7不變、marker404、ready200；隔離marker200。重复seed七帳號/env/snapshot保留，migrationhead。Demo與tests diff空。
+- **環境／清理**：15173 primary保留試用；驗收15175停止，pgdata保留，沒有down-v、刪專案、旋轉密碼或提交.env。G3舊E2E基準另建2共享測試專案，之後全部隔離，未清理既有歷史資料。依D50發布main，結果記遠端欄。
+- **下一步**：人類完成試用清單的桌面／手機／角色體驗與簽核；此項保持未勾選。未實測新機器clone、未部署LAN／TLS、Report／Audit為API-only，真AI／ERP／AD／完整RAG及P2未開工。timeout／gate reload自動回歸Minor留存，P1b-F-m1已FIXED。
+
 ### 2026-10-08｜Codex GPT-6｜P1b React核心UI完成
 - **做了什麼**：依人類「開始實作」於主checkout完成P1b四Task，登入／session／logout、專案詳情／節點樹／路徑、四欄看板／Gate、工作流建立與真Compose smoke；Task1兩Important經TDD修正。所有Task各有獨立spec Boyle與quality Ramanujan審查，G4兩位均Ready to merge: Yes，ff-only合併main。README／正式開發指南／看板已同步。
 - **驗證**：Task1 RED10→GREEN11，修正RED5及2→GREEN18；Task2 RED9→GREEN27；Task3 RED18→GREEN45；Task4 RED9→GREEN55，E2E RED2failed2passed→GREEN4。合併後API `35 passed, 1 warning in 19.63s`、Vitest55、build0、E2E `4 passed (3.6s)`，各exit0。Compose rebuild／migration／seed0；1280／375 create／Gate409保留todo→approve→doing／readonly nooverflow，pageerror與非預期HTTP/console0，各預期401/409resource兩筆。長標題375及gate reload500retry／401login另驗pass；Demo與tests diff空。
@@ -775,8 +782,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **環境／清理**：保留健康Compose供人類使用，入口http://127.0.0.1:15173；DB無host埠、API18000loopback。密碼僅ignored deploy/.env，不進Git。只關本次Demo8001 PID30892，未動8000或其他容器，未刪DB volume。Demo174/174再驗證，兩HTML與tests無diff；舊paused分支不動。
 - **下一步**：P1a登入／公司授權隔離／migration／核心API的詳細plan，再依正常審閱與TDD；D51已授權到P1c，不重新問是否開始。P0不含登入、專案或工作流業務功能，不得標P1c完成。每階段README／PROGRESS與GitHub同步。
 
-### 2026-10-08｜Codex GPT-5｜D51 授權到 P1c，P0 計畫待審閱
-- **做了什麼**：人類明確指示「開始做到P1c」，已記D51並解除D11啟動待決；更新README／spec／舊outline的過時授權文字。以既有MVP範圍補齊P0三Task可執行計畫，包含正式軌規則轉換、完整檔案／依賴、API8測試、React6測試、Compose與4項E2E、真實DB outage/recovery、獨立審查與D50發布。
-- **驗證**：只讀環境預檢確認Node/Python/Docker daemon/Compose可用；npm／PyPI查版本。計畫中2份Python程式以AST解析、2份JSON解析、7段PowerShell語法解析均通過；這些不是產品測試GREEN。文件連結與diff check另在commit前檢查。
-- **沒做的事**：新可執行計畫尚待人類審閱；未建立api／web／deploy、未安裝產品依賴、未改AGENTS／WORKFLOW或Demo。不能宣稱P0、P1a、P1b、P1c已實作。
-- **下一步**：請人類審閱新P0計畫，沿用Native執行並依repo逐Task獨立審查；通過後Task1先記RED。整體交付到P1c已明確授權，不要再次詢問是否啟動正式版。每階段更新README／看板並依D50推送。
