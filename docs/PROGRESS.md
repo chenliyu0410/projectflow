@@ -15,11 +15,11 @@
 |---|---|
 | 目前工作項目 | **P1b React核心UI實作中** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 在 `feature/p1b-react-core-ui` 執行Task 3看板狀態更新與Gate提示RED→GREEN。 |
+| 下一個動作 | 在 `feature/p1b-react-core-ui` 執行Task 4工作流建立專案與完整Compose／E2E驗證。 |
 | 分支 | `feature/p1b-react-core-ui`（由main開出，主checkout） |
-| 最新程式 commit | P1b Task2 `9d41f59`；Demo仍為W6 `0934e48`，未修改。 |
+| 最新程式 commit | P1b Task3 `acd4cc8`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | P1b Task2：Vitest `27 passed (27)`、build與diff check exit0，獨立品質審查重跑；真API1280／375樹路徑nooverflow/pageerror、375長標題nooverflow。API基準35／P0容器E2E4已於G3通過；P1b完整E2E在Task4更新重跑。Demo仍174/174，未修改。 |
+| 測試基準 | P1b Task3：Vitest `45 passed (45)`、build與diff check exit0，獨立品質審查重跑；真API375 Gate409保留todo→核准→doing，1280注入gate reload500重試與401返回登入，nooverflow/pageerror。API基準35／P0容器E2E4已於G3通過；P1b完整E2E在Task4更新重跑。Demo仍174/174，未修改。 |
 | 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17使用migration `20261008_0001_p1a_core` 建立P1a核心schema。 |
 | 認領中 | Codex GPT-6，2026-10-08；人類已指示「開始實作」 |
 | 阻塞／待人類 | 無；D50授權階段完成後push GitHub main。D51整體授權不變，D43、D10不擴大MVP。 |
@@ -455,7 +455,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 |---|---|---|---|---|
 | 1 | API client、登入／session UI | ✅ `d4e90ce..4f95236` | RED `10 failed, 1 passed (11)` exit1 → GREEN11 exit0；client修正RED `5 failed, 11 passed (16)` exit1；登入後載入錯誤RED `2 failed, 16 passed (18)` exit1 → GREEN `18 passed (18)` exit0；build exit0。獨立spec Boyle／quality Ramanujan修正後均Approved，品質審查獨立重跑18/build0。真API1280／375登入／登出nooverflow/pageerror，session reload／logout reload成功，截圖已看375。初始未登入me回401產生預期Chrome resource401，非應用程式錯誤，不宣稱console全空。 | `P1b task 1: connect login session UI`；`P1b task 1 fix: complete typed API client` |
 | 2 | 專案清單、專案頁、節點樹與麵包屑 | ✅ `3b6f699..9d41f59` | RED `9 failed, 18 passed (27)` exit1 → GREEN `27 passed (27)` exit0、build exit0；spec Boyle／quality Ramanujan均Approved，品質獨立重跑27/build0。真API1280／375任務選取路徑「市場與配方 / 殺菌條件驗證」、nooverflow/pageerror；375長專案名與節點名20倍無溢出。截圖已看375。 | `P1b task 2: add project detail tree navigation` |
-| 3 | 看板四欄、狀態更新與Gate阻擋提示 | ⬜ | RED：缺看板欄位與移動按鈕；GREEN：kanban／gate測試通過、build exit0 | `P1b task 3: add kanban gate workflow controls` |
+| 3 | 看板四欄、狀態更新與Gate阻擋提示 | ✅ `7aeb01d..acd4cc8` | RED `18 failed, 27 passed (45)` exit1 → GREEN `45 passed (45)` exit0、build exit0；spec Boyle／quality Ramanujan均Approved，品質獨立重跑45/build0。狀態使用select符合UI控件指示。真API375工作流試作工單409維持todo→gate核准→doing、無溢出/pageerror；1280注入gate reload500重試成功、401返回登入，nooverflow。測試專案id `f9842e65-a87a-4f06-8ade-4c94f84c06d7`，未改既有seed任務。 | `P1b task 3: add kanban gate workflow controls` |
 | 4 | 工作流建立專案、Playwright真後端smoke與文件 | ⬜ | RED：缺工作流建立表單；GREEN：Vitest、build、API回歸、Compose migration／seed、Playwright P1b smoke通過 | `P1b task 4: add workflow creation browser smoke` |
 
 **P1b驗收**
@@ -506,6 +506,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 **P1b新增**
 - P1b-T1-m1（minor，OPEN，不阻塞）：API client未設timeout；pending請求須等代理或連線結束，取消目前涵蓋換請求與卸載。後續網路韌性工作補強，位置 `web/src/api.ts:12`。
+- P1b-T3-m1（minor，已人工驗證，不阻塞）：Vitest未直接覆蓋gate核准成功／reload失敗／重試；主代理Playwright1280注入reload500→重試成功與401→返回登入均pass。可於後續網路韌性工作補自動回歸，位置 `web/src/App.test.tsx`。
 
 **P0新增**
 - P0-T1-m1（minor，OPEN，不阻塞）：`api/tests/test_health.py`缺查詢結果非1、查詢階段錯誤、checker非布林的持續回歸案例；Arendt唯讀補驗均通過，後續擴充API測試時納入。
