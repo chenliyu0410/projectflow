@@ -167,3 +167,32 @@ class NodeStatusUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status: Literal["todo", "doing", "review", "done", "skipped"]
+
+
+class NoteCreate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    body: str = Field(min_length=1, max_length=10000)
+    attachment_ids: list[str] = Field(default_factory=list)
+
+    @field_validator('body', mode='before')
+    @classmethod
+    def trim_body(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
+class NoteUpdate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    body: str = Field(min_length=1, max_length=10000)
+    expected_revision: int = Field(ge=1, strict=True)
+
+    @field_validator('body', mode='before')
+    @classmethod
+    def trim_body(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
+class CollaboratorsUpdate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    user_ids: list[str] = Field(default_factory=list)
+    department_ids: list[str] = Field(default_factory=list)
+    expected_revision: int = Field(ge=0, strict=True)

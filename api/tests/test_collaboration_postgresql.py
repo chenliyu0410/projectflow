@@ -82,3 +82,65 @@ def test_postgresql_report_transactions_serialize_real_api_requests(monkeypatch)
                 assert len(list(db.scalars(select(TaskReport).where(TaskReport.node_id==nid))))==2
     finally:
         app.dependency_overrides.clear();engine.dispose()
+
+
+def test_postgresql_notes_and_collaborators_prevent_lost_updates(monkeypatch):
+    from app.models import TaskNote, NodeCollaborator
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url:pytest.skip('Dedicated p2b_test PostgreSQL URL required')
+    parsed=make_url(url)
+    assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
+    assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
+    monkeypatch.setenv('DATABASE_URL',url)
+    command.upgrade(Config('api/alembic.ini'),'head')
+    engine=create_engine(sqlalchemy_url(url),pool_size=5)
+    with Session(engine) as db:
+        seed_demo_data(db);db.commit()
+        users={u.username:u for u in db.scalars(select(User))}
+        member=users['ming'];uid=member.id;other=users['chen'].id
+        project=db.scalars(select(Project).where(Project.organization_id==member.organization_id)).first()
+        node=Node(organization_id=member.organization_id,project_id=project.id,kind='task',title=f'PG records {uuid4()}',owner_user_id=uid)
+        db.add(node);db.commit();nid=node.id
+    app=create_app()
+    def session():
+        with Session(engine) as db:yield db
+    app.dependency_overrides[get_session]=session
+    def login(client,username):
+        assert client.post('/auth/login',json={'organization_key':'food','username':username,'password':f'demo-{username}'}).status_code==200
+    def race(clients,method,path,payloads):
+        barrier=Barrier(2)
+        def at_lock(conn,cursor,statement,parameters,context,executemany):
+            if 'FROM nodes' in statement and 'FOR UPDATE' in statement:barrier.wait(timeout=15)
+        event.listen(engine,'before_cursor_execute',at_lock)
+        try:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                return list(pool.map(lambda pair: pair[0].request(method,path,json=pair[1]),zip(clients,payloads)))
+        finally:event.remove(engine,'before_cursor_execute',at_lock)
+    try:
+        with TestClient(app) as one,TestClient(app) as two:
+            login(one,'ming');login(two,'ming')
+            created=one.post(f'/nodes/{nid}/notes',json={'body':'original'})
+            assert created.status_code==201
+            note_id=created.json()['id']
+            responses=race([one,two],'PATCH',f'/notes/{note_id}',[
+                {'body':'writer one','expected_revision':1},{'body':'writer two','expected_revision':1}])
+            assert sorted(r.status_code for r in responses)==[200,409]
+            winner=next(r.json()['body'] for r in responses if r.status_code==200)
+            with Session(engine) as db:
+                note=db.get(TaskNote,note_id)
+                assert note.body==winner and note.revision==2
+                events=list(db.scalars(select(AuditLog).where(AuditLog.node_id==nid,AuditLog.action=='note.update')))
+                assert len(events)==1 and events[0].payload['after']['body']==winner
+            login(one,'yu');login(two,'yu')
+            responses=race([one,two],'PUT',f'/nodes/{nid}/collaborators',[
+                {'user_ids':[uid],'department_ids':[],'expected_revision':0},
+                {'user_ids':[other],'department_ids':[],'expected_revision':0}])
+            assert sorted(r.status_code for r in responses)==[200,409]
+            winner=next(r.json()['users'][0]['id'] for r in responses if r.status_code==200)
+            with Session(engine) as db:
+                assert db.get(Node,nid).collaborators_revision==1
+                links=list(db.scalars(select(NodeCollaborator).where(NodeCollaborator.node_id==nid)))
+                assert len(links)==1 and links[0].user_id==winner
+                assert len(list(db.scalars(select(AuditLog).where(AuditLog.node_id==nid,AuditLog.action=='collaborators.update'))))==1
+    finally:
+        app.dependency_overrides.clear();engine.dispose()
