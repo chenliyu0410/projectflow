@@ -13,13 +13,13 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P1c部署／角色驗收整體審查中** |
+| 目前工作項目 | **P1c工程交付可合併；人類試用待簽核** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | P1c G4完整分支獨立審查與隔離回歸；工程交付不代替人類試用簽核。 |
+| 下一個動作 | G4 Ready to merge: Yes；ff-only到main、合併後隔離verify與D50發布。 |
 | 分支 | `feature/p1c-mvp-acceptance`，主checkout；舊paused分支保留。 |
 | 最新程式 commit | P1c Task3 `717e443`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | P1c Task1：API `56 passed, 1 warning in 17.63s` exit0（quality獨立56/18.12s）、Vitest55/build0；targeted29通過；實際隔離startup15175/migration/seed/readiness exit0、marker200/login200。共享15173 marker404/login200/project count12維持；Demo未改。E2E基準4，Task2切隔離。 |
+| 測試基準 | P1c G4：API `80 passed,1 warning in 38.36s`、Vitest56、build0、E2E6/11.3s、預設cleanup0；acceptance容器空/volume保留；shared count12/hash不變/marker404。全部exit0，Demo未改。 |
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變，P1b只有UI與smoke測試專案。 |
 | 認領中 | Codex GPT-6，2026-10-08，P1c |
 | 阻塞／待人類 | 無；D50授權階段完成後push GitHub main。D51整體授權不變，D43、D10不擴大MVP。 |
@@ -78,7 +78,7 @@
 | — | P0 | 正式軌技術骨架與規則 | ✅ 已發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
 | — | P1a | 正式版MVP：登入、公司隔離、migration與核心後端API | ✅ 完成並發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1a計畫](superpowers/plans/2026-10-08-p1a-backend-core.md) | 正式PostgreSQL migration `20261008_0001_p1a_core` | 四Task與G4獨立審查通過；API35／Vitest6／E2E4與build通過，真PostgreSQL migration／seed smoke通過 |
 | — | P1b | 正式版MVP：React核心UI | ✅ 已合併main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1b計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md) | 沿P1a正式DB | 四Task與G4獨立審查、合併後完整回歸通過 |
-| — | P1c | 正式版MVP：部署／測試／內部試用驗收 | 🔨 實作中 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1c計畫](superpowers/plans/2026-10-08-p1c-mvp-acceptance.md) | 沿P1a正式DB | P1b ✅；人類2026-10-08「繼續下一個階段」 |
+| — | P1c | 正式版MVP：部署／測試／內部試用驗收 | 🟢 工程交付可合併；人類試用待簽核 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1c計畫](superpowers/plans/2026-10-08-p1c-mvp-acceptance.md) | 沿P1a正式DB | 三Task獨立審查及G4 Ready to merge: Yes；隔離回歸/cleanup通過 |
 
 **排程規則**
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -478,7 +478,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 3. 若P1a API回應缺UI必需欄位，先判斷是否已在plan允許的後端變更範圍；超出時依WORKFLOW §8記D停下。
 4. Task4容器alembic設定在 `/app/alembic.ini`；實跑 `docker compose --env-file deploy/.env -f deploy/docker-compose.yml exec api python -m alembic upgrade head` exit0。計畫的 `-c api/alembic.ini` 是主機路徑，不在容器存在，按既有容器預設設定修正命令，無schema變更。
 
-### P1c 正式版部署／角色驗收 — 🔍 整體審查中
+### P1c 正式版部署／角色驗收 — 🟢 工程交付可合併；人類試用待簽核
 
 **授權**：D51完整MVP範圍與本輪人類「繼續下一個階段」；沿用先前直接指示D53「只審核成品，中間可以自己進行」，依既有spec補計畫、獨立審查後繼續實作。重大範圍／安全／破壞性變更仍須問；不新增LAN發布或模組。
 
@@ -502,6 +502,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - [ ] 人類內部試用簽核（AI不得代勾）。
 
 **執行注意**：P1c識別的既有讀取缺口：`api/app/routes/projects.py` detail未用`can_view_node`；本計畫按既有helper修正，不改role policy。P1b三項Minor中E2E預期HTTP次數由Task2順帶補強，其他保持原登錄。
+
+**G4**：Lagrange完整`2acd923..e7ecd7a`與scoped `a5c9745`均Ready to merge: Yes，無Critical／Important；指出舊E2E與停機文件Minor，已於`a5c9745`／`a5048e3`對齊隔離環境，Feynman最後文件Approved。controller實跑預設verify：API80/38.36s/1warning、Vitest56、build0、E2E6/11.3s、cleanup與最終exit0；acceptance容器空、pgdata保留。shared count12／hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7／marker404不變，Demo及tests diff空。人類簽核非工程合併條件，保持未完成，不宣稱LAN部署。
 
 ### P0 規劃文件恢復（歷史紀錄，非 P0 實作）
 
