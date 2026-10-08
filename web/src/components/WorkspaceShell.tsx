@@ -17,6 +17,7 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
         <button disabled={busy} aria-current={route.page === 'project' ? 'page' : undefined} onClick={() => go({ page: 'project', projectId: route.page === 'project' ? route.projectId : projects[0]?.id ?? null, nodeId: null })}>專案工作區</button>
         <button disabled={busy} aria-current={route.page === 'reviews' ? 'page' : undefined} onClick={() => go({ page: 'reviews' })}>審核中心</button>
         <button disabled={busy} aria-current={route.page === 'audit' ? 'page' : undefined} onClick={() => go({ page: 'audit' })}>稽核紀錄</button>
+        <button disabled={busy} aria-current={route.page === 'workflows' ? 'page' : undefined} onClick={() => go({ page: 'workflows' })}>模板庫</button>
       </nav>
       {route.page === 'project' && <aside aria-label="專案清單"><h2>專案</h2>{projects.map(item => <button key={item.id} disabled={busy} aria-pressed={item.id === route.projectId} onClick={() => go({ page: 'project', projectId: item.id, nodeId: null })}>{item.title}</button>)}</aside>}
     </div>

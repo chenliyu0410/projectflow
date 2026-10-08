@@ -11,11 +11,12 @@ export interface NodeItem {
   owner_display_name: string | null; department_name: string | null;
   capabilities: { edit_metadata: boolean; assign: boolean; create_child: boolean; write_record?: boolean; submit_report?: boolean; review_report?: boolean; manage_collaborators?: boolean; lifecycle?: boolean };
   state_actions?: string[];
+  blocked?: boolean;
 }
 export interface GateItem { id: string; project_id: string; node_id: string; status: 'pending' | 'approved'; }
 export interface ProjectDetail extends ProjectSummary { nodes: NodeItem[]; gates: GateItem[]; capabilities: { create_node: boolean }; }
-export type WorkspaceRoute = { page: 'overview' | 'my-tasks' | 'reviews' | 'audit' } | { page: 'project'; projectId: string | null; nodeId: string | null };
-export interface WorkflowSummary { id: string; name: string; }
+export type WorkspaceRoute = { page: 'overview' | 'my-tasks' | 'reviews' | 'audit' | 'workflows' } | { page: 'project'; projectId: string | null; nodeId: string | null };
+export interface WorkflowSummary { id: string; name: string; requires_start_date?: boolean; capabilities?: { edit: boolean; copy: boolean }; }
 export interface AssignmentOptions { users: { id: string; display_name: string }[]; departments: { id: string; name: string }[]; }
 export interface NodeMetadata { title: string; owner_user_id: string | null; department_id: string | null; start_date: string | null; due_date: string | null; }
 export interface NodeCreate extends NodeMetadata { kind: 'phase' | 'task'; parent_id: string | null; }
@@ -34,3 +35,10 @@ export interface ReviewItem { type: 'report' | 'gate'; id: string; node_id: stri
 export interface ReviewPage { items: ReviewItem[]; next_cursor: string | null; }
 export interface AuditItem { id: string; action: string; summary: string; node_id: string | null; node_title: string | null; project_id: string | null; project_title: string | null; actor_display_name: string | null; created_at: string; payload: Record<string, unknown>; }
 export interface AuditPage { items: AuditItem[]; next_cursor: string | null; }
+export interface WorkflowNode { id: string; parent_id: string | null; kind: 'phase' | 'task'; title: string; sort_order: number; gate_after: boolean; start_offset: number | null; due_offset: number | null; }
+export interface DependencyInput { predecessor_id: string; successor_id: string; }
+export interface WorkflowWrite { name: string; nodes: WorkflowNode[]; dependencies: DependencyInput[]; }
+export interface WorkflowDetail extends WorkflowWrite { id: string; requires_start_date: boolean; capabilities: { edit: boolean; copy: boolean }; }
+export interface WorkflowList { items: WorkflowSummary[]; capabilities?: { create: boolean }; }
+export interface Dependency extends DependencyInput { id: string; project_id: string; }
+export interface DependencyData { items: Dependency[]; nodes: { id: string; title: string; status: NodeStatus; blocked: boolean }[]; capabilities: { manage: boolean }; }

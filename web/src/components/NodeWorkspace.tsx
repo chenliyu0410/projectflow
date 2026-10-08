@@ -76,6 +76,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     <section aria-label="節點詳情" className="node-detail"><h2>節點詳情</h2><strong>{selected?.title ?? project.title}</strong>
       {selected ? <>
       {selected.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`${selected.id}:${recordVersion}`} node={selected} userId={userId} reload={reloadRecords} expired={expired}/>}
+      {selected.blocked && <p role="status">尚有未完成的前置任務</p>}
       {selected.kind === 'phase' && <p>階段狀態為手動設定，不代表子任務完成率。</p>}
       <dl>
         <div><dt>狀態</dt><dd>{statuses.find(item => item.status === selected.status)?.label ?? selected.status}</dd></div>

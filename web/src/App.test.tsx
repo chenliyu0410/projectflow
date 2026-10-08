@@ -191,7 +191,7 @@ describe('P1b kanban and gates', () => {
     await screen.findByRole('heading', { name: detail.title });
     selectPhase();
     fireEvent.change(statusControl(), { target: { value: 'doing' } });
-    expect(await screen.findByRole('alert')).toHaveTextContent(status === 409 ? '前一階段閘門尚未通過' : status === 403 ? '沒有操作此節點的權限' : '操作失敗，請稍後再試');
+    expect(await screen.findByRole('alert')).toHaveTextContent(status === 409 ? '目前狀態不允許此操作，請檢查閘門與前置任務' : status === 403 ? '沒有操作此節點的權限' : '操作失敗，請稍後再試');
     expect(statusControl()).toHaveValue('todo');
     expect(statusControl()).not.toBeDisabled();
     expect(document.body).not.toHaveTextContent('private-secret');
