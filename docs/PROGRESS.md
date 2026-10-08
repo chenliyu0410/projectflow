@@ -15,7 +15,7 @@
 |---|---|
 | 目前工作項目 | **P0至P1c本機MVP工程交付完成；人類試用待簽核** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 人類依docs/mvp-trial-checklist.md试用簽核；不自行啟動P2或LAN正式部署。 |
+| 下一個動作 | 人類依docs/mvp-trial-checklist.md試用簽核；不自行啟動P2或LAN正式部署。 |
 | 分支 | `main`，已ff-only合併P1c；舊paused／completed分支保留。 |
 | 最新程式 commit | P1c Task3 `717e443`；合併點`b816c5b`（文件修正`a5048e3`）；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
@@ -23,7 +23,7 @@
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變。P1c測試隔離DB；既有共享12專案保留。 |
 | 認領中 | 無；P1c工程交付結案。 |
 | 阻塞／待人類 | 人類試用簽核尚未完成；D51授權P0至P1c工程交付已完成，P2／LAN部署未開工。D43、D10仍待人類，不擴大MVP。 |
-| 遠端 | origin/main起點`affc597`已核對無未知更新；本地P1c已合併與驗收，依D50推送main，結果接續記錄。 |
+| 遠端 | 2026-10-08依D50成功push origin main `affc597..878b8e4`，P1c工程交付／審查／main驗收均發布。本筆發布紀錄接續同步；僅main，無force／PR。 |
 
 ---
 
@@ -753,7 +753,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ### 2026-10-08｜Codex GPT-6｜P1c本機MVP工程交付完成
 - **做了什麼**：依人類「繼續下一個階段」與D51／D53，完成三Task一鍵安全啟動、隔離marker／真角色驗收、節點讀取權限與孤兒任務修正、一鍵verify及試用清單。逐Task spec Lagrange與quality Feynman Approved；G4 Lagrange Ready to merge: Yes，舊文件Minor已修正且Feynman Approved；ff-only main。
-- **驗證**：真實RED/GREEN见§3，合併後verify API80/1warning/35.71s、Vitest56、build0、E2E6/10.2s、cleanup及最終exit0。shared count12／hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7不變、marker404、ready200；隔離marker200。重复seed七帳號/env/snapshot保留，migrationhead。Demo與tests diff空。
+- **驗證**：真實RED/GREEN見§3，合併後verify API80/1warning/35.71s、Vitest56、build0、E2E6/10.2s、cleanup及最終exit0。shared count12／hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7不變、marker404、ready200；隔離marker200。重複seed七帳號/env/snapshot保留，migrationhead。Demo與tests diff空。
 - **環境／清理**：15173 primary保留試用；驗收15175停止，pgdata保留，沒有down-v、刪專案、旋轉密碼或提交.env。G3舊E2E基準另建2共享測試專案，之後全部隔離，未清理既有歷史資料。依D50發布main，結果記遠端欄。
 - **下一步**：人類完成試用清單的桌面／手機／角色體驗與簽核；此項保持未勾選。未實測新機器clone、未部署LAN／TLS、Report／Audit為API-only，真AI／ERP／AD／完整RAG及P2未開工。timeout／gate reload自動回歸Minor留存，P1b-F-m1已FIXED。
 
@@ -781,4 +781,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **驗證／審查**：API RED缺app.main→8passed；React RED缺App→6passed；E2E RED4connection refused→4passed。真DBlive200／ready503不洩漏→恢復200、volume不變；1280／375截圖、重試、5秒timeout及遲到回應均通過，非預期console／page errors空。Task1 Arendt、Task2 Faraday、Task3 Goodall Approved；Hilbert整體Ready to merge: Yes。合併後pytest8／Vitest6／E2E4及build再次exit0；兩minor記§5。
 - **環境／清理**：保留健康Compose供人類使用，入口http://127.0.0.1:15173；DB無host埠、API18000loopback。密碼僅ignored deploy/.env，不進Git。只關本次Demo8001 PID30892，未動8000或其他容器，未刪DB volume。Demo174/174再驗證，兩HTML與tests無diff；舊paused分支不動。
 - **下一步**：P1a登入／公司授權隔離／migration／核心API的詳細plan，再依正常審閱與TDD；D51已授權到P1c，不重新問是否開始。P0不含登入、專案或工作流業務功能，不得標P1c完成。每階段README／PROGRESS與GitHub同步。
-
