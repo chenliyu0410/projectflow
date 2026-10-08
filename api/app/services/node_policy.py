@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth import CurrentUser
-from app.models import Department, Node, Project, User
+from app.models import Department, Gate, Node, Project, User
 from app.permissions import can_edit_node, can_manage_project, can_view_node, can_view_project
 
 
@@ -52,3 +52,49 @@ def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *,
             'create_child': manage and node.kind in {'project','phase','task'},
         },
     }
+
+
+def containing_phase(db: Session, current: CurrentUser, node: Node) -> Node | None:
+    """Find the nearest phase, validating the *entire* stored parent chain.
+
+    Do not use a visible-node tree: invisible ancestors still enforce Gates.
+    Finding a phase does not end validation, because its own ancestry may be
+    cyclic, missing, or linked to another project/company.
+    """
+    cursor = node
+    phase = None
+    visited = set()
+    while True:
+        if cursor.id in visited or cursor.organization_id != current.organization.id:
+            raise HTTPException(status_code=409, detail="節點階層異常，無法變更狀態")
+        visited.add(cursor.id)
+        if phase is None and cursor.kind == "phase":
+            phase = cursor
+        if cursor.parent_id is None:
+            return phase
+        parent = db.scalar(select(Node).where(
+            Node.id == cursor.parent_id,
+            Node.organization_id == current.organization.id,
+            Node.project_id == node.project_id,
+        ))
+        if parent is None:
+            raise HTTPException(status_code=409, detail="節點階層異常，無法變更狀態")
+        cursor = parent
+
+
+def blocked_by_pending_gate(db: Session, current: CurrentUser, node: Node) -> bool:
+    phase = containing_phase(db, current, node)
+    if node.status != "todo" or phase is None:
+        return False
+    lower_phase_ids = select(Node.id).where(
+        Node.organization_id == current.organization.id,
+        Node.project_id == node.project_id,
+        Node.kind == "phase",
+        Node.sort_order < phase.sort_order,
+    )
+    return db.scalar(select(Gate.id).where(
+        Gate.organization_id == current.organization.id,
+        Gate.project_id == node.project_id,
+        Gate.node_id.in_(lower_phase_ids),
+        Gate.status == "pending",
+    ).limit(1)) is not None
