@@ -425,19 +425,19 @@ const STATUS = [['todo', '待辦'], ['doing', '進行中'], ['review', '審核�
 const STLBL = { todo: '待辦', doing: '進行中', review: '審核中', done: '已完成', skipped: '已跳過' };
 const LEVELS = { public: '公開', internal: '內部', confidential: '機密' };
 const ROLES = { admin: '系統管理員', owner: '專案負責人', reviewer: '階段審核人', member: '成員', collab: '協作人員', readonly: '唯讀' };
-const TAGS = ['市場', '配方', '試作', '製程', '品保', '檢驗', '測試', '法規', '採購', '生產', '行銷'];
+const PETFOOD_TAGS = ['市場', '配方', '試作', '製程', '品保', '檢驗', '測試', '法規', '採購', '生產', '行銷'];
 // 部門：id、名稱、預設主管（可在「成員與權限」由系統管理員維護，存在 db.departments）
 const DEFAULT_DEPTS = [['d-rd', '研發', 'yu'], ['d-pe', '製程', null], ['d-qa', '品保', 'chen'], ['d-sales', '業務', null], ['d-pc', '生管', null], ['d-pur', '採購', 'hua'], ['d-adm', '管理', null], ['d-it', '資訊', null], ['d-fin', '財務', null], ['d-mfg', '製造', null]];
 const defaultDepts = () => DEFAULT_DEPTS.map(([id, name, head]) => ({ id, name, head }));
 // v3 以前的部門名稱 → 部門 id
 const OLD_DEPT = { 研發: 'd-rd', 製程: 'd-pe', 品保: 'd-qa', 法規: 'd-qa', 採購: 'd-pur', 生產: 'd-mfg', 行銷: 'd-sales', 資訊: 'd-it' };
 // 任務類別 → 預設負責部門（模板與升級時使用）
-const TAG_DEPT = { 市場: 'd-sales', 配方: 'd-rd', 試作: 'd-rd', 製程: 'd-pe', 品保: 'd-qa', 檢驗: 'd-qa', 測試: 'd-qa', 法規: 'd-qa', 採購: 'd-pur', 生產: 'd-mfg', 行銷: 'd-sales' };
+const PETFOOD_TAG_DEPT = { 市場: 'd-sales', 配方: 'd-rd', 試作: 'd-rd', 製程: 'd-pe', 品保: 'd-qa', 檢驗: 'd-qa', 測試: 'd-qa', 法規: 'd-qa', 採購: 'd-pur', 生產: 'd-mfg', 行銷: 'd-sales' };
 const DEPTYPE = { FS: '完成→開始', SS: '開始→開始', FF: '完成→完成' };
 const RESULT = { met: '達成', partial: '部分達成', unmet: '未達成' };
 const FIELD_TYPES = { text: '文字', number: '數字', date: '日期', select: '選項' };
 const MAX_FILE = 10 * 1024 * 1024;
-const USERS = {
+const PETFOOD_USERS = {
   yu: { name: '力瑜', short: '瑜', role: 'owner', dept: 'd-rd', title: '研發主管／專案負責人', color: '#B4541F' },
   ming: { name: '阿明', short: '明', role: 'member', dept: 'd-pe', title: '製程工程師', color: '#1F5F5B' },
   an: { name: '小安', short: '安', role: 'member', dept: 'd-qa', title: '法規專員', color: '#4A5A8C' },
@@ -447,7 +447,18 @@ const USERS = {
   it: { name: '資訊室', short: 'IT', role: 'admin', dept: 'd-it', title: '系統管理員', color: '#555' },
 };
 // F10 欄位層級權限：機密欄位誰看得到
-const FIELD_ACCESS = { ratio: ['yu', 'chen', 'it'], price: ['yu', 'hua', 'it'], cost: ['yu', 'hua', 'it'] };
+const PETFOOD_FIELD_ACCESS = { ratio: ['yu', 'chen', 'it'], price: ['yu', 'hua', 'it'], cost: ['yu', 'hua', 'it'] };
+let TAGS = PETFOOD_TAGS, TAG_DEPT = PETFOOD_TAG_DEPT, USERS = PETFOOD_USERS, FIELD_ACCESS = PETFOOD_FIELD_ACCESS;
+let OPS_CONFIG = { mode: 'petfood' };
+const COMPANY_ORDER = ['petfood', 'electronics', 'events', 'software', 'construction'];
+const COMPANY_META = {
+  petfood: { id: 'petfood', name: '毛研食品', industry: '寵物食品製造', defaultUserId: 'yu' },
+  electronics: { id: 'electronics', name: '峰曜科技', industry: '電子產品製造', defaultUserId: 'el-lin' },
+  events: { id: 'events', name: '光點企劃', industry: '活動行銷', defaultUserId: 'ev-jia' },
+  software: { id: 'software', name: '雲序軟體', industry: 'SaaS 軟體服務', defaultUserId: 'sw-yi' },
+  construction: { id: 'construction', name: '築衡工程', industry: '營建工程', defaultUserId: 'ct-chen' },
+};
+const cloneData = (value) => structuredClone(value);
 const PHASE_TEMPLATE = [
   ['市場與配方', '配方定案；主要原料至少 1 家供應商通過', '研發主管', [['競品分析與產品定位', 'd-sales'], ['營養標準比對', 'd-rd'], ['配方設計', 'd-rd'], ['供應商評估', 'd-pur']]],
   ['小量試作', '試作品經內部審核通過', '研發主管', [['小量試作', 'd-rd'], ['質地與外觀調整', 'd-rd'], ['原料送樣確認', 'd-pur']]],
@@ -653,14 +664,14 @@ function createProjectFromWorkflow(workflowId, opts = {}) {
 
 /* ================= 種子資料 ================= */
 function seed() {
-  const db = { v: 5, departments: defaultDepts(), nodes: {}, deps: [], gates: {}, docs: [], templates: [], workflows: builtinWorkflows(), overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0, reportFields: [], reports: [], notes: [], attachments: [] };
+  const db = { v: 6, departments: defaultDepts(), nodes: {}, deps: [], gates: {}, docs: [], templates: [], workflows: builtinWorkflows(), overrides: [], policy: 'hybrid', seq: 1000, erpSynced: 0, reportFields: [], reports: [], notes: [], attachments: [] };
   let ord = 0;
   const N = (id, parent, type, title, o = {}) => {
     db.nodes[id] = {
       id, parent, type, title, tag: o.tag || '', status: o.st || 'todo', progress: o.pg ?? null, weight: o.w || 1,
       start: o.s || null, end: o.e || o.s || null, milestone: !!o.ms, locked: !!o.lock,
       owner: 'who' in o ? o.who : 'yu',
-      dept: type === 'task' ? (o.dept || USERS['who' in o && o.who ? o.who : 'yu'].dept) : null,
+      dept: type === 'task' ? (o.dept || PETFOOD_USERS['who' in o && o.who ? o.who : 'yu'].dept) : null,
       collabs: o.co || [], depts: o.dp || [], level: o.lv || null, ai: !!o.ai, note: o.note || '', links: o.ln || [],
       order: ord++, color: o.color, goal: o.goal, due: o.due,
     };
@@ -769,9 +780,9 @@ function seed() {
 
   // ── 模板 ──
   const toIds = (arr) => [...new Set((arr || []).map((x) => OLD_DEPT[x] || x))];
-  const chain = (arr) => arr.map((a, i) => ({ k: 'k' + i, p: 'r', title: a[0], tag: a[1], off: a[2], dur: a[3], dp: toIds(a[4]), dept: TAG_DEPT[a[1]] || 'd-rd' }));
+  const chain = (arr) => arr.map((a, i) => ({ k: 'k' + i, p: 'r', title: a[0], tag: a[1], off: a[2], dur: a[3], dp: toIds(a[4]), dept: PETFOOD_TAG_DEPT[a[1]] || 'd-rd' }));
   const mkTpl = (id, name, scope, desc, rootTag, list, extra = {}) => {
-    const nodes = [{ k: 'r', p: null, title: name + '：{產品名}', tag: rootTag, off: 0, dur: 0, dp: [], dept: TAG_DEPT[rootTag] || 'd-rd' }, ...chain(list)];
+    const nodes = [{ k: 'r', p: null, title: name + '：{產品名}', tag: rootTag, off: 0, dur: 0, dp: [], dept: PETFOOD_TAG_DEPT[rootTag] || 'd-rd' }, ...chain(list)];
     const deps = list.slice(1).map((_, i) => ({ f: 'k' + i, t: 'k' + (i + 1), type: 'FS', lag: 0 }));
     return { id, name, scope, desc, version: extra.version || 1, history: extra.history || [], nodes, deps, docs: extra.docs || [] };
   };
@@ -846,7 +857,8 @@ function seedOps() {
 
 /* ================= 狀態、儲存、復原 ================= */
 const KEY = 'projectflow-demo-v2';
-let db, audit;
+let db, audit, portfolio, company;
+let loadWarning = '';
 const ui = { me: 'yu', page: 'node', node: 'p1', tab: 'board', expanded: {}, scale: 'week', cascade: true, crit: false, chat: [], opsTab: 'suppliers', opsSel: null, docsAll: false, connect: null, fv: [3, 4], trace: 'T260912-01', gsel: null, tlDept: 'all' };
 const undoStack = [];
 
@@ -865,7 +877,7 @@ function freshAudit() {
   };
 }
 // v2 → v3：補上任務紀錄的陣列、為覆寫紀錄補 kind、補範例的 F0 欄位與回報
-function upgrade(o) {
+function upgradeLegacy(o) {
   if (o.v === 2) {
     const d = o.db;
     Object.assign(d, { reportFields: d.reportFields || [], reports: d.reports || [], notes: d.notes || [], attachments: d.attachments || [] });
@@ -885,11 +897,11 @@ function upgrade(o) {
     const ids = (arr) => [...new Set((arr || []).map(toId))];
     Object.values(d.nodes).forEach((n) => {
       n.depts = ids(n.depts);
-      n.dept = n.type === 'task' ? ((USERS[n.owner] && USERS[n.owner].dept) || 'd-rd') : null;
+      n.dept = n.type === 'task' ? ((PETFOOD_USERS[n.owner] && PETFOOD_USERS[n.owner].dept) || 'd-rd') : null;
     });
     d.templates.forEach((t) => t.nodes.forEach((x) => {
       x.dp = ids(x.dp);
-      x.dept = (x.who && USERS[x.who] && USERS[x.who].dept) || x.dp[0] || 'd-rd';
+      x.dept = (x.who && PETFOOD_USERS[x.who] && PETFOOD_USERS[x.who].dept) || x.dp[0] || 'd-rd';
     }));
     merged.forEach((nm) => o.audit.acts.unshift({ at: nowStr(), actor: 'it', node: null, action: '部門', text: `部門「${nm}」已併入研發` }));
     d.v = 4; o.v = 4;
@@ -902,15 +914,72 @@ function upgrade(o) {
   }
   return o;
 }
+function seedCompany(id) {
+  const meta = COMPANY_META[id];
+  if (id === 'petfood') return { ...meta, me: 'yu', users: cloneData(PETFOOD_USERS), fieldAccess: cloneData(PETFOOD_FIELD_ACCESS), tags: [...PETFOOD_TAGS], tagDept: {...PETFOOD_TAG_DEPT}, opsConfig: {mode:'petfood'}, db: seed(), audit: freshAudit() };
+  const uid = meta.defaultUserId, deptId = id + '-management';
+  return { ...meta, me: uid, users: { [uid]: { name: meta.name + '負責人', short:'主', role:'owner', dept:deptId, title:'專案負責人', color:'#1F5F5B' } }, fieldAccess:{}, tags:[], tagDept:{}, opsConfig:{mode:'generic',modules:[]},
+    db: {v:6,departments:[{id:deptId,name:'專案管理',head:uid}],nodes:{},deps:[],gates:{},docs:[],templates:[],workflows:[],overrides:[],policy:'hybrid',seq:1000,erpSynced:0,reportFields:[],reports:[],notes:[],attachments:[],ops:{suppliers:[],materials:[],formulas:[],pos:[],wos:[]}}, audit:{acts:[],ai:[],sync:[],notes:[]} };
+}
+function seedPortfolio() { return {v:6,activeCompanyId:'petfood',companies:Object.fromEntries(COMPANY_ORDER.map(id=>[id,seedCompany(id)]))}; }
+function validCompanyState(x, id) {
+  return !!(x && x.id === id && x.defaultUserId && x.db && x.db.nodes && !Array.isArray(x.db.nodes)
+    && ['deps','departments','workflows','attachments','templates','docs','overrides','reportFields','reports','notes'].every(k=>Array.isArray(x.db[k]))
+    && x.db.gates && x.db.ops && ['suppliers','materials','formulas','pos','wos'].every(k=>Array.isArray(x.db.ops[k]))
+    && x.audit && ['acts','ai','sync','notes'].every(k=>Array.isArray(x.audit[k]))
+    && x.users && typeof x.users === 'object' && Object.keys(x.users).length && Object.values(x.users).every(u=>u && u.role && u.dept)
+    && x.fieldAccess && Array.isArray(x.tags) && x.tagDept && x.opsConfig);
+}
+function repairPortfolio(input, repairedIds = []) {
+  const out = cloneData(input); out.v = 6;
+  out.companies = out.companies && typeof out.companies === 'object' && !Array.isArray(out.companies) ? out.companies : {};
+  COMPANY_ORDER.forEach(id=>{
+    if (!validCompanyState(out.companies[id],id)) { out.companies[id]=seedCompany(id); repairedIds.push(id); }
+    out.companies[id].db.v=6;
+  });
+  if (!COMPANY_ORDER.includes(out.activeCompanyId)) out.activeCompanyId='petfood';
+  return out;
+}
+function upgrade(payload, repairedIds = []) {
+  if (payload.v === 6) return repairPortfolio(payload,repairedIds);
+  const old = upgradeLegacy(payload), out = seedPortfolio();
+  old.db.v=6;
+  Object.assign(out.companies.petfood,{db:old.db,audit:old.audit,me:old.me || 'yu'});
+  return out;
+}
+function activateCompany(id, options = {}) {
+  company = portfolio.companies[id];
+  db=company.db; audit=company.audit; USERS=company.users; FIELD_ACCESS=company.fieldAccess;
+  TAGS=company.tags; TAG_DEPT=company.tagDept; OPS_CONFIG=company.opsConfig;
+  const saved = options.resetIdentity ? company.defaultUserId : company.me;
+  if (!USERS[saved]) console.warn('公司身分不存在，已使用預設成員');
+  ui.me = USERS[saved] ? saved : USERS[company.defaultUserId] ? company.defaultUserId : Object.keys(USERS)[0];
+  company.me=ui.me; portfolio.activeCompanyId=id;
+}
+function activeCompanySnapshot() { return cloneData({...company,db,audit,me:ui.me,users:USERS,fieldAccess:FIELD_ACCESS,tags:TAGS,tagDept:TAG_DEPT,opsConfig:OPS_CONFIG}); }
+function syncActiveCompany(candidate) { candidate.companies[company.id]=activeCompanySnapshot(); return candidate; }
+function persistPortfolio(candidate) { try { localStorage.setItem(KEY,JSON.stringify(candidate)); return true; } catch(e) { return false; } }
 function load() {
+  loadWarning='';
   try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) { const o = JSON.parse(raw); if (o && [2, 3, 4, 5].includes(o.v) && o.db && o.audit) { upgrade(o); db = o.db; audit = o.audit; if (o.me && USERS[o.me]) ui.me = o.me; return; } }
-  } catch (e) { /* 無法讀取時使用種子資料 */ }
-  db = seed(); audit = freshAudit();
+    const raw=localStorage.getItem(KEY);
+    if(raw) {
+      const o=JSON.parse(raw), repaired=[];
+      if(!o || ![2,3,4,5,6].includes(o.v) || (o.v!==6 && (!o.db || !o.audit))) throw new Error('資料格式錯誤');
+      portfolio=upgrade(o,repaired);
+      if(repaired.length) loadWarning='已重建公司資料：'+repaired.map(id=>COMPANY_META[id].name).join('、');
+    } else portfolio=seedPortfolio();
+  } catch(e) { portfolio=seedPortfolio(); loadWarning='資料無法讀取，已重建五家公司範例'; }
+  activateCompany(portfolio.activeCompanyId);
+  if(!db.nodes[ui.node]) { ui.page='overview'; ui.node=Object.values(db.nodes).find(n=>n.type==='project' && visible(n))?.id || null; }
+  save();
 }
 function migrate() { const t = db.nodes.t2023; if (t) t.collabs = t.collabs.filter((c) => c !== 'lin'); }
-function save() { try { localStorage.setItem(KEY, JSON.stringify({ v: 5, db, audit, me: ui.me })); } catch (e) { /* 忽略 */ } }
+function save() {
+  const candidate=syncActiveCompany(cloneData(portfolio));
+  if(!persistPortfolio(candidate)) return false;
+  portfolio=candidate; return true;
+}
 function commit(label, fn) {
   undoStack.push({ label, snap: JSON.stringify(db) });
   if (undoStack.length > 60) undoStack.shift();
@@ -1262,7 +1331,7 @@ const fileStore = (() => {
 })();
 function resetAll() {
   try { localStorage.removeItem(KEY); } catch (err) { /* 忽略 */ }
-  db = seed(); audit = freshAudit(); undoStack.length = 0;
+  portfolio = seedPortfolio(); activateCompany('petfood', {resetIdentity:true}); undoStack.length = 0;
   Object.assign(ui, { page: 'node', node: 'p1', tab: 'board', chat: [], expanded: {}, redteam: '', tlDept: 'all' });
   render();
   return fileStore.clear();
@@ -3748,6 +3817,7 @@ load();
 migrate();
 ui.chat.push({ title: '歡迎', text: `這是依 README 規格（F1–F10）製作的完整互動 Demo，資料存在你的瀏覽器。\n\n可以試試：\n· 點卡片標題進入任一層（專案 → 階段 → 任務 → 子任務）\n· 時程拖曳移動 / 拉伸，勾選自動順延，按「關鍵路徑」\n· 用「阿明（成員）」把 🔒 任務拖到進行中 → 送出跳過申請\n· 任務頁「紀錄」分頁：回報完成、寫筆記、上傳附件；卡片上的 ⤳ 可以跳過整個任務\n· 營運資料 → ERP 同步 → 看交期延誤如何影響上市日\n· 左下角切換成「小林（行銷）」，看權限與機密欄位差異` });
 render();
+if (loadWarning) toast(loadWarning, 'warn');
 fileStore.check().then(() => render());
 </script>
 </body>

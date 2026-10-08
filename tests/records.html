@@ -20,7 +20,7 @@ const frame = document.getElementById('app');
 frame.addEventListener('load', async () => {
   const w = frame.contentWindow;
   const results = [];
-  for (const f of ['records.test.js', 'departments.test.js']) {
+  for (const f of ['records.test.js', 'departments.test.js', 'companies.test.js']) {
     try {
       const src = await (await fetch(f, { cache: 'no-store' })).text();
       results.push(...(await w.eval(src)));

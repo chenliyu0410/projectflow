@@ -10,8 +10,8 @@
   };
 
   // ── Task 1：資料版本與儲存 ──
-  await T('種子資料為 v5 且含四個新陣列', () => {
-    eq(db.v, 5);
+  await T('種子資料為 v6 且含四個新陣列', () => {
+    eq(db.v, 6);
     ['reportFields', 'reports', 'notes', 'attachments'].forEach((k) => ok(Array.isArray(db[k]), k + ' 應為陣列'));
     ok(Array.isArray(db.workflows), 'workflows 應為陣列');
   });
@@ -21,16 +21,16 @@
     const r = db.reports.find((x) => x.node_id === 't3011');
     eq(r.status, 'approved'); eq(r.fields[0].value, 2.6);
   });
-  await T('upgrade：v2 資料轉成 v5', () => {
+  await T('upgrade：v2 資料轉成 v6', () => {
     const d = seed(); d.v = 2;
     delete d.reportFields; delete d.reports; delete d.notes; delete d.attachments; delete d.workflows;
     d.overrides = [{ id: 'o1', gate: true, node: 'p1b', status: 'approved' }, { id: 'o2', node: 't302', status: 'pending' }];
     const o = upgrade({ v: 2, db: d, audit: freshAudit() });
-    eq(o.v, 5); eq(o.db.v, 5);
-    eq(o.db.overrides.map((x) => x.kind), ['gate', 'dep']);
-    eq(o.db.reportFields.length, 2); eq(o.db.reports.length, 1);
-    eq(o.db.notes, []); eq(o.db.attachments, []);
-    eq(o.db.workflows.length, 2);
+    eq(o.v, 6); eq(o.companies.petfood.db.v, 6);
+    eq(o.companies.petfood.db.overrides.map((x) => x.kind), ['gate', 'dep']);
+    eq(o.companies.petfood.db.reportFields.length, 2); eq(o.companies.petfood.db.reports.length, 1);
+    eq(o.companies.petfood.db.notes, []); eq(o.companies.petfood.db.attachments, []);
+    eq(o.companies.petfood.db.workflows.length, 2);
   });
   await T('fileStore：存入、讀出、清空', async () => {
     ok(await fileStore.check(), 'IndexedDB 應可使用');
@@ -566,8 +566,8 @@
   });
 
   // ── W3 Task 1：工作流資料模型 ──
-  await T('W3：種子資料為 v5 且含兩套內建工作流', () => {
-    eq(db.v, 5);
+  await T('W3：種子資料為 v6 且含兩套內建工作流', () => {
+    eq(db.v, 6);
     ok(Array.isArray(db.workflows), 'db.workflows 應為陣列');
     eq(db.workflows.map((w) => w.name).sort(), ['實體活動專流', '筆電新機種專流']);
     const laptop = db.workflows.find((w) => w.name === '筆電新機種專流');
@@ -579,9 +579,9 @@
   await T('W3：upgrade v4 到 v5 保留既有模板並新增工作流', () => {
     const d = seed(); d.v = 4; delete d.workflows;
     const o = upgrade({ v: 4, db: d, audit: freshAudit() });
-    eq(o.v, 5); eq(o.db.v, 5);
-    ok(o.db.templates.length >= 4, '既有任務模板要保留');
-    eq(o.db.workflows.length, 2);
+    eq(o.v, 6); eq(o.companies.petfood.db.v, 6);
+    ok(o.companies.petfood.db.templates.length >= 4, '既有任務模板要保留');
+    eq(o.companies.petfood.db.workflows.length, 2);
   });
 
   await T('W3：validateWorkflow 擋空資料、未知部門與循環前置', () => {

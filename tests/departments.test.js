@@ -12,7 +12,7 @@
 
   // ── Task 1：部門資料與升級 ──
   await T('種子資料：v5、10 個部門、任務都有負責部門', () => {
-    eq(db.v, 5);
+    eq(db.v, 6);
     eq(db.departments.map((d) => d.name), ['研發', '製程', '品保', '業務', '生管', '採購', '管理', '資訊', '財務', '製造']);
     eq(dept('d-qa').head, 'chen'); eq(dept('d-pe').head, null);
     const tasks = Object.values(db.nodes).filter((n) => n.type === 'task');
@@ -39,11 +39,11 @@
     d.templates[0].nodes[1].dp = ['法規'];
     const au = freshAudit();
     const o = upgrade({ v: 3, db: d, audit: au });
-    eq(o.v, 5); eq(o.db.v, 5); eq(o.db.departments.length, 10); eq(o.db.workflows.length, 2);
-    eq(o.db.nodes.t301.depts, ['d-qa']); eq(o.db.nodes.t403.depts, ['d-sales']); eq(o.db.nodes.t503.depts, ['d-mfg', 'd-rd']);
-    eq(o.db.nodes.t301.dept, 'd-pe'); eq(o.db.nodes.t4031.dept, 'd-sales'); eq(o.db.nodes.p1.dept, null);
-    eq(o.db.templates[0].nodes[1].dp, ['d-qa']);
-    ok(o.db.templates.every((t) => t.nodes.every((x) => x.dept)), '模板節點要補上負責部門');
+    eq(o.v, 6); eq(o.companies.petfood.db.v, 6); eq(o.companies.petfood.db.departments.length, 10); eq(o.companies.petfood.db.workflows.length, 2);
+    eq(o.companies.petfood.db.nodes.t301.depts, ['d-qa']); eq(o.companies.petfood.db.nodes.t403.depts, ['d-sales']); eq(o.companies.petfood.db.nodes.t503.depts, ['d-mfg', 'd-rd']);
+    eq(o.companies.petfood.db.nodes.t301.dept, 'd-pe'); eq(o.companies.petfood.db.nodes.t4031.dept, 'd-sales'); eq(o.companies.petfood.db.nodes.p1.dept, null);
+    eq(o.companies.petfood.db.templates[0].nodes[1].dp, ['d-qa']);
+    ok(o.companies.petfood.db.templates.every((t) => t.nodes.every((x) => x.dept)), '模板節點要補上負責部門');
     ok(au.acts.some((a) => a.text === '部門「外星部」已併入研發'), '要寫入合併的稽核紀錄');
   });
   await T('切換身分選單顯示部門名稱', () => {
@@ -90,7 +90,7 @@
     ns[2].tag = '採購'; ns[2].dp = ['法規'];
     ns[3].tag = '採購'; ns[3].dp = [];
     const o = upgrade({ v: 3, db: d, audit: freshAudit() });
-    const out = o.db.templates[0].nodes;
+    const out = o.companies.petfood.db.templates[0].nodes;
     eq(out[1].dept, 'd-pur', '有負責人時取負責人的部門');
     eq(out[2].dept, 'd-qa', '沒有負責人時取第一個協作部門');
     eq(out[3].dept, 'd-rd', '都沒有時用研發，不看類別');
