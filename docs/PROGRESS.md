@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2b ✏️ G1規格中；P2a已完成** |
+| 目前工作項目 | **P2b 📋 G1／G2定稿；G3隔離基準執行中** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
-| 下一個動作 | D59–D63已選A；完整P2b spec與八Task plan已通過兩位獨立文件審查，請人類整體審閱；核准後定稿並進G3隔離基準與逐Task TDD。P2a人類簽核未完成。 |
+| 下一個動作 | D64已授權繼續實作，以Demo效果為主；完成G3隔離基準後開feature/p2b-collaboration，先旅程RED再依八Task TDD與雙獨立審查。P2a人類簽核未完成。 |
 | 分支 | `main`；P2a已ff-only合併，已刪除合併後的feature分支。 |
 | 最新程式 commit | P2a Task6 `8dc914a`（產品最後修正`a5d1594`），G4／合併HEAD `d8499cd`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | G6 main隔離verify：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s、cleanup及最終exit0；專用真PG另1passed/0.41s，無seed重啟detail相等；1280/375無水平溢出或非預期錯誤。 |
 | 資料版本 | Demo v6/key不變；正式PostgreSQL17 migration `20261008_0002` head。日期nullable DATE，舊資料保留驗證通過。15173新本機試用環境已初始化，acceptance volume保留且容器停止。 |
-| 認領中 | — |
-| 阻塞／待人類 | P2b G1：D59–D63已決，待完整規格／計畫審閱；P1c／P2a人類試用簽核、D43／D10未完成。未開始P2b產品實作，LAN未授權。 |
+| 認領中 | Codex：P2b G3基準與逐Task實作，2026-10-08。 |
+| 阻塞／待人類 | P2b無待決產品規則；D59–D64已決；P1c／P2a人類試用簽核、D43／D10未完成。未開始P2b產品實作，LAN未授權。 |
 | 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b僅本機G1文件草案，未push。 |
 
 ---
@@ -88,7 +88,7 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec／Plan | 依賴 |
 |---|---|---|---|---|---|
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
-| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | ✏️ G1（人類指示繼續） | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)送審稿；D59–D63已決，未進G3 | P2a |
+| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | 📋 G1／G2定稿 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；D64已授權實作，G3基準執行中 | P2a |
 | 後續2 | P2c | 時程、模板管理、前置相依與相依圖 | ⬜ | 各階段另訂spec／plan | P2a，順序依人類本次選擇 |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
@@ -105,7 +105,7 @@
 
 ## 3. 工作項目明細
 
-### P2b 回報與協作 — ✏️ G1討論中
+### P2b 回報與協作 — 📋 定稿，G3基準執行中
 
 **授權**：人類於P2a完成後指示「繼續進行」（D58），接續路線圖B1–B6；不是P2a試用簽核通過或新產品規則已核准。
 
@@ -113,7 +113,7 @@
 
 **獨立文件審查**：review_finalized_docs（spec）與review_task1（plan品質）均Approved。第1輪提出commit結果不明不能刪成功附件、nonroot新files volume可寫初始化兩Important，已補spec§7.2／§9及Task4故障／fresh-volume驗收並複審關閉；舊待定措辭同步修正。此為文件審查，不是G3授權或產品GREEN。
 
-**狀態**：D59–D63均已定案為A；完整spec與[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已成送審稿，尚待整體審閱。未開feature分支，未改產品／測試／DB／15173。P2a測試基準為歷史證據，本次只做文件／程式比對及diff檢查。
+**狀態**：D59–D63均已定案為A；完整spec與[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已依D64核准，正跑G3基準。未開feature分支，未改產品／測試／DB／15173。P2a測試基準為歷史證據，本次只做文件／程式比對及diff檢查。
 
 | Task | 範圍 | 狀態 | 測試／commit |
 |---|---|---|---|
@@ -779,6 +779,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | ID | 來源 | 問題 | 預設／建議 | 狀態 |
 |---|---|---|---|---|
+| D64 | P2b整體審閱與實作 | 人類指示「繼續，已DEMO那個效果為主，遇到問題再問我」 | 完整spec／plan定稿，依八Task開始TDD與雙獨立審查；UI以Demo效果為主要參照，保留正式版權限、資料與隔離驗收 | 已決定2026-10-08：授權繼續至驗收交付；既定決策不重問，真正問題／範圍取捨再詢問，不解讀為降低正式軌安全或代勾人類簽核 |
 | D63 | P2b G1剩餘邊界 | 回報層級、結案結果、重開／略過、自訂欄位與審核中心／稽核範圍 | A推薦按草案§4：task獨立回報、固定欄位、管理者理由重開／單任務略過、安全稽核；自訂欄位延P2c，跳過申請／覆寫另列後續。B把自訂欄位與跳過申請也納本期、另補規格Task | 已決定2026-10-08：人類明確選A（推薦），採草案§4整組流程邊界；完整API／migration與計畫另供整體審閱 |
 | D62 | P2b G1筆記／附件 | 筆記修訂、附件保存／移除、格式與容量 | 筆記僅作者可改、不刪、留修訂；附件限PDF/PNG/JPEG/TXT/CSV/Office新格式/ZIP且只下載；一般附件軟刪、已送回報附件不可刪。A推薦單檔10 MB，B25 MB；兩者每公司初始1 GB含軟刪／未關聯，主機可調高，SHA-256／持久化volume／逐次授權 | 已決定2026-10-08：人類選A（推薦），採單檔10 MB及草案§3整組筆記／附件規則 |
 | D61 | P2b G1協作範圍 | 協作部門加入後哪些人可看與寫筆記 | A推薦：指定協作人員及協作部門主管，其他成員不自動取得；B：整個協作部門。兩者僅指定節點不繼承，不因協作授予送回報／審核／metadata權；readonly仍不可寫，我的任務納入協作task | 已決定2026-10-08：人類選A（推薦），指定人員與協作部門主管；範圍／撤銷／隱藏父節點依草案§3 |

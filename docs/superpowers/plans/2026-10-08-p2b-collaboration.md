@@ -1,15 +1,17 @@
 # P2b Collaboration Implementation Plan
 
-**狀態：G2送審稿，尚不可進G3。** D59–D63的A方案已由人類逐項核准；本計畫與[完整spec](../specs/2026-10-08-p2b-collaboration-design.md)尚待整體審閱。進度只記PROGRESS，不在本檔打勾。
+**狀態：G2定稿（2026-10-08，D64）。** D59–D63的A方案已由人類逐項核准，完整spec／plan雙獨立文件審查通過；人類指示繼續實作，以Demo操作效果為主，遇到問題再問。進度只記PROGRESS，不在本檔打勾。
 
 **Goal:** 交付回報送審／退回／確認、筆記、指定協作、持久附件、審核中心與安全稽核，保留P2a及既有資料。
+
+**UI參照:** 定位Demo的回報卡、紀錄時間軸、附件列及審核中心，僅讀相關片段及畫面；在React實現相近的資訊層次、狀態提示與操作感，不移植Demo前端授權或假資料。桌面／375px實際驗證效果。
 
 **Architecture:** FastAPI共用policy context與服務處理交易；PostgreSQL列鎖／唯一約束保護並行，附件採預留配額＋持久volume＋可恢復pending狀態；React拆紀錄與審核組件、沿序號／AbortController。內部路徑無/api，外部經Nginx。
 
 ## Global Constraints
 
 - 授權範圍只含spec D59–D63 A；自訂欄位延P2c，跳過申請／Gate覆寫／子樹批次不做。不修改Demo或tests/，不做LAN部署。
-- 規格／計畫核准後才G3：主checkout、單一writer、`feature/p2b-collaboration`、main凍結、ff-only。每Task另一位spec reviewer與另一位quality reviewer，Critical／Important全修，最多兩輪；Task結束立刻PROGRESS-only commit。
+- 已獲人類授權，G3先跑隔離基準：主checkout、單一writer、`feature/p2b-collaboration`、main凍結、ff-only。每Task另一位spec reviewer與另一位quality reviewer，Critical／Important全修，最多兩輪；Task結束立刻PROGRESS-only commit。
 - 僅下列File Structure；新增migration0003，不改0001／0002，不重設seed／DB／volume，不覆寫.env；不新增依賴／改lockfile。附件用raw bytes，不需multipart套件。
 - API每次驗公司／可見／動作權限；Gate原權限不擴張。React安全文字、繁體中文；不回傳密碼／session／storage_key／內部路徑。
 - 真實RED/GREEN摘要／名稱／exit code；工具或fixture設定錯誤不是功能RED。已實作後新增驗收用例如實記回歸，不破壞產品製造RED。
