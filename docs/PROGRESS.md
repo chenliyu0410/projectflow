@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2a G1／G2已定稿；G3環境補裝中（D57）** |
+| 目前工作項目 | **P2a G1／G2已定稿；⛔ G3待Windows重啟及WSL安裝確認（D57）** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 先依D57補齊Node 24／Docker Desktop Linux容器環境或切換既有環境，跑完整G3隔離基準後開feature分支；Task6旅程RED前移至Task1前。P1c人類簽核仍未完成。 |
+| 下一個動作 | Node24／Docker Desktop／Playwright已安裝；虛擬機器平台啟用回3010須重啟，WSL管理員安裝仍待確認。環境恢復後跑完整G3隔離基準再開feature分支；Task6旅程RED前移至Task1前。P1c人類簽核仍未完成。 |
 | 分支 | `main`；本機無feature分支，G3完整基準尚未通過；本次只提交定稿文件與阻塞紀錄。 |
 | 最新程式 commit | P1c Task3 `717e443`；合併點`b816c5b`（文件修正`a5048e3`）；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | P1c合併後main：API `80 passed,1 warning in 35.71s`、Vitest56、build0、E2E6/10.2s、預設cleanup0；acceptance容器停/volume保留；shared count12/hash不變/marker404/ready200。全部exit0，Demo未改。 |
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變。P1c測試隔離DB；既有共享12專案保留。 |
-| 認領中 | Codex：依D57補裝本機環境（2026-10-08）。 |
-| 阻塞／待人類 | D56已核准；D57已授權本機補裝，等待環境安裝與G3基準；不能把工具缺失當RED。P1c人類簽核、D43／D10未完成；LAN部署未授權。 |
-| 遠端 | 2026-10-08本機source已fetch並ff-only同步origin/main `9c2fe9e`；人類明確指示「推送」後，P2a審閱草案已推送origin/main `9c2fe9e..6e05de2`；本筆發布紀錄接續同步。 |
+| 認領中 | 無產品實作認領；待Windows重啟後確認WSL／Docker。 |
+| 阻塞／待人類 | D56已核准；D57已授權本機補裝；虛擬機器平台需要Windows重啟、WSL安裝待確認，G3未完成；不能把工具缺失當RED。P1c人類簽核、D43／D10未完成；LAN部署未授權。 |
+| 遠端 | 2026-10-08本次fetch + ff-only確認origin/main `ff0cdbe`已同步。定稿文件`544f48b`與環境交接僅在本機main；P2a未完成驗收，尚未push。 |
 
 ---
 
@@ -124,7 +124,7 @@
 | 5 | 新增／編輯表單、總覽與我的任務 | ⬜ | 未執行 |
 | 6 | 隔離整合驗收與文件交付 | ⬜ | 未執行；旅程RED前移至Task1前 |
 
-**環境補裝（D57）**：人類選擇本機補裝；Node24.20.0、Docker Desktop4.94.0／Docker29.8.2／Compose5.5.1與Playwright Chromium已安裝，npm ci exit0。Vitest56（12.32s）及build exit0。WSL一般安裝因管理員權限失敗，已透過UAC啟動管理員安裝，尚待確認Linux引擎可用。獨立文件複查review_finalized_docs Approved。
+**環境補裝（D57）**：人類選擇本機補裝；Node24.20.0、Docker Desktop4.94.0／Docker29.8.2／Compose5.5.1與Playwright Chromium已安裝，npm ci exit0。Vitest56（12.32s）及build exit0。WSL一般安裝因管理員權限失敗，已透過UAC啟動管理員安裝（winget Microsoft.WSL 2.7.13），StagePackageAsync仍未結束。Docker引擎log明確回Virtual Machine Platform not enabled；已以管理員DISM啟用VirtualMachinePlatform /all /norestart，exit3010需重啟。未自動重啟Windows，Linux引擎尚不可用。獨立文件複查review_finalized_docs Approved。
 
 **G3檢查（2026-10-08）**：初始working tree乾淨；fetch + merge --ff-only origin/main已是最新`ff0cdbe`。已以本機Python3.13建立ignored api/.venv並安裝requirements.lock（exit0），API `80 passed, 1 warning in 29.09s`（exit0）。`deploy/verify.py --keep-running`因找不到npm退出1，未啟動服務。PATH、標準安裝路徑、解除安裝登錄及服務均未找到Node／Docker；WSL回報未安裝。G3未通過，沒有開feature、沒有寫Task測試／產品、没有功能RED證據；未碰.env、DB或volume。D57已授權本機補裝，正在處理。
 
@@ -803,8 +803,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ### 2026-10-08｜Codex GPT-6｜P2a定稿與G3環境檢查
 - **做了什麼**：初始Git乾淨，fetch + ff-only確認`ff0cdbe`已同步；記錄人類D56同意，定稿spec／plan。獨立review_finalized_docs指出兩項文件歷史／現況措辭，已修正。
 - **驗證**：Python鎖版依賴安裝exit0；API80 passed／1 warning／29.09s，exit0。verify因npm缺失exit1；Docker與WSL亦未安裝，沒有Compose／E2E／PostgreSQL驗收證據，不宣稱功能RED或P2a完成。
-- **環境／保留**：僅新增ignored api/.venv；沒有服務啟動、DB寫入、.env覆寫、volume刪除或產品修改。main上保存文件；未達D50完成驗收發布條件，因此未push。
-- **下一步**：依D57已授權本機補裝，完成G3基準後開feature/p2a-task-workspace，先Task6旅程RED再逐Task TDD與獨立審查。人類試用維持未簽核。
+- **環境／保留**：D57已授權本機補裝；Node24.20／Docker Desktop4.94／Compose5.5.1／Playwright與ignored Python及npm依賴已安裝，Vitest56／build exit0。Docker Desktop已啟動但引擎未就緒；VirtualMachinePlatform啟用exit3010需重啟，WSL管理員安裝仍在StagePackageAsync。沒有專案服務／DB寫入、.env覆寫、volume刪除或產品修改。定稿commit `544f48b`；未達驗收發布條件，未push。
+- **下一步**：等待Windows重啟，確認WSL安裝結果（管理員winget程序仍在處理；本次exec session1498，PID4896），必要時續裝；確認docker info後跑完整隔離G3基準。已安裝工具可能需重啟Codex刷新PATH。通過後開feature/p2a-task-workspace，先Task6旅程RED再逐Task TDD與獨立審查。人類試用維持未簽核。
 
 ### 2026-10-08｜Codex GPT-6｜本機同步與P2a規格／計畫草案
 - **做了什麼**：source乾淨main由e452173 ff-only至origin/main 9c2fe9e；先讀AGENTS／PROGRESS／WORKFLOW／路線圖，依人類指示記錄D55並完成P2a兩份草案。列出權限、層級、日期migration、API、可見統計、UI狀態、六Task及TDD驗收命令。
