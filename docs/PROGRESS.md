@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W6 多公司產業範例 — 🟢 可合併** |
+| 目前工作項目 | **W6 已完成；下一項 P0 恢復規劃（未授權實作）** |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | W6 Task 6／G4 已通過獨立審查，依 D2 做本地 ff-only 合併與 G6 收尾；不 push。 |
-| 分支 | `feature/w6-multi-company-industry-demo`（主 checkout；P0 保留於 `paused/p0-formal-product-plan`） |
-| 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 文件同步 `aafc5ca`，只更新 README／PROGRESS，沒有改產品程式。 |
+| 下一個動作 | 下一個 session 依 D45 恢復 `paused/p0-formal-product-plan` 的規劃，先比對 main 已完成 W6 的 v6 公司模型；尚未授權 P0 實作。人類可先確認五公司 Demo 展示。 |
+| 分支 | `main`；W6 已本地 ff-only 合併。P0 原樣保留於 `paused/p0-formal-product-plan`，本次不切換。 |
+| 最新程式 commit | W6 Task 6 `0934e48`；合併後 HEAD `f3a61ec`（進度 commit），G6 僅更新 README／PROGRESS。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | `tests/records.html`：`全部通過 149/149`（2026-10-05，W3 ff 合併到 `main` 後 Codex 用 8001 重跑；同日 Claude 在 `cfd5f72` 上重跑仍是 `全部通過 149/149`）。歷史基準：W2 合併後 `全部通過 137/137`；W2 Task 7 後 `全部通過 133/133`（`03c9ff5`）；Task 6 後 `全部通過 129/129`（`7939a66`）；W1 後 `全部通過 64/64` |
+| 測試基準 | `tests/records.html`：`全部通過 174/174`（2026-10-08，W6 ff 合併到 main 後 Edge headless 8001 實跑，無 page error）。原有149項＋25項W6；桌面1280／375px 共508畫面、10項重載、console/page errors空。歷史：W3 149/149、W2 137/137、W1 64/64。 |
 | 資料版本 | `db.v = 6`；v6 公司容器，`load()` 讀 v2–v6；localStorage key 是 `projectflow-demo-v2` |
-| 認領中 | Codex GPT-6，2026-10-08，W6 Task 1–6 Native execution |
-| 阻塞／待人類 | W6 無；D43 待人類（不擋 W6）；D10 仍待人類但不擋 Demo 軌；P0 規劃依 D45 暫停。 |
-| 遠端 | 2026-10-05：人類授權「確認後推上去」與「git 上的 readme 也要記得更新進度」後，已把 W3、W5 README 更新與本看板收尾 push 到 `origin/main`。每次 push 都要人類明確授權（D3）。 |
+| 認領中 | 無 |
+| 阻塞／待人類 | W6 無阻塞；D48 機密文件展示權限為 AI 代決、可推翻。D43、D10 仍待人類但不擋 Demo；人類展示確認未完成。P0 僅恢復規劃，不開始實作。 |
+| 遠端 | 本次未 push。`origin/main` 仍為2026-10-05的W3／W5；本地新增W6 spec、plan、實作與G6收尾（收尾前 `origin/main..main` 17筆）。每次 push 必須人類另行明確授權（D3）。 |
 
 ---
 
@@ -74,7 +74,7 @@
 | 3 | W3 | 工作流架構（**精簡版**，D31／D42）：工作流模板 CRUD、從工作流建立專案、關卡擋住後續階段 | ✅ | [spec](superpowers/specs/2026-10-05-process-control-design.md) | [plan](superpowers/plans/2026-10-05-workflow-architecture.md) | v4 → v5 | 2026-10-05 完成；依 D42 先完成功能架構，個別工作流內容由使用者之後自行添加 |
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
-| 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | 🟢 可合併（D46；Task 6 `0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；完整設計已由人類批准（D44） |
+| 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
 | — | P0 | 正式軌工作規則 | ⏸ 規劃暫停（D45） | 保留於暫停分支 | 保留於暫停分支 | — | W6 完成後恢復 `paused/p0-formal-product-plan`；尚未授權開始 P0 實作 |
 | — | P1–P9 | 正式產品軌（README §8 階段 1–9） | ⬜ 未啟動 | README §8 | — | — | P0 ✅；階段 4 以後依賴 README §9 #5–#14 |
 
@@ -341,7 +341,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - README §6 改成引用該圖，並分成「目前已完成的 Demo 架構」「正式產品軌尚未完成」「下一步判讀」。
 - README §7 專案結構補上 `AGENTS.md`、`docs/`、`tests/`、`.claude/` 與架構圖檔。
 
-### W6 多公司產業範例 — 🟢
+### W6 多公司產業範例 — ✅
 
 **目標**：把目前以寵物食品製造為主的單公司 Demo，擴充成五個可切換、資料完全獨立的公司空間，證明 ProjectFlow 能套用到不同產業。
 
@@ -377,7 +377,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - [x] 原有 149 項測試在毛研食品空間不回歸；新增 25 項後達 `全部通過 174/174`。
 - [x] 五家公司在桌面與 375px 下主要頁面無溢出、重疊、`undefined`、`NaN` 或 console error。
 
-**下一步**：依 D2／WORKFLOW G5 在本地 ff-only 合併，再做 G6。P0 保留暫停分支，W6 完成後下一個 session 可恢復規劃，不授權 P0 實作。
+**下一步**：W6 已依 D2／WORKFLOW G5 本地 ff-only 合併；Task 6 commit `0934e48`，整體審查記錄 `f3a61ec`。P0 保留暫停分支，下一個 session 可恢復規劃，不授權 P0 實作。
 
 ---
 
@@ -393,6 +393,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W3 | 工作流架構：`db.workflows[]`、工作流模板 CRUD、從工作流建立專案、工作流專案的前序階段關卡硬性擋住後續階段 | [spec](superpowers/specs/2026-10-05-process-control-design.md)、[plan](superpowers/plans/2026-10-05-workflow-architecture.md)；commits `6ea8d08..9bb9a52`；測試 `全部通過 149/149`；`db.v = 5`。展示模式單一 reviewer 找到 1 個 Important（generic 前置覆寫可繞過 pending workflow gate），已修正。 |
 | W5 | README 對齊現況（精簡）：頂部進度摘要、§1 快速開始、§2 Demo 功能總覽、§6 系統架構圖、§7 專案結構更新到 full demo／W3 後狀態 | 2026-10-05 完成；只改 README／PROGRESS／架構圖，沒有改產品程式。驗證 `git diff --check`。 |
 | 規劃文件 | W1 的 spec 和 plan、W2 的 spec 和 plan | `3a24c52`、`ed3e24f`、`edf46b6`、`dfc0126` |
+| W6 | 五個公司空間、公司預設身分與原子切換、四產業專案／工作流／營運模組、v6 舊資料遷移與損壞修復、附件隔離與單公司重設、AI／權限／稽核隔離 | `d879db1..f3a61ec`；每Task TDD及獨立審查、整體審查一輪修正後 Ready to merge: Yes；2026-10-08 ff-only 到本地main，合併後174/174，508畫面狀態驗收通過。只為固定Demo，沒有公司CRUD／登入隔離／後端多租戶。 |
 | 交接系統 | `AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、本看板、`docs/WORKFLOW.md`、`.claude/workflows/pf-status.js`、`.claude/workflows/pf-next.js`、`.gitignore` | 2026-10-01 建立；commit 用 `git log --grep "Docs: handoff system"` 查 |
 
 ---
@@ -599,6 +600,13 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-6｜W6 Native execution 完成
+- **做了什麼**：依人類選擇直接執行Task 0–6，每Task TDD、獨立reviewer與進度commit。完成五公司v6容器、切換、產業化種子與營運頁、附件隔離及單公司重設、共用AI／權限／事件加固。修正審查發現的損壞資料修復、非同步失敗上傳跨公司風險、D48機密文件鎖死；修正375px配方頁溢出。
+- **驗證**：149→153→157→162→166→170→174，各Task的RED原文見§3。最後兩次新時間戳與ff合併後均 `全部通過 174/174`；1280／375px共508畫面、10項持久化重載、十工作流建立、所有營運模組與F10驗收通過，console/page errors空；截圖人工檢視。`git diff --check`通過，archive petfood檔未改。
+- **審查／Git**：六個Task與G4均由獨立子代理唯讀審查；Rawls複審 `Task 6: Approved`、`Ready to merge: Yes`。依D2本地ff-only合併到main；產品最後commit `0934e48`，進度 `f3a61ec`，G6收尾後刪除已合併feature分支。不push。
+- **偏離／代決**：D47沿用既有Gate／deps模型與plan標題；D48新公司機密文件限可見節點的owner/admin。UI驗收用外部Playwright／Edge腳本；8000非此repo，使用自行啟動的8001 PID4312，收尾關閉。W6未在`.superpowers/sdd/`產生暫存；既有W2／W3舊檔不移動。
+- **下一步**：依D45下一session恢復P0規劃（原分支保留，需先帶入W6邊界）；沒有授權P0實作。人類展示確認、D43工作流表單編輯器與push均未執行。
+
 ### 2026-10-08｜Codex GPT-5｜W6 implementation plan 待審
 - **做了什麼**：人類批准 W6 written spec 後完成 G2 plan。計畫拆成 Task 0 pre-flight 與 6 個 TDD 實作 Task：v6 容器／遷移、公司原子切換、五產業種子資料、設定驅動營運頁、附件與單公司重設、跨公司隔離與驗收。
 - **驗證**：逐節對照 spec §4–§12 與現有程式介面，修正了 `db.projects[]`、附件 `storage_key`、`undoStack`、audit `acts[]`、users object 與 fetched-test runner 等模型差異；五類 Review Focus 都有歸屬 Task 和自動化測試。plan 明定新增 25 項，目標 `174/174`；`git diff --check` 與 commit 驗證在本次 G2 commit 前執行。這輪只改文件，沒有執行產品測試。
@@ -634,18 +642,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **沒做的事／偏離 plan**：README §5、§7、§8 照 D30 精簡範圍留到正式版；沒有改產品程式。
 - **下一步**：人類用 `projectflow-full-demo.html` 做展示確認；若要進正式產品軌，先決定 D11／P0。
 - **注意**：已依人類授權 push 到 `origin/main`；每次之後再 push 仍要重新授權。
-
-### 2026-10-05｜Codex GPT-5｜W3 工作流架構完成，準備 ff 合併與 push
-- **做了什麼**：
-  - 依 D42 完成 W3 功能架構：`db.v` 升到 5、加入 `db.workflows[]` 與兩套內建範例工作流、工作流模板庫 CRUD、從工作流建立專案、工作流專案的前序階段關卡硬性擋住後續階段。
-  - 逐 Task 用 TDD 實作並提交：`c6d47ce`（資料模型）、`3102c95`（模板庫管理）、`7ec0695`（從工作流建立專案）、`c8b4c3b`（關卡阻擋）。
-  - 派 read-only reviewer 審 `6ea8d08..c8b4c3b`；修掉 1 個 Important：generic 前置覆寫可繞過 pending workflow gate，修正 commit `9bb9a52`。
-  - 更新 PROGRESS：W3 改 ✅，目前工作項目切到 W5，測試基準改為 `149/149`，資料版本改為 v5。
-- **驗證**：
-  - RED/GREEN：Task 1 `失敗 3/140` → `全部通過 140/140`；Task 2 `失敗 4/144` → `全部通過 144/144`；Task 3 `失敗 2/146` → `全部通過 146/146`；Task 4 `失敗 1/149` → `全部通過 149/149`。
-  - reviewer 修正後重跑 `tests/records.html?t=1791173758864`，結果 `全部通過 149/149`；`git diff --check` 乾淨。
-- **沒做的事／偏離 plan**：
-  - CUA 的 Demo 頁 isolated evaluate 無法直接跑手動驗收腳本（`window.eval`／`document.createElement` 不可用），改以瀏覽器測試覆蓋 CRUD、建立專案、gate blocked/unblocked、375px 溢出。
-  - W5 README 精簡對齊尚未開始。
-- **下一步**：本次依人類「確認後推上去」授權，`feature/w3-workflow-architecture` 已 fast-forward 合併到 `main`，合併後 `tests/records.html?t=1791173927585` 為 `全部通過 149/149`；接著 `git push origin main`。
-- **注意**：8001 是正確 repo 伺服器但不是本 session 啟動；不要關。8000 不是此 repo。
