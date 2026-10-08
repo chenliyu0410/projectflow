@@ -616,3 +616,80 @@ it('does not request hidden ancestors or show unseen records from a pagination e
       .every(([p]) => p.includes('/nodes/n/')),
   ).toBe(true);
 });
+describe('legacy and incomplete attachment reads', () => {
+  it('labels legacy submitted reports outside the new review workflow', async () => {
+    await setup(
+      [{ ...report, legacy: true, status: 'submitted', version: 0 }],
+      undefined,
+      { ...node, status: 'review', state_actions: ['submit_report'] },
+    );
+    expect(
+      await screen.findAllByText('歷史回報（未納入新審核流程）'),
+    ).toHaveLength(2);
+    expect(screen.queryByText(/等待確認/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '確認回報' }),
+    ).not.toBeInTheDocument();
+  });
+  it('does not claim no attachments while the first records GET is pending', async () => {
+    const pending = deferred<unknown>();
+    await setup([], (p) =>
+      p.includes('limit=50') ? pending.promise : undefined,
+    );
+    expect(
+      within(await screen.findByRole('region', { name: '附件' })).queryByText(
+        '還沒有附件。',
+      ),
+    ).not.toBeInTheDocument();
+    await act(async () =>
+      pending.resolve(response({ items: [], next_cursor: null })),
+    );
+    expect(await screen.findByText('還沒有附件。')).toBeInTheDocument();
+  });
+  it('does not claim no attachments after a records GET failure and exposes retry', async () => {
+    await setup([], (p) =>
+      p.includes('limit=50') ? response({}, 500) : undefined,
+    );
+    await screen.findByRole('button', { name: '重試紀錄讀取' });
+    expect(
+      within(screen.getByRole('region', { name: '附件' })).queryByText(
+        '還沒有附件。',
+      ),
+    ).not.toBeInTheDocument();
+  });
+  it('qualifies incomplete attachment pages and appends the later attachment', async () => {
+    const attachment = {
+      type: 'attachment',
+      id: 'a',
+      node_id: 'n',
+      node_title: node.title,
+      original_name: '後頁.txt',
+      size_bytes: 4,
+      uploaded_by: 'u',
+      uploaded_by_display_name: '管理者',
+      created_at: '2026-10-08',
+      report_id: null,
+      note_id: null,
+    };
+    await setup([], (p) =>
+      p.includes('limit=50')
+        ? response(
+            p.includes('cursor=')
+              ? { items: [attachment], next_cursor: null }
+              : { items: [note], next_cursor: 'next' },
+          )
+        : undefined,
+    );
+    expect(
+      await screen.findByText('目前已載入的紀錄沒有附件。'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('還沒有附件。')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '載入更多紀錄' }));
+    expect(
+      await screen.findByRole('button', { name: '下載 後頁.txt' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('目前已載入的紀錄沒有附件。'),
+    ).not.toBeInTheDocument();
+  });
+});

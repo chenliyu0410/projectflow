@@ -155,6 +155,7 @@ export function AttachmentUpload({
 }
 export default function AttachmentList({
   items,
+  readState,
   nodeId,
   userId,
   canWrite,
@@ -163,6 +164,7 @@ export default function AttachmentList({
   reload,
 }: {
   items: Attachment[];
+  readState: 'loading' | 'error' | 'partial' | 'complete';
   nodeId: string;
   userId: string;
   canWrite: boolean;
@@ -229,7 +231,11 @@ export default function AttachmentList({
         </button>
       )}
       {items.length === 0 ? (
-        <p>還沒有附件。</p>
+        readState === 'complete' ? (
+          <p>還沒有附件。</p>
+        ) : readState === 'partial' ? (
+          <p>目前已載入的紀錄沒有附件。</p>
+        ) : null
       ) : (
         <div className="attachment-table">
           <table>

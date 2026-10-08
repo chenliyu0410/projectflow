@@ -14,12 +14,9 @@ export function ReportSummary({ report }: { report: Report }) {
   return (
     <article className="report-history">
       <h4>
-        {report.legacy ? '歷史回報' : `v${report.version}`} ·{' '}
-        {report.status === 'submitted'
-          ? '等待確認'
-          : report.status === 'approved'
-            ? '已確認'
-            : '已退回'}
+        {report.legacy
+          ? '歷史回報（未納入新審核流程）'
+          : `v${report.version} · ${report.status === 'submitted' ? '等待確認' : report.status === 'approved' ? '已確認' : '已退回'}`}
       </h4>
       <p className="record-body">
         <span className="record-tag">{report.result}</span> {report.summary}

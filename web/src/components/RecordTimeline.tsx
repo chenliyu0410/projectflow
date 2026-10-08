@@ -176,6 +176,15 @@ function Timeline({
       </section>
       <AttachmentList
         items={[...attachments.values()]}
+        readState={
+          loading
+            ? 'loading'
+            : error
+              ? 'error'
+              : cursor
+                ? 'partial'
+                : 'complete'
+        }
         nodeId={node.id}
         userId={userId}
         canWrite={canWrite && readScope === 'self'}
