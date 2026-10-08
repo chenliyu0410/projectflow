@@ -128,3 +128,42 @@ select:focus-visible { outline: 3px solid #397793; outline-offset: 2px; }
   section h2 { grid-column: 1 / -1; }
   header span { margin-left: 0; }
 }
+.records { display: grid; gap: 14px; max-width: 920px; min-width: 0; }
+.record-panel { border: 1px solid #d8dedf; border-radius: 14px; padding: 16px 18px; background: #fff; min-width: 0; }
+.record-panel h3, .record-panel h4 { margin: 0; overflow-wrap: anywhere; }
+.report-card { border: 2px solid #1f5f5b; margin: 14px 0 6px; }
+.report-card.pending { border-color: #4a5a8c; background: #f7f8fc; }
+.report-card.rejected { border-color: #b4541f; background: #fffaf5; }
+.record-meta { color: #616a6c; font-size: 13px; overflow-wrap: anywhere; }
+.record-body { white-space: pre-wrap; line-height: 1.7; overflow-wrap: anywhere; margin: 8px 0; }
+.record-tag { display: inline-block; background: #e4efee; color: #1f5f5b; padding: 2px 8px; border-radius: 6px; }
+.record-comment { background: #f7e6da; padding: 10px; border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.report-history, .note-entry { border-top: 1px solid #d8dedf; padding: 12px 0; display: grid; gap: 8px; min-width: 0; }
+.record-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.record-form { display: grid; gap: 12px; margin-top: 12px; min-width: 0; }
+.record-form fieldset { display: grid; gap: 12px; margin: 0; padding: 0; border: 0; min-width: 0; }
+textarea { font: inherit; width: 100%; min-width: 0; min-height: 96px; resize: vertical; padding: 10px; border: 1px solid #a9b5b8; border-radius: 6px; }
+textarea:focus-visible { outline: 3px solid #397793; outline-offset: 2px; }
+.attachment-upload { display: grid; gap: 8px; margin: 10px 0; min-width: 0; }
+.attachment-upload button { justify-self: start; }
+.attachment-table { min-width: 0; width: 100%; }
+.attachment-table table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; }
+.attachment-table th, .attachment-table td { text-align: left; vertical-align: top; border-bottom: 1px solid #d8dedf; padding: 8px; overflow-wrap: anywhere; }
+.attachment-table button { max-width: 100%; overflow-wrap: anywhere; }
+.check-label { display: flex; align-items: center; gap: 8px; }
+.check-label input { width: 20px; min-height: 20px; }
+[role="tablist"] { display: flex; gap: 8px; }
+[role="tab"][aria-selected="true"] { border-color: #1f5f5b; background: #e4efee; }
+@media(max-width:720px) {
+ .attachment-table table, .attachment-table tbody, .attachment-table tr, .attachment-table td { display: block; width: 100%; }
+ .attachment-table thead { display: none; }
+ .attachment-table tr { border: 1px solid #d8dedf; border-radius: 8px; margin-top: 8px; }
+ .record-panel { padding: 14px; }
+}
+.report-card > h3 { margin: -16px -18px 12px; padding: 14px 18px; border-radius: 11px 11px 0 0; background: #1f5f5b; color: white; }
+.report-card.pending > h3 { background: #4a5a8c; }
+.report-card.rejected > h3 { background: #b4541f; }
+.attachment-table th:first-child { width: 32%; }
+.attachment-table td:last-child { display: flex; gap: 6px; flex-wrap: wrap; }
+@media(max-width:720px) { .report-card > h3 { margin: -14px -14px 12px; padding: 14px; } }
+@media(max-width:720px) { .attachment-table td::before { content: attr(data-label); display: block; font-weight: 600; color: #616a6c; margin-bottom: 4px; } .attachment-table td:last-child::before { width: 100%; } }

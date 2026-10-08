@@ -29,6 +29,7 @@ export default function App() {
   const [creationOpen, setCreationOpen] = useState(false);
   const [creationMode, setCreationMode] = useState<'workflow' | 'blank'>('workflow');
   const [editor, setEditor] = useState<'create' | 'edit' | null>(null);
+  const [recordVersion, setRecordVersion] = useState(0);
   const [editorGeneration, setEditorGeneration] = useState(0);
   const [workflows, setWorkflows] = useState<WorkflowSummary[] | null>(null);
   const [workflowLoading, setWorkflowLoading] = useState(false);
@@ -243,6 +244,20 @@ export default function App() {
     setEditor(null); setProject(detail); setSelectedNodeId(detail.nodes.some(node => node.id === nodeId) ? nodeId : null);
   }
 
+  async function reloadRecords(signal: AbortSignal) {
+    if (!project) return;
+    const id = sequence.current;
+    try {
+      const detail = await api.project(project.id, signal);
+      if (signal.aborted || id !== sequence.current) return;
+      setProject(detail); setRecordVersion(value => value + 1);
+      if (selectedNodeId && !detail.nodes.some(node => node.id === selectedNodeId)) { setSelectedNodeId(null); setMessage('找不到項目或已失去可見權限'); }
+    } catch (error) {
+      if (!signal.aborted && id === sequence.current && error instanceof ApiError && [403, 404].includes(error.status)) { setProject(null); setState('error'); setMessage(error.message); }
+      throw error;
+    }
+  }
+
   return <>
     <header>
       <img src="/mark.svg" width="32" height="32" alt="" />
@@ -284,6 +299,7 @@ export default function App() {
           {editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
             canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} />}
           <NodeWorkspace key={project.id} project={project} selectedNodeId={selectedNodeId} select={selectNode}
+            userId={session.user.id} reloadRecords={reloadRecords} expired={expireSession} recordVersion={recordVersion} recordsEnabled={!busy && !editor && !creationOpen}
             readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)} /></>}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}
         </section>

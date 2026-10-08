@@ -4,6 +4,11 @@ import App from './App';
 import NodeEditor from './components/NodeEditor';
 import type { NodeItem } from './types';
 
+function stubFetch(fetcher: (path: string, init?: RequestInit) => unknown) {
+ vi.stubGlobal('fetch', (path: string, init?: RequestInit) => path.includes('/records?') ? Promise.resolve(response({ items: [], next_cursor: null }))
+ : path.endsWith('/collaborators') ? Promise.resolve(response({ users: [], departments: [], revision: 0 }))
+ : path.endsWith('/attachment-quota') ? Promise.resolve(response({ limit_bytes: 1000000000, charged_bytes: 0, remaining_bytes: 1000000000 })) : fetcher(path, init));
+}
 const identity = { user: { id: 'u', display_name: '成員', role: 'member' }, organization: { id: 'o', name: '公司' } };
 const summary = { id: 'p', title: '編輯專案', owner_user_id: 'other' };
 const task = { id: 'n', project_id: 'p', parent_id: null, kind: 'task', title: '原任務', status: 'todo', owner_user_id: 'u', department_id: null, sort_order: 0,
@@ -27,7 +32,7 @@ function setup(write: () => Promise<unknown> = async () => response(task), role 
     if (path === '/api/auth/logout') return response(undefined, 204);
     throw Error(`unexpected ${path}`);
   });
-  vi.stubGlobal('fetch', fetcher); render(<App />); return fetcher;
+  stubFetch( fetcher); render(<App />); return fetcher;
 }
 
 describe('P2a node editor', () => {
@@ -43,7 +48,7 @@ describe('P2a node editor', () => {
       if (path === '/api/nodes/n') return response({ ...task, title: '已儲存舊表單' });
       throw Error('unexpected path');
     });
-    vi.stubGlobal('fetch', fetcher); render(<App />); await openEditor();
+    stubFetch( fetcher); render(<App />); await openEditor();
     await screen.findByRole('option', { name: '成員' });
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '已儲存舊表單' } });
     fireEvent.click(screen.getByRole('button', { name: '儲存' }));
@@ -66,7 +71,7 @@ describe('P2a node editor', () => {
       if (path === '/api/nodes/n') return response(task);
       throw Error('unexpected path');
     });
-    vi.stubGlobal('fetch', fetcher); render(<App />); await openEditor();
+    stubFetch( fetcher); render(<App />); await openEditor();
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '改名' } }); fireEvent.click(screen.getByRole('button', { name: '儲存' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('已儲存，資料重新載入失敗');
     fireEvent.click(screen.getByRole('button', { name: '重試載入' }));
@@ -85,7 +90,7 @@ describe('P2a node editor', () => {
       if (path === '/api/projects/p/nodes') { created = true; return response(task, 201); }
       throw Error('unexpected path');
     });
-    vi.stubGlobal('fetch', fetcher); render(<App />);
+    stubFetch( fetcher); render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: '專案工作區' }));
     fireEvent.click(await screen.findByRole('button', { name: '新增子節點' }));
     await screen.findByRole('option', { name: '成員' });
@@ -177,7 +182,7 @@ describe('P2a blank project creation', () => {
       if (path === '/api/projects/p') { details++; return details === 1 ? response({}, 500) : response(detail); }
       throw Error('unexpected path');
     });
-    vi.stubGlobal('fetch', fetcher); render(<App />);
+    stubFetch( fetcher); render(<App />);
     fireEvent.click(await screen.findByRole('button', { name: '新增空白專案' }));
     fireEvent.change(screen.getByLabelText('新專案名稱'), { target: { value: ' 新空白專案 ' } });
     fireEvent.click(screen.getByRole('button', { name: '建立專案' }));
@@ -198,7 +203,7 @@ function editorProps(overrides = {}) {
 describe('P2a editor mutation lifecycle', () => {
   it('creates a child with complete metadata and independent assignments', async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response(options)).mockResolvedValueOnce(response({ ...task, id: 'new' }, 201));
-    vi.stubGlobal('fetch', fetcher); const props = editorProps();
+    stubFetch( fetcher); const props = editorProps();
     render(<NodeEditor {...props} mode="create" node={null} parent={task as NodeItem} canAssign />);
     await screen.findByRole('option', { name: '成員' });
     expect(screen.queryByRole('option', { name: '階段' })).not.toBeInTheDocument();
@@ -212,7 +217,7 @@ describe('P2a editor mutation lifecycle', () => {
   });
 
   it('retains a legacy readonly owner without submitting an unchanged assignment', async () => {
-    const fetcher = vi.fn().mockResolvedValueOnce(response(options)).mockResolvedValueOnce(response(task)); vi.stubGlobal('fetch', fetcher);
+    const fetcher = vi.fn().mockResolvedValueOnce(response(options)).mockResolvedValueOnce(response(task)); stubFetch( fetcher);
     const props = editorProps(); render(<NodeEditor {...props} node={{ ...task, owner_user_id: 'legacy', owner_display_name: '唯讀成員' } as NodeItem} canAssign />);
     await screen.findByRole('option', { name: '成員' });
     expect(screen.getByLabelText('負責人')).toHaveValue('legacy');
@@ -223,7 +228,7 @@ describe('P2a editor mutation lifecycle', () => {
   });
 
   it('blocks save when assignment options fail and retries only the read', async () => {
-    const fetcher = vi.fn().mockResolvedValueOnce(response({}, 403)).mockResolvedValueOnce(response(options)); vi.stubGlobal('fetch', fetcher);
+    const fetcher = vi.fn().mockResolvedValueOnce(response({}, 403)).mockResolvedValueOnce(response(options)); stubFetch( fetcher);
     render(<NodeEditor {...editorProps()} canAssign />);
     expect(await screen.findByRole('alert')).toHaveTextContent('沒有操作權限');
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '改名' } });
@@ -235,7 +240,7 @@ describe('P2a editor mutation lifecycle', () => {
   });
 
   it('retries only reload after a successful write and never offers another save', async () => {
-    const fetcher = vi.fn().mockResolvedValue(response(task)); vi.stubGlobal('fetch', fetcher);
+    const fetcher = vi.fn().mockResolvedValue(response(task)); stubFetch( fetcher);
     const props = editorProps({ reload: vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(undefined) });
     render(<NodeEditor {...props} />);
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '改名' } }); fireEvent.click(screen.getByRole('button', { name: '儲存' }));
@@ -247,7 +252,7 @@ describe('P2a editor mutation lifecycle', () => {
   });
 
   it('warns to refresh after network uncertainty without automatically resending', async () => {
-    const fetcher = vi.fn().mockRejectedValue(new Error('private-secret')); vi.stubGlobal('fetch', fetcher);
+    const fetcher = vi.fn().mockRejectedValue(new Error('private-secret')); stubFetch( fetcher);
     render(<NodeEditor {...editorProps()} />);
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '保留' } }); fireEvent.click(screen.getByRole('button', { name: '儲存' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('請重新整理確認儲存結果');
@@ -256,7 +261,7 @@ describe('P2a editor mutation lifecycle', () => {
   });
 
   it.each([401, 404, 422])('maps mutation error %s safely', async status => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response({ detail: 'private-secret' }, status)));
+    stubFetch( vi.fn().mockResolvedValue(response({ detail: 'private-secret' }, status)));
     const props = editorProps(); render(<NodeEditor {...props} />);
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '保留' } }); fireEvent.click(screen.getByRole('button', { name: '儲存' }));
     if (status === 401) await waitFor(() => expect(props.expired).toHaveBeenCalled());
@@ -266,7 +271,7 @@ describe('P2a editor mutation lifecycle', () => {
 
   it('ignores stale option failure on unmount', async () => {
     let finish!: (value: unknown) => void;
-    vi.stubGlobal('fetch', vi.fn(() => new Promise(resolve => { finish = resolve; })));
+    stubFetch( vi.fn(() => new Promise(resolve => { finish = resolve; })));
     const props = editorProps(); const view = render(<NodeEditor {...props} canAssign />); view.unmount();
     await act(async () => { finish(response({}, 401)); }); expect(props.expired).not.toHaveBeenCalled();
   });

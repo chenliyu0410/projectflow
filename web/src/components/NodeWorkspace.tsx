@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import ReportPanel from './ReportPanel';
+import RecordTimeline from './RecordTimeline';
+import type { RecordReload } from '../api';
 import type { NodeItem, NodeStatus, ProjectDetail } from '../types';
 
 export const statuses: { status: NodeStatus; label: string }[] = [
@@ -32,11 +35,14 @@ function visibleRoots(nodes: NodeItem[]) {
   return roots.sort((a, b) => a.sort_order - b.sort_order);
 }
 
-export default function NodeWorkspace({ project, selectedNodeId, select, readonly, canApprove, disabled, mutate }: {
+export default function NodeWorkspace({ project, selectedNodeId, select, readonly, canApprove, disabled, mutate, userId = '', reloadRecords, expired, recordVersion = 0, recordsEnabled = true }: {
   project: ProjectDetail; selectedNodeId: string | null; select: (id: string | null) => void;
   readonly: boolean; canApprove: boolean; disabled: boolean;
+  userId?: string; reloadRecords?: RecordReload; expired?: () => void; recordVersion?: number; recordsEnabled?: boolean;
   mutate: (action: 'status' | 'gate', id: string, status?: NodeStatus) => void;
 }) {
+  const [tab, setTab] = useState<'overview' | 'records'>('overview');
+  useEffect(() => { setTab(project.nodes.find(n => n.id === selectedNodeId)?.kind === 'task' ? 'records' : 'overview'); }, [selectedNodeId]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   useEffect(() => {
     setExpanded(value => new Set([...value, ...nodePath(project.nodes, selectedNodeId).map(node => node.id)]));
@@ -58,8 +64,9 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     })}</ul>;
   }
   function statusControl(node: NodeItem) {
-    return !readonly && node.kind !== 'project' && <label>狀態<select aria-label={`${node.title}狀態`} value={node.status} disabled={disabled} onChange={event => mutate('status', node.id, event.target.value as NodeStatus)}>
-      {statuses.map(option => <option key={option.status} value={option.status}>{option.label}</option>)}
+    const allowed = statuses.filter(item => node.state_actions?.includes(item.status));
+    return !readonly && node.kind !== 'project' && allowed.length > 0 && <label>{node.kind === 'phase' ? '階段狀態' : '狀態'}<select aria-label={`${node.title}狀態`} value={node.status} disabled={disabled} onChange={event => mutate('status', node.id, event.target.value as NodeStatus)}>
+      {allowed.map(option => <option key={option.status} value={option.status}>{option.label}</option>)}
     </select></label>;
   }
   return <>
@@ -67,7 +74,9 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     <nav aria-label="節點路徑" className="breadcrumbs"><button onClick={() => select(null)}>{project.title}</button>{nodePath(project.nodes, selectedNodeId).map(node => <span key={node.id}> / <button aria-current={node.id === selectedNodeId ? 'location' : undefined} onClick={() => select(node.id)}>{node.title}</button></span>)}</nav>
     <section aria-label="節點樹" className="node-tree"><h2>節點</h2>{project.nodes.length === 0 ? <p>這個專案還沒有節點</p> : tree(roots)}</section>
     <section aria-label="節點詳情" className="node-detail"><h2>節點詳情</h2><strong>{selected?.title ?? project.title}</strong>
-      {selected ? <><dl>
+      {selected ? <>
+      {selected.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`${selected.id}:${recordVersion}`} node={selected} userId={userId} reload={reloadRecords} expired={expired}/>}
+      <dl>
         <div><dt>狀態</dt><dd>{statuses.find(item => item.status === selected.status)?.label ?? selected.status}</dd></div>
         <div><dt>負責人</dt><dd>{selected.owner_display_name ?? '未指派'}</dd></div>
         <div><dt>部門</dt><dd>{selected.department_name ?? '未指派'}</dd></div>
@@ -75,6 +84,8 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         <div><dt>截止日期</dt><dd>{selected.due_date ?? '未設定'}</dd></div>
       </dl>{selected.kind !== 'project' && statusControl(selected)}</> : <p>專案工作區</p>}
     </section>
+    {selected && <div role="tablist" aria-label="節點內容"><button role="tab" aria-selected={tab === 'overview'} onClick={() => setTab('overview')}>概覽</button><button role="tab" aria-selected={tab === 'records'} onClick={() => setTab('records')}>紀錄</button></div>}
+    {selected && tab === 'records' && recordsEnabled && reloadRecords && expired && <RecordTimeline key={`${selected.id}:${recordVersion}`} node={selected} userId={userId} reload={reloadRecords} expired={expired} select={select}/>}
     {project.gates.some(gate => gate.status === 'pending') && <div className="gate-banner"><p>尚有階段閘門待核准，後續階段可能被阻擋</p>
       {canApprove && project.gates.filter(gate => gate.status === 'pending').map(gate => <div className="gate-row" key={gate.id}>
         <span>{project.nodes.find(node => node.id === gate.node_id)?.title ?? '階段閘門'}</span><button disabled={disabled} onClick={() => mutate('gate', gate.id)}>核准閘門</button>

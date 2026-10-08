@@ -6,7 +6,9 @@ import { api } from './api';
 const session = { user: { id: 'u1', username: 'yu', display_name: '游專案', role: 'admin' }, organization: { id: 'o1', key: 'food', name: '毛研食品' } };
 const projects = { items: [{ id: 'p1', title: '成貓主食罐正式版', organization_key: 'food', owner_user_id: 'u1' }] };
 function stubFetch(fetcher: (path: string, init?: RequestInit) => unknown) {
-  vi.stubGlobal('fetch', (path: string, init?: RequestInit) => path === '/api/workspace/overview'
+  vi.stubGlobal('fetch', (path: string, init?: RequestInit) => path.includes('/records?') ? Promise.resolve(response({ items: [], next_cursor: null }))
+    : path.endsWith('/collaborators') ? Promise.resolve(response({ users: [], departments: [], revision: 0 }))
+    : path.endsWith('/attachment-quota') ? Promise.resolve(response({ limit_bytes: 1000000000, charged_bytes: 0, remaining_bytes: 1000000000 })) : path === '/api/workspace/overview'
     ? Promise.resolve(response({ project_count: 0, task_counts: { todo: 0, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: null, projects: [] }))
     : path.startsWith('/api/workspace/my-tasks') ? Promise.resolve(response({ items: [] })) : fetcher(path, init));
 }
@@ -14,8 +16,8 @@ const response = (body: unknown, status = 200) => ({ ok: status < 400, status, j
 const detail = { ...projects.items[0], nodes: [
   { id: 'root', project_id: 'p1', parent_id: null, kind: 'project', title: '成貓主食罐正式版', status: 'todo', owner_user_id: 'u1', department_id: null, sort_order: 0 },
   { id: 'phase', project_id: 'p1', parent_id: 'root', kind: 'phase', title: '市場與配方', status: 'todo', owner_user_id: null, department_id: null, sort_order: 10 },
-  { id: 'later', project_id: 'p1', parent_id: 'phase', kind: 'task', title: '後續任務', status: 'todo', owner_user_id: null, department_id: null, sort_order: 30 },
-  { id: 'task', project_id: 'p1', parent_id: 'phase', kind: 'task', title: '殺菌條件驗證', status: 'todo', owner_user_id: 'u1', department_id: null, sort_order: 20 },
+  { id: 'later', project_id: 'p1', parent_id: 'phase', kind: 'task', title: '後續任務', status: 'todo', owner_user_id: null, department_id: null, sort_order: 30, state_actions: ['todo', 'doing'] },
+  { id: 'task', project_id: 'p1', parent_id: 'phase', kind: 'task', title: '殺菌條件驗證', status: 'todo', owner_user_id: 'u1', department_id: null, sort_order: 20, state_actions: ['todo', 'doing'] },
 ], gates: [] };
 const secondProject = { ...projects.items[0], id: 'p2', title: '第二專案' };
 const secondDetail = { ...secondProject, nodes: [], gates: [] };

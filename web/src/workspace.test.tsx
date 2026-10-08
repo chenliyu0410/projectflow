@@ -12,7 +12,7 @@ const node = (id: string, parent_id: string | null, kind = 'task', status: NodeS
   id, project_id: 'p', parent_id, kind, title: id, status, sort_order: 0,
   owner_user_id: null, department_id: null, start_date: null, due_date: null,
   owner_display_name: null, department_name: null,
-  capabilities: { edit_metadata: true, assign: true, create_child: true },
+  state_actions: ['todo', 'doing'], capabilities: { edit_metadata: true, assign: true, create_child: true },
 });
 
 describe('P2a query pages', () => {
@@ -65,7 +65,9 @@ describe('P2a query pages', () => {
 const nodes = [node('根', null, 'project'), node('階段', '根', 'phase'), node('父任務', '階段'), node('子任務', '父任務'), node('略過任務', '父任務', 'task', 'skipped')];
 const detail: ProjectDetail = { ...summary, nodes, gates: [], capabilities: { create_node: true } };
 function stubFetch(fetcher: (path: string, init?: RequestInit) => unknown) {
-  vi.stubGlobal('fetch', (path: string, init?: RequestInit) => path === '/api/workspace/overview'
+  vi.stubGlobal('fetch', (path: string, init?: RequestInit) => path.includes('/records?') ? Promise.resolve(response({ items: [], next_cursor: null }))
+    : path.endsWith('/collaborators') ? Promise.resolve(response({ users: [], departments: [], revision: 0 }))
+    : path.endsWith('/attachment-quota') ? Promise.resolve(response({ limit_bytes: 1000000000, charged_bytes: 0, remaining_bytes: 1000000000 })) : path === '/api/workspace/overview'
     ? Promise.resolve(response({ project_count: 0, task_counts: { todo: 0, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: null, projects: [] }))
     : path.startsWith('/api/workspace/my-tasks') ? Promise.resolve(response({ items: [] })) : fetcher(path, init));
 }
@@ -94,6 +96,7 @@ describe('P2a workspace navigation', () => {
 
   it('searches my tasks and locates the returned project and deep node', async () => {
     const fetcher = vi.fn(async (path: string) => response(path === '/api/auth/me' ? identity : path === '/api/projects' ? { items: [summary] }
+      : path.includes('/records?') ? { items: [], next_cursor: null } : path.endsWith('/collaborators') ? { users: [], departments: [], revision: 0 }
       : path.startsWith('/api/workspace/my-tasks') ? { items: [{ ...nodes[3], project_title: summary.title }] }
       : path === '/api/workspace/overview' ? { project_count: 1, task_counts: { todo: 0, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: null, projects: [] } : detail));
     vi.stubGlobal('fetch', fetcher); render(<App />);
