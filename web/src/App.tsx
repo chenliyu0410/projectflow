@@ -1,47 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError } from './api';
-import type { NodeItem, NodeStatus, ProjectDetail, ProjectSummary, SessionInfo, WorkflowSummary } from './types';
+import type { NodeStatus, ProjectDetail, ProjectSummary, SessionInfo, WorkflowSummary, WorkspaceRoute } from './types';
+import WorkspaceShell from './components/WorkspaceShell';
+import NodeWorkspace from './components/NodeWorkspace';
 
 type State = 'checking-session' | 'login' | 'loading' | 'ready' | 'error';
-const columns: { status: NodeStatus; label: string }[] = [
-  { status: 'todo', label: '待處理' }, { status: 'doing', label: '進行中' },
-  { status: 'review', label: '待確認' }, { status: 'done', label: '完成' },
-];
-function childrenOf(nodes: NodeItem[], parentId: string | null) {
-  const visibleIds = new Set(nodes.map(node => node.id));
-  return nodes.filter(node => parentId === null
-    ? node.parent_id === null || !visibleIds.has(node.parent_id)
-    : node.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order);
-}
-function pathFor(nodes: NodeItem[], selectedId: string | null) {
-  const byId = new Map(nodes.map(node => [node.id, node]));
-  const path: NodeItem[] = [];
-  const seen = new Set<string>();
-  let node = selectedId ? byId.get(selectedId) : undefined;
-  while (node && !seen.has(node.id)) {
-    seen.add(node.id); path.unshift(node);
-    node = node.parent_id ? byId.get(node.parent_id) : undefined;
-  }
-  return path;
-}
-function NodeTree({ nodes, parentId, selectedId, select }: {
-  nodes: NodeItem[]; parentId: string | null; selectedId: string | null; select: (id: string) => void;
-}) {
-  const children = childrenOf(nodes, parentId);
-  if (children.length === 0) return null;
-  return <ul>{children.map(node => <li key={node.id}>
-    <button aria-pressed={selectedId === node.id} onClick={() => select(node.id)}>{node.title}</button>
-    <NodeTree nodes={nodes} parentId={node.id} selectedId={selectedId} select={select} />
-  </li>)}</ul>;
-}
 export default function App() {
   const [state, setState] = useState<State>('checking-session');
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [route, setRoute] = useState<WorkspaceRoute>({ page: 'overview' });
+  const selectedId = route.page === 'project' ? route.projectId : null;
+  const selectedNodeId = route.page === 'project' ? route.nodeId : null;
+  function setSelectedId(projectId: string | null) { setRoute({ page: 'project', projectId, nodeId: null }); }
+  function setSelectedNodeId(nodeId: string | null) { setRoute(value => value.page === 'project' ? { ...value, nodeId } : value); }
   const [project, setProject] = useState<ProjectDetail | null>(null);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [organization, setOrganization] = useState('food');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -69,7 +43,7 @@ export default function App() {
   }
   function clearSession() {
     closeCreation(); setWorkflows(null);
-    setSession(null); setProjects([]); setSelectedId(null); setProject(null); setSelectedNodeId(null); setPassword(''); setState('login');
+    setSession(null); setProjects([]); setRoute({ page: 'overview' }); setProject(null); setPassword(''); setState('login');
   }
   function failed(error: unknown, request: ReturnType<typeof begin>, loginFailure = false) {
     if (!current(request)) return;
@@ -80,40 +54,46 @@ export default function App() {
   async function loadProjects(request: ReturnType<typeof begin>, value: SessionInfo) {
     if (!current(request)) return;
     setSession(value); setState('loading');
-    setProject(null); setSelectedNodeId(null); setSelectedId(null);
+    setProject(null); setRoute({ page: 'overview' });
     try {
       const result = await api.projects(request.controller.signal);
       if (!current(request)) return;
       setProjects(result.items);
-      const first = result.items[0]?.id ?? null;
-      setSelectedId(first);
-      if (first) await loadDetail(first, request);
-      else setState('ready');
+      setState('ready');
     } catch (error) { projectFailed(error, request); }
   }
   function projectFailed(error: unknown, request: ReturnType<typeof begin>) {
     if (!current(request)) return;
     failed(error, request);
-    if (!(error instanceof ApiError && error.status === 401)) setMessage('無法載入專案資料');
+    if (!(error instanceof ApiError && error.status === 401)) setMessage(error instanceof ApiError && error.status === 403 ? '沒有操作權限' : error instanceof ApiError && error.status === 404 ? '找不到項目' : '無法載入專案資料');
   }
-  async function loadDetail(id: string, request: ReturnType<typeof begin>) {
+  async function loadDetail(id: string, request: ReturnType<typeof begin>, nodeId: string | null = null) {
     try {
       const detail = await api.project(id, request.controller.signal);
       if (!current(request)) return;
       setProject(detail);
-      setSelectedNodeId(childrenOf(detail.nodes, null)[0]?.id ?? null);
+      setSelectedNodeId(detail.nodes.some(node => node.id === nodeId) ? nodeId : null);
+      if (nodeId && !detail.nodes.some(node => node.id === nodeId)) setMessage('找不到項目');
       setState('ready');
     } catch (error) { projectFailed(error, request); }
   }
-  async function selectProject(id: string) {
+  async function selectProject(id: string, nodeId: string | null = null) {
     if (busy) return;
     const request = begin();
     closeCreation();
-    setSelectedId(id); setProject(null); setSelectedNodeId(null); setMessage(''); setState('loading');
-    await loadDetail(id, request);
+    setRoute({ page: 'project', projectId: id, nodeId }); setProject(null); setMessage(''); setState('loading');
+    await loadDetail(id, request, nodeId);
+  }
+  function navigate(next: WorkspaceRoute) {
+    if (busy) return;
+    if (next.page === 'project' && next.projectId) { void selectProject(next.projectId, next.nodeId); return; }
+    begin(); closeCreation(); setProject(null); setMessage(''); setRoute(next); setState('ready');
+  }
+  function selectNode(nodeId: string | null) {
+    begin(); closeCreation(); setMessage(''); setSelectedNodeId(nodeId);
   }
   function retry() {
-    if (session && selectedId) void selectProject(selectedId);
+    if (session && selectedId) void selectProject(selectedId, selectedNodeId);
     else void restore();
   }
   async function restore() {
@@ -171,7 +151,7 @@ export default function App() {
       } else if (action === 'gate') {
         await api.approveGate(id, request.controller.signal);
         if (!current(request)) return;
-        await loadDetail(projectId, request);
+        await loadDetail(projectId, request, selectedNodeId);
       }
     } catch (error) {
       if (!current(request)) return;
@@ -251,8 +231,8 @@ export default function App() {
         <label>密碼<input type="password" value={password} onChange={event => setPassword(event.target.value)} required disabled={busy} autoComplete="current-password" /></label>
         <button type="submit" disabled={busy}>{busy ? '登入中' : '登入'}</button>
       </form> : <>
-        {session && <aside aria-label="專案清單"><h2>專案</h2>{projects.map(item => <button key={item.id} disabled={busy} aria-pressed={item.id === selectedId} onClick={() => void selectProject(item.id)}>{item.title}</button>)}</aside>}
-        <section aria-label="專案">
+        {session ? <WorkspaceShell route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate}>
+        <section aria-label={route.page === 'project' ? '專案' : route.page === 'overview' ? '總覽頁面' : '我的任務頁面'}>
           {session && canCreate && <div className="project-toolbar"><button disabled={busy || mutating || workflowLoading || state !== 'ready'} onClick={() => void openCreation()}>新增專案</button></div>}
           {creationOpen && <form className="creation-form" onSubmit={event => void createProject(event)}>
             <label>工作流模板<select value={workflowId} disabled={workflowLoading || mutating} onChange={event => setWorkflowId(event.target.value)}>
@@ -268,34 +248,13 @@ export default function App() {
           {state === 'checking-session' && <p role="status">確認登入狀態中</p>}
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
-          {state === 'ready' && project && <>
-            <h1>{project.title}</h1>
-            <nav aria-label="節點路徑">{pathFor(project.nodes, selectedNodeId).map(node => node.title).join(' / ') || project.title}</nav>
-            <section aria-label="節點樹" className="node-tree">
-              <h2>節點</h2>
-              {project.nodes.length === 0 ? <p>這個專案還沒有節點</p> : <NodeTree nodes={project.nodes} parentId={null} selectedId={selectedNodeId} select={setSelectedNodeId} />}
-            </section>
-            {project.gates.some(gate => gate.status === 'pending') && <div className="gate-banner">
-              <p>尚有階段閘門待核准，後續階段可能被阻擋</p>
-              {canApprove && project.gates.filter(gate => gate.status === 'pending').map(gate => <div className="gate-row" key={gate.id}>
-                <span>{project.nodes.find(node => node.id === gate.node_id)?.title ?? '階段閘門'}</span>
-                <button disabled={mutating || creationOpen} onClick={() => void mutate('gate', gate.id)}>核准閘門</button>
-              </div>)}
-            </div>}
-            <section aria-label="看板" className="kanban">
-              {columns.map(column => <div key={column.status} aria-label={column.label} className="kanban-column">
-                <h2>{column.label}</h2>
-                {project.nodes.filter(node => node.kind === 'task' && node.status === column.status).map(node => <article key={node.id} className="task-card">
-                  <button className="task-title" aria-pressed={node.id === selectedNodeId} onClick={() => setSelectedNodeId(node.id)}>{node.title}</button>
-                  {session?.user.role !== 'readonly' && <label>狀態<select aria-label={`${node.title}狀態`} value={node.status} disabled={mutating || creationOpen} onChange={event => void mutate('status', node.id, event.target.value as NodeStatus)}>
-                    {columns.map(option => <option key={option.status} value={option.status}>{option.label}</option>)}
-                  </select></label>}
-                </article>)}
-              </div>)}
-            </section>
-          </>}
+          {state === 'ready' && route.page === 'overview' && <h1>總覽</h1>}
+          {state === 'ready' && route.page === 'my-tasks' && <h1>我的任務</h1>}
+          {state === 'ready' && route.page === 'project' && project && <NodeWorkspace key={project.id} project={project} selectedNodeId={selectedNodeId} select={selectNode}
+            readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={mutating || creationOpen} mutate={(action, id, status) => void mutate(action, id, status)} />}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}
         </section>
+        </WorkspaceShell> : <section>{state === 'checking-session' && <p role="status">確認登入狀態中</p>}{state === 'error' && <button onClick={retry}>重試</button>}</section>}
       </>}
     </main>
   </>;

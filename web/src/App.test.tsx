@@ -22,7 +22,17 @@ const taskNode = detail.nodes.find(node => node.id === 'task')!;
 const pendingGate = { id: 'g1', project_id: 'p1', node_id: 'phase', status: 'pending' };
 const gateDetail = { ...detail, gates: [pendingGate] };
 const workflowList = { items: [{ id: 'w1', name: '食品新品開發' }] };
+async function openWorkspace() {
+  await screen.findByRole('heading', { name: '總覽' });
+  fireEvent.click(screen.getByRole('button', { name: '專案工作區' }));
+}
+function selectPhase() {
+  const tree = within(screen.getByLabelText('節點樹'));
+  fireEvent.click(tree.getByRole('button', { name: detail.title }));
+  fireEvent.click(tree.getByRole('button', { name: '市場與配方' }));
+}
 async function fillCreation() {
+  await screen.findByRole('heading', { name: detail.title });
   fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
   await screen.findByRole('option', { name: '食品新品開發' });
   fireEvent.change(screen.getByLabelText('工作流模板'), { target: { value: 'w1' } });
@@ -35,6 +45,7 @@ describe('P1b workflow creation', () => {
       .mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(secondDetail));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     await fillCreation();
     fireEvent.click(screen.getByRole('button', { name: '建立專案' }));
     expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
@@ -47,6 +58,7 @@ describe('P1b workflow creation', () => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response(workflowList));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
     await screen.findByRole('option', { name: '食品新品開發' });
     expect(screen.getByRole('button', { name: '建立專案' })).toBeDisabled();
@@ -65,6 +77,7 @@ describe('P1b workflow creation', () => {
       .mockResolvedValueOnce(response(secondProject, 201)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(secondDetail));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     await fillCreation();
     fireEvent.click(screen.getByRole('button', { name: '建立專案' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(status === 403 ? '沒有建立專案權限' : status === 404 ? '找不到工作流模板' : '操作失敗，請稍後再試');
@@ -77,6 +90,7 @@ describe('P1b workflow creation', () => {
   it('retries template loading after failure', async () => {
     vi.stubGlobal('fetch', kanbanFetch().mockRejectedValueOnce(new Error('private-secret')).mockResolvedValueOnce(response(workflowList)));
     render(<App />);
+    await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('無法連線，請稍後再試');
     fireEvent.click(screen.getByRole('button', { name: '重試模板' }));
@@ -89,6 +103,7 @@ describe('P1b workflow creation', () => {
       .mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(secondDetail));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     await fillCreation();
     const button = screen.getByRole('button', { name: '建立專案' });
     fireEvent.click(button); fireEvent.click(button);
@@ -101,7 +116,9 @@ describe('P1b workflow creation', () => {
   it('hides creation from readonly', async () => {
     vi.stubGlobal('fetch', kanbanFetch(gateDetail, { ...session, user: { ...session.user, role: 'readonly' } }));
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     expect(screen.queryByRole('button', { name: '新增專案' })).not.toBeInTheDocument();
   });
 
@@ -112,6 +129,7 @@ describe('P1b workflow creation', () => {
     fetcher.mockImplementationOnce(() => new Promise(resolve => { resolveOld = resolve; })).mockResolvedValueOnce(response(undefined, 204));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     if (stage === 'create') { await fillCreation(); fireEvent.click(screen.getByRole('button', { name: '建立專案' })); }
     else fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
@@ -132,13 +150,15 @@ it('renders an owned task with hidden parent as a selectable root and kanban ite
   vi.stubGlobal('fetch', kanbanFetch({ ...detail, nodes: [taskNode], gates: [] },
     { ...session, user: { ...session.user, role: 'member' } }));
   render(<App />);
+  await openWorkspace();
   await screen.findByRole('heading', { name: detail.title });
   const tree = within(screen.getByLabelText('節點樹'));
   fireEvent.click(tree.getByRole('button', { name: taskNode.title }));
   expect(tree.getAllByRole('button')).toHaveLength(1);
   expect(screen.getByLabelText('節點路徑')).toHaveTextContent(taskNode.title);
   expect(screen.getByLabelText('節點路徑')).not.toHaveTextContent('市場與配方');
-  expect(within(screen.getByLabelText('看板')).getByRole('combobox', { name: `${taskNode.title}狀態` })).toBeInTheDocument();
+  expect(within(screen.getByLabelText('節點詳情')).getByRole('combobox', { name: `${taskNode.title}狀態` })).toBeInTheDocument();
+  expect(within(screen.getByLabelText('看板')).queryByRole('combobox')).not.toBeInTheDocument();
 });
 
 describe('P1b kanban and gates', () => {
@@ -146,7 +166,9 @@ describe('P1b kanban and gates', () => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response({ ...taskNode, status: 'doing' }));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     for (const label of ['待處理', '進行中', '待確認', '完成']) expect(screen.getByLabelText(label)).toBeInTheDocument();
     expect(within(screen.getByLabelText('看板')).queryByText('市場與配方')).not.toBeInTheDocument();
     fireEvent.change(statusControl(), { target: { value: 'doing' } });
@@ -158,7 +180,9 @@ describe('P1b kanban and gates', () => {
   it.each([409, 403, 500])('keeps old status and maps mutation errors safely (%s)', async status => {
     vi.stubGlobal('fetch', kanbanFetch().mockResolvedValueOnce(response({ detail: 'private-secret' }, status)));
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     fireEvent.change(statusControl(), { target: { value: 'doing' } });
     expect(await screen.findByRole('alert')).toHaveTextContent(status === 409 ? '前一階段閘門尚未通過' : status === 403 ? '沒有操作此節點的權限' : '操作失敗，請稍後再試');
     expect(statusControl()).toHaveValue('todo');
@@ -171,7 +195,9 @@ describe('P1b kanban and gates', () => {
     const fetcher = kanbanFetch().mockImplementationOnce(() => new Promise(resolve => { resolveMove = resolve; }));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     const control = statusControl();
     fireEvent.change(control, { target: { value: 'doing' } });
     expect(control).toBeDisabled();
@@ -187,6 +213,7 @@ describe('P1b kanban and gates', () => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response(approved)).mockResolvedValueOnce(response({ ...detail, gates: [approved] }));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     expect(await screen.findByText('尚有階段閘門待核准，後續階段可能被阻擋')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '核准閘門' }));
     await waitFor(() => expect(screen.queryByText('尚有階段閘門待核准，後續階段可能被阻擋')).not.toBeInTheDocument());
@@ -198,6 +225,7 @@ describe('P1b kanban and gates', () => {
     const fetcher = kanbanFetch().mockResolvedValueOnce(response({ detail: 'private-secret' }, 403)).mockResolvedValueOnce(response({ ...pendingGate, status: 'approved' })).mockResolvedValueOnce(response(detail));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: '核准閘門' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('沒有核准此閘門的權限');
     expect(document.body).not.toHaveTextContent('private-secret');
@@ -212,7 +240,9 @@ describe('P1b kanban and gates', () => {
   ] as const)('shows controls for role %s owner %s without replacing API authorization', async (role, owner, taskControl, gateControl) => {
     vi.stubGlobal('fetch', kanbanFetch({ ...gateDetail, owner_user_id: owner }, { ...session, user: { ...session.user, role } }));
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     expect(within(screen.getByLabelText('看板')).queryByRole('combobox', { name: '殺菌條件驗證狀態' }) !== null).toBe(taskControl);
     expect(screen.queryByRole('button', { name: '核准閘門' }) !== null).toBe(gateControl);
     expect(screen.getByText('尚有階段閘門待核准，後續階段可能被阻擋')).toBeInTheDocument();
@@ -224,7 +254,9 @@ describe('P1b kanban and gates', () => {
       .mockImplementationOnce(() => new Promise(resolve => { resolveMove = resolve; })).mockResolvedValueOnce(response(secondDetail));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     fireEvent.change(statusControl(), { target: { value: 'doing' } });
     fireEvent.click(projectButton(secondProject.title));
     await screen.findByRole('heading', { name: secondProject.title });
@@ -240,6 +272,7 @@ describe('P1b kanban and gates', () => {
       .mockImplementationOnce(() => new Promise(resolve => { resolveGate = resolve; })).mockResolvedValueOnce(response(secondDetail));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: '核准閘門' }));
     fireEvent.click(projectButton(secondProject.title));
     await screen.findByRole('heading', { name: secondProject.title });
@@ -251,7 +284,9 @@ describe('P1b kanban and gates', () => {
   it('clears session on mutation expiry', async () => {
     vi.stubGlobal('fetch', kanbanFetch().mockResolvedValueOnce(response({}, 401)));
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     fireEvent.change(statusControl(), { target: { value: 'doing' } });
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
     expect(screen.queryByLabelText('看板')).not.toBeInTheDocument();
@@ -262,7 +297,9 @@ describe('P1b kanban and gates', () => {
     const fetcher = kanbanFetch().mockImplementationOnce(() => new Promise(resolve => { resolveMove = resolve; })).mockResolvedValueOnce(response(undefined, 204));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     fireEvent.change(statusControl(), { target: { value: 'doing' } });
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
     await screen.findByRole('heading', { name: '登入專流' });
@@ -276,22 +313,26 @@ describe('P1b project navigation', () => {
   it('loads detail, orders the tree and selects a leaf with full breadcrumbs', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail)));
     render(<App />);
+    await openWorkspace();
     expect(await screen.findByRole('heading', { name: detail.title })).toBeInTheDocument();
     expect(screen.getByLabelText('節點路徑')).toHaveTextContent(detail.title);
     const tree = within(screen.getByLabelText('節點樹'));
-    expect(tree.getAllByRole('button').map(button => button.textContent)).toEqual([detail.title, '市場與配方', '殺菌條件驗證', '後續任務']);
+    selectPhase();
+    expect(tree.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed')).map(button => button.textContent)).toEqual([detail.title, '市場與配方', '殺菌條件驗證', '後續任務']);
     fireEvent.click(tree.getByRole('button', { name: '殺菌條件驗證' }));
-    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('成貓主食罐正式版 / 市場與配方 / 殺菌條件驗證');
+    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('成貓主食罐正式版 / 成貓主食罐正式版 / 市場與配方 / 殺菌條件驗證');
     expect(tree.getByRole('button', { name: '殺菌條件驗證' })).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(tree.getByRole('button', { name: '市場與配方' }));
-    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('成貓主食罐正式版 / 市場與配方');
+    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('成貓主食罐正式版 / 成貓主食罐正式版 / 市場與配方');
   });
 
   it('switches project and resets node selection, including empty trees', async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(detail)).mockResolvedValueOnce(response(secondDetail));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     fireEvent.click(within(screen.getByLabelText('節點樹')).getByRole('button', { name: '殺菌條件驗證' }));
     fireEvent.click(projectButton(secondProject.title));
     expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
@@ -309,6 +350,7 @@ describe('P1b project navigation', () => {
     fetcher.mockResolvedValueOnce(response(detail));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     expect(await screen.findByRole('alert')).toHaveTextContent('無法載入專案資料');
     expect(screen.getByLabelText('目前公司')).toHaveTextContent('毛研食品');
     expect(document.body).not.toHaveTextContent('private-secret');
@@ -320,6 +362,7 @@ describe('P1b project navigation', () => {
   it('clears session on detail expiry', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response({}, 401)));
     render(<App />);
+    await openWorkspace();
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
     expect(screen.queryByLabelText('專案清單')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('目前公司')).not.toBeInTheDocument();
@@ -331,6 +374,7 @@ describe('P1b project navigation', () => {
       .mockImplementationOnce(() => new Promise(resolve => { resolveDetail = resolve; })).mockResolvedValueOnce(response(secondDetail));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     fireEvent.click(await screen.findByRole('button', { name: secondProject.title }));
     expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
     expect(fetcher.mock.calls[2][1].signal.aborted).toBe(true);
@@ -346,6 +390,7 @@ describe('P1b project navigation', () => {
       .mockImplementationOnce(() => new Promise(resolve => { resolveDetail = resolve; })).mockResolvedValueOnce(response(undefined, 204));
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('button', { name: detail.title });
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
@@ -425,6 +470,7 @@ describe('P1b session UI', () => {
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
     await login();
+    await openWorkspace();
     expect(await screen.findByRole('heading', { name: detail.title })).toBeInTheDocument();
     expect(fetcher).toHaveBeenCalledWith('/api/auth/login', expect.objectContaining({ credentials: 'include', method: 'POST', body: JSON.stringify({ organization_key: 'food', username: 'yu', password: 'demo-yu' }) }));
     expect(fetcher).toHaveBeenCalledWith('/api/projects', expect.objectContaining({ credentials: 'include' }));
@@ -468,6 +514,7 @@ describe('P1b session UI', () => {
     expect(screen.queryByRole('heading', { name: '登入專流' })).not.toBeInTheDocument();
     expect(document.body).not.toHaveTextContent('private-secret');
     fireEvent.click(screen.getByRole('button', { name: '重試' }));
+    await openWorkspace();
     expect(await screen.findByRole('heading', { name: detail.title })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(fetcher.mock.calls.filter(([path]) => path === '/api/auth/login')).toHaveLength(1);
@@ -479,6 +526,7 @@ describe('P1b session UI', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('無法連線，請稍後再試');
     expect(document.body).not.toHaveTextContent('private-secret');
     fireEvent.click(screen.getByRole('button', { name: '重試' }));
+    await openWorkspace();
     expect(await screen.findByRole('heading', { name: detail.title })).toBeInTheDocument();
   });
 
@@ -499,7 +547,9 @@ describe('P1b session UI', () => {
   it('permits retry when logout fails', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail)).mockResolvedValueOnce(response({ detail: 'private-secret' }, 500)).mockResolvedValueOnce(response(undefined, 204)));
     render(<App />);
+    await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
+    selectPhase();
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('操作失敗，請稍後再試');
     expect(document.body).not.toHaveTextContent('private-secret');
