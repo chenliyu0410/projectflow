@@ -81,9 +81,9 @@ G4預設verify另實跑：API `80 passed,1 warning in 38.36s`、Vitest56、build
 
 ## P2a 工程驗收與人類試用
 
-P2a工程整合驗收進行中；最終獨立審查、合併後回歸與本機部署狀態以PROGRESS為準。前移旅程RED已於Task1前取得（1280／375共2 failed，缺工作區導覽）；功能完成後新增的整合案例屬回歸，不破壞產品製造RED。
+P2a工程驗收、雙獨立G4審查、ff-only合併與本機試用部署已完成；人類試用仍待簽核。前移旅程RED已於Task1前取得（1280／375共2 failed，缺工作區導覽）；功能完成後新增的整合案例屬回歸，不破壞產品製造RED。
 
-P2a實跑記錄：隔離Playwright 9 passed (16.8s)，涵蓋四層建立、日期清除／指派／成員編輯／readonly，以及真實兩公司、多角色、深層Gate與可見完成率。真PostgreSQL專用DB `p2a_migration_b12b66168c4c`：1 passed, 4 deselected, 2 warnings (0.41s)，舊資料／稽核保留、日期null、新日期保存與反序CHECK皆通過。隔離Compose正常stop/start --wait，未seed，完整專案detail前後一致（包括start_date=null、due_date=2026-10-15、owner及department）；各階段exit0。完整`deploy/verify.py`：API 182 passed／1 skipped（專用PG另驗）／3 warnings (131.31s)、Vitest 96 passed、build exit0、E2E 9 passed (17.6s)，預設cleanup成功，最終exit0。隔離容器清單為空、`projectflow-acceptance_pgdata`保留。尚未以此代稱完成發布。
+P2a實跑記錄：隔離Playwright 9 passed (16.8s)，涵蓋四層建立、日期清除／指派／成員編輯／readonly，以及真實兩公司、多角色、深層Gate與可見完成率。真PostgreSQL專用DB `p2a_migration_b12b66168c4c`：1 passed, 4 deselected, 2 warnings (0.41s)，舊資料／稽核保留、日期null、新日期保存與反序CHECK皆通過。隔離Compose正常stop/start --wait，未seed，完整專案detail前後一致（包括start_date=null、due_date=2026-10-15、owner及department）；各階段exit0。完整`deploy/verify.py`：API 182 passed／1 skipped（專用PG另驗）／3 warnings (131.31s)、Vitest 96 passed、build exit0、E2E 9 passed (17.6s)，預設cleanup成功，最終exit0。隔離容器清單為空、`projectflow-acceptance_pgdata`保留。G6 main完整回歸另通過：API182 passed／1 skipped／125.26s、Vitest96／3.33s、build0、E2E9／16.8s及cleanup0。15173已啟動，首頁／health／ready為200、acceptance marker為404，migration為20261008_0002 head；此入口未跑自動業務測試。發布紀錄见PROGRESS。
 
 以下維持人類待辦，不由自動化代勾：
 

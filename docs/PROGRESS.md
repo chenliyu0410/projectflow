@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2a 🟢 可合併；G4雙獨立審查通過** |
-| 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | Task1–6完成；G4雙獨立Ready to merge: Yes。依G5 ff-only合併、G6 main完整隔離回歸，再部署15173、更新文件並推送。人類簽核仍未完成。 |
-| 分支 | `feature/p2a-task-workspace`（由主checkout建立，無worktree）。 |
-| 最新程式 commit | P2a Task6 `8dc914a`；Demo仍W6 `0934e48`未改。 |
+| 目前工作項目 | **P2a ✅ 工程交付完成；下一項P2b尚未規格化** |
+| 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
+| 下一個動作 | 人類於15173試用P2a並記錄意見；後續按路線圖進P2b G1／G2，另審規格與計畫後才實作。本次P2a授權已完成。 |
+| 分支 | `main`；P2a已ff-only合併，收尾後刪除已合併feature。 |
+| 最新程式 commit | P2a Task6 `8dc914a`（產品最後修正`a5d1594`），G4／合併HEAD `d8499cd`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | Task6完整verify API182passed1skip/131.31s（專用真PG另1passed/0.41s）、Vitest96、build0、E2E9/17.6s、cleanup0，最終exit0。隔離重啟未seed完整detail相等。1280/375無溢出／非預期console，primary未啟動或寫入。 |
-| 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17新增migration `20261008_0002_p2a_node_dates`；SQLite及專用PG驗證通過，acceptance已依Task4重建升級0002，primary未觸碰。 |
-| 認領中 | Codex：P2a逐Task實作與審查，2026-10-08。 |
-| 阻塞／待人類 | D56已核准；D57已完成，WSL2.7.13／Docker29.8.2引擎可用。P1c人類簽核、D43／D10未完成；LAN部署未授權。 |
-| 遠端 | 2026-10-08本次fetch + ff-only確認origin/main `ff0cdbe`已同步。定稿文件`544f48b`與環境交接僅在本機main；P2a未完成驗收，尚未push。 |
+| 測試基準 | G6 main隔離verify：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s、cleanup及最終exit0；專用真PG另1passed/0.41s，無seed重啟detail相等；1280/375無水平溢出或非預期錯誤。 |
+| 資料版本 | Demo v6/key不變；正式PostgreSQL17 migration `20261008_0002` head。日期nullable DATE，舊資料保留驗證通過。15173新本機試用環境已初始化，acceptance volume保留且容器停止。 |
+| 認領中 | — |
+| 阻塞／待人類 | 無P2a工程阻塞；P1c／P2a人類試用簽核、D43／D10未完成。P2b–P2d未交付，LAN部署未授權。 |
+| 遠端 | 本次fetch確認origin/main `ff0cdbe`未變，完成D50交付收尾；待本commit後push origin main，成功結果另記。 |
 
 ---
 
@@ -87,8 +87,8 @@
 
 | 順位 | ID | 工作項目 | 狀態 | Spec／Plan | 依賴 |
 |---|---|---|---|---|---|
-| 下一項 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | 🟢 G4通過 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
-| 後續1 | P2b | 回報／審核、筆記、附件與稽核介面 | ⬜ | 各階段另訂spec／plan | P2a |
+| 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
+| 下一項 | P2b | 回報／審核、筆記、附件與稽核介面 | ⬜ | 各階段另訂spec／plan | P2a |
 | 後續2 | P2c | 時程、模板管理、前置相依與相依圖 | ⬜ | 各階段另訂spec／plan | P2a，順序依人類本次選擇 |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
@@ -105,7 +105,7 @@
 
 ## 3. 工作項目明細
 
-### P2a 完整任務操作 — 🟢 G4通過
+### P2a 完整任務操作 — ✅ 工程交付完成
 
 **本次授權（2026-10-08）**：人類同意P2a規格與計畫及D56推薦規則，授權實作至驗收發布；既有資料保留、隔離測試、人類簽核維持未勾選。
 
@@ -139,7 +139,7 @@
 - [x] 真PostgreSQL migration保留資料、隔離重啟與完整回歸。
 - [x] 1280／375走查、獨立審查、文件更新；人類試用另簽核。
 
-**Task6實證**：ignored .superpowers/p2a/task6-verify.txt、task6-postgresql.txt、task6-restart.txt／task6-restart-values.json、task6-cleanup.txt、task6-workspace-{1280,375}.png（兩位實作者與主代理已看）。專用PG DB p2a_migration_b12b66168c4c保留；重啟project 6a159d13-f536-4585-8e17-183c55d39eba完整detail相等，start=null/due=2026-10-15/owner/dept/status不變。初次E2E4failed為測試導覽/安全投影/預期401契約調整；PG首次sys.path設定失敗、verify首次E2E TypeScript型別建置失敗均已修正，未當功能RED。最終verify exit0、acceptance容器空且volume保留。README/指南/試用清單已更新，尚待G6部署發布狀態收尾。
+**Task6實證**：ignored .superpowers/p2a/task6-verify.txt、task6-postgresql.txt、task6-restart.txt／task6-restart-values.json、task6-cleanup.txt、task6-workspace-{1280,375}.png（實作者與主代理已看）。專用PG DB p2a_migration_b12b66168c4c保留；重啟project 6a159d13-f536-4585-8e17-183c55d39eba完整detail相等，start=null/due=2026-10-15/owner/dept/status不變。初次E2E4failed為測試導覽/安全投影/預期401契約調整；PG首次sys.path設定失敗、verify首次E2E TypeScript型別建置失敗均已修正，未當功能RED。最終verify exit0、acceptance容器空且volume保留。README/指南/試用清單已更新；G6 main回歸與15173部署通過，詳見交接。
 
 **Task5證據與審查補核**：ignored .superpowers/p2a/task5-red.txt、task5-fix1-red.txt、task5-fix1-green.txt、task5-fix1-build.txt、task5-ui-results.json及form/workspace-{1280,375}.png。主代理已實看兩寬表單。普通editor無指派、日期清除、取消不寫、鍵盤提交、跨專案定位通過；每寬3筆未登入auth/me 401為預期，其餘console/pageerror為0。第一輪修正已關閉舊reload競態；主代理重跑96passed與build0保存證據。review_finalized_docs另補足Task1–4第二位品質審查，均Approved、無新增issue；各Task先前review_task1的spec及quality結論保留。
 
@@ -575,6 +575,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | 項目 | 內容 | 證據 |
 |---|---|---|
+| P2a | 工作區、總覽／我的任務、四層新增／metadata編輯、D56指派與日期、多層Gate | acf176e..8dc914a；六Task TDD、兩位獨立spec／品質審查與G4 Ready to merge: Yes；ff-only main，G6 API182／Vitest96／E2E9/build/cleanup exit0，真PG與無seed重啟保留資料通過。15173已就緒，人類簽核未勾。 |
 | P1c | 本機MVP部署與隔離驗收工程交付；人類試用簽核仍待完成 | 三Task TDD、Lagrange spec／Feynman quality Approved；G4 Ready to merge: Yes，ff-only main；API80／Vitest56／E2E6/build及預設cleanup exit0。既有共享12專案snapshot不變；只停acceptance且保留volume；Demo未變。 |
 | 階段 0 | petfood 互動 Demo（`projectflow-petfood-demo.html`） | README §8 階段 0 已打勾 ✅；早於 git 歷史，包含在 `9fdcc64` 裡 |
 | F1–F10 | full demo 的多層任務樹、模板、時程編輯、前置條件與關鍵路徑、權限與覆寫、協作、文件與版本、AI 副手（規則式）、分級路由與遮罩（模擬）、研發營運資料（模擬 ERP） | 早於 git 歷史，包含在 `9fdcc64` 裡。F6 的部門目前是寫死的，由 W2 處理 |
@@ -811,6 +812,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-6｜P2a工程交付完成
+- **做了什麼**：依D56定稿規格／計畫，D57補裝環境；六Task逐一TDD／獨立審查／PROGRESS提交，Task4登出及Task5舊reload競態均以真RED修正。Task1–4第二位品質審查已補核，六Task最終均Approved；G4兩位Ready to merge: Yes，d8499cd ff-only合併main。
+- **驗證**：Task證據見§3；G6 .superpowers/p2a/g6-main-verify.txt：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s及cleanup exit0。跳過的專用PG另實跑1passed；旧row／audit保留，日期null／保存／CHECK通過；acceptance不seed重啟完整detail相等。1280／375截圖已實看，非預期console／HTTP／pageerror0；Demo與tests diff空。
+- **本機部署／保留**：本機部署前無deploy/.env、formal volume或15173/18000 listener（歷史P1c的12專案環境不在這台Docker主機，未重設或刪除任何資料）。G6回歸後以start.py --seed-demo初次建立本機試用環境；僅初始化新volume，之後重啟不seed。15173首頁／health／ready200、acceptance404，migration20261008_0002 head；未在primary執行自動業務測試。env ignored、不輸出私密設定，acceptance容器已停止但volume與測試資料保留。
+- **交付／下一步**：README／指南／人類試用清單已更新；本次收尾commit後依授權push main並另記成功結果。保留15173供人類以food／yu／demo-yu試用；P1c及P2a簽核均未代勾。P2b另走G1／G2，不把本次完成視為P2b–P2d或LAN已交付。
+
 ### 2026-10-08｜Codex GPT-6｜P2a定稿與G3環境檢查
 - **做了什麼**：初始Git乾淨，fetch + ff-only確認`ff0cdbe`已同步；記錄人類D56同意，定稿spec／plan。獨立review_finalized_docs指出兩項文件歷史／現況措辭，已修正。
 - **驗證**：Python鎖版依賴安裝exit0；API80 passed／1 warning／29.09s，exit0。verify因npm缺失exit1；Docker與WSL亦未安裝，沒有Compose／E2E／PostgreSQL驗收證據，不宣稱功能RED或P2a完成。
@@ -837,9 +844,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **環境／清理**：Compose http://127.0.0.1:15173 保留供試用；只關本次Vite15174 PID33460，不動其他服務或volume。測試另建unique專案，seed任務狀態未改；測試專案保留（目前無刪除API）。 ignored .env／依賴／截圖不提交。依D50推送origin main，發布結果寫回看板。
 - **發布**：已成功push `85813ef..255f435`；P1b feature分支已刪除，只留下main與原有歷史分支。本筆發布紀錄接續同步origin main。
 - **下一步**：P1c部署／測試／內部試用驗收計畫，D51授權持續有效。本段只完成P1b；timeout、gate reload自動回歸與E2E預期HTTP次數三項Minor見§5。
-
-### 2026-10-08｜Codex GPT-5｜P1b React核心UI計畫完成
-- **做了什麼**：依人類指示「進行P1b」與看板下一步，讀P1a後端API、正式MVP spec、P1a plan與現有React殼，新增 [P1b React核心UI可執行計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md)。計畫拆成4個Native Task：登入/session、專案樹與麵包屑、看板／Gate、工作流建立與Playwright smoke。尚未修改產品程式。
-- **驗證／審查**：本次為G2 plan文件；已自檢placeholder掃描，計畫列出Global Constraints、Review Focus、Files、Interfaces、RED/GREEN命令、commit主旨與完成驗收。未跑產品測試，沒有宣稱P1b GREEN。
-- **環境／清理**：仍在`main`，沒有開feature分支，working tree只含plan與PROGRESS更新。Demo與正式產品程式未改；Compose狀態沿用P1a交接。
-- **下一步**：審閱P1b計畫；確認後依G3 pre-flight檢查基準、commit `Progress: start P1b`、開 `feature/p1b-react-core-ui`，再照Task 1開始RED。
