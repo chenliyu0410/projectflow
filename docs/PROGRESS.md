@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2c 🟢 獨立審查通過，待保留資料部署** |
+| 目前工作項目 | **P2c ✅ 精簡範圍工程交付完成；P2d待規劃** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | P2c獨立審查Ready to merge: Yes；ff-only合併後備份DB+files、不seed升級15173、健康與原值核對，再依人類指示push GitHub。 |
-| 分支 | `feature/p2c-schedule-workflow`（主checkout，main凍結；已建立）。 |
+| 下一個動作 | P2d先選一個產業案例，整理文件／營運資料／規則式摘要的短規格／計畫；不自動開始未定案功能，人類試用仍待簽核。 |
+| 分支 | `main`（P2c ff-only合併及保留資料部署完成，feature待安全刪除）。 |
 | 最新程式 commit | P2c整合 `5992ce6`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | P2c PG6pass、API344pass7skip+兩修正target通過、Vitest167/build0、E2E15pass+剩餘target通過；一次完整回歸及窄修正驗證，未假稱原verify exit0。 |
-| 資料版本 | Demo v6/key不變；正式migration head `20261008_0003`，15173已保留原有全部欄位／row值與env升級，新增files持久volume。專用PG驗證保留；acceptance15175／Task4隔離容器停止，雙volume保留。 |
-| 認領中 | Codex：P2c實作，2026-10-09。 |
-| 阻塞／待人類 | P2b無工程阻塞；P1c／P2a／P2b人類試用簽核、D43／D10仍未完成。P2c D66已定案；LAN未授權。 |
-| 遠端 | P2b交付`409e9cb`已push origin main且ls-remote SHA一致；本發布紀錄隨main同步。本輪fetch確認遠端無新增未知commit，無force。 |
+| 資料版本 | Demo v6/key未改；正式migration `20261009_0004`。15173原有全部row/欄位值、檔案SHA與env保留；隔離acceptance/p2c-backend已down不-v，雙volume與專用DB保留。 |
+| 認領中 | —（P2c完成，無實作認領）。 |
+| 阻塞／待人類 | P2c無工程阻塞；P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核，P2d需定範圍；LAN未授權。 |
+| 遠端 | 人類再次授權「完成後推上git」；P2c收尾commit後依D50 push main並核對遠端。本輪fetch無未知遠端改動，無force。 |
 
 ---
 
@@ -89,7 +89,7 @@
 |---|---|---|---|---|---|
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
 | 已完成 | P2b | 回報／審核、筆記、附件與稽核介面 | ✅ 工程交付 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；八Task／G4雙審、G6隔離回歸及保留資料部署通過 | P2a |
-| 進行中 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | 🟢 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
+| 已完成 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -105,7 +105,7 @@
 
 ## 3. 工作項目明細
 
-### P2c 時程、模板與前置 — 🟢 Ready to merge
+### P2c 時程、模板與前置 — ✅ 精簡範圍工程交付
 
 **授權／範圍**：D65精簡流程、D66 A；人類追加「完成後推上git」。[短規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)。已完成模板CRUD/copy、多層task/頂層phase與Gate、相對日建立專案、日週月時程/桌面拖移拉伸/手機鍵盤日期、同專案硬性FS與安全阻擋、可見簡單相依圖。改期不順延，SS/FF/延遲/關鍵路徑/子樹套用等明列延後，不宣稱完整Demo一致。
 
@@ -115,7 +115,9 @@
 
 **展示／保存**：10task模板建立/copy、跨年日期、日週月、drag/resize實際變更、手機鍵盤改期/重載、FS done/skipped解鎖/Gate仍擋/20task循環拒絕、readonly/跨公司/hidden前置固定訊息；1280/375無頁面overflow及非預期HTTP/console/pageerror，parent實看兩寬度時程detail。無seed stop/start完整project/workflow/dependency snapshots相同。acceptance與p2c-backend容器已down不-v，各files/pgdata雙volume及專用DB保留。
 
-**證據**：ignored `.superpowers/p2c/` backend-red/target/final-target/pg、ui-vitest/build、full-verify（首次fail）、query-targeted、vitest/build、e2e-full、workspace-targeted、persistence、final-*及schedule/dependencies screenshots。mandatory DB `p2b_test_f172f1ebf04f48b4b673547e6e81f266`／`p2b_test_3453be12b6894c05a7a15b063c9da72e`／`p2b_test_ea31ef747c8c46aba1e1f4fe872aa6af`保留。primary仍0003未改，部署待完成，人類簽核不勾。
+**證據**：ignored `.superpowers/p2c/` backend-red/target/final-target/pg、ui-vitest/build、full-verify（首次fail）、query-targeted、vitest/build、e2e-full、workspace-targeted、persistence、final-*及schedule/dependencies screenshots。mandatory DB `p2b_test_f172f1ebf04f48b4b673547e6e81f266`／`p2b_test_3453be12b6894c05a7a15b063c9da72e`／`p2b_test_ea31ef747c8c46aba1e1f4fe872aa6af`保留。primary已備份後保留資料升至0004，人類簽核不勾。
+
+**交付部署**：ff-only main，依D65不重跑main全量；15173停止API後`primary-before.sql`+`primary-files-before.tar`成套備份、原值snapshot及私密env/SHA保存；不seed升`20261009_0004`，全部原表欄位/row值與files SHA/env相同，web/health/ready200、10001:10001/0700（`primary-preservation.txt`）。未跑primary業務測試。階段末更新README/指南/清單/看板，依人類指示推main，未代勾任何人類簽核。
 
 ### P2b 回報與協作 — ✅ 工程交付完成
 
@@ -640,6 +642,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | 項目 | 內容 | 證據 |
 |---|---|---|
+| P2c | 日週月時程/拖移與手機改期、模板CRUD/copy/相對日、硬性FS與可見相依圖 | 6c45e51..5992ce6；D65一次獨立審查Ready to merge: Yes；PG6、API344+target2、Vitest167/build0、E2E15+target1，首次fail日志保留，不重跑main全量。無seed重啟/15173成套備份升0004，原值/filesSHA/env相同。精簡範圍之外明列延後，人類簽核未勾。 |
 | P2b | 回報審核、筆記修訂、指定協作、持久附件、審核中心與安全稽核 | ef39cdd..4d0323e；八Task TDD／雙審、G4 Ready to merge: Yes、ff-only main。G6強制PG1+3、API337/5skip、Vitest150、E2E13/build/cleanup exit0；重啟/恢復/配額、15173無seed升級舊資料與env不變。人類簽核未勾。 |
 | P2a | 工作區、總覽／我的任務、四層新增／metadata編輯、D56指派與日期、多層Gate | acf176e..8dc914a；六Task TDD、兩位獨立spec／品質審查與G4 Ready to merge: Yes；ff-only main，G6 API182／Vitest96／E2E9/build/cleanup exit0，真PG與無seed重啟保留資料通過。15173已就緒，人類簽核未勾。 |
 | P1c | 本機MVP部署與隔離驗收工程交付；人類試用簽核仍待完成 | 三Task TDD、Lagrange spec／Feynman quality Approved；G4 Ready to merge: Yes，ff-only main；API80／Vitest56／E2E6/build及預設cleanup exit0。既有共享12專案snapshot不變；只停acceptance且保留volume；Demo未變。 |
@@ -889,6 +892,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-09｜Codex GPT-6｜P2c精簡範圍工程交付
+- **完成**：D66 A時程/模板/FS/簡單圖，未新增套件；一次獨立審查Ready to merge: Yes，Minor桌面寬度觸控點條記錄延後。
+- **驗證**：候選完整回歸一次，PG6通過；API344pass7skip2舊capfail→兩target通過，Vitest167/build0，E2E15pass1舊排序fail→剩餘target通過；不假稱首次verify全綠，不重跑main全量。1280/375真UI、20taskcycle、無seed資料保存通過，詳細`.superpowers/p2c/`。
+- **資料／部署**：ff-only main；15173停止API保存DB+files一致備份，不seed升0004，全部原欄位/row、檔案SHA與env不變，health/ready/web200。只跑隔離業務測試，acceptance/backend容器清空，雙volume與專用DB保留，Demo未改。
+- **發布／下一步**：更新文件後依人類「完成後推上git」push main並核對遠端；P2d先定一個產業案例與短範圍，不自動開始未核准功能。人類簽核全未代勾。
+
 ### 2026-10-09｜Codex GPT-6｜D65精簡流程
 - **決策**：人類確認採簡化流程；AGENTS／WORKFLOW§14／路線圖／README同步，後續取消逐Task雙審及一般畫面強制TDD，採每階段一次獨立審查／完整回歸／交付紀錄。
 - **保留**：既有功能與資料、隔離測試、基本授權與Git安全；未改產品、DB、容器或人類簽核。
@@ -910,8 +919,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **決策**：人類選D62 A，筆記作者修訂／保留歷史、單檔10 MB、公司初始1 GB與附件保留規則定案。草案§4整理剩餘流程邊界兩方案，明列延後功能避免誤稱全F11完成。
 - **驗證**：git diff --check；僅修改spec與PROGRESS，未跑產品測試／實作／migration，15173與既有資料不變。
 - **下一步**：人類選D63後完成完整spec與G2 plan、獨立文件審查，再供整體審閱。草案本機提交未push，人類試用未代勾。
-
-### 2026-10-08｜Codex GPT-6｜P2b D61採A與D62筆記附件提案
-- **決策**：人類選D61 A，指定協作人員及協作部門主管取得指定節點協作權，不自動擴張部門或子樹。更新規格與進度，整理D62笔記與附件整組候選規則。
-- **驗證**：對照README F11的作者修訂、10 MB、軟刪及回報附件保護，git diff --check；只改文件，無產品／DB／15173變更，未跑產品測試。
-- **下一步**：确认D62，再處理剩餘流程細節並完成spec／plan；草案未定稿、未push，人類試用簽核不變。
