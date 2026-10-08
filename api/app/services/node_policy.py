@@ -87,9 +87,9 @@ def containing_phase(db: Session, current: CurrentUser, node: Node) -> Node | No
         cursor = parent
 
 
-def blocked_by_pending_gate(db: Session, current: CurrentUser, node: Node) -> bool:
+def pending_gate_for_node(db: Session, current: CurrentUser, node: Node) -> bool:
     phase = containing_phase(db, current, node)
-    if node.status != "todo" or phase is None:
+    if phase is None:
         return False
     lower_phase_ids = select(Node.id).where(
         Node.organization_id == current.organization.id,
@@ -103,6 +103,11 @@ def blocked_by_pending_gate(db: Session, current: CurrentUser, node: Node) -> bo
         Gate.node_id.in_(lower_phase_ids),
         Gate.status == "pending",
     ).limit(1)) is not None
+
+
+def blocked_by_pending_gate(db: Session, current: CurrentUser, node: Node) -> bool:
+    pending = pending_gate_for_node(db, current, node)
+    return node.status == "todo" and pending
 
 
 def visible_workspace_nodes(db: Session, current: CurrentUser, *, context=None) -> tuple[dict[str, Project], list[Node]]:

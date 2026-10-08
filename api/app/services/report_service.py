@@ -1,0 +1,123 @@
+"""Node-serialized report and lifecycle transactions."""
+from fastapi import HTTPException
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.audit import log_audit
+from app.auth import CurrentUser
+from app.models import Node, Project, TaskReport, now_utc
+from app.permissions import can_manage_project, can_view_node, can_view_project
+from app.services.node_policy import containing_phase, pending_gate_for_node, node_out
+from app.services.record_policy import load_policy_context, can_submit_report, can_review_report, can_self_approve_report
+
+
+def conflict():
+    raise HTTPException(status_code=409, detail="目前狀態不允許此操作，請重新整理")
+
+
+def lock_node(db: Session, current: CurrentUser, node_id: str, *, require_visible=True):
+    node = db.scalar(select(Node).where(Node.id == node_id, Node.organization_id == current.organization.id)
+                     .with_for_update().execution_options(populate_existing=True))
+    if node is None:
+        raise HTTPException(status_code=404, detail="找不到節點")
+    project = db.scalar(select(Project).where(Project.id == node.project_id, Project.organization_id == current.organization.id))
+    context = load_policy_context(db, current)
+    if project is None or not can_view_project(current, project) or (require_visible and not can_view_node(current, node, context=context)):
+        raise HTTPException(status_code=404, detail="找不到節點")
+    return node, project, context
+
+
+def require_gate(db, current, node):
+    if pending_gate_for_node(db, current, node):
+        raise HTTPException(status_code=409, detail="前一階段閘門尚未通過")
+
+
+def report_out(report, node, context):
+    author = context.users.get(report.submitted_by)
+    reviewer = context.users.get(report.reviewed_by)
+    return {
+        'id': report.id, 'node_id': report.node_id, 'result': report.result, 'summary': report.summary,
+        'status': report.status, 'version': report.version, 'legacy': report.workflow_version != 2,
+        'finished_on': report.finished_on.isoformat() if report.finished_on else None,
+        'submitted_by': report.submitted_by, 'submitted_by_display_name': author.display_name if author else None,
+        'submitted_at': report.submitted_at.isoformat(),
+        'reviewed_by': report.reviewed_by, 'reviewed_by_display_name': reviewer.display_name if reviewer else None,
+        'reviewed_at': report.reviewed_at.isoformat() if report.reviewed_at else None,
+        'review_comment': report.review_comment, 'self_approved': report.self_approved,
+        'node_status': node.status, 'attachments': [],
+    }
+
+
+def submit_report(db, current, node_id, payload):
+    node, project, context = lock_node(db, current, node_id)
+    if not can_submit_report(db, current, project, node, context=context):
+        raise HTTPException(status_code=403, detail="沒有回報此節點的權限")
+    if payload.self_approve and not can_self_approve_report(db, current, project, node, context=context):
+        raise HTTPException(status_code=403, detail="沒有送出並確認權限")
+    if payload.attachment_ids:
+        raise HTTPException(status_code=422, detail="附件關聯尚未開放，請勿提交附件")
+    if node.status not in {'todo', 'doing', 'review'} or node.id in context.pending_reports:
+        conflict()
+    require_gate(db, current, node)
+    report = TaskReport(organization_id=current.organization.id, node_id=node.id,
+        result=payload.result, summary=payload.summary, finished_on=payload.finished_on,
+        submitted_by=current.user.id, workflow_version=2, version=context.latest_versions.get(node.id, 0) + 1,
+        status='approved' if payload.self_approve else 'submitted', self_approved=payload.self_approve,
+        reviewed_by=current.user.id if payload.self_approve else None,
+        reviewed_at=now_utc() if payload.self_approve else None)
+    db.add(report)
+    try:
+        db.flush()
+        node.status = 'done' if payload.self_approve else 'review'
+        log_audit(db, current, 'report.submit', node_id=node.id, payload={'report_id':report.id,'version':report.version,'result':report.result})
+        if payload.self_approve:
+            log_audit(db, current, 'report.approve', node_id=node.id, payload={'report_id':report.id,'version':report.version,'self_approved':True})
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        conflict()
+    db.refresh(report)
+    return report_out(report, node, context)
+
+
+def review_report(db, current, report_id, payload):
+    node_id = db.scalar(select(TaskReport.node_id).where(TaskReport.id == report_id, TaskReport.organization_id == current.organization.id))
+    if node_id is None:
+        raise HTTPException(status_code=404, detail="找不到回報")
+    node, project, context = lock_node(db, current, node_id)
+    report = db.scalar(select(TaskReport).where(TaskReport.id == report_id, TaskReport.organization_id == current.organization.id)
+                       .with_for_update().execution_options(populate_existing=True))
+    if not can_review_report(db, current, project, node, context=context):
+        raise HTTPException(status_code=403, detail="沒有審核此回報的權限")
+    if not can_review_report(db, current, project, node, report, context=context):
+        conflict()
+    if payload.decision == 'approved':
+        require_gate(db, current, node)
+    else:
+        containing_phase(db, current, node)
+    report.status = payload.decision
+    report.reviewed_by = current.user.id
+    report.reviewed_at = now_utc()
+    report.review_comment = payload.comment
+    node.status = 'done' if payload.decision == 'approved' else 'doing'
+    log_audit(db, current, 'report.approve' if payload.decision == 'approved' else 'report.reject', node_id=node.id,
+              payload={'report_id':report.id,'version':report.version,'comment':payload.comment,'self_approved':False})
+    db.commit()
+    db.refresh(report)
+    return report_out(report, node, context)
+
+
+def lifecycle(db, current, node_id, payload):
+    node, project, context = lock_node(db, current, node_id)
+    if not can_manage_project(current, project):
+        raise HTTPException(status_code=403, detail="沒有管理此任務的權限")
+    valid_sources = {'reopen':{'done','review'}, 'skip':{'todo','doing'}, 'restore':{'skipped'}}
+    if node.kind != 'task' or node.status not in valid_sources[payload.action] or node.id in context.pending_reports:
+        conflict()
+    require_gate(db, current, node)
+    node.status = 'skipped' if payload.action == 'skip' else 'doing'
+    log_audit(db, current, f'node.{payload.action}', node_id=node.id, payload={'reason':payload.reason})
+    db.commit()
+    db.refresh(node)
+    return node_out(db, current, project, node, context=context)

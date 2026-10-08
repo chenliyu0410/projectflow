@@ -16,7 +16,7 @@ def first_owned_node(client):
 def test_submit_report_requires_can_work_and_writes_audit(client):
     login(client, "food", "ming", "demo-ming")
     node = first_owned_node(client)
-    response = client.post(f"/nodes/{node['id']}/reports", json={"result": "達成", "summary": "已完成測試"})
+    response = client.post(f"/nodes/{node['id']}/reports", json={"finished_on": "2026-10-08", "result": "達成", "summary": "已完成測試"})
     assert response.status_code == 201
     assert response.json()["status"] == "submitted"
     logs = client.get("/audit-logs").json()["items"]
@@ -28,7 +28,7 @@ def test_readonly_cannot_submit_report(client):
     login(client, "food", "lin", "demo-lin")
     project = client.get("/projects").json()["items"][0]
     node = client.get(f"/projects/{project['id']}").json()["nodes"][0]
-    response = client.post(f"/nodes/{node['id']}/reports", json={"result": "達成", "summary": "不應成功"})
+    response = client.post(f"/nodes/{node['id']}/reports", json={"finished_on": "2026-10-08", "result": "達成", "summary": "不應成功"})
     assert response.status_code == 403
 
 
@@ -49,5 +49,5 @@ def test_cross_company_node_cannot_receive_report(client):
     other_node = client.get(f"/projects/{other_project['id']}").json()["nodes"][0]
     client.post("/auth/logout")
     login(client, "food", "yu")
-    response = client.post(f"/nodes/{other_node['id']}/reports", json={"result": "達成", "summary": "偷寫"})
+    response = client.post(f"/nodes/{other_node['id']}/reports", json={"finished_on": "2026-10-08", "result": "達成", "summary": "偷寫"})
     assert response.status_code == 404

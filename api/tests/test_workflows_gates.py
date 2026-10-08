@@ -132,7 +132,18 @@ def test_deep_tasks_cannot_bypass_hidden_phase_gate(client,engine,status,with_ro
     client.post('/auth/logout');login(client)
     assert client.patch(f'/gates/{gate}',json={'status':'approved'}).status_code==200
     client.post('/auth/logout');login(client,username='ming')
-    assert client.patch(f'/nodes/{child}/status',json={'status':status}).status_code==200
+    if status == 'doing':
+        assert client.patch(f'/nodes/{child}/status',json={'status':status}).status_code==200
+    elif status in {'review','done'}:
+        report=client.post(f'/nodes/{child}/reports',json={'result':'達成','summary':'Gate後送審','finished_on':'2026-10-08'})
+        assert report.status_code==201
+        if status=='done':
+            client.post('/auth/logout');login(client)
+            assert client.post(f"/reports/{report.json()['id']}/review",json={'decision':'approved'}).status_code==200
+    else:
+        assert client.post(f'/nodes/{child}/lifecycle',json={'action':'skip','reason':'reason'}).status_code==403
+        client.post('/auth/logout');login(client)
+        assert client.post(f'/nodes/{child}/lifecycle',json={'action':'skip','reason':'reason'}).status_code==200
 
 
 def test_phase_itself_is_blocked_and_approval_releases_it(client,engine):
@@ -184,7 +195,8 @@ def test_gate_scope_and_existing_non_todo_transition_semantics(client,engine):
         # A pending Gate still does not block an already-started valid node.
         db.get(Node,child).status='doing'
         db.commit()
-    assert client.patch(f'/nodes/{child}/status',json={'status':'done'}).status_code==200
+    assert client.patch(f'/nodes/{child}/status',json={'status':'done'}).status_code==409
+    assert client.patch(f'/nodes/{child}/status',json={'status':'doing'}).status_code==200
     assert client.patch(f'/nodes/{child}/status',json={'status':'todo'}).status_code==200
     with Session(engine) as db:
         prior_phase = db.get(Gate,gate).node_id

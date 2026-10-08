@@ -11,6 +11,7 @@ from app.schemas import NodeCreate, NodeUpdate, NodeStatusUpdate, ProjectCreate
 from app.services.node_policy import node_out, json_value, validate_assignments, validate_dates, blocked_by_pending_gate
 
 from app.services.record_policy import load_policy_context
+from app.services.report_service import lock_node, conflict
 
 router = APIRouter(tags=["projects"])
 
@@ -125,16 +126,15 @@ def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Dep
 
 @router.patch("/nodes/{node_id}/status")
 def update_node_status(node_id: str, payload: NodeStatusUpdate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
-    context = load_policy_context(db, current)
-    node = db.execute(select(Node).where(Node.organization_id == current.organization.id, Node.id == node_id)).scalar_one_or_none()
-    if node is None:
-        raise HTTPException(status_code=404, detail="找不到節點")
+    node, project, context = lock_node(db, current, node_id, require_visible=False)
     if not can_work_node(db, current, node):
         raise HTTPException(status_code=403, detail="沒有操作此節點的權限")
     # Every status mutation validates ancestry; Gates only block starting work.
     blocked = blocked_by_pending_gate(db, current, node)
     if payload.status in {"doing", "review", "done", "skipped"} and blocked:
         raise HTTPException(status_code=409, detail="前一階段閘門尚未通過")
+    if node.kind == "task" and (node.status not in {"todo", "doing"} or payload.status not in {"todo", "doing"} or node.id in context.pending_reports):
+        conflict()
     node.status = payload.status
     log_audit(db, current, "node.status", node_id=node.id, payload={"status": payload.status})
     db.commit()

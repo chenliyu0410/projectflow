@@ -2,7 +2,7 @@ from datetime import date
 import re
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class LoginRequest(BaseModel):
@@ -102,9 +102,65 @@ class GateStatusUpdate(BaseModel):
 
 class ReportCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-
-    result: str
+    result: Literal["達成", "部分達成", "未達成"]
     summary: str
+    finished_on: date
+    attachment_ids: list[str] = Field(default_factory=list)
+    self_approve: bool = False
+
+    @field_validator("result", mode="before")
+    @classmethod
+    def trim_result(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("summary")
+    @classmethod
+    def valid_summary(cls, value):
+        value = value.strip()
+        if not 1 <= len(value) <= 10000:
+            raise ValueError("成果說明需為 1–10000 字元")
+        return value
+
+    @field_validator("finished_on", mode="before")
+    @classmethod
+    def valid_date(cls, value):
+        if value is None:
+            raise ValueError("實際完成日必填")
+        return NodeMetadata.calendar_date(value)
+
+
+class ReportReview(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    decision: Literal["approved", "rejected"]
+    comment: str = ""
+
+    @field_validator("comment")
+    @classmethod
+    def valid_comment(cls, value):
+        value = value.strip()
+        if len(value) > 2000:
+            raise ValueError("審核意見上限 2000 字元")
+        return value
+
+    @model_validator(mode="after")
+    def required_rejection(self):
+        if self.decision == "rejected" and not self.comment:
+            raise ValueError("退回意見必填")
+        return self
+
+
+class NodeLifecycle(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: Literal["reopen", "skip", "restore"]
+    reason: str
+
+    @field_validator("reason")
+    @classmethod
+    def valid_reason(cls, value):
+        value = value.strip()
+        if not 1 <= len(value) <= 2000:
+            raise ValueError("原因需為 1–2000 字元")
+        return value
 
 
 class NodeStatusUpdate(BaseModel):

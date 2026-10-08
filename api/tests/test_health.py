@@ -73,6 +73,8 @@ def test_only_health_routes_exist():
         "/health/ready",
         "/nodes/{node_id}",
         "/nodes/{node_id}/reports",
+        "/nodes/{node_id}/lifecycle",
+        "/reports/{report_id}/review",
         "/nodes/{node_id}/status",
         "/projects",
         "/projects/from-workflow",
