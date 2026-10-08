@@ -6,6 +6,12 @@
 
 後續業務資料以organization_id識別公司。API從已驗證身分取得可用公司，查詢與外鍵須限制公司；不能信任前端傳來的公司參數。稽核、檔案讀寫與工作流建立同樣受限。P0只有健康檢查，尚無業務API或登入功能。
 
+## 環境需求
+
+- 本機開發：Python 3.13、Node 24.15以上且小於25；套件分別使用`api/requirements.lock`及`web/package-lock.json`。
+- 完整環境：Docker Desktop的Linux容器引擎與Docker Compose。容器自帶Python／Node，不依賴主機安裝的執行環境。
+- P0僅為本機技術骨架，沒有登入、業務資料、migration或正式環境強化；不可直接當成內網正式版發布。
+
 ## 本機API
 
 在repo根目錄逐行執行：
@@ -30,7 +36,75 @@ npm.cmd --prefix web run build
 npm.cmd --prefix web run dev
 ```
 
-開啟`http://127.0.0.1:15173`。開發代理將`/api`送到`http://127.0.0.1:18000`，不需要放寬跨來源政策。API使用其他埠時，先在同一終端設定`$env:API_PROXY_TARGET = 'http://127.0.0.1:<埠號>'`。真實資料庫尚待Task3設定，未設定時顯示「無法連線」是預期結果。Docker整合與桌面／手機畫面將在Task3验收。
+開啟`http://127.0.0.1:15173`。開發代理將`/api`送到`http://127.0.0.1:18000`，不需要放寬跨來源政策。API使用其他埠時，先在同一終端設定`$env:API_PROXY_TARGET = 'http://127.0.0.1:<埠號>'`。未設定資料庫時顯示「無法連線」是預期結果；完整環境以以下Compose步驟為準。
+
+## 完整容器環境
+
+以下PowerShell命令均從repo根目錄執行。先確認15173／18000未被其他服務使用：
+
+```powershell
+Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -in 15173,18000 }
+```
+
+僅在`deploy/.env`不存在時，產生本機專用設定；密碼不顯示、不進Git、不送前端。第一次使用的資料庫volume必須沒有既存的不同密碼。已有設定或volume時不要重產密碼，不要刪除volume。
+
+```powershell
+if (-not (Test-Path -LiteralPath deploy/.env)) {
+  $bytes = New-Object byte[] 32
+  $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try { $rng.GetBytes($bytes) } finally { $rng.Dispose() }
+  $password = ($bytes | ForEach-Object { $_.ToString('x2') }) -join ''
+  $config = "POSTGRES_PASSWORD=$password`nWEB_PORT=15173`nAPI_PORT=18000`n"
+  [IO.File]::WriteAllText((Join-Path (Get-Location) 'deploy/.env'), $config, (New-Object Text.UTF8Encoding $false))
+  Remove-Variable password,config,bytes
+}
+git check-ignore deploy/.env
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml config --quiet
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build --wait
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml ps
+```
+
+開啟[專流正式版骨架](http://127.0.0.1:15173)。API存活檢查位於`http://127.0.0.1:18000/health`。前端透過同來源`/api/health/ready`確認真實DB連線；連線正常顯示「已連線」，資料庫不可用時API回503、前端顯示「無法連線」。`/health`不依賴DB。
+
+三個服務屬於`projectflow-formal`專案；PostgreSQL只在容器網路內開放，資料保留在`projectflow-formal_pgdata`。對外埠僅綁127.0.0.1。若埠被占用，只改本機`deploy/.env`的`WEB_PORT`／`API_PORT`，不要停掉其他人的服務；開發Vite可用`npm.cmd --prefix web run dev -- --port <空閒埠>`並同步設定API_PROXY_TARGET。本機API與Compose API不能同時占用18000。
+
+## 整合驗收與恢復
+
+先啟動完整Compose，再逐行執行：
+
+```powershell
+api/.venv/Scripts/python.exe -m pytest -c api/pyproject.toml api/tests -q
+npm.cmd --prefix web ci
+npm.cmd --prefix web test
+npm.cmd --prefix web run build
+Push-Location web
+try { npm.cmd exec -- playwright install chromium } finally { Pop-Location }
+npm.cmd --prefix web run e2e
+```
+
+如果WEB_PORT不是15173，在E2E之前設定`$env:PF_BASE_URL = 'http://127.0.0.1:<實際WEB_PORT>'`。測試檢查真實代理、桌面1280px／手機375px的重試、圖示載入、水平溢出與console，截圖位於被忽略的`web/test-results/`。
+
+只對本專案測試資料庫中斷：
+
+```powershell
+try {
+  docker compose --env-file deploy/.env -f deploy/docker-compose.yml stop db
+  if ($LASTEXITCODE -ne 0) { throw 'Cannot stop database' }
+  # 此時在畫面按重新檢查，應顯示無法連線；存活200、就緒503。
+  Read-Host '確認無法連線後按Enter恢復資料庫'
+} finally {
+  docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --wait db
+  if ($LASTEXITCODE -ne 0) { throw 'Database recovery failed' }
+}
+```
+
+恢復後按「重新檢查」應回到「已連線」。此操作不改密碼、不刪volume。完整停機可執行以下命令，保留資料；**不可加`-v`，不可使用prune清理資料**：
+
+```powershell
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml down
+```
+
+Docker基礎映像使用開發方便用的版本tag，本次實測image ID／digest見PROGRESS；不是離線或正式環境可重現部署保證。
 
 ## 工作流程
 

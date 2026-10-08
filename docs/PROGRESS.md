@@ -395,16 +395,24 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 |---|---|---|---|---|
 | 1 | 正式軌規則、FastAPI存活／真實DB就緒檢查 | ✅ Arendt獨立審查通過，無Critical／Important | 預期新增8項pytest；RED `1 warning, 1 error in 0.81s`，exit 1：缺`app.main`（安裝中pytest不存在不算RED）；GREEN `8 passed, 1 warning in 0.49s` exit0，pip check通過。reviewer另驗9個負向行為通過；真DB留Task3 | `e6082f9..8e84a9b`；`P0 task 1: add formal rules and API health checks` |
 | 2 | React狀態介面、載入／失敗／重試 | ✅ Faraday獨立審查Approved，無issues | 預期新增6項Vitest＋build；RED `Test Files 1 failed (1); Tests no tests` exit1，缺`./App`；GREEN `Test Files 1 passed (1); Tests 6 passed (6)` exit0、build exit0、runtime audit零漏洞。lock結構比對一致（初次JSON字串比對誤判順序，已改deepEqual驗證）。逾時／遲到請求留Task3補驗 | `b35ca9d..4a2088b`；`P0 task 2: add React health surface` |
-| 3 | Docker Compose、PostgreSQL、桌面／手機與DB恢復 | 未開始 | 新增4項Playwright＋實際DB outage/recovery；目前未執行 | `P0 task 3: verify containerized foundation` |
+| 3 | Docker Compose、PostgreSQL、桌面／手機與DB恢復 | 🔍 已驗收、待獨立審查 | 預期新增4項E2E；RED `4 failed` exit1：proxy readiness、1280px、375px、unknown API均connection refused；GREEN `4 passed (1.1s)`、恢復後`4 passed (978ms)` exit0。API `8 passed, 1 warning in 0.50s`、React `6 passed (6)`、npm ci／build exit0。真DB與畫面中斷／恢復通過 | BASE `7b2f8065a749e36549b452c33fe9f89c4005adf7`；`P0 task 3: verify containerized foundation` |
 
 **環境預檢（2026-10-08，只讀）**：Node24.19.0、npm11.17.0、Python3.13.9、Docker Engine29.7.2／Compose5.4.0可用，Docker daemon可連線；15173／18000未被占用。已查npm／PyPI版本並列於plan，未安裝產品依賴。
 
 **P0驗收**：
-- [ ] 正式軌規則已啟用且Demo檔／測試保持不變。
-- [ ] API8、React6、E2E4及修正新增測試實際通過，記錄各Task RED/GREEN。
-- [ ] 真實PostgreSQL就緒、中斷503、不洩漏連線資訊、恢復成功且volume不被刪除。
-- [ ] 1280／375畫面可用、資產載入、無水平溢出／意外console error。
+- [x] 正式軌規則已啟用且Demo檔／測試保持不變（git diff main --exit-code為0）。
+- [x] API8、React6、E2E4實際通過，逐Task RED/GREEN見上表。
+- [x] 真實PostgreSQL就緒、中斷503、不洩漏連線資訊、恢復成功且volume不被刪除。
+- [x] 1280／375畫面可用、資產載入、無水平溢出／意外console error；已看截圖。
 - [ ] README／正式開發指南／看板更新，獨立審查通過並發布P0階段。
+
+**Task3實測證據（2026-10-08）**：
+- Compose config --quiet、up -d --build --wait成功；API／DB healthy，web正常提供靜態產物，僅127.0.0.1:15173／18000；DB無host埠。Linux pip lock安裝與pip check通過；API UID1000非root。
+- plan PowerShell outage probe exit0：live200、ready503且僅`ok=false,database=unavailable`；finally恢復、volume mountpoint相同。另以Playwright實測手機無法連線→恢復重試已連線；expected503 console一則、unexpectedErrors空。5秒逾時→重試成功→釋放舊回應，狀態仍已連線。
+- 桌面1280及手機375截圖`web/test-results/p0-1280.png`／`p0-375.png`已目視，圖示、文字、按鈕無重疊；outage截圖已目視（後續E2E會清理測試產物）。暫存probe `%TEMP%/pf-p0-probe.cjs`，關鍵結果已寫本表，接手不依賴暫存檔。
+- 工具：Node24.19.0、npm11.17.0、Python3.13.9、Docker29.7.2／Compose5.4.0、Playwright1.64.0／Chromium156.0.8078.4。
+- 實測image ID：API `sha256:d0267bda4bd990e4f4c9e1750007f2c2d4cb897a8348a670ee1e1baa02ac9436`；web `sha256:8f04cf46a074f50478d111e30f35bbb9ce97626745c8403f631607ac4c75a154`；PostgreSQL `sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`。
+- 基礎映像digest：Python3.13-slim `sha256:bf44cdfcb76cd3b41e879bc058fc37ec5872002ccfde7fcb765e218cde0cd79c`；Node24-bookworm-slim `sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20`；nginx stable-alpine `sha256:0985e772fb9f729e6fa0980da05fca5d9c468e870eed43071545afa9d2e27d94`。tag為開發方便用途，不宣稱production hardening／離線部署保證。
 
 ### P0 規劃文件恢復（歷史紀錄，非 P0 實作）
 
