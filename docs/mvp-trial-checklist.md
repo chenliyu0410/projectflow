@@ -1,6 +1,6 @@
 # 正式版 MVP 本機試用驗收清單
 
-本清單區分自動化驗證與人類試用。P0至P1c本機MVP已提供API、React、PostgreSQL、隔離啟動／驗收命令；Task3仍待獨立spec／品質審查及controller整體驗收。只供本機loopback試用，不是LAN／正式環境部署認證。
+本清單區分自動化驗證與人類試用。P0至P1c本機MVP已提供API、React、PostgreSQL、隔離啟動／驗收命令；逐Task spec／品質與整體獨立審查均通過。只供本機loopback試用，不是LAN／正式環境部署認證。
 
 ## 啟動與驗收
 
@@ -68,7 +68,7 @@ Primary入口為 `http://127.0.0.1:15173`，驗收入口為 `http://127.0.0.1:15
 
 共享snapshot只透過food／yu真實登入讀取 `/projects` 與清單順序的各專案detail。格式為 `{"list": <完整清單回應>, "details": <detail陣列>}`，保留JSON插入順序、UTF-8、`ensure_ascii=False`、compact separators。SHA256精確符合controller提供的 `79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7`；另以sorted-key canonical details計算的執行前後hash均為 `5828a55a5b100dfb15e076ef47f55f7667fab4eb95f1c366cb47e4439072e3b0`。共享marker404，隔離marker200／`{"acceptance":true}`。未停止primary、未刪任何volume或歷史專案；keep-running保留兩個stack供controller審查。
 
-目前實機驗證使用既有持久volume；新的設定建立與重複啟動保留由launcher單元測試涵蓋，沒有為測試刪除既有volume或偽稱已完成新機器試用。預設down路徑在單元測試驗證固定acceptance參數與失敗保留，這次完整實跑採keep-running，未實際down。既有Starlette TestClient deprecation warning與Node顏色環境warning不影響exit，未因此新增依賴。
+G4預設verify另實跑：API `80 passed,1 warning in 38.36s`、Vitest56、build0、E2E `6 passed (11.3s)`、最終exit0；預設down成功，acceptance容器清單空，`projectflow-acceptance_pgdata`保留，shared count12／snapshot hash不變、marker404。目前實機驗證使用既有持久volume；新的設定建立與重複啟動保留由launcher單元測試涵蓋，沒有為測試刪除既有volume或偽稱已完成新機器試用。既有Starlette TestClient deprecation warning與Node顏色環境warning不影響exit，未因此新增依賴。
 
 ## 人類試用簽核
 

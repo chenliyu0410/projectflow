@@ -33,7 +33,7 @@
 | W6 多公司產業範例 | ✅ 完成並發布 | 已合併並推送 GitHub `main`：五個公司空間、產業工作流與營運模組、v6 遷移、獨立附件與單公司重設 |
 | P0 正式版骨架 | ✅ 完成並發布GitHub main | API 8項、React 6項、Playwright 4項及build通過；Docker／PostgreSQL中斷恢復、桌面／手機驗收通過。[正式版開發](docs/formal-development.md)、[P0計畫](docs/superpowers/plans/2026-10-08-p0-formal-foundation.md) |
 | P1a 正式版後端核心 | ✅ 完成並發布GitHub main | 登入/session、公司隔離、P1a migration與seed、Project／Node／Department／Workflow／Gate／Report／Audit API完成；API 35項、Vitest 6項、Playwright 4項、build與真PostgreSQL migration／seed smoke通過。[P1a計畫](docs/superpowers/plans/2026-10-08-p1a-backend-core.md) |
-| P1b → P1c 正式版MVP | P1b與P1c Task1／2已審查；Task3自動化交付待獨立審查 | 登入、節點／看板、工作流／閘門、角色隔離、一鍵啟動與隔離驗收命令已實作；人類試用簽核仍待完成。[試用清單](docs/mvp-trial-checklist.md) |
+| P1b → P1c 正式版MVP | 本機工程交付與自動驗收通過；人類試用待簽核 | 登入、節點／看板、工作流／閘門、角色隔離、一鍵啟動與隔離驗收命令已實作；逐Task及整體獨立審查通過。[試用清單](docs/mvp-trial-checklist.md) |
 
 **目前做到哪裡**
 
@@ -41,7 +41,7 @@
 - 目前測試基準：`tests/records.html` 為 `全部通過 174/174`（W6：既有 149 項加 25 項公司測試）。
 - W3 依 2026-10-05 人類指示改成「先完成功能架構」：系統支援工作流模板、從工作流建立專案、階段關卡；每個部門的實際工作流內容可由使用者之後自行添加。
 - Demo 走查已通過；最後只等人類確認可以拿來展示，以及決定 D43（工作流編輯器是否要做成表單式，不擋展示）。
-- 正式版P0骨架、P1a後端核心與P1b React核心UI已完成；P1c Task1／2已通過spec／品質審查，Task3提供可重複執行的隔離驗收命令。API 80項、Vitest 56項、Playwright 6項與build自動化驗證見[試用清單](docs/mvp-trial-checklist.md)。本分支仍需Task3獨立審查與整體驗收；人類試用與LAN／正式部署尚未簽核。
+- 正式版P0至P1c本機MVP工程交付與自動驗收已通過，提供可重複執行的隔離驗收命令。API 80項、Vitest 56項、Playwright 6項與build通過，逐Task及整體獨立審查完成，見[試用清單](docs/mvp-trial-checklist.md)。下一步為人類試用簽核；LAN／正式部署與P2以後功能尚未授權實作。
 - 本機入口：[正式版](http://127.0.0.1:15173)，目前顯示登入／專案工作流UI，其他組員照[正式版開發指南](docs/formal-development.md)啟動自己的環境。以food公司的yu／demo-yu登入，可瀏覽專案、更新狀態、核准閘門及從模板建立專案；chen／ming／lin種子帳號與角色見開發指南。HttpOnly cookie識別公司，登入後沒有前端公司切換。D51交付目標仍是做到P1c可內部試用，真AI／ERP／AD／完整RAG不在本輪MVP，不能用Demo驗收代替正式版驗收。
 
 **階段發布規則（2026-10-08，D50）**：每完成一段工作，先更新本 README 的「已完成／目前階段／下一步」與 PROGRESS，通過該段驗證及審查後合併並推送 GitHub `main`。規劃草稿與已實作功能分開標示，不把未執行測試寫成通過。

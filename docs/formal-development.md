@@ -4,7 +4,7 @@
 
 ## 公司邊界
 
-業務資料以organization_id識別公司。API從已驗證身分取得可用公司，查詢與外鍵須限制公司；不能信任前端傳來的公司參數。稽核、工作流建立同樣受限。目前P1a業務API與P1b四個Task已通過獨立審查；P1c Task1／2通過spec／品質審查，Task3自動化交付待獨立審查。人類試用簽核見[驗收清單](mvp-trial-checklist.md)，未勾選項目仍待人類完成。
+業務資料以organization_id識別公司。API從已驗證身分取得可用公司，查詢與外鍵須限制公司；不能信任前端傳來的公司參數。稽核、工作流建立同樣受限。目前P0至P1c本機MVP已通過逐Task與整體獨立審查及自動驗收。人類試用簽核見[驗收清單](mvp-trial-checklist.md)，未勾選項目仍待人類完成。
 
 ## 環境需求
 
@@ -119,7 +119,7 @@ try { npm.cmd exec -- playwright install chromium } finally { Pop-Location }
 npm.cmd --prefix web run e2e
 ```
 
-E2E預設15175；若隔離環境WEB_PORT不同，先設定`$env:PF_BASE_URL = 'http://127.0.0.1:<隔離實際WEB_PORT>'`。共享15173一律拒絕，每項測試写入前確認acceptance marker。登入、建立、gate阻擋／核准、readonly截圖位於被忽略的`web/test-results/`。每階段檢查水平溢出；pageerror必須0，HTTP及Chrome resource console錯誤僅精確允許初始`/api/auth/me` 401與測試task的預期409各一次，其他錯誤必須0，不宣稱console全空。
+E2E預設15175；若隔離環境WEB_PORT不同，先設定`$env:PF_BASE_URL = 'http://127.0.0.1:<隔離實際WEB_PORT>'`。共享15173一律拒絕，每項測試寫入前確認acceptance marker。登入、建立、gate阻擋／核准、readonly截圖位於被忽略的`web/test-results/`。每階段檢查水平溢出；pageerror必須0，HTTP及Chrome resource console錯誤僅精確允許初始`/api/auth/me` 401與測試task的預期409各一次，其他錯誤必須0，不宣稱console全空。
 
 只對隔離驗收資料庫中斷（先確認acceptance服務已啟動）：
 
@@ -140,7 +140,7 @@ try {
 恢復後`/api/health/ready`應回200；登入UI載入失敗時按「重試」，或重新登入後選取專案。此操作不改密碼、不刪volume。上述中斷步驟是手動驗收流程，本輪Task 4未中斷DB。完整停機可執行以下命令，保留資料；**不可加`-v`，不可使用prune清理資料**：
 
 ```powershell
-docker compose --env-file deploy/.env -f deploy/docker-compose.yml down
+docker compose --project-name projectflow-acceptance --env-file .superpowers/p1c/acceptance.env -f deploy/docker-compose.yml down
 ```
 
 Docker基礎映像使用開發方便用的版本tag，本次實測image ID／digest見PROGRESS；不是離線或正式環境可重現部署保證。
