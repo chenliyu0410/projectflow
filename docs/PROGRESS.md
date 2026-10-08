@@ -13,9 +13,9 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **W6 多公司產業範例 — 🔨 執行中** |
+| 目前工作項目 | **W6 多公司產業範例 — 🟢 可合併** |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | W6 Task 6：跨公司隔離掃描、README 與最終驗收，先 RED。P0 保留暫停。 |
+| 下一個動作 | W6 Task 6／G4 已通過獨立審查，依 D2 做本地 ff-only 合併與 G6 收尾；不 push。 |
 | 分支 | `feature/w6-multi-company-industry-demo`（主 checkout；P0 保留於 `paused/p0-formal-product-plan`） |
 | 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 文件同步 `aafc5ca`，只更新 README／PROGRESS，沒有改產品程式。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
@@ -341,7 +341,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - README §6 改成引用該圖，並分成「目前已完成的 Demo 架構」「正式產品軌尚未完成」「下一步判讀」。
 - README §7 專案結構補上 `AGENTS.md`、`docs/`、`tests/`、`.claude/` 與架構圖檔。
 
-### W6 多公司產業範例 — 🔨
+### W6 多公司產業範例 — 🟢
 
 **目標**：把目前以寵物食品製造為主的單公司 Demo，擴充成五個可切換、資料完全獨立的公司空間，證明 ProjectFlow 能套用到不同產業。
 
@@ -365,18 +365,19 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | 3 | 五家公司成員、部門、專案、工作流與稽核種子資料 | ✅ | `77e2b5f..9242e35` | RED `失敗 4/162`（最低量、主專案完整、部門、標題）；非毛研引用測試原已通過 → GREEN `全部通過 162/162`。整合修正 riskText 的採購單假設及清 UI 前先找可見專案。獨立審查 Approved；五公司 overview／templates／review／mytasks／audit 及 timeline／people／records 無無效文字／page error，十套工作流驗證合法；375px 側欄截圖已檢視。 | `W6 task 3: seed five industry companies` |
 | 4 | 設定驅動的產業營運資料、連結、狀態與條件 | ✅ | `db9a240..56b94dd` | RED `失敗 4/166` → GREEN `全部通過 166/166`；legacy 事件跨公司防護 RED `失敗 1/166` → GREEN `全部通過 166/166`。獨立審查 PASS。四產業 24 分頁於1280／375 無主頁水平溢出，四筆 blocker 均可解除；手機截圖已檢視；無 page error。plan 回歸測試「採購單」改驗既有「採購」，加測七個 F10 分頁。 | `W6 task 4: render industry operations` |
 | 5 | 附件公司前綴、舊鍵相容與只重設目前公司 | ✅ | `91f32d4..4e8c309`（實作 `9403a62`） | RED `失敗 4/170` → GREEN `全部通過 170/170`；跨公司上傳／回報補測及一輪審查修正皆 RED → GREEN，最後 `失敗 1/170` → `全部通過 170/170`（第二檔失敗路徑）；独立複審通過。真實上傳同ID、重載、UI確認重設毛研後雲序 blob 仍可讀。既有附件測試改以 metadata.storage_key 讀 blob，保留全部斷言。 | `W6 task 5: isolate attachments and reset` |
-| 6 | 跨公司隔離強化、README 與桌面／375px 驗收 | 🔨 | BASE 待本筆記錄 commit | Inventory（`4e8c309`）：共用路徑 pendingCount/pageReview、condMet/projected/extBars/riskText、secretValues/maskText/aiAsk/aiAction 需 active-only。毛研專屬 opsSuppliers/Materials/Formulas/POs/WOs/Trace/ERP、fCalc、supName/matName、poNext/woNext/erpSync、匯入／配方事件需模式防護。openNewProject/openAddLink 與 AI plan/suggest 需產業化。附件已由 Task5隔離。RED → `174/174` | `W6 task 6: harden isolation and document demo` |
+| 6 | 跨公司隔離強化、README 與桌面／375px 驗收 | ✅ | BASE `b99eeff`；本次 Task 6 commit | Inventory（編輯前已記錄於 `b99eeff`）：pendingCount/pageReview、condMet/projected/extBars/riskText、secretValues/maskText/aiAsk/aiAction 改 active-only；毛研 opsSuppliers/Materials/Formulas/POs/WOs/Trace/ERP、fCalc、supName/matName、poNext/woNext/erpSync、匯入／配方事件加模式防護；openNewProject/openAddLink、AI plan/suggest 產業化。RED `失敗 3/174` → GREEN `全部通過 174/174`；child-link escaping、375px 配方面板溢出、機密文件 D48 各 `失敗 1/174` → `全部通過 174/174`。獨立 reviewer Rawls 一輪修正後 Approved；最後兩次新時間戳重跑均 `全部通過 174/174`。 | `W6 task 6: harden isolation and document demo` |
+| G4 | 全分支整體審查與驗收 | 🟢 | `d879db1` 至 Task 6 | 獨立 reviewer Rawls：With fixes → D48 文件權限、手機配方面板修正後 `Ready to merge: Yes`。Edge 1280／375 共508畫面狀態、10項重載、十套工作流建立、全部角色與營運狀態推進、毛研 F10 驗收通過；console/page errors 空，桌面／手機截圖已檢視。所有Task與G4均獨立審查，無待決 plan-mandated D。 | — |
 
 **驗收**：
-- [ ] 固定五家公司都能切換，選擇器位於身分上方；切換後使用目標公司的預設專案負責人。
-- [ ] 每家公司至少有一個完整主專案、一個精簡次專案、兩套工作流、獨立成員／部門／權限／稽核，以及產業營運模組；毛研食品保留既有較豐富的專案與完整 F10。
-- [ ] v2–v5 升級到 v6 時保留毛研食品的節點、稽核、身分與舊附件 key；部分損壞的 v6 只修補壞公司。
-- [ ] 公司間的節點、營運資料、AI、權限、稽核、附件與復原紀錄不交叉；localStorage 寫入失敗不半切換。
-- [ ] 「重設目前公司」不改其他公司或附件；新附件有公司前綴，舊毛研附件仍可開啟。
-- [ ] 原有 149 項測試在毛研食品空間不回歸；新增 25 項後達 `全部通過 174/174`。
-- [ ] 五家公司在桌面與 375px 下主要頁面無溢出、重疊、`undefined`、`NaN` 或 console error。
+- [x] 固定五家公司都能切換，選擇器位於身分上方；切換後使用目標公司的預設專案負責人。
+- [x] 每家公司至少有一個完整主專案、一個精簡次專案、兩套工作流、獨立成員／部門／權限／稽核，以及產業營運模組；毛研食品保留既有較豐富的專案與完整 F10。
+- [x] v2–v5 升級到 v6 時保留毛研食品的節點、稽核、身分與舊附件 key；部分損壞的 v6 只修補壞公司。
+- [x] 公司間的節點、營運資料、AI、權限、稽核、附件與復原紀錄不交叉；localStorage 寫入失敗不半切換。
+- [x] 「重設目前公司」不改其他公司或附件；新附件有公司前綴，舊毛研附件仍可開啟。
+- [x] 原有 149 項測試在毛研食品空間不回歸；新增 25 項後達 `全部通過 174/174`。
+- [x] 五家公司在桌面與 375px 下主要頁面無溢出、重疊、`undefined`、`NaN` 或 console error。
 
-**下一步**：人類已選擇 Native execution（D46），依 Task 0–6 執行；進度與裁決只記本看板，沿用每 Task 審查。P0 規劃依 D45 暫停，W6 完成後恢復。
+**下一步**：依 D2／WORKFLOW G5 在本地 ff-only 合併，再做 G6。P0 保留暫停分支，W6 完成後下一個 session 可恢復規劃，不授權 P0 實作。
 
 ---
 
@@ -589,6 +590,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | D44 | W6 | 多公司 Demo 的範圍、產業、資料深度、隔離方式、舊資料與附件遷移 | **五個固定、完整隔離的公司空間**：毛研食品、峰曜科技、光點企劃、雲序軟體、築衡工程；採平衡版種子資料與產業化營運模組；成員、部門、權限、專案、工作流、營運資料、稽核與附件皆按公司隔離；v5 舊資料歸入毛研食品；用單一 localStorage key 的 v6 公司容器，不做公司 CRUD 或正式後端多租戶 | 已決定 2026-10-08：人類逐項採用建議並批准完整設計，可寫 written spec |
 | D45 | 全專案（流程） | W6 和目前 `feature/p0-formal-product-plan` 的優先順序 | **先暫停 P0 規劃，優先完成 W6**；保留 P0 的 spec、plan 與 commit，W6 完成後恢復 | 已決定 2026-10-08：人類批准 W6 完整設計時同意此執行順序；P0 分支已保留為 `paused/p0-formal-product-plan` |
 | D46 | W6 執行 | W6 plan 的執行方式 | 由目前 session 依 Task 0–6 直接實作；主 checkout、每 Task TDD 與審查、PROGRESS 為唯一進度來源 | 已決定 2026-10-08：人類選擇「Native execution」，授權開始 W6 plan |
+| D48 | W6 Task 6 審查 | 新公司沒有配方比例權限，既有機密文件判斷因此讓所有角色都無法再開啟已存文件 | 毛研保留原有 ratio 判斷；新公司機密文件限目前公司 owner／admin 且節點可見者開啟，其他角色維持拒絕。新公司 ratio 仍為 false，不借用毛研欄位權限 | AI 代決 2026-10-08（可推翻）：展示模式最小修正，修復文件被永久鎖住；自動化覆蓋四公司建立、儲存、重新開啟與未授權拒絕 |
 | D47 | W6 Task 2–3 | plan 測試的空殼節點、Gate／deps 模型及範例命名與 spec 不完全相同 | 切換選第一個可見專案（空殼才 null）；Gate 驗證 `db.gates`、前置驗證 `db.deps`。專案／工作流範例名稱依 plan 明列值；毛研保留既有兩工作流與測試錨點，其他公司採產業專屬工作流。介面相依 T1→T2/3→T4→T5/6 的公司投影、ops 設定與附件鍵已核對一致 | AI 代決 2026-10-08（可推翻）：展示模式的小差異，以既有資料模型與保留毛研相容性為準；不增加功能或改變公司範圍 |
 
 ---

@@ -226,6 +226,7 @@ svg.arrows{position:absolute;left:0;top:0;pointer-events:none;z-index:2;overflow
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
 .panel h3{margin:0 0 10px;font-size:15px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.formula-grid>.panel{min-width:0}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 table.tbl{border-collapse:collapse;width:100%;font-size:13px}
@@ -1002,7 +1003,7 @@ function seedIndustryCompany(id) {
     columns:[{key:'id',label:'編號',type:'text'},{key:'title',label:label+'項目',type:'text'},{key:'owner',label:'負責人',type:'member'},{key:'date',label:'預定日期',type:'date'},{key:'amount',label:'預算／費用',type:'money',access:'cost'},{key:'status',label:'狀態',type:'status'},{key:'progress',label:'進度',type:'progress'}],
     flow:mid===module?[initial,'處理中',need]:['待辦','進行中','已完成'],syncLabel:'推進狀態',
     events:mid===module?[{recordId,atStatus:need,targetNodeId:target.id,text:def.modules.find(x=>x[0]===module)[2]+'已完成，可接續專案任務'}]:[]}));
-  return {...meta,me:owner,users,fieldAccess:{cost:[...access],price:[...access],ratio:[...access]},tags:[...def.departments],tagDept:Object.fromEntries(departments.map(d=>[d.name,d.id])),opsConfig:{mode:'generic',title:meta.name+'營運資料',modules},db:d,audit:{acts:[{at:'2026/09/29 10:00',actor:owner,node:first.id,action:'階段確認',text:first.title+'已完成確認'}],ai:[],sync:[],notes:[]}};
+  return {...meta,me:owner,users,fieldAccess:{cost:[...access],price:[...access]},tags:[...def.departments],tagDept:Object.fromEntries(departments.map(d=>[d.name,d.id])),opsConfig:{mode:'generic',title:meta.name+'營運資料',modules},db:d,audit:{acts:[{at:'2026/09/29 10:00',actor:owner,node:first.id,action:'階段確認',text:first.title+'已完成確認'}],ai:[],sync:[],notes:[]}};
 }
 function seedPortfolio() { return {v:6,activeCompanyId:'petfood',companies:Object.fromEntries(COMPANY_ORDER.map(id=>[id,seedCompany(id)]))}; }
 function validCompanyState(x, id) {
@@ -1195,14 +1196,14 @@ function can(a, n) {
     default: return false;
   }
 }
-const seeField = (f) => FIELD_ACCESS[f].includes(ui.me);
+const seeField = (f) => Array.isArray(FIELD_ACCESS?.[f]) && FIELD_ACCESS[f].includes(ui.me);
 function approversFor(n) { return Object.keys(USERS).filter((id) => { const prev = ui.me; ui.me = id; const ok = can('override', n); ui.me = prev; return ok; }); }
 
 /* ================= 前置條件（F4） ================= */
 const DONE = (s) => s === 'done' || s === 'skipped';
 function condMet(c) {
   if(c.kind==='ops') { const record=opsRecord(c.module,c.id); return !!record && record[c.field||'status']===c.need; }
-  if (c.kind === 'po') { const po = db.ops.pos.find((p) => p.id === c.id); return !!po && po.status === c.need; }
+  if (c.kind === 'po') { const po = legacyOps().pos.find((p) => p.id === c.id); return !!po && po.status === c.need; }
   return false;
 }
 function depMet(d) {
@@ -1299,7 +1300,7 @@ function project(pid) {
         let minEnd = -Infinity;
         [n, ...ancestors(n).filter((a) => a.type !== 'project')].forEach((x) => incoming(x).forEach((d) => {
           if (d.overridden) return;
-          if (d.cond) { if (!condMet(d.cond) && d.cond.kind === 'po') { const po = db.ops.pos.find((p) => p.id === d.cond.id); if (po) s = Math.max(s, D(po.expected) + 1); } return; }
+          if (d.cond) { if (!condMet(d.cond) && d.cond.kind === 'po') { const po = legacyOps().pos.find((p) => p.id === d.cond.id); if (po) s = Math.max(s, D(po.expected) + 1); } return; }
           if (!inP.has(d.from)) return;
           const [fs, fe] = pspan(d.from);
           if (d.type === 'FS') s = Math.max(s, fe + d.lag + 1);
@@ -1403,7 +1404,7 @@ function announceUnlocks(n) {
     notify(`前置條件已滿足，以下任務現在可以開始（已通知負責人）：\n· ${list.map((t) => `${t.title}（${ownerLabel(t.owner)}）`).join('\n· ')}`);
   }
 }
-function notify(text, title = '活動紀錄') { ui.chat.push({ title, text }); audit.notes.unshift({ at: nowStr(), text }); if (ui.chat.length > 80) ui.chat.shift(); renderChat(); }
+function notify(text, title = '活動紀錄') { ui.chat.push({ title, text }); audit.notes.unshift({ at: nowStr(), text }); if (ui.chat.length > 80) ui.chat.shift(); save(); renderChat(); }
 
 /* ================= 任務紀錄（F11）與跳過任務 ================= */
 // 附件內容按公司前綴存於 IndexedDB；舊毛研鍵保留，中繼資料仍在 db.attachments。
@@ -1771,7 +1772,7 @@ function render() { renderNav(); renderProjects(); renderMe(); renderMain(); ren
 function pendingCount() {
   return db.overrides.filter((o) => o.status === 'pending' && can('override', node(o.node) || null)).length
     + db.reports.filter((r) => r.status === 'submitted' && node(r.node_id) && can('override', node(r.node_id))).length
-    + db.ops.formulas.flatMap((f) => f.versions).filter((v) => v.request === 'pending' && can('formula-approve')).length;
+    + legacyOps().formulas.flatMap((f) => f.versions).filter((v) => v.request === 'pending' && can('formula-approve')).length;
 }
 function renderNav() {
   const items = [
@@ -1982,11 +1983,12 @@ function tlRows(n) {
 }
 function autoScale(n) { const [a, b] = span(n); return b - a + 1 <= 45 ? 'day' : 'week'; }
 function extBars(n) {
+  if(!isPetfoodOps()) return [];
   const ids = new Set([n.id, ...descendants(n.id).map((d) => d.id)]);
   const out = [];
   Object.values(db.nodes).filter((x) => ids.has(x.id)).forEach((x) => (x.links || []).forEach((l) => {
     if (l.t !== 'po') return;
-    const po = db.ops.pos.find((p) => p.id === l.id);
+    const po = legacyOps().pos.find((p) => p.id === l.id);
     if (po && po.status !== '驗收' && !out.some((o) => o.po.id === po.id)) out.push({ po, node: x });
   }));
   return out;
@@ -2048,7 +2050,7 @@ function viewTimeline(n) {
   });
   ext.forEach(({ po }) => {
     const a = D(po.ordered || po.expected), b = D(po.expected);
-    const sup = db.ops.suppliers.find((s) => s.id === po.supplier);
+    const sup = legacyOps().suppliers.find((s) => s.id === po.supplier);
     html += `<div class="tl-row" data-ext="${po.id}"><div class="tl-label" style="padding-left:28px"><span class="tag erp">外部</span>&nbsp;<button class="nm" type="button" data-ops="pos:${po.id}">${po.id} 交期（${esc(sup ? sup.short : '')}）</button></div>
       <div class="tl-track" style="width:${W}px"><div class="ext" style="left:${X(a)}px;width:${Math.max((b - a + 1) * ppd, 40)}px" title="採購交期（ERP 同步）">${po.status}・預計 ${md(po.expected)} 到貨</div></div></div>`;
   });
@@ -2294,7 +2296,10 @@ function drawGraphEdges() {
 }
 
 /* ---------- 文件（F7） ---------- */
-function canSeeDoc(d) { return d.level !== 'confidential' || seeField('ratio'); }
+function canSeeDoc(d) {
+  if(d.level!=='confidential') return true;
+  return isPetfoodOps()?seeField('ratio'):can('view',node(d.node)) && ['owner','admin'].includes(me().role);
+}
 function viewDocs(n) {
   const ids = new Set([n.id, ...(ui.docsAll ? descendants(n.id).map((x) => x.id) : [])]);
   const list = db.docs.filter((d) => ids.has(d.node) && node(d.node) && can('view', node(d.node)));
@@ -2317,7 +2322,7 @@ function linkCard(l, n) {
     if(!record) return `<div class="empty">找不到營運記錄：${esc(l.t)}／${esc(l.id)}</div>`;
     return `<div class="panel"><span class="tag gray">${esc(module.label)}</span><h3>${esc(record.title||record.id)}</h3><p>${esc(record.status||'—')}</p><button class="btn sm" type="button" data-ops="${esc(l.t)}:${esc(l.id)}">查看</button></div>`;
   }
-  const O = db.ops;
+  const O = legacyOps();
   if (l.t === 'supplier') {
     const s = O.suppliers.find((x) => x.id === l.id); if (!s) return '';
     return `<div class="panel"><div class="row">${erpTag(s)}<span class="tag gray">供應商</span></div><h3 style="margin-top:8px">${esc(s.name)}</h3>
@@ -2354,7 +2359,7 @@ function viewData(n) {
   const links = n.links || [];
   const childLinks = descendants(n.id).filter((d) => (d.links || []).length);
   return `<div class="stack"><div class="grid3">${links.map((l) => linkCard(l, n)).join('') || '<div class="panel empty">此節點尚未關聯供應商、原料、配方、採購單或工單。</div>'}</div>
-    ${childLinks.length ? `<div class="panel"><h3>子層的關聯資料</h3>${childLinks.map((d) => `<div class="row" style="padding:4px 0"><button class="iconbtn" type="button" data-enter="${d.id}">${esc(d.title)}</button>${d.links.map((l) => `<span class="tag gray">${l.id}${l.v ? ' v' + l.v : ''}</span>`).join('')}</div>`).join('')}</div>` : ''}</div>`;
+    ${childLinks.length ? `<div class="panel"><h3>子層的關聯資料</h3>${childLinks.map((d) => `<div class="row" style="padding:4px 0"><button class="iconbtn" type="button" data-enter="${esc(d.id)}">${esc(d.title)}</button>${d.links.map((l) => `<span class="tag gray">${esc(l.id)}${l.v ? ' v' + esc(l.v) : ''}</span>`).join('')}</div>`).join('')}</div>` : ''}</div>`;
 }
 
 /* ---------- 部門管理 ---------- */
@@ -2504,7 +2509,7 @@ function pageReview() {
   const pend = db.overrides.filter((o) => o.status === 'pending');
   const done = db.overrides.filter((o) => o.status !== 'pending');
   const gates = Object.entries(db.gates).filter(([id, g]) => g.status === 'pending' && node(id) && visible(node(id)));
-  const fReq = db.ops.formulas.flatMap((f) => f.versions.filter((v) => v.request === 'pending').map((v) => ({ f, v })));
+  const fReq = legacyOps().formulas.flatMap((f) => f.versions.filter((v) => v.request === 'pending').map((v) => ({ f, v })));
   const reps = db.reports.filter((r) => r.status === 'submitted' && node(r.node_id) && visible(node(r.node_id)));
   return `<div class="pagehead"><div><h1 class="serif">審核中心</h1><p>完成回報、跳過申請、階段閘門、配方定案簽核。所有決定寫入不可刪除的稽核紀錄。</p></div></div>
   <div class="stack" style="margin-bottom:14px"><h2>待確認的完成回報（${reps.length}）</h2>
@@ -2561,7 +2566,8 @@ function pageTemplates() {
 
 /* ================= AI 政策與稽核（F9） ================= */
 function secretValues() {
-  const O = db.ops, vals = new Set();
+  if(!isPetfoodOps()) return [...new Set(opsModules().flatMap(m=>opsRecords(m.id).flatMap(r=>m.columns.filter(c=>c?.access).flatMap(c=>{const v=r[c.key];return v===undefined||v===null?[]:[String(v),...(c.type==='money'?[money(v)]:[])];}))))].filter(Boolean);
+  const O = legacyOps(), vals = new Set();
   O.formulas.forEach((f) => f.versions.forEach((v) => v.items.forEach(([, r]) => vals.add(r + '%'))));
   O.materials.forEach((m) => { if (m.price) { vals.add('NT$' + m.price); } });
   O.suppliers.forEach((s) => vals.add(s.short));
@@ -2600,6 +2606,11 @@ function pageAudit() {
 }
 
 /* ================= 研發營運資料（F10） ================= */
+function isPetfoodOps() { return OPS_CONFIG?.mode==='petfood'; }
+function legacyOps() {
+  const ops=isPetfoodOps()?(db.ops||{}):{};
+  return {...ops,...Object.fromEntries(['suppliers','materials','formulas','pos','wos'].map(k=>[k,Array.isArray(ops[k])?ops[k]:[]]))};
+}
 function opsModules() { return Array.isArray(OPS_CONFIG?.modules) ? OPS_CONFIG.modules.filter(m=>m && typeof m.id==='string' && Array.isArray(m.columns)) : []; }
 function opsModule(id) { return opsModules().find(m=>m.id===id)||null; }
 function opsRecords(id) { const records=opsModule(id) && db.ops?.records?.[id]; return Array.isArray(records)?records.filter(r=>r && typeof r.id==='string'):[]; }
@@ -2652,13 +2663,13 @@ function pagePetfoodOps() {
   <div class="tabs" role="tablist" style="align-self:flex-start">${tabs.map(([k, l]) => `<button class="tab" role="tab" type="button" data-opstab="${k}" aria-selected="${ui.opsTab === k}">${l}</button>`).join('')}</div>
   ${body}`;
 }
-const supName = (id) => db.ops.suppliers.find((s) => s.id === id)?.short || id;
-const matName = (id) => db.ops.materials.find((m) => m.id === id)?.name || id;
+const supName = (id) => legacyOps().suppliers.find((s) => s.id === id)?.short || id;
+const matName = (id) => legacyOps().materials.find((m) => m.id === id)?.name || id;
 function linkedNodes(t, id) { return Object.values(db.nodes).filter((n) => (n.links || []).some((l) => l.t === t && l.id === id)); }
 function nodeLinksHTML(t, id) { const ns = linkedNodes(t, id); return ns.length ? ns.map((n) => `<button class="iconbtn" type="button" data-enter="${n.id}">↗ ${esc(n.title)}</button>`).join(' ') : '<span class="muted">—</span>'; }
 
 function opsSuppliers() {
-  const O = db.ops; const sel = O.suppliers.find((s) => s.id === ui.opsSel) || O.suppliers[0];
+  const O = legacyOps(); const sel = O.suppliers.find((s) => s.id === ui.opsSel) || O.suppliers[0];
   return `<div class="row"><button class="btn sm" type="button" data-import>匯入 Excel / CSV</button><span class="small muted">主檔歸屬：${O.modules.suppliers === 'erp_primary' ? 'ERP 為主（唯讀同步）' : '本系統為主'}</span></div>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>代號</th><th>名稱</th><th>供應品項</th><th>狀態</th><th>評等</th><th>證照到期</th><th>來源</th></tr></thead><tbody>
   ${O.suppliers.map((s) => `<tr class="click ${s.id === sel.id ? 'sel' : ''}" data-opsel="${s.id}"><td>${s.id}</td><td>${esc(s.name)}</td><td>${esc(s.items)}</td><td>${esc(s.status)}</td><td>${esc(s.rating)}</td><td>${ymd(s.cert)}${D(s.cert) - T0 < 60 ? ' <span class="tag warn">即將到期</span>' : ''}</td><td>${erpTag(s)}</td></tr>`).join('')}
@@ -2669,25 +2680,25 @@ function opsSuppliers() {
     <div class="panel"><h3>評估紀錄（本系統管理）</h3>${sel.evals.length ? `<table class="tbl"><tr><th>日期</th><th>分數</th><th>結果</th></tr>${sel.evals.map((e) => `<tr><td>${esc(e.date)}</td><td>${e.score}</td><td>${esc(e.result)}</td></tr>`).join('')}</table>` : '<div class="empty">尚無評估紀錄。可在專案中套用「供應商評估」模板。</div>'}</div></div>`;
 }
 function opsMaterials() {
-  const O = db.ops;
+  const O = legacyOps();
   return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>料號</th><th>名稱</th><th>規格</th><th>過敏原</th><th>蛋白質 / 脂肪（%）</th><th>核准供應商</th><th>單價</th><th>狀態</th><th>來源</th></tr></thead><tbody>
   ${O.materials.map((m) => `<tr><td>${m.id}</td><td>${esc(m.name)}</td><td class="small">${esc(m.spec)}</td><td>${esc(m.allergen)}</td><td class="num">${m.protein} / ${m.fat}</td><td>${m.suppliers.map(supName).join('、') || '—'}</td><td class="num">${seeField('price') ? money(m.price) + '/' + m.unit : lockCell()}</td><td>${esc(m.status)}</td><td>${erpTag(m)}</td></tr>`).join('')}
   </tbody></table></div><p class="small muted">料號與基本資料來自 ERP（唯讀）；研發規格、營養成分、COA 由本系統另存。單價為機密欄位，僅採購與主管可見。</p>`;
 }
 function fCalc(v) {
-  const O = db.ops; let cost = 0, protein = 0, fat = 0, total = 0;
+  const O = legacyOps(); let cost = 0, protein = 0, fat = 0, total = 0;
   v.items.forEach(([m, r]) => { const x = O.materials.find((y) => y.id === m); total += r; cost += (r / 100) * x.price; protein += (r / 100) * x.protein; fat += (r / 100) * x.fat; });
   return { cost, protein, fat, total };
 }
 function opsFormulas() {
-  const O = db.ops; const f = O.formulas[0];
+  const O = legacyOps(); const f = O.formulas[0];
   const [a, b] = ui.fv; const va = f.versions.find((v) => v.v === a), vb = f.versions.find((v) => v.v === b);
   const mats = [...new Set([...va.items.map((i) => i[0]), ...vb.items.map((i) => i[0])])];
   const ca = fCalc(va), cb = fCalc(vb);
   const r = (v, m) => { const it = v.items.find((i) => i[0] === m); return it ? it[1] : 0; };
   const canR = seeField('ratio'), canC = seeField('cost');
   const affected = linkedNodes('formula', f.id).filter((n) => (n.links || []).some((l) => l.t === 'formula' && l.v === 3));
-  return `<div class="grid2"><div class="panel"><h3>${f.id}・${esc(f.name)}</h3>
+  return `<div class="grid2 formula-grid"><div class="panel"><h3>${f.id}・${esc(f.name)}</h3>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>版本</th><th>狀態</th><th>變更說明</th><th>建立</th><th></th></tr></thead><tbody>
     ${f.versions.map((v) => `<tr><td>v${v.v}${v.locked ? ' 🔒' : ''}</td><td>${esc(v.status)}${v.request === 'pending' ? ' <span class="tag ai">簽核中</span>' : ''}</td><td class="small">${esc(v.note)}</td><td class="small">${esc(uname(v.by))} ${esc(v.at)}</td>
       <td>${v.status === '草稿' && !v.request ? `<button class="btn sm" type="button" data-f-request="${f.id}:${v.v}">申請定案</button>` : ''}${v.status === '定案' ? `<button class="btn sm" type="button" data-bom-push="${f.id}:${v.v}">推送 ERP BOM</button>` : ''}</td></tr>`).join('')}
@@ -2713,7 +2724,7 @@ function opsFormulas() {
 const PO_FLOW = ['請購', '詢價', '下單', '到貨', '驗收'];
 const WO_FLOW = ['開立', '備料', '生產', '完工', '結案'];
 function opsPOs() {
-  const O = db.ops; const sel = O.pos.find((p) => p.id === ui.opsSel) || O.pos.find((p) => p.status !== '驗收') || O.pos[0];
+  const O = legacyOps(); const sel = O.pos.find((p) => p.id === ui.opsSel) || O.pos.find((p) => p.status !== '驗收') || O.pos[0];
   return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>單號</th><th>供應商</th><th>品項</th><th>狀態</th><th>預計到貨</th><th>金額</th><th>來源</th></tr></thead><tbody>
   ${O.pos.map((p) => `<tr class="click ${p.id === sel.id ? 'sel' : ''}" data-opsel="${p.id}"><td>${p.id}</td><td>${esc(supName(p.supplier))}</td><td class="small">${p.items.map((i) => esc(matName(i.m)) + ' × ' + i.qty).join('、')}</td><td>${p.status}</td><td>${ymd(p.expected)}</td><td class="num">${seeField('price') ? money(p.items.reduce((a, i) => a + i.qty * i.price, 0)) : lockCell()}</td><td>${erpTag(p)}</td></tr>`).join('')}
   </tbody></table></div>
@@ -2724,7 +2735,7 @@ function opsPOs() {
     <p class="small muted">到貨驗收事件會自動解鎖以此為前置條件的任務；交期會以虛線顯示在專案時程上，延誤時連動關鍵路徑預警。</p></div>`;
 }
 function opsWOs() {
-  const O = db.ops; const sel = O.wos.find((w) => w.id === ui.opsSel) || O.wos.find((w) => w.status !== '結案') || O.wos[0];
+  const O = legacyOps(); const sel = O.wos.find((w) => w.id === ui.opsSel) || O.wos.find((w) => w.status !== '結案') || O.wos[0];
   return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>工單</th><th>類型</th><th>配方版本</th><th>批號</th><th>計畫 / 實際</th><th>設備</th><th>狀態</th></tr></thead><tbody>
   ${O.wos.map((w) => `<tr class="click ${w.id === sel.id ? 'sel' : ''}" data-opsel="${w.id}"><td>${w.id}</td><td>${w.type}</td><td>${w.formula} v${w.fv}</td><td>${w.lot}</td><td class="num">${w.qtyPlan} / ${w.qtyAct ?? '—'} ${w.unit}</td><td>${esc(w.equip)}</td><td>${w.status}</td></tr>`).join('')}
   </tbody></table></div>
@@ -2734,7 +2745,7 @@ function opsWOs() {
     <p class="small muted">工單完工 → 對應任務自動改為完成，實際產出寫入試驗紀錄。</p></div>`;
 }
 function traceLookup(q) {
-  const O = db.ops; q = (q || '').trim().toUpperCase();
+  const O = legacyOps(); q = (q || '').trim().toUpperCase();
   const lotMap = {}; O.pos.forEach((p) => p.items.forEach((i) => { if (i.lot) lotMap[i.lot] = { po: p, item: i }; }));
   const wo = O.wos.find((w) => w.lot.toUpperCase() === q);
   const chains = [];
@@ -2757,7 +2768,7 @@ function opsTrace() {
     <div class="step"><b>供應商</b>${x ? esc(supName(x.po.supplier)) : '—'}</div></div>`).join('') : `<div class="empty">找不到「${esc(ui.trace)}」的追溯資料。</div>`}`;
 }
 function opsERP() {
-  const O = db.ops;
+  const O = legacyOps();
   const ML = { suppliers: '供應商', materials: '原料 / 料號', formulas: '配方（研發版本）', pos: '請購 / 採購', wos: '試作工單' };
   return `<div class="grid2"><div class="panel"><h3>各模組主檔歸屬</h3><table class="tbl"><thead><tr><th>模組</th><th>主檔</th></tr></thead><tbody>
     ${Object.entries(O.modules).map(([k, v]) => `<tr><td>${ML[k]}</td><td><select data-module="${k}" ${me().role === 'admin' ? '' : 'disabled'}><option value="erp_primary" ${v === 'erp_primary' ? 'selected' : ''}>ERP 為主（唯讀同步）</option><option value="native" ${v === 'native' ? 'selected' : ''}>本系統為主</option><option value="disabled" ${v === 'disabled' ? 'selected' : ''}>停用</option></select></td></tr>`).join('')}
@@ -2777,7 +2788,8 @@ function maskText(text) {
   const map = []; const cnt = {};
   const put = (kind, v) => { const hit = map.find((m) => m.v === v); if (hit) return hit.k; cnt[kind] = (cnt[kind] || 0) + 1; const k = `{{${kind}_${cnt[kind]}}}`; map.push({ k, v }); return k; };
   let out = text;
-  db.ops.suppliers.flatMap((s) => [s.name, s.short]).sort((a, b) => b.length - a.length).forEach((nm) => { if (out.includes(nm)) out = out.split(nm).join(put('廠商', nm)); });
+  if(!isPetfoodOps()) secretValues().sort((a,b)=>b.length-a.length).forEach(value=>{if(out.includes(value)) out=out.split(value).join(put('機密欄位',value));});
+  legacyOps().suppliers.flatMap((s) => [s.name, s.short]).sort((a, b) => b.length - a.length).forEach((nm) => { if (out.includes(nm)) out = out.split(nm).join(put('廠商', nm)); });
   out = out.replace(/NT\$\s?[\d,]+(\.\d+)?(\/\S+)?/g, (m) => put('金額', m));
   out = out.replace(/\d+(\.\d+)?\s?%/g, (m) => put('比例', m));
   out = out.replace(/M-\d{4}/g, (m) => put('料號', m));
@@ -2817,7 +2829,7 @@ function riskText(p) {
   const waitPO = db.deps.filter((d) => d.cond && !condMet(d.cond) && node(d.to) && projectOf(node(d.to)).id === p.id);
   const parts = [];
   if (late.length) parts.push(`${late.slice(0, 2).map((x) => `「${x.title}」`).join('、')}已超過預定完成日${late.length > 2 ? `（共 ${late.length} 項）` : ''}。`);
-  waitPO.forEach((d) => { const po = d.cond.kind === 'po' && db.ops.pos.find((x) => x.id === d.cond.id); parts.push(po ? `「${node(d.to).title}」需等 ${po.id} 到貨（預計 ${md(po.expected)}）。` : `「${node(d.to).title}」等待${d.cond.label || d.cond.id}。`); });
+  waitPO.forEach((d) => { const po = d.cond.kind === 'po' && legacyOps().pos.find((x) => x.id === d.cond.id); parts.push(po ? `「${node(d.to).title}」需等 ${po.id} 到貨（預計 ${md(po.expected)}）。` : `「${node(d.to).title}」等待${d.cond.label || d.cond.id}。`); });
   parts.push(sl.days ? `依相依關係推算，「${sl.target.title}」預估延後 ${sl.days} 天（${md(S(sl.planned))} → ${md(S(sl.projected))}）。` : '依相依關係推算，目前可如期完成。');
   return parts.join('');
 }
@@ -2826,6 +2838,8 @@ function renderAIHead() {
   $('aiScope').textContent = p ? `範圍：${p.title}（只讀取你有權限的節點）` : '';
   $('aiPolicy').innerHTML = `AI 政策：<b>${{ local_only: '全本地', hybrid: '混合', cloud_allowed: '允許雲端' }[db.policy]}</b>・<button class="iconbtn" type="button" data-go="aigov">查看稽核</button>`;
   $('risk').textContent = p ? riskText(p) : '';
+  document.querySelector('[data-act="cost"]').hidden=!isPetfoodOps();
+  $('askInput').placeholder=isPetfoodOps()?'例如：殺菌重測會影響上市日嗎？':'例如：目前專案有哪些延誤風險？';
 }
 function renderChat() {
   const c = $('chat'); if (!c) return;
@@ -2838,6 +2852,7 @@ function renderChat() {
 }
 
 function aiAction(kind) {
+  if(kind==='cost' && !isPetfoodOps()) return notify('此公司不使用這項營運功能','AI 副手');
   const p = ctxProject(); if (!p) return;
   const snap = publicSnapshot(p);
   if (kind === 'report') {
@@ -2864,11 +2879,12 @@ function aiAction(kind) {
     const next = cp ? phs[phs.indexOf(cp) + 1] || cp : null;
     if (!next) return notify('這個專案沒有階段結構，請直接在節點中新增任務或套用模板。', 'AI 副手');
     aiRun(`「${next.title}」任務拆解`, 'public', `拆解下一階段任務。專案：${p.title}\n階段：${next.title}\n既有任務：\n${kids(next.id).map((x) => '- ' + x.title).join('\n') || '（無）'}`, () => {
-      const tpl = PHASE_TEMPLATE.find((t) => t[0] === next.title);
+      const tpl = isPetfoodOps() && PHASE_TEMPLATE.find((t) => t[0] === next.title);
       const have = kids(next.id).map((x) => x.title);
       const extra = { '檢驗與適口性': ['重金屬與微生物送驗', '檢驗報告判讀與宣稱比對'], '量產上市': ['首批量產品保放行', '上市後客訴追蹤機制'], '殺菌與保存': ['殺菌紀錄與設備校正確認'], '小量試作': ['試作成本初估'], '市場與配方': ['目標售價與通路調查'] }[next.title] || [];
-      const list = [...(tpl ? tpl[3].map((x) => x[0]) : []), ...extra].filter((t) => !have.some((h) => h.includes(t.replace(/（.*）/, ''))));
-      const tplHint = /檢驗/.test(next.title) ? '\n\n另外建議「營養成分送驗」套用「送驗流程」模板（12 個子任務）。' : '';
+      const industryTasks=db.workflows.flatMap(w=>w.stages||[]).filter(s=>s.title===next.title).flatMap(s=>s.tasks.map(t=>t.title));
+      const list = (isPetfoodOps()?[...(tpl ? tpl[3].map((x) => x[0]) : []), ...extra]:industryTasks).filter((t) => !have.some((h) => h.includes(t.replace(/（.*）/, ''))));
+      const tplHint = isPetfoodOps() && /檢驗/.test(next.title) ? '\n\n另外建議「營養成分送驗」套用「送驗流程」模板（12 個子任務）。' : '';
       return { text: `依目前進度，建議在「${next.title}」新增：\n· ${list.join('\n· ') || '（已涵蓋主要工作）'}\n\n閘門條件：${db.gates[next.id]?.criteria || '—'}${tplHint}`, actions: list.length ? [{ label: `加入 ${list.length} 項為子任務`, kind: 'addTasks', payload: { parent: next.id, titles: list } }] : [] };
     });
   } else if (kind === 'minutes') {
@@ -2876,7 +2892,7 @@ function aiAction(kind) {
   } else if (kind === 'cost') {
     aiRun('配方成本比較', 'confidential', '比較 F-CAT-01 v3 與 v4 的成本與營養（含配方比例與原料單價）', () => {
       if (!seeField('cost')) return { text: `依欄位權限，${me().name}（${deptName(me().dept)}）無法查詢配方成本與比例。\n此請求在本地處理，未送出任何資料。` };
-      const f = db.ops.formulas[0]; const a = fCalc(f.versions[2]), b = fCalc(f.versions[3]);
+      const f = legacyOps().formulas[0]; const a = fCalc(f.versions[2]), b = fCalc(f.versions[3]);
       return { text: `（本地模型 + 本地計算，數值未離開內網）\n\nv3：每公斤原料成本 ${money(a.cost.toFixed(2))}，粗蛋白 ${a.protein.toFixed(1)}%\nv4：每公斤原料成本 ${money(b.cost.toFixed(2))}，粗蛋白 ${b.protein.toFixed(1)}%\n\n成本 ${((b.cost / a.cost - 1) * 100).toFixed(1)}%，粗蛋白 ${(b.protein - a.protein).toFixed(1)} 個百分點。\n主因：鮪魚比例下降、加入南瓜泥。若改版，需重做殺菌驗證、保存試驗、營養送驗與標示審查（見「變更影響分析」）。`, actions: [{ label: '開啟變更影響分析', kind: 'goOps', payload: 'formulas' }] };
     });
   } else if (kind === 'suggest') {
@@ -2885,32 +2901,41 @@ function aiAction(kind) {
       const t = n.title;
       const tpl = /送驗|檢驗/.test(t) ? 'tp1' : /試作/.test(t) ? 'tp2' : /供應商/.test(t) ? 'tp3' : /標示/.test(t) ? 'tp4' : null;
       const deptMap = { 檢驗: ['d-qa'], 法規: ['d-sales', 'd-qa'], 試作: ['d-mfg', 'd-qa'], 製程: ['d-qa', 'd-mfg'], 採購: ['d-qa'], 品保: ['d-pe'], 行銷: ['d-qa'], 測試: ['d-sales'], 生產: ['d-pe', 'd-pur'], 配方: ['d-pur', 'd-qa'] };
-      const depts = deptMap[n.tag] || ['d-qa'];
+      const depts = isPetfoodOps()?(deptMap[n.tag] || ['d-qa']):[n.dept||me().dept].filter(id=>dept(id));
       const T = db.templates.find((x) => x.id === tpl);
       return { text: `「${t}」\n\n推薦模板：${T ? `${T.name}（${T.nodes.length - 1} 個子任務）` : '沒有高度相符的模板，可從相似的過去任務複製'}\n推薦協作部門：${depts.map(deptName).join('、')}${n.depts.length ? `（目前已有：${n.depts.map(deptName).join('、')}）` : ''}`, actions: [T ? { label: `套用「${T.name}」`, kind: 'applyTpl', payload: { node: n.id, tpl } } : { label: '搜尋過去任務', kind: 'applyTpl', payload: { node: n.id } }, { label: `加入協作部門`, kind: 'addDepts', payload: { node: n.id, depts } }] };
     });
   }
 }
+function buildAIContext(question = '') {
+  const p=ctxProject();
+  return {companyId:company.id,company:company.name,question,project:p?{id:p.id,title:p.title}:null,tasks:p?publicSnapshot(p):'',records:p?recordsSnapshot(p):'',
+    docs:p?db.docs.filter(d=>d.level!=='confidential' && node(d.node) && visible(node(d.node)) && projectOf(node(d.node)).id===p.id).map(d=>({title:d.title,body:d.versions.at(-1)?.body||''})):[],
+    operations:isPetfoodOps()?[]:opsModules().map(m=>({label:m.label,records:opsRecords(m.id).filter(r=>!r.node || (node(r.node)&&visible(node(r.node)))).map(r=>Object.fromEntries(m.columns.filter(c=>c?.key && (!c.access||seeField(c.access))).map(c=>[c.key,r[c.key]??null])))}))};
+}
 function aiAsk(q) {
   ui.chat.push({ user: true, text: q });
+  const context=buildAIContext(q);
   const p = ctxProject();
   const secret = /配方|比例|成本|報價|單價|價格|金額/.test(q);
   if (!p && !secret) { ui.chat.push({ title: '專案問答', text: '目前沒有你看得到的專案，無法回答專案相關的問題。' }); return renderChat(); }
   if (secret) {
+    if(!isPetfoodOps()) return aiRun('營運資料問答','confidential',q,()=>({text:`目前公司：${company.name}\n${context.operations.map(m=>`${m.label}：${m.records.map(r=>Object.entries(r).map(([k,v])=>`${k}=${v}`).join('；')).join('\n')}`).join('\n')}\n僅列出目前身分有權限的欄位。`}));
     aiRun('問答（含機密）', 'confidential', q, () => {
       if (!seeField('ratio') && !seeField('cost')) return { text: '這個問題涉及機密欄位（配方比例／成本），依你的角色權限無法回答。此請求在本地處理，未送出任何資料。' };
-      const f = db.ops.formulas[0]; const v = f.versions[2];
+      const f = legacyOps().formulas[0]; const v = f.versions[2];
       const rows = seeField('ratio') ? v.items.map(([m, r]) => `${matName(m)} ${r}%`).join('、') : '（你無權檢視比例）';
       return { text: `（本地模型回答，未離開內網）\n目前試作版本 v3：${rows}${seeField('cost') ? `\n每公斤原料成本 ${money(fCalc(v).cost.toFixed(2))}` : ''}\n\n來源：[1] 營運資料・配方 ${f.id} v3` };
     });
     return;
   }
-  aiRun('專案問答', 'internal', `問題：${q}\n專案：${p.title}\n可引用內容：\n${publicSnapshot(p)}\n${db.docs.filter((d) => d.level !== 'confidential' && node(d.node) && projectOf(node(d.node)).id === p.id).map((d) => `[${d.title}] ${d.versions.at(-1).body}`).join('\n')}\n${recordsSnapshot(p)}`, () => {
+  aiRun('專案問答', 'internal', `問題：${q}\n專案：${context.project.title}\n可引用內容：\n${context.tasks}\n${context.docs.map(d=>`[${d.title}] ${d.body}`).join('\n')}\n${context.records}`, () => {
     if (/回報|結果|筆記|紀錄|F0|數值/.test(q)) {
       const hits = recordHits(p, q);
       if (hits.length) return { text: `${hits.slice(0, 3).map((h, i) => `[${i + 1}] ${h}`).join('\n')}\n\n來源：任務完成回報與筆記（只檢索你有權限、非機密的節點）` };
     }
     if (/上市|延|影響|殺菌|重測/.test(q)) {
+      if(!isPetfoodOps()) return {text:`${riskText(p)}\n\n來源：目前公司的時程、前置條件與營運紀錄`};
       const sl = slipOf(p.id);
       return { text: `${riskText(p)}\n\n影響路徑：${[...criticalPath(p.id).nodes].map(node).filter((x) => x && isLeaf(x)).sort((a, b) => span(a)[0] - span(b)[0]).map((x) => x.title).join(' → ')}\n${sl.days ? '要追回時程，可考慮：縮短保存試驗前置（先以 v3 啟動）、或與通路協調上架日。' : ''}\n\n來源：[1] 時程與相依關係　[2] 殺菌試驗紀錄` };
     }
@@ -3097,7 +3122,7 @@ function openEditor(id) {
     <div class="frow"><div class="field"><label for="eWeight">權重（彙總進度用）</label><input id="eWeight" type="number" min="0" step="0.5" value="${n.weight}" ${ed ? '' : 'disabled'}></div>
       <div class="field"><label for="eProg">進度 %（進行中時可手填）</label><input id="eProg" type="number" min="0" max="100" value="${leaf ? Math.round(prog(n)) : Math.round(prog(n))}" ${leaf && ed && n.status === 'doing' ? '' : 'disabled'}></div></div>
     <div class="chips" style="margin-bottom:12px"><label><input type="checkbox" id="eMs" ${n.milestone ? 'checked' : ''} ${ed && leaf ? '' : 'disabled'}>里程碑</label><label><input type="checkbox" id="eLock" ${n.locked ? 'checked' : ''} ${sch && can('override', n) ? '' : 'disabled'}>鎖定（需權限才能改時程）</label></div>
-    <div class="field"><span class="lb">協作人員</span><div class="chips">${Object.entries(USERS).filter(([id]) => id !== 'it' && id !== n.owner).map(([id, u]) => `<label><input type="checkbox" class="eCo" value="${id}" ${n.collabs.includes(id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${u.name}</label>`).join('')}</div></div>
+    <div class="field"><span class="lb">協作人員</span><div class="chips">${Object.entries(USERS).filter(([id,u]) => u.role !== 'admin' && id !== n.owner).map(([id, u]) => `<label><input type="checkbox" class="eCo" value="${esc(id)}" ${n.collabs.includes(id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${esc(u.name)}</label>`).join('')}</div></div>
     <div class="field"><span class="lb">協作部門</span><div class="chips">${db.departments.map((x) => `<label><input type="checkbox" class="eDp" value="${x.id}" ${n.depts.includes(x.id) ? 'checked' : ''} ${ed && me().role !== 'collab' ? '' : 'disabled'}>${esc(x.name)}</label>`).join('')}</div></div>
     <div class="field"><label for="eNote">備註</label><textarea id="eNote" style="min-height:60px" ${ed ? '' : 'disabled'}>${esc(n.note)}</textarea></div>
     ${leaf && n.type === 'task' ? `<div class="field"><span class="lb">回報欄位（完成回報時要填的自訂欄位）</span>
@@ -3379,6 +3404,7 @@ function mdHTML(s) {
 }
 function openDoc(docId, nodeId) {
   const d = docId ? db.docs.find((x) => x.id === docId) : null;
+  if(d && !canSeeDoc(d)) return toast('你的角色無權開啟此文件','warn');
   const v = d ? d.versions[d.versions.length - 1] : { body: '# 新文件\n\n' };
   const n = node(d ? d.node : nodeId);
   const ed = can('edit', n) || can('create', n);
@@ -3404,6 +3430,7 @@ function saveDoc(docId, nodeId) {
 
 /* ---------- 新專案精靈、會議紀錄、匯入、關聯 ---------- */
 function openNewProject() {
+  if(!isPetfoodOps()) { const wf=db.workflows[0]; return wf?openWorkflowProjectDialog(wf.id):go('templates'); }
   openDlg(`<form id="npForm"><h2 class="serif">用 AI 建立新專案</h2>
     <div class="field"><label for="npName">產品名稱</label><input id="npName" required placeholder="例如：幼貓慕斯罐・雞肉"></div>
     <div class="frow"><div class="field"><label for="npPet">目標寵物</label><select id="npPet"><option>幼貓</option><option>成貓</option><option>高齡貓</option><option>成犬</option><option>高齡犬</option></select></div>
@@ -3412,6 +3439,7 @@ function openNewProject() {
     <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn primary" type="submit">產生專案</button></div></form>`);
 }
 function createProject(name, pet, due) {
+  if(!isPetfoodOps()) return toast('請從目前公司的工作流建立專案','warn');
   closeDlg();
   let pid;
   aiRun('建立新專案', 'public', `依寵物罐頭開發範本建立專案：${name}（${pet}），上市 ${due}`, () => ({ text: `已依範本產生「${name}」：5 個階段、${PHASE_TEMPLATE.reduce((a, t) => a + t[3].length, 0)} 項初版任務與階段閘門。所有任務標示「AI 建議」，請檢查後調整。` }));
@@ -3475,6 +3503,7 @@ function openMinutesConfirm(items, done) {
   ui.minItems = { items, done };
 }
 function openImport() {
+  if(!isPetfoodOps()) return toast('此公司不使用這項營運功能','warn');
   const sample = '代號,名稱,供應品項\nS-006,大海冷凍食品有限公司,鮭魚\nS-002,禾豐肉品有限公司,雞胸肉\nS-007,,雞心\nS-008,森田蔬果行,胡蘿蔔';
   openDlg(`<form id="impForm"><h2 class="serif">匯入供應商（Excel / CSV）</h2>
     <p class="small muted" style="margin-top:-8px">Demo：貼上從 Excel 複製的內容（逗號或 Tab 分隔）。匯入前會預覽並檢查重複與格式錯誤。</p>
@@ -3486,22 +3515,22 @@ function parseImport(text) {
   return text.trim().split('\n').slice(1).map((l) => l.split(/[,\t]/).map((x) => x.trim())).map(([id, name, items]) => {
     let st = '新增';
     if (!id || !/^S-\d{3}$/.test(id) || !name) st = '格式錯誤';
-    else if (db.ops.suppliers.some((s) => s.id === id || s.name === name)) st = '重複（略過）';
+    else if (legacyOps().suppliers.some((s) => s.id === id || s.name === name)) st = '重複（略過）';
     return { id, name, items, st };
   });
 }
 function openAddLink(nodeId) {
-  const O = db.ops;
-  const opts = [...O.suppliers.map((s) => ['supplier', s.id, `供應商｜${s.short}`]), ...O.pos.map((p) => ['po', p.id, `採購單｜${p.id} ${supName(p.supplier)}`]), ...O.wos.map((w) => ['wo', w.id, `工單｜${w.id}`]), ...O.formulas[0].versions.map((v) => ['formula', 'F-CAT-01:' + v.v, `配方｜F-CAT-01 v${v.v}（${v.status}）`])];
+  const O = legacyOps();
+  const opts = isPetfoodOps()?[...O.suppliers.map((s) => ['supplier', s.id, `供應商｜${s.short}`]), ...O.pos.map((p) => ['po', p.id, `採購單｜${p.id} ${supName(p.supplier)}`]), ...O.wos.map((w) => ['wo', w.id, `工單｜${w.id}`]), ...O.formulas.flatMap(f=>f.versions.map((v) => ['formula', f.id+':' + v.v, `配方｜${f.id} v${v.v}（${v.status}）`]))]:opsModules().flatMap(m=>opsRecords(m.id).map(r=>[m.id,r.id,`${m.label}｜${r.title||r.id}`]));
   openDlg(`<form id="linkForm" data-node="${nodeId}"><h2 class="serif">關聯營運資料</h2>
-    <div class="field"><label for="linkSel">選擇</label><select id="linkSel">${opts.map(([t, id, l]) => `<option value="${t}|${id}">${esc(l)}</option>`).join('')}</select></div>
+    <div class="field"><label for="linkSel">選擇</label><select id="linkSel">${opts.map(([t, id, l]) => `<option value="${esc(t)}|${esc(id)}">${esc(l)}</option>`).join('')}</select></div>
     <div class="dlg-actions"><button class="btn" type="button" data-close-dlg>取消</button><button class="btn primary" type="submit">關聯</button></div></form>`);
 }
 
 /* ================= 營運資料事件（F10） ================= */
 function poNext(id) {
   if(OPS_CONFIG.mode!=='petfood') return toast('此公司不使用這項營運功能','warn');
-  const po = db.ops.pos.find((p) => p.id === id);
+  const po = legacyOps().pos.find((p) => p.id === id);
   const nx = PO_FLOW[PO_FLOW.indexOf(po.status) + 1]; if (!nx) return;
   const before = db.deps.filter((d) => d.cond && d.cond.id === id);
   commit(`${id} → ${nx}`, () => {
@@ -3521,7 +3550,7 @@ function poNext(id) {
 }
 function woNext(id) {
   if(OPS_CONFIG.mode!=='petfood') return toast('此公司不使用這項營運功能','warn');
-  const w = db.ops.wos.find((x) => x.id === id);
+  const w = legacyOps().wos.find((x) => x.id === id);
   const nx = WO_FLOW[WO_FLOW.indexOf(w.status) + 1]; if (!nx) return;
   commit(`${id} → ${nx}`, () => {
     w.status = nx;
@@ -3540,10 +3569,10 @@ function erpSync() {
   const changes = [];
   commit('ERP 同步', () => {
     if (!db.erpSynced) {
-      const po = db.ops.pos.find((p) => p.id === 'PO-2604');
+      const po = legacyOps().pos.find((p) => p.id === 'PO-2604');
       if (po && po.status !== '驗收') { changes.push(`PO-2604 交期由 ${md(po.expected)} 延到 10/22（供應商通知）`); po.expected = '2026-10-22'; po.synced = nowStr(); }
     }
-    db.ops.suppliers.forEach((s) => {
+    legacyOps().suppliers.forEach((s) => {
       s.synced = s.source === 'erp' ? nowStr() : s.synced;
       if (D(s.cert) - T0 < 60 && !Object.values(db.nodes).some((n) => n.certFor === s.id)) {
         const id = addNode('p4', { title: `更新證照：${s.short}（${md(s.cert)} 到期）`, tag: '採購', owner: 'hua', dept: USERS.hua.dept, start: TODAY, end: S(D(s.cert) - 14), links: [{ t: 'supplier', id: s.id }] });
@@ -3714,6 +3743,7 @@ function openSkipDialog(id) {
 document.addEventListener('click', (e) => {
   const t = e.target.closest('button, tr.click, [data-gnode], [data-enter]'); if (!t) return;
   const ds = t.dataset;
+  if(!isPetfoodOps() && ['supApprove','fRequest','fApprove','fReject','bomPush','impact','impPreview'].some(k=>k in ds)) return toast('此公司不使用這項營運功能','warn');
   if (ds.go) return go(ds.go);
   if ('deptAdd' in ds) return openDeptDlg(null);
   if (ds.deptEdit) return openDeptDlg(ds.deptEdit);
@@ -3808,17 +3838,17 @@ document.addEventListener('click', (e) => {
   if (ds.poNext) return poNext(ds.poNext);
   if (ds.woNext) return woNext(ds.woNext);
   if (ds.poTask && OPS_CONFIG.mode==='petfood') {
-    const po = db.ops.pos.find((p) => p.id === ds.poTask);
+    const po = legacyOps().pos.find((p) => p.id === ds.poTask);
     const host = linkedNodes('po', po.id)[0]; const parent = host ? host.parent : 'p1';
     const t = { name: '到貨驗收', nodes: [{ k: 'r', p: null, title: `到貨驗收：${po.id}`, tag: '品保', off: 0, dur: 0, dp: [], dept: 'd-qa' }, ...['核對數量與外觀', '抽樣檢驗', 'COA / 規格書核對', '入庫與批號登錄'].map((x, i) => ({ k: 'k' + i, p: 'r', title: x, tag: '品保', off: i, dur: 0, dp: ['d-qa'], dept: 'd-qa' }))], deps: [0, 1, 2].map((i) => ({ f: 'k' + i, t: 'k' + (i + 1), type: 'FS', lag: 0 })), docs: [] };
     const res = commit(`建立 ${po.id} 驗收任務`, () => { const r = applyTemplate(t, parent, { start: po.expected, vars: {}, structure: true, deps: true, owners: true, dates: true, docs: false }); db.nodes[r.root].links = [{ t: 'po', id: po.id }]; return r; });
     log(res.root, '模板', `從採購單 ${po.id} 建立驗收任務（${res.count} 項）`);
     return toast(`已建立「到貨驗收：${po.id}」（${res.count} 項）`, null, { label: '開啟', fn: () => enter(res.root) });
   }
-  if (ds.supApprove) { const s = db.ops.suppliers.find((x) => x.id === ds.supApprove); commit('供應商評估通過', () => { s.status = '合格'; s.rating = 'B'; s.evals.push({ date: ymd(TODAY), score: 84, result: '通過' }); db.ops.materials.filter((m) => m.suppliers.includes(s.id)).forEach((m) => { m.status = '核准'; }); }); return log(null, '供應商', `${s.short} 評估通過，狀態改為合格；相關原料改為核准`); }
-  if (ds.fRequest) { const [fid, v] = ds.fRequest.split(':'); const ver = db.ops.formulas.find((f) => f.id === fid).versions.find((x) => x.v === +v); if (Math.abs(fCalc(ver).total - 100) > 0.01) return toast('配方比例合計不是 100%，無法申請定案', 'warn'); commit('申請配方定案', () => { ver.request = 'pending'; }); log(null, '配方', `申請 ${fid} v${v} 定案`); return notify(`已送出 ${fid} v${v} 定案申請，等待研發主管簽核（審核中心）。`, '配方簽核'); }
+  if (ds.supApprove) { const s = legacyOps().suppliers.find((x) => x.id === ds.supApprove); commit('供應商評估通過', () => { s.status = '合格'; s.rating = 'B'; s.evals.push({ date: ymd(TODAY), score: 84, result: '通過' }); legacyOps().materials.filter((m) => m.suppliers.includes(s.id)).forEach((m) => { m.status = '核准'; }); }); return log(null, '供應商', `${s.short} 評估通過，狀態改為合格；相關原料改為核准`); }
+  if (ds.fRequest) { const [fid, v] = ds.fRequest.split(':'); const ver = legacyOps().formulas.find((f) => f.id === fid).versions.find((x) => x.v === +v); if (Math.abs(fCalc(ver).total - 100) > 0.01) return toast('配方比例合計不是 100%，無法申請定案', 'warn'); commit('申請配方定案', () => { ver.request = 'pending'; }); log(null, '配方', `申請 ${fid} v${v} 定案`); return notify(`已送出 ${fid} v${v} 定案申請，等待研發主管簽核（審核中心）。`, '配方簽核'); }
   if (ds.fApprove || ds.fReject) {
-    const [fid, v] = (ds.fApprove || ds.fReject).split(':'); const f = db.ops.formulas.find((x) => x.id === fid); const ver = f.versions.find((x) => x.v === +v); const ok = !!ds.fApprove;
+    const [fid, v] = (ds.fApprove || ds.fReject).split(':'); const f = legacyOps().formulas.find((x) => x.id === fid); const ver = f.versions.find((x) => x.v === +v); const ok = !!ds.fApprove;
     commit(`${ok ? '核准' : '退回'}配方定案`, () => { ver.request = null; if (ok) { f.versions.forEach((x) => { if (x.status === '試作' || x.status === '定案') x.status = '停用'; }); ver.status = '定案'; ver.locked = true; ver.approvedBy = ui.me; } });
     log(null, '配方', `${ok ? '核准' : '退回'} ${fid} v${v} 定案`);
     return ok && notify(`${fid} v${v} 已定案並鎖定。建議：\n1. 到「變更影響分析」產生重做任務\n2. 推送為 ERP 正式 BOM`, '配方簽核');
@@ -3864,7 +3894,7 @@ document.addEventListener('change', (e) => {
   if (t.id === 'docsAllChk') { ui.docsAll = t.checked; return render(); }
   if (t.id === 'fvA' || t.id === 'fvB') { ui.fv = [+$('fvA').value, +$('fvB').value]; return render(); }
   if (t.name === 'policy') { commit('AI 政策', () => { db.policy = t.value; }); return log(null, 'AI 政策', `AI 政策改為「${{ local_only: '全本地', hybrid: '混合', cloud_allowed: '允許雲端' }[t.value]}」`); }
-  if (t.dataset.fitem) { const [fid, v, m] = t.dataset.fitem.split(':'); const ver = db.ops.formulas.find((f) => f.id === fid).versions.find((x) => x.v === +v); commit('修改配方比例', () => { ver.items.find((i) => i[0] === m)[1] = +t.value || 0; }); return log(null, '配方', `修改 ${fid} v${v} ${matName(m)} 比例`); }
+  if (t.dataset.fitem) { const [fid, v, m] = t.dataset.fitem.split(':'); const ver = legacyOps().formulas.find((f) => f.id === fid).versions.find((x) => x.v === +v); commit('修改配方比例', () => { ver.items.find((i) => i[0] === m)[1] = +t.value || 0; }); return log(null, '配方', `修改 ${fid} v${v} ${matName(m)} 比例`); }
   if (t.dataset.module) { const k = t.dataset.module; commit('主檔歸屬', () => { db.ops.modules[k] = t.value; }); return log(null, 'ERP', `模組「${k}」主檔歸屬改為 ${t.value}`); }
   if (t.dataset.depType || t.dataset.depLag || t.dataset.depEnf) {
     const id = t.dataset.depType || t.dataset.depLag || t.dataset.depEnf; const d = db.deps.find((x) => x.id === id);
@@ -3880,6 +3910,8 @@ document.addEventListener('input', (e) => {
 });
 document.addEventListener('submit', (e) => {
   const f = e.target; e.preventDefault();
+  const submitDb=db;
+  if(!isPetfoodOps() && ['impForm','traceForm','npForm'].includes(f.id)) return toast('此公司不使用這項營運功能','warn');
   if(f.id==='resetCompanyForm') { if(f.dataset.company!==company.id) return closeDlg(); return resetActiveCompany().then(r=>{if(!r.ok) toast(r.error,'warn');}); }
   if (f.id === 'askForm') { const q = $('askInput').value.trim(); if (!q) return; $('askInput').value = ''; return aiAsk(q); }
   if (f.id === 'edForm') return saveEditor(f.dataset.id);
@@ -3913,6 +3945,7 @@ document.addEventListener('submit', (e) => {
     };
     const self = !!e.submitter && e.submitter.value === 'self';
     submitReport(nid, data, { selfApprove: self }).then((r) => {
+      if(db!==submitDb) return;
       if (r.ok) { closeDlg(); return toast(self ? '已送出並確認完成' : '已送出完成回報，等待確認'); }
       if (r.blocked) { closeDlg(); return openBlockDialog(n, 'doing', findBlockers(n, 'doing')); }
       toast(r.errors.join('；'), 'warn');
@@ -3950,7 +3983,7 @@ document.addEventListener('submit', (e) => {
   }
   if (f.id === 'impForm') {
     const rows = parseImport($('impText').value).filter((r) => r.st === '新增'); closeDlg();
-    commit('匯入供應商', () => rows.forEach((r) => db.ops.suppliers.push({ id: r.id, ext: '', name: r.name, short: r.name.slice(0, 4), items: r.items, status: '候選', contact: '', rating: '-', cert: '2027-12-31', evals: [], source: 'native', synced: '' })));
+    commit('匯入供應商', () => rows.forEach((r) => legacyOps().suppliers.push({ id: r.id, ext: '', name: r.name, short: r.name.slice(0, 4), items: r.items, status: '候選', contact: '', rating: '-', cert: '2027-12-31', evals: [], source: 'native', synced: '' })));
     log(null, '匯入', `匯入 ${rows.length} 筆供應商`); return toast(`已匯入 ${rows.length} 筆，重複與格式錯誤已略過`);
   }
   if (f.id === 'linkForm') {

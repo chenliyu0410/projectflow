@@ -156,6 +156,44 @@
     const before=JSON.stringify({portfolio,db,ui,audit,undoStack});ok(!(await resetActiveCompany(()=>false)).ok);eq(JSON.stringify({portfolio,db,ui,audit,undoStack}),before);
     eq(await (await attachmentBlob(up.added[0])).text(),'keep');
   });
+  await T('W6：同 ID 的節點、營運資料與稽核不跨公司',()=>{
+    db.nodes['shared-id']={...cloneData(db.nodes.t3013),id:'shared-id',title:'毛研秘密'};audit.acts.unshift({at:nowStr(),actor:'yu',node:'shared-id',action:'測試',text:'毛研稽核秘密'});save();
+    switchCompany('software');const task=Object.values(db.nodes).find(n=>n.type==='task');db.nodes['shared-id']={...cloneData(task),id:'shared-id',title:'雲序公開'};
+    db.ops.records.requirement.push({id:'PO-2601',title:'雲序同號需求',owner:'sw-yi',status:'已確認'});audit.acts.unshift({at:nowStr(),actor:'sw-yi',node:'shared-id',action:'測試',text:'雲序稽核'});save();
+    eq(node('shared-id').title,'雲序公開');eq(opsRecord('requirement','PO-2601').title,'雲序同號需求');ok(!pageAudit().includes('毛研秘密'));ok(!pageAudit().includes('毛研稽核秘密'));
+  });
+  await T('W6：AI、權限與敏感資料只使用目前公司',()=>{
+    db.ops.suppliers[0].contact='PF-SECRET-ONLY';save();switchCompany('software');
+    const context=buildAIContext('目前專案風險');ok(!JSON.stringify(context).includes('PF-SECRET-ONLY'));ok(!secretValues().includes('PF-SECRET-ONLY'));ok(!seeField('ratio'));ok(!seeField('missing'));
+    const module=OPS_CONFIG.modules[0];module.columns.push({key:'secret',label:'內部代號',type:'text',access:'cost'});db.ops.records.requirement[0].secret='SW-SECRET';
+    ok(secretValues().includes('SW-SECRET'));ok(!maskText('代號 SW-SECRET').out.includes('SW-SECRET'));
+    ui.me='sw-an';ok(!JSON.stringify(buildAIContext('成本')).includes('SW-SECRET'));aiAsk('目前成本多少');ok(!JSON.stringify(ui.chat).includes('F-CAT'));
+    COMPANY_ORDER.slice(1).forEach(id=>{
+      switchCompany(id);const root=projects()[0];openDoc(null,root.id);$('dTitle').value='機密驗收';$('dBody').value='機密文件內容';$('dLevel').value='confidential';saveDoc(null,root.id);
+      const doc=db.docs.at(-1);ok(canSeeDoc(doc),id+'負責人應可重新開啟');openDoc(doc.id);eq($('dBody').value,'機密文件內容');closeDlg();
+      ui.me=Object.keys(USERS).find(uid=>USERS[uid].role==='admin');ok(canSeeDoc(doc),id+'管理員應可開啟');
+      ui.me=Object.keys(USERS).find(uid=>USERS[uid].role==='collab');ok(!canSeeDoc(doc));openDoc(doc.id);ok(!$('dlg').open,'拒絕直接開啟機密文件');ok(!seeField('ratio'));
+    });
+  });
+  await T('W6：損壞營運連結與不存在成員不會使頁面崩潰',()=>{
+    switchCompany('construction');const root=projects()[0];root.links=[{t:'missing-module',id:'<missing-record>'}];portfolio.companies.construction.me='missing-user';activateCompany('construction');eq(me().id,'ct-chen');
+    ui.node=root.id;ui.tab='data';ok(pageNode().includes('找不到營運記錄'));
+    const child=Object.values(db.nodes).find(n=>n.type==='task');child.links=[{t:'missing',id:'<img src=x onerror=alert(1)>'}];ok(!pageNode().includes('<img src=x'));
+    const m=OPS_CONFIG.modules[0];m.columns.push({key:'amount',label:'壞權限',type:'money',access:'missing'});ui.opsTab=m.id;ok(pageOps());
+    db.ops.records[m.id].push(null);ok(pageOps());
+  });
+  await T('W6：五家公司主要頁面沒有 undefined 或 NaN',()=>{
+    COMPANY_ORDER.forEach(id=>{switchCompany(id);['overview','mytasks','review','ops','templates','aigov','audit'].forEach(page=>{ui.page=page;renderMain();ok(!/\bundefined\b|\bNaN\b/.test($('main').textContent),id+page);});
+      if(id!=='petfood') {
+        openNewProject();ok(!$('dlg').textContent.includes('寵物'));closeDlg();openAddLink(projects()[0].id);ok($('linkSel').options.length>=6);closeDlg();
+        aiAction('cost');aiAction('plan');aiAction('suggest');aiAsk('時程延誤風險');ok(!JSON.stringify(ui.chat).includes('殺菌試驗紀錄'));
+        ui.chat.flatMap(x=>x.actions||[]).filter(a=>a.kind==='addDepts').forEach(a=>ok(a.payload.depts.every(id=>dept(id))));
+      }
+    });
+    const frame=window.frameElement,original=frame.style.width;
+    try {frame.style.width='375px';switchCompany('petfood');ui.page='ops';ui.opsTab='formulas';renderMain();ok($('main').scrollWidth<=$('main').clientWidth,'手機配方頁不得水平溢出');}
+    finally {frame.style.width=original;}
+  });
   // ── 新測試加在這一行上面 ──
   return results;
 })()
