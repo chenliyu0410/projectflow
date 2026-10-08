@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P0完成並發布GitHub main；下一階段P1a後端核心計畫（至P1c已授權）** |
+| 目前工作項目 | **P1a後端核心計畫待審閱（至P1c已授權）** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 細化P1a登入／公司隔離／migration／核心API可執行計畫，正常審閱後Native TDD。不要再次詢問是否啟動正式版；D51已授權到P1c。P0已完成發布，不要重做。 |
+| 下一個動作 | 請人類審閱P1a登入／公司隔離／migration／核心API可執行計畫；確認後依Native TDD執行Task1。不要再次詢問是否啟動正式版；D51已授權到P1c。 |
 | 分支 | `main`；P0分支已ff-only合併並依G6刪除，無活動feature分支。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
 | 最新程式 commit | 正式版P0 Task3 `18df1ea`，合併HEAD `435af43`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | 2026-10-08 P0合併後：pytest `8 passed, 1 warning in 0.48s`、Vitest `6 passed (6)`、Playwright `4 passed (968ms)`、build均exit0；真DB中斷／恢復、同volume、1280／375px、5秒逾時與遲到回應已驗證。Demo仍`全部通過 174/174`，本輪再次實跑、page errors空。 |
 | 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17僅健康探測，尚無業務schema／migration（P1a引入）。 |
-| 認領中 | 無；P0執行與獨立審查已結束 |
-| 阻塞／待人類 | 無P0阻塞。下一階段先細化P1a計畫並審閱，D51整體授權不變；D43、D10不擴大MVP。 |
+| 認領中 | 無；P1a計畫已落檔，待審閱 |
+| 阻塞／待人類 | P1a plan需人類審閱確認後才能進入G3執行；D51整體授權不變，D43、D10不擴大MVP。 |
 | 遠端 | 2026-10-08已成功push origin main `4539e41..981362f`，ls-remote確認，包含完整P0與G6；本筆發布紀錄隨後同步。僅main，無force／PR／其他分支。 |
 
 ---
@@ -76,7 +76,8 @@
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
 | — | P0 | 正式軌技術骨架與規則 | ✅ 已發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
-| — | P1a–P1c | 正式版MVP：核心後端、React流程、部署／測試／驗收 | 已授權；下一步P1a計畫（D51） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 各階段開工前細化 | 正式DB另管migration | P0已完成；P1a→P1b→P1c，P2以後的真AI／ERP／AD／完整RAG不在本輪 |
+| — | P1a | 正式版MVP：登入、公司隔離、migration與核心後端API | 📋 plan待審閱（D51） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1a計畫](superpowers/plans/2026-10-08-p1a-backend-core.md) | 正式PostgreSQL migration `20261008_0001_p1a_core` | P0已完成；審閱後Native TDD，P2以後的真AI／ERP／AD／完整RAG不在本輪 |
+| — | P1b–P1c | 正式版MVP：React流程、部署／測試／內部試用驗收 | 已授權；待P1a完成後細化 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 各階段開工前細化 | 沿P1a正式DB | P1a→P1b→P1c |
 
 **排程規則**
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -415,6 +416,33 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - 工具：Node24.19.0、npm11.17.0、Python3.13.9、Docker29.7.2／Compose5.4.0、Playwright1.64.0／Chromium156.0.8078.4。
 - 實測image ID：API `sha256:d0267bda4bd990e4f4c9e1750007f2c2d4cb897a8348a670ee1e1baa02ac9436`；web `sha256:8f04cf46a074f50478d111e30f35bbb9ce97626745c8403f631607ac4c75a154`；PostgreSQL `sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`。
 - 基礎映像digest：Python3.13-slim `sha256:bf44cdfcb76cd3b41e879bc058fc37ec5872002ccfde7fcb765e218cde0cd79c`；Node24-bookworm-slim `sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20`；nginx stable-alpine `sha256:0985e772fb9f729e6fa0980da05fca5d9c468e870eed43071545afa9d2e27d94`。tag為開發方便用途，不宣稱production hardening／離線部署保證。
+
+### P1a 正式版後端核心 — 📋 plan待審閱
+
+**授權**：D51已授權做到P1c；本階段不再問是否啟動正式版，但可執行計畫仍需人類審閱確認後才能進G3。
+
+**計畫**：[2026-10-08-p1a-backend-core](superpowers/plans/2026-10-08-p1a-backend-core.md)，取代舊MVP outline Task2。P1a只做後端核心；P1b才接React業務流程，P1c才做整合驗收。
+
+| Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
+|---|---|---|---|---|
+| 1 | Session登入、資料庫層、Alembic migration骨架 | ⬜ 待審閱後執行 | 新增auth／migration測試；RED缺`app.database`／`app.seed`／routes／migration，GREEN後全部auth與migration測試通過 | `P1a task 1: add sessions and migration foundation` |
+| 2 | Project／Department／Node API、`can_view`／`can_work`與audit helper | ⬜ | 新增project/node權限與跨公司測試；GREEN後目前API測試全通 | `P1a task 2: add scoped projects and node permissions` |
+| 3 | Workflow建立專案與Gate阻擋 | ⬜ | 新增workflow/gate測試；含跨公司workflow ID、pending gate直接status更新阻擋 | `P1a task 3: add workflows and gate enforcement` |
+| 4 | Report、Audit API與真PostgreSQL migration／seed驗收 | ⬜ | 新增report/audit測試；完整API pytest、Vitest、build、P0 E2E回歸；Compose PostgreSQL實跑migration與seed | `P1a task 4: add reports audit and database acceptance` |
+
+**P1a驗收**
+- [ ] 登入／登出／me端點使用HttpOnly `pf_session`，不能用前端公司參數切換公司。
+- [ ] Alembic migration建立organization-scoped核心表；業務資料都有`organization_id`並由session限制。
+- [ ] 種子資料至少兩家公司、不同使用者／部門／專案／節點／工作流。
+- [ ] Project、Node、Department、Workflow、Gate、Report、AuditLog API都強制公司隔離與後端權限檢查。
+- [ ] 猜測他公司project/node/workflow/report/audit ID不可讀寫。
+- [ ] pending gate不能被直接status API或override payload繞過。
+- [ ] API pytest、React Vitest、production build、P0 health E2E均通過；README／正式開發指南／PROGRESS更新並審查。
+
+**執行注意**
+1. 計畫中的SQLAlchemy／Alembic版本是2026-10-08依PyPI查得後選定的鎖版；執行時若相容性失敗，需先修plan或記D，不可改用`latest`。
+2. P0 Compose刻意不暴露DB host port；seed實跑預設在API container內執行，不為seed臨時開DB對外埠。
+3. P1a測試可用SQLite暫存DB檢查路由與權限，但完成驗收必須在真PostgreSQL跑migration與seed。
 
 ### P0 規劃文件恢復（歷史紀錄，非 P0 實作）
 
