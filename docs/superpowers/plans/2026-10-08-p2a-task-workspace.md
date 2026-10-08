@@ -29,6 +29,7 @@ api/app/services/__init__.py                # 新增
 api/app/services/node_policy.py             # 新增：metadata驗證、投影、祖先Gate
 api/alembic/versions/20261008_0002_p2a_node_dates.py
 api/tests/test_migrations.py
+api/tests/test_health.py                   # 同步既有精確route合約集合
 api/tests/test_projects_nodes.py
 api/tests/test_workflows_gates.py
 api/tests/test_node_metadata.py             # 新增
@@ -54,6 +55,8 @@ docs/mvp-trial-checklist.md
 docs/PROGRESS.md
 ```
 
+`test_health.py`僅同步既有精確route集合以納入已核准的新端點，不弱化斷言、不變更產品範圍（Task1 metadata與指派選項，Task3 workspace）。
+
 spec／plan的修訂依AGENTS例外記錄；不需為拆分檔案重寫現有未相關功能。若實作確需清單外檔案先更新plan，依WORKFLOW處理。
 
 ## 測試方式：見 WORKFLOW §5
@@ -71,7 +74,7 @@ api/.venv/Scripts/python.exe deploy/verify.py
 
 ## Task 1 — 日期migration與metadata服務（A2）
 
-**Files:** models.py、schemas.py、permissions.py、routes/projects.py、新services兩檔、新migration、test_migrations.py、test_node_metadata.py、test_projects_nodes.py。
+**Files:** models.py、schemas.py、permissions.py、routes/projects.py、新services兩檔、新migration、test_migrations.py、test_node_metadata.py、test_projects_nodes.py、test_health.py。
 
 **Interfaces:** spec §2／§4；NodeCreate限phase/task；NodeUpdate以model_fields_set区分未傳與null；assignment-options及node安全投影。暫時保留Gate原函式到Task2。
 
@@ -101,7 +104,7 @@ api/.venv/Scripts/python.exe deploy/verify.py
 
 ## Task 3 — 可見總覽與本人任務API（A5服務）
 
-**Files:** routes/workspace.py、main.py、services/node_policy.py、test_workspace.py。
+**Files:** routes/workspace.py、main.py、services/node_policy.py、test_workspace.py、test_health.py。
 
 **Interfaces:** GET /workspace/overview、/workspace/my-tasks，依spec §4 JSON；沿用Task1 node投影。不要逐專案HTTP抓取或N+1查詢；可用批次取公司專案／節點／部門後套policy。
 
