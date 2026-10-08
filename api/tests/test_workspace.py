@@ -182,10 +182,13 @@ def test_workspace_query_count_is_constant_as_projects_and_tasks_grow(client,eng
             db.commit()
         queries.clear()
         assert len(client.get('/workspace/my-tasks').json()['items'])==37
-        assert len(queries)==count and count<=7
+        # P2c adds one batched dependency lookup, independent of task count.
+        assert len(queries)==count and count<=8
+        assert sum('FROM node_dependencies' in query for query in queries)==1
         queries.clear()
         assert client.get('/workspace/overview').status_code==200
-        assert len(queries)<=7
+        assert len(queries)<=8
+        assert sum('FROM node_dependencies' in query for query in queries)==1
     finally:
         event.remove(engine,'before_cursor_execute',record)
 

@@ -36,15 +36,8 @@ try:
     with urllib.request.urlopen('http://127.0.0.1:8000/health/acceptance', timeout=5) as r:
         assert r.status == 200 and json.load(r) == {'acceptance': True}
     sources = json.load(sys.stdin)
-    name = 'p2b_test_' + uuid.uuid4().hex
-    assert re.fullmatch(r'p2b_test_[0-9a-f]{32}', name)
     original = make_url(sqlalchemy_url(os.environ['DATABASE_URL']))
     assert original.get_backend_name() == 'postgresql' and original.database == 'projectflow'
-    engine = create_engine(original, isolation_level='AUTOCOMMIT')
-    with engine.connect() as db:
-        db.execute(text('CREATE DATABASE "' + name + '"'))
-    engine.dispose()
-    url = original.set(database=name).render_as_string(hide_password=False)
     with tempfile.TemporaryDirectory(prefix='p2b-verify-') as directory:
         root = pathlib.Path(directory)
         (root / 'api').symlink_to('/app', target_is_directory=True)
@@ -53,13 +46,23 @@ try:
             assert filename in {'test_migrations.py', 'test_collaboration_postgresql.py'}
             (root / filename).write_text(source, encoding='utf-8')
         (root / 'no_skip.py').write_text('def pytest_sessionfinish(session, exitstatus):\n    if session.testscollected == 0 or session.config.pluginmanager.get_plugin("terminalreporter").stats.get("skipped"):\n        session.exitstatus = 1\n', encoding='utf-8')
-        environment = {**os.environ, 'DATABASE_URL': url, 'P2B_TEST_DATABASE_URL': url,
-                       'PF_ACCEPTANCE_MODE': 'true', 'PF_ATTACHMENT_ROOT': str(root / 'files'),
+        environment = {**os.environ, 'PF_ACCEPTANCE_MODE': 'true',
+                       'PF_ATTACHMENT_ROOT': str(root / 'files'),
                        'PYTHONPATH': str(root) + ':/app'}
         environment.pop('P2A_MIGRATION_TEST_URL', None)
-        stages = [('migration', 'test_migrations.py::test_p2b_postgresql_migration_constraints_and_parallel_pending'),
+        stages = [('P2b migration', 'test_migrations.py::test_p2b_postgresql_migration_constraints_and_parallel_pending'),
+                  ('P2c migration', 'test_migrations.py::test_p2c_postgresql_migration_and_dependency_constraints'),
                   ('API races', 'test_collaboration_postgresql.py')]
         for label, target in stages:
+            # Each migration starts on a new database, never an already-upgraded stack.
+            name = 'p2b_test_' + uuid.uuid4().hex
+            assert re.fullmatch(r'p2b_test_[0-9a-f]{32}', name)
+            engine = create_engine(original, isolation_level='AUTOCOMMIT')
+            with engine.connect() as db:
+                db.execute(text('CREATE DATABASE "' + name + '"'))
+            engine.dispose()
+            url = original.set(database=name).render_as_string(hide_password=False)
+            environment.update(DATABASE_URL=url, P2B_TEST_DATABASE_URL=url)
             result = subprocess.run([sys.executable, '-m', 'pytest', target, '-q', '-p', 'no_skip'],
                                     cwd=root, env=environment, capture_output=True, text=True, timeout=600)
             output = result.stdout + result.stderr

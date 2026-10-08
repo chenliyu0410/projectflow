@@ -111,7 +111,7 @@ test('P2a nested gate, visible statistics and cross-company metadata boundaries'
   try {
     const admin = await role('yu'); const member = await role('ming'); const reader = await role('lin'); const owner = await role('owner'); const other = await role('elaine', 'electronics');
     const workflows = await admin.request.get('/api/workflows');
-    const created = await admin.request.post('/api/projects/from-workflow', { data: { workflow_id: (await workflows.json()).items[0].id, title: `P2a nested ${randomUUID()}` } });
+    const created = await admin.request.post('/api/projects/from-workflow', { data: { workflow_id: (await workflows.json()).items.find((workflow: { name: string }) => workflow.name === '食品新品開發').id, title: `P2a nested ${randomUUID()}` } });
     expect(created.status()).toBe(201); const projectId = (await created.json()).id;
     const detail = await (await admin.request.get(`/api/projects/${projectId}`)).json();
     const parent = detail.nodes.find((node: { title: string }) => node.title === '試作工單');
@@ -144,7 +144,7 @@ test('P2a nested gate, visible statistics and cross-company metadata boundaries'
     const foreign = await (await other.request.get('/api/workspace/overview')).json();
     expect(foreign.projects.some((project: { id: string }) => project.id === projectId)).toBe(false);
     // The project_owner role manages only projects it actually owns.
-    const ownProject = await owner.request.post('/api/projects/from-workflow', { data: { workflow_id: (await workflows.json()).items[0].id, title: `P2a owner ${randomUUID()}` } });
+    const ownProject = await owner.request.post('/api/projects/from-workflow', { data: { workflow_id: (await workflows.json()).items.find((workflow: { name: string }) => workflow.name === '食品新品開發').id, title: `P2a owner ${randomUUID()}` } });
     expect(ownProject.status()).toBe(201); const ownedId = (await ownProject.json()).id;
     const ownTask = await owner.request.post(`/api/projects/${ownedId}/nodes`, { data: { title: '負責人建立', kind: 'task' } }); expect(ownTask.status()).toBe(201);
     expect((await owner.request.patch(`/api/nodes/${(await ownTask.json()).id}`, { data: { owner_user_id: member.user.id } })).status()).toBe(200);

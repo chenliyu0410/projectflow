@@ -166,6 +166,8 @@ def test_collaboration_queries_remain_constant_and_overview_updates(client,engin
             db.commit()
         queries.clear()
         assert len(client.get('/workspace/my-tasks').json()['items'])==21
-        assert len(queries)==count and count<=7
+        # P2c adds one batched dependency lookup, independent of task count.
+        assert len(queries)==count and count<=8
+        assert sum('FROM node_dependencies' in query for query in queries)==1
     finally:
         event.remove(engine,'before_cursor_execute',record)

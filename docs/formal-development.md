@@ -283,3 +283,18 @@ docker compose --project-name projectflow-acceptance --env-file .superpowers/p1c
 命令取獨占runtime鎖，不會清ready／綁定／歷史附件；修復指定未完成檔案、標failed並返還該筆預留容量。失敗保留資料並回非零，不手動刪未知檔案。恢復後重新登入比對既有note/report/附件中繼資料與下載SHA；下載過的副本無法撤回。
 
 仍未交付：自訂回報欄位（P2c）、跳過申請、Gate覆寫、子樹批次操作、時程拖曳、AI／ERP、LAN／TLS與正式備份排程；人類試用簽核不得由自動化代勾。
+
+
+## P2c 時程、模板與硬性前置（D65／D66A精簡範圍）
+
+本輪移植日／週／月時程、工作流模板管理及同專案task間硬性FS（完成至開始、延遲0）；尚非完整Demo或原P2c全部功能。工程驗收及部署狀態以PROGRESS為準。時程只畫可見節點原日期，缺日期列未排程；phase手動日期不由子任務推導。桌面拖移任務條／右端拉伸後，日期表單確認才寫入；手機與鍵盤可使用調整日期按鈕及表單。可取消、日期可空，單次只改選定節點，沒有自動順延或持久undo。操作沿edit_metadata，失敗保留原值，已保存但載入失敗只重讀。
+
+「模板庫」同公司可讀，admin／project_owner可新增、編輯與複製；表單包括phase／多層task、排序、階段Gate、起迄相對日及FS。開始日為第0天，偏移非負且起<=迄；有偏移的模板建立專案必填開始日，無偏移舊模板仍可不填日期。新節點指派給建立者，不繼承部門。修改只影響之後建立專案，複製建立新模板及節點ID，不刪除模板或覆寫既有專案。
+
+API擴充GET／POST `/workflows`、GET／PUT `/workflows/{id}`、POST `/workflows/{id}/copy`；from-workflow可傳start_date。完整模板儲存與建立專案採原子交易，不輸出raw payload。migration `20261009_0004`新增node_dependencies，模板設定存經schema驗證的版本化Workflow.content，保留0003既有值／ID、舊模板、日期、回報、筆記、附件與稽核。
+
+專案「前置相依」提供設定與簡單可見相依圖。GET／POST `/projects/{id}/dependencies`、DELETE `/dependencies/{id}`；只有同公司admin或實際專案owner可管理，端點需同專案且可見，拒self／重複／循環／跨專案。只刪連線不刪任務。前置done或skipped才滿足；否則禁止開始、送回報及管理者送出並確認。已開始任務若前置重開，不回退既有狀態，但再次回報會被擋。Gate獨立生效，不因前置滿足而繞過。隱藏前置只顯示固定阻塞訊息，不揭露標題／ID／日期；協作不提升執行權限。Project→Node一致鎖序序列化加邊與狀態／回報，循環檢查在Project鎖內。
+
+完整verify保留P2bPG migration與四項真PG競態，另加入0003→0004保留資料／相依約束測試；每個PG階段建立各自全新p2b_test_*專用DB，避免已到head的DB假驗升級，不downgrade既有環境。命名沿原護欄相容，DSN僅子程序、檔案temp隔離、skip仍使驗收非零。候選版本完成一次完整verify，修正只重驗受影響部分，合併main不重複全量；附件既有故障矩陣不擴充。升級仍先備份DB＋files與env指紋、不seed、不刪volume。
+
+本輪延後：SS／FF、延遲、軟性前置／覆寫、自動順延、工作日／假日、里程碑鎖定、持久undo、關鍵路徑、時程相依連線、子樹另存／套用、拖曳改層級與自訂回報欄位；既有P2b的跳過申請／Gate覆寫及AI／ERP／LAN正式部署限制仍在。

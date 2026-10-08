@@ -111,3 +111,22 @@ G6 main再次完整驗收exit0：強制PG migration1／競態3、API337passed5co
 - [ ] 查看審核中心、稽核篩選與游標載入，確認僅見授權範圍、來源導航正確。
 - [ ] 管理者確認DB＋files一致備份、公司quota、停止API後pending修復流程；理解沒有預覽／病毒掃描或公開下載連結。
 - [ ] 試用負責人記錄日期、意見與簽核，理解自訂欄位、跳過申請、Gate覆寫及P2c以後仍未交付。
+
+
+## P2c 精簡範圍工程驗收與人類試用
+
+依D65／D66A，只交付時程／模板／硬性FS的精簡範圍，非完整Demo移植。工程結果及部署狀態見PROGRESS；以下由人類試用簽核，自動化不代勾。
+
+2026-10-09候選整合實跑：mandatoryPG分三個全新專用DB，P2b migration1 passed（0.53s）、P2c0003→0004保留值／約束1 passed（0.78s）、真雙連線race4 passed（2.21s），無skip。唯一完整verify在API階段為344 passed／7 skipped／2 failed（273.09s），exit1且finally cleanup成功；兩個失敗為舊query cap7，P2c新增單次批次前置查詢後仍成長前後8==8。依計畫窄適配cap8並加恰好一次dependency查詢斷言，兩target重新2 passed（2.05s）。7條件skip中的P2b／P2c migration及四race共6項已在mandatoryPG實跑；另1項P2a舊migration沿歷史證據，不本輪重跑。
+
+繼續未執行stage：Vitest167 passed、build exit0；完整E2E15 passed／1 failed（46.5s），失敗是舊workspace將模板清單首項視為食品seed。改精確選「食品新品開發」後只重驗nested Gate案例1 passed，exit0；保留原Gate／可見完成率／跨公司斷言。依D65不重跑完整API或main全量，沒有宣稱原verify exit0。早期schedule定點2 failed為舊UI錯誤文案預期，API固定FS／Gate錯誤另精確驗證；適配後schedule＋health共7 passed（17.2s）。上述均為既有完成行為回歸，不冒稱產品RED。
+
+10任務模板真UI涵蓋新增／複製、日週月、desktop拖移／拉伸後確認、mobile鍵盤日期表單及重載、FSdone／skipped解鎖與Gate独立、readonly真UI／跨公司／隱藏前置安全投影；另20task閉環原子拒絕。1280／375頁面無水平overflow，僅精確允許初始auth/me401與刻意FS/Gate409，其他HTTP／console／pageerror為0，截圖已實看。相依圖手機使用內部橫捲。兩個唯一專案正常stop/start、不seed，完整project（含日期／ID／狀態）、workflow及dependencies snapshot前後一致。證據保存在ignored `.superpowers/p2c/`，含full-verify、query-targeted、vitest、build、e2e-full、workspace-targeted、persistence及schedule／dependencies截圖。primary未執行業務測試，附件故障矩陣未重做。
+
+
+- [ ] 建立含至少10任務的模板，試相對日、階段Gate、FS及複製，確認修改不影響已有專案。
+- [ ] 以開始日建立專案，查看日／週／月、樹狀收合及未排程；理解phase日期不由子任務自動推導。
+- [ ] 桌面拖移／拉伸及手機／鍵盤表單改期，確認儲存前可取消、重載保留且不自動順延其他節點。
+- [ ] 確認前置未完成時禁止開始／送回報，done及skipped解鎖後Gate仍獨立生效。
+- [ ] 以執行者／唯讀者實際查看時程與前置，確認隱藏節點不洩漏、協作不提升執行權限。
+- [ ] 試用者接受本輪未提供關鍵路徑、SS／FF、延遲／覆寫、自動順延與其他列明延後功能，記錄意見／日期／簽核。

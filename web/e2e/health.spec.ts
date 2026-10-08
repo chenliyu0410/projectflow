@@ -84,7 +84,7 @@ for (const width of [1280, 375]) {
     const blockedResponse = page.waitForResponse(response => new URL(response.url()).pathname === statusPath);
     await page.getByLabel('待處理').getByRole('combobox', { name: '試作工單狀態' }).selectOption('doing');
     expect((await blockedResponse).status()).toBe(409);
-    await expect(page.getByRole('alert')).toHaveText('前一階段閘門尚未通過');
+    await expect(page.getByRole('alert')).toHaveText('目前狀態不允許此操作，請檢查閘門與前置任務');
     await expect(page.getByLabel('待處理').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('todo');
     await screenshot('gate-blocked');
     await page.getByRole('button', { name: '核准閘門' }).click();
