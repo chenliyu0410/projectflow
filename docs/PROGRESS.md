@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2b 🟢 G4雙審Ready to merge: Yes** |
+| 目前工作項目 | **P2b ✅ 工程交付完成；P2c待G1規格** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
-| 下一個動作 | 八Task雙審Approved；G4兩位獨立審查Ready to merge: Yes；接ff-only／G6隔離回歸與保留資料部署。P2a人類簽核未完成。 |
-| 分支 | `feature/p2b-collaboration`（主checkout、無worktree）；main於feature期間凍結。 |
-| 最新程式 commit | P2b G4 fix `4d94d27`；Demo仍W6 `0934e48`未改。 |
+| 下一個動作 | 八Task雙審Approved；P2c時程／模板／相依功能進入G1規格準備，需另定spec／plan才實作；P1c／P2a／P2b人類試用仍待簽核。 |
+| 分支 | `main`（P2b已ff-only合併，G6收尾；feature將安全刪除）。 |
+| 最新程式 commit | P2b G4 fix `4d94d27`／G5 main `4d0323e`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | Task8完整verify exit0：強制PG migration1+競態3；API337passed5conditional skip/265.53s；Vitest148/build0/E2E13passed34.1s/cleanup0。首跑E2E定位失敗保留，第二跑完整GREEN。 |
-| 資料版本 | Demo v6/key不變；程式migration head `20261008_0003`，專用PG保留驗證通過；primary15173仍0002；acceptance15175已0003且停止保留雙volume；Task4新隔離15177已0003，files與pgdata保留，未升級primary。 |
-| 認領中 | Codex：P2b G3基準與逐Task實作，2026-10-08。 |
-| 阻塞／待人類 | P2b無待決產品規則；D59–D64已決；P1c／P2a人類試用簽核、D43／D10未完成。P2b依D64開工；LAN未授權。 |
-| 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b定稿與Task1–8僅本機feature，未push。 |
+| 測試基準 | G6 main verify exit0：強制PG migration1+競態3；API337passed5conditional skip/265.91s；Vitest150/build0/E2E13passed34.0s。phase admin／readonly×1280／375只讀UI及cleanup均exit0。 |
+| 資料版本 | Demo v6/key不變；正式migration head `20261008_0003`，15173已保留原有全部欄位／row值與env升級，新增files持久volume。專用PG驗證保留；acceptance15175／Task4隔離容器停止，雙volume保留。 |
+| 認領中 | —（P2b完成，無實作認領）。 |
+| 阻塞／待人類 | P2b無工程阻塞；P1c／P2a／P2b人類試用簽核、D43／D10仍未完成。P2c需另訂規格／計畫；LAN未授權。 |
+| 遠端 | P2b完成D50授權交付；收尾commit後push origin main並以ls-remote核對。本輪fetch確認遠端無新增未知commit，無force。 |
 
 ---
 
@@ -88,7 +88,7 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec／Plan | 依賴 |
 |---|---|---|---|---|---|
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
-| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | 🟢 G4通過 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；D64已授權實作，G3基準執行中 | P2a |
+| 已完成 | P2b | 回報／審核、筆記、附件與稽核介面 | ✅ 工程交付 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；八Task／G4雙審、G6隔離回歸及保留資料部署通過 | P2a |
 | 後續2 | P2c | 時程、模板管理、前置相依與相依圖 | ⬜ | 各階段另訂spec／plan | P2a，順序依人類本次選擇 |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
@@ -105,7 +105,7 @@
 
 ## 3. 工作項目明細
 
-### P2b 回報與協作 — 🟢 G4通過
+### P2b 回報與協作 — ✅ 工程交付完成
 
 **授權**：人類於P2a完成後指示「繼續進行」（D58），接續路線圖B1–B6；不是P2a試用簽核通過或新產品規則已核准。
 
@@ -146,13 +146,15 @@
 
 **G4證據**：整體 `ef39cdd..4d94d27` spec／品質雙獨立Ready to merge: Yes。文件Important與phase說明Minor均關閉；phase回歸RED2failed20passed→Vitest150passed/build0（`final-phase-{red,green,build}.txt`）。重新fetch origin/main仍`c0284f6`，無來源不明遠端變更；main維持`ef39cdd`等待ff-only。
 
-**工程驗收（G6待完成）**
+**G6交付證據**：main `4d0323e`完整`g6-full-verify.txt` exit0：專用PG `p2b_test_ce7b5daefeb94069beaeb4a3d77ff646` migration1／競態3、API337pass5conditional skip／Vitest150／build0／E2E13pass34.0s。phase四組只讀UI、parent實看readonly375detail；`g6-phase-ui.txt`／cleanup／final容器與volume證據保留。primary停止API後`g6-primary-before.sql`與私密env指紋、原值snapshot保存；升級不seed，migration0003／health-ready200／files10001:10001/0700、before/after原有欄位與row值全相同、env未變（`g6-primary-preservation.txt`）。首次健康probe誤用不存在/live端點404，改正文件端點後通過，非產品錯誤。acceptance及Task4隔離容器已down無-v，兩組雙volume與專用DB保留。
+
+**工程驗收（全部完成；不含人類簽核）**
 - [x] D59–D63角色／公司／可見性與無副作用矩陣。
 - [x] 送審、退回重送、確認、自核及重開／略過完整流程與Gate。
 - [x] 協作撤銷、筆記作者修訂、本人列表與安全紀錄／稽核。
 - [x] 附件上限／配額／格式／SHA、軟刪與回報保護、故障恢復。
 - [x] 真PG舊資料升級與並行競態、DB／files無seed重啟保留。
-- [ ] 1280／375／鍵盤／console、完整回歸、雙獨立審查與G6部署。
+- [x] 1280／375／鍵盤／console、完整回歸、雙獨立審查與G6部署。
 
 以上工程項目不是人類試用簽核，P1c／P2a簽核維持未勾選。
 
@@ -626,6 +628,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | 項目 | 內容 | 證據 |
 |---|---|---|
+| P2b | 回報審核、筆記修訂、指定協作、持久附件、審核中心與安全稽核 | ef39cdd..4d0323e；八Task TDD／雙審、G4 Ready to merge: Yes、ff-only main。G6強制PG1+3、API337/5skip、Vitest150、E2E13/build/cleanup exit0；重啟/恢復/配額、15173無seed升級舊資料與env不變。人類簽核未勾。 |
 | P2a | 工作區、總覽／我的任務、四層新增／metadata編輯、D56指派與日期、多層Gate | acf176e..8dc914a；六Task TDD、兩位獨立spec／品質審查與G4 Ready to merge: Yes；ff-only main，G6 API182／Vitest96／E2E9/build/cleanup exit0，真PG與無seed重啟保留資料通過。15173已就緒，人類簽核未勾。 |
 | P1c | 本機MVP部署與隔離驗收工程交付；人類試用簽核仍待完成 | 三Task TDD、Lagrange spec／Feynman quality Approved；G4 Ready to merge: Yes，ff-only main；API80／Vitest56／E2E6/build及預設cleanup exit0。既有共享12專案snapshot不變；只停acceptance且保留volume；Demo未變。 |
 | 階段 0 | petfood 互動 Demo（`projectflow-petfood-demo.html`） | README §8 階段 0 已打勾 ✅；早於 git 歷史，包含在 `9fdcc64` 裡 |
@@ -870,6 +873,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-6｜P2b工程交付完成
+- **完成**：D59–D64、八Task TDD與雙獨立審查；G4文件權限Important、phase文案Minor均修正，兩位Ready to merge: Yes，ff-only合併main。
+- **驗證**：G6 mandatory PG1+3、API337pass5conditional skip、Vitest150/build0/E2E13pass、四組phase真UI與隔離cleanup通過；DB+files無seed重啟、pending恢復與quota通過。全部證據ignored `.superpowers/p2b/`，失敗log亦保留，無偽造RED。
+- **資料／環境**：15173已備份後不seed升migration0003，原有全部欄位/row值與env指紋相同，health/ready200，files10001:10001/0700。acceptance/Task4容器已清、所有雙volume/專用DB保留；兩Demo未改。
+- **發布／下一步**：README／指南／試用清單／PROGRESS收尾後依D50push main並核對遠端；P2c只進G1規格準備，不自動實作未定案規則。P1c/P2a/P2b人類簽核一律未代勾；無工程阻塞。
+
 ### 2026-10-08｜Codex GPT-6｜P2b D63採A、完整規格與八Task計畫送審
 - **決策與文件**：D63人類選A，D59–D63全數已決。完整spec補共用權限、task轉換矩陣、舊回報隔離、migration0003、API／分頁、附件預留配額／故障恢復、UI與部署契約；G2送審稿列明允許檔案與八Task TDD／雙審／保留資料驗收。
 - **獨立審查**：review_finalized_docs及review_task1第1輪提出附件commit結果不明清理與新volume非root權限兩Important；修正後兩位Approved，無剩餘Important／Critical。Dockerfile加入允許清單是本輪計畫草案修正，沒有實際改產品。
@@ -890,8 +899,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **決策**：人類選D60 A，確認審核者範圍與管理員／實際專案擁有者明確自行確認，仍需送出權及完整稽核。同步spec與看板，新增D61指定協作人員／部門主管或全協作部門兩方案。
 - **驗證**：比對README F6最小可見範圍及P2a可見根／本人列表規則，git diff --check；未跑產品測試或改業務程式／DB／15173。
 - **下一步**：確認D61，再細化其餘規則，完整spec核准後才進G2／G3。文件本機提交未push，人類試用未代勾。
-
-### 2026-10-08｜Codex GPT-6｜P2b D59採A與D60提案
-- **決策**：人類選A，記錄D59回報驅動完成，更新spec及看板；D60提出審核者範圍與管理者自行確認／一律雙人兩方案。
-- **驗證**：核對既有Gate reviewer範圍與README F11；git diff --check。只改文件，未跑產品測試，未更動15173、DB或業務程式；先前草案獨立審查不等於本次D60已核准。
-- **下一步**：人類選D60後继续細化協作、附件等規則。G1未定稿，G2未開始，人類試用簽核不變，文件僅本機commit未push。

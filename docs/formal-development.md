@@ -256,7 +256,7 @@ P2a隔離E2E覆蓋1280／375建立四層、日期清除／保存、指派、重�
 
 ## P2b 回報、協作與持久附件
 
-P2b功能已實作，正在整合驗收；最終審查／合併／15173升級狀態見PROGRESS。任務預設開啟紀錄，提供完成回報卡、歷史版本、筆記、附件及協作設定；主導覽新增審核中心與稽核紀錄。紀錄／審核／稽核分頁游標讀取，先授權再篩選，點擊來源回正確節點；不補查隱藏祖先。
+P2b八Task、G4雙獨立審查、main完整隔離回歸與15173保留資料升級已完成；人類試用簽核仍待完成，證據見PROGRESS。任務預設開啟紀錄，提供完成回報卡、歷史版本、筆記、附件及協作設定；主導覽新增審核中心與稽核紀錄。紀錄／審核／稽核分頁游標讀取，先授權再篩選，點擊來源回正確節點；不補查隱藏祖先。
 
 **相容性變更**：task的一般status PATCH只處理todo／doing；review必須送出回報、done必須確認回報，不能直接PATCH繞過。POST `/nodes/{id}/reports`必填result（達成／部分達成／未達成）、summary及finished_on，可附attachment_ids；送出建立不可變新版本並進review。POST `/reports/{id}/review`使用approved／rejected，退回必填comment並回doing，新送出另建版本。管理者明確選「送出並確認」才自核；一般任務owner不能自行審核。POST `/nodes/{id}/lifecycle`為skip／reopen／restore且必填reason；不遞迴改子樹，不覆寫Gate。
 

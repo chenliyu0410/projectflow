@@ -96,11 +96,13 @@ P2a實跑記錄：隔離Playwright 9 passed (16.8s)，涵蓋四層建立、日�
 
 ## P2b 工程驗收與人類試用
 
-P2b工程整合驗收進行中，最終審查、G6回歸及保留資料部署以PROGRESS為準。Task1前移旅程已取得真RED（a76bdb1；1280／375缺成果說明），Task8沿同旅程驗送出→退回→新版本→他人確認。新增驗收案例屬回歸，不破壞產品製造RED；verify新增強制PG階段另有真RED／GREEN。
+P2b工程交付完成：八Task與G4雙獨立審查通過、ff-only合併main、G6完整隔離回歸及15173保留資料升級通過；人類試用仍未簽核。Task1前移旅程已取得真RED（a76bdb1；1280／375缺成果說明），Task8沿同旅程驗送出→退回→新版本→他人確認。新增驗收案例屬回歸，不破壞產品製造RED；verify新增強制PG階段另有真RED／GREEN。
 
 Task8實跑：verify新增強制PG階段先取得真RED（2 failed、35 deselected，exit1），實作後部署測試39 passed。完整`deploy/verify.py`最終exit0：唯一`p2b_test_326c1ff802db42519aeb33f368efee17`先migration 1 passed（0.56s）、再真API競態3 passed（1.94s），兩階段不允許skip；主機API 337 passed／5 conditional skipped／5 warnings（265.53s）、Vitest148、build0、E2E13 passed（34.1s）。PG skip故障注入另確認整體非零、不執行後續API race。初次完整E2E稽核selector逾時為11 passed／2 failed，改用語意combobox定位後定點與完整重跑通過，保留失敗證據。
 
 1280／375涵蓋前移回報旅程GREEN、管理者自核、協作增撤、筆記修訂、下載SHA、附件軟刪／回報鎖定、跨公司及唯讀拒絕、稽核安全投影／事件篩選／來源返回；精確允許初始auth/me401，非預期HTTP／console／pageerror皆0、無水平溢出。唯一資料的project／note／report／attachment及SHA於正常stop/start（不seed）前後一致；隔離offline pending修復後failed、partial檔移除、quota返還且ready綁定附件及SHA保留。最終cleanup容器清單空，`projectflow-acceptance_pgdata`與`projectflow-acceptance_files`保留；本Task未寫primary。詳細log、snapshot與截圖在ignored `.superpowers/p2b/task8-*`，人類項目仍未簽核。
+
+G6 main再次完整驗收exit0：強制PG migration1／競態3、API337passed5conditional skip（265.91s）、Vitest150、build0、E2E13passed（34.0s）。admin／readonly×1280／375實看階段狀態說明，無overflow／非預期console；acceptance与Task4隔離容器已停止，DB／files雙volume保留。15173升級前停止API、保存DB備份與env指紋；原P2a無附件volume，升級新增files10001:10001/0700。migration0003、health／ready200、原有表全部欄位及row值完全相同、env指紋不變，未seed或跑primary業務測試。ignored證據見`.superpowers/p2b/g6-*`。
 
 - [ ] 試用者在桌面／手機送出成果、閱讀退回意見、重送新版本，由另一位有權者確認完成。
 - [ ] 管理者試用明確「送出並確認」、附理由重開／略過／恢復，確認不會繞過Gate。
