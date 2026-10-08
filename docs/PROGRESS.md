@@ -16,14 +16,14 @@
 | 目前工作項目 | **P1b React核心UI已完成；下一步P1c** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
 | 下一個動作 | 細化P1c部署／測試／MVP內部試用驗收計畫，沿用D51授權；P1b四Task與G4已完成。 |
-| 分支 | `main`；P1b已ff-only合併，feature分支於G6收尾後刪除；舊paused分支保留。 |
+| 分支 | `main`；P1b已ff-only合併且feature分支已刪除；舊paused分支保留。 |
 | 最新程式 commit | P1b Task4 `1f76fea`、文件驗收 `113345c`，均已ff-only進main；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | P1b合併後main：API `35 passed, 1 warning in 19.63s`、Vitest `55 passed (55)`、build exit0、Playwright `4 passed (3.6s)` exit0；Compose migration／seed已exit0。1280／375完整workflow/readonly nooverflow、pageerror0、unexpectedHTTP/console0；各預期resource401/409兩筆。Demo仍174/174，未修改。 |
 | 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變，P1b只有UI與smoke測試專案。 |
 | 認領中 | — |
 | 阻塞／待人類 | 無；D50授權階段完成後push GitHub main。D51整體授權不變，D43、D10不擴大MVP。 |
-| 遠端 | 推送前已核對origin main為 `85813ef`，與本機追蹤紀錄一致。P1b依D50完成審查驗收後push origin main；確切結果以下方交接及git log為準。僅main，無force／PR。 |
+| 遠端 | 2026-10-08依D50成功push origin main `85813ef..255f435`，包含P1b完整實作、審查與驗收紀錄；本筆發布紀錄隨後同步。僅main，無force／PR。 |
 
 ---
 
@@ -727,6 +727,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **做了什麼**：依人類「開始實作」於主checkout完成P1b四Task，登入／session／logout、專案詳情／節點樹／路徑、四欄看板／Gate、工作流建立與真Compose smoke；Task1兩Important經TDD修正。所有Task各有獨立spec Boyle與quality Ramanujan審查，G4兩位均Ready to merge: Yes，ff-only合併main。README／正式開發指南／看板已同步。
 - **驗證**：Task1 RED10→GREEN11，修正RED5及2→GREEN18；Task2 RED9→GREEN27；Task3 RED18→GREEN45；Task4 RED9→GREEN55，E2E RED2failed2passed→GREEN4。合併後API `35 passed, 1 warning in 19.63s`、Vitest55、build0、E2E `4 passed (3.6s)`，各exit0。Compose rebuild／migration／seed0；1280／375 create／Gate409保留todo→approve→doing／readonly nooverflow，pageerror與非預期HTTP/console0，各預期401/409resource兩筆。長標題375及gate reload500retry／401login另驗pass；Demo與tests diff空。
 - **環境／清理**：Compose http://127.0.0.1:15173 保留供試用；只關本次Vite15174 PID33460，不動其他服務或volume。測試另建unique專案，seed任務狀態未改；測試專案保留（目前無刪除API）。 ignored .env／依賴／截圖不提交。依D50推送origin main，發布結果寫回看板。
+- **發布**：已成功push `85813ef..255f435`；P1b feature分支已刪除，只留下main與原有歷史分支。本筆發布紀錄接續同步origin main。
 - **下一步**：P1c部署／測試／內部試用驗收計畫，D51授權持續有效。本段只完成P1b；timeout、gate reload自動回歸與E2E預期HTTP次數三項Minor見§5。
 
 ### 2026-10-08｜Codex GPT-5｜P1b React核心UI計畫完成
