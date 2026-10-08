@@ -92,6 +92,7 @@ def test_only_health_routes_exist():
         "/workflows",
         "/workspace/overview",
         "/workspace/my-tasks",
+        "/workspace/reviews",
     }
 
 

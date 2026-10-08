@@ -2,16 +2,17 @@
 from datetime import date
 from typing import Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth import CurrentUser, require_session
 from app.database import get_session
-from app.models import Department, User
+from app.models import Gate
+from app.permissions import can_work_node, can_work_project
 from app.services.node_policy import node_out, visible_workspace_nodes
 
-from app.services.record_policy import load_policy_context, is_collaborator
+from app.services.record_policy import load_policy_context, is_collaborator, can_review_report, authorized_page, page_timestamp
 
 router = APIRouter(prefix="/workspace", tags=["workspace"])
 STATUSES = ("todo", "doing", "review", "done", "skipped")
@@ -75,3 +76,41 @@ def my_tasks(
                       + (["collaborating"] if is_collaborator(current, node, context=context) else [])}
         for node in tasks
     ]}
+
+
+@router.get('/reviews')
+def reviews(kind: Literal['report', 'gate', 'all'] = 'all', limit: int = Query(50, ge=1, le=100),
+            cursor: str | None = None, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    context = load_policy_context(db, current)
+    projects, visible_nodes = visible_workspace_nodes(db, current, context=context)
+    nodes = {node.id: node for node in visible_nodes}
+    entries = []
+    if kind in {'all', 'report'}:
+        for report in context.pending_reports.values():
+            node = nodes.get(report.node_id)
+            if node is None or not can_review_report(db, current, projects[node.project_id], node, report, context=context):
+                continue
+            author = context.users.get(report.submitted_by)
+            item = {'type': 'report', 'id': report.id, 'node_id': node.id, 'node_title': node.title,
+                    'project_id': node.project_id, 'project_title': projects[node.project_id].title,
+                    'created_at': report.submitted_at.isoformat(), 'status': report.status, 'version': report.version,
+                    'result': report.result, 'summary': report.summary,
+                    'finished_on': report.finished_on.isoformat() if report.finished_on else None,
+                    'submitted_by': report.submitted_by, 'submitted_by_display_name': author.display_name if author else None,
+                    'capabilities': {'review_report': True}}
+            entries.append(((page_timestamp(report.submitted_at), report.id, 'report'), item))
+    if kind in {'all', 'gate'}:
+        for gate in db.scalars(select(Gate).where(Gate.organization_id == current.organization.id, Gate.status == 'pending')):
+            node = nodes.get(gate.node_id)
+            if node is None or gate.project_id != node.project_id or current.user.role == 'readonly':
+                continue
+            project = projects[node.project_id]
+            scoped_reviewer = current.user.role == 'reviewer' and can_work_node(db, current, node, departments=context.departments)
+            if not can_work_project(current, project) and not scoped_reviewer:
+                continue
+            item = {'type': 'gate', 'id': gate.id, 'node_id': node.id, 'node_title': node.title,
+                    'project_id': project.id, 'project_title': project.title, 'status': gate.status,
+                    'created_at': gate.created_at.isoformat(), 'capabilities': {'approve_gate': True}}
+            entries.append(((page_timestamp(gate.created_at), gate.id, 'gate'), item))
+    return authorized_page(entries, organization_id=current.organization.id, endpoint='reviews', filters={'kind': kind},
+                           cursor=cursor, limit=limit)

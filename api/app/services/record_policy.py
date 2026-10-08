@@ -105,3 +105,45 @@ def state_actions(db: Session, current: CurrentUser, project: Project, node: Nod
         elif node.status == 'skipped':
             actions.append('restore')
     return actions
+
+
+def page_timestamp(value):
+    from datetime import timezone
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc).isoformat()
+
+
+def authorized_page(entries, *, organization_id, endpoint, filters, cursor, limit, descending=False):
+    """Paginate only an already-authorized projection; bind cursors to its query."""
+    import base64
+    import json
+    from datetime import datetime
+    from fastapi import HTTPException
+    after = None
+    if cursor is not None:
+        try:
+            if len(cursor) > 2048:
+                raise ValueError()
+            data = json.loads(base64.b64decode(cursor, altchars=b'-_', validate=True))
+            if (not isinstance(data, dict) or set(data) != {'organization_id', 'endpoint', 'filters', 'key'}
+                    or data['organization_id'] != organization_id or data['endpoint'] != endpoint or data['filters'] != filters):
+                raise ValueError()
+            key = data['key']
+            if (not isinstance(key, list) or len(key) != 3 or not all(isinstance(x, str) for x in key)
+                    or not key[1] or len(key[1]) > 100 or key[2] not in {'audit', 'report', 'gate'}):
+                raise ValueError()
+            if page_timestamp(datetime.fromisoformat(key[0])) != key[0]:
+                raise ValueError()
+            after = tuple(key)
+        except (ValueError, TypeError, KeyError, UnicodeError, OverflowError, RecursionError):
+            raise HTTPException(status_code=422, detail='無效的分頁游標') from None
+    ordered = sorted(entries, key=lambda entry: entry[0], reverse=descending)
+    if after is not None:
+        ordered = [entry for entry in ordered if (entry[0] < after if descending else entry[0] > after)]
+    page = ordered[:limit]
+    next_cursor = None
+    if len(ordered) > limit:
+        data = {'organization_id': organization_id, 'endpoint': endpoint, 'filters': filters, 'key': page[-1][0]}
+        next_cursor = base64.urlsafe_b64encode(json.dumps(data, separators=(',', ':')).encode()).decode()
+    return {'items': [entry[1] for entry in page], 'next_cursor': next_cursor}
