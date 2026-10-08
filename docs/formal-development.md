@@ -116,6 +116,33 @@ api/.venv/Scripts/python.exe -m alembic -c api/alembic.ini upgrade head
 
 本機測試會使用 SQLite 暫存資料庫檢查路由與權限；完整 PostgreSQL migration 仍必須在 Compose DB 上實跑。登入使用本地種子帳號與 HttpOnly session cookie，只供 P1a/P1b MVP 驗證，不代表 AD/LDAP 已完成。
 
+### P1a 種子帳號與核心 API
+
+P1a 種子資料包含兩家公司：
+
+| 公司 | 帳號 | 密碼 | 角色 |
+|---|---|---|---|
+| food / 毛研食品 | yu | demo-yu | admin |
+| food / 毛研食品 | chen | demo-chen | reviewer |
+| food / 毛研食品 | ming | demo-ming | member |
+| food / 毛研食品 | lin | demo-lin | readonly |
+| electronics / 峰曜科技 | elaine | demo-elaine | admin |
+| electronics / 峰曜科技 | kai | demo-kai | member |
+
+以下範例只顯示HTTP狀態與回應形狀；不要記錄或轉貼`Set-Cookie`值：
+
+```powershell
+$apiPort = ((Get-Content deploy/.env | Where-Object { $_ -match '^API_PORT=' }) -split '=',2)[1]
+if (-not $apiPort) { $apiPort = '18000' }
+$base = "http://127.0.0.1:$apiPort"
+Invoke-WebRequest -Uri "$base/auth/login" -Method Post -ContentType 'application/json' -Body '{"organization_key":"food","username":"yu","password":"demo-yu"}' -SessionVariable pf
+Invoke-WebRequest -Uri "$base/projects" -WebSession $pf
+Invoke-WebRequest -Uri "$base/departments" -WebSession $pf
+Invoke-WebRequest -Uri "$base/audit-logs" -WebSession $pf
+```
+
+目前後端已提供 `/departments`、`/projects`、`/projects/{project_id}`、`/projects/{project_id}/nodes`、`/nodes/{node_id}/status` 與 `/audit-logs`。所有業務查詢都以 session 內的公司為準；query string 或 JSON payload 的公司欄位不能切換公司。
+
 ## 工作流程
 
 主checkout一次一個feature分支，TDD、每Task獨立審查、PROGRESS唯一進度來源。每階段完成更新README、驗收後ff-only到main並依D50推送，不force。正式資料庫未導入migration前，不可建立業務表或宣稱P1a完成。

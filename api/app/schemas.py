@@ -28,3 +28,25 @@ class LoginResponse(BaseModel):
 
 
 MeResponse = LoginResponse
+
+
+class ProjectCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+
+
+class NodeCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    kind: str
+    parent_id: str | None = None
+    owner_user_id: str | None = None
+    department_id: str | None = None
+
+
+class NodeStatusUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: str
