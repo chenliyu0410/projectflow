@@ -41,6 +41,33 @@
   await T('W6：v2 到 v4 都能逐版升到 v6',()=>{
     [2,3,4].forEach(v=>{ const p=upgrade(makeLegacyPayload(v)); eq(p.v,6); eq(p.companies.petfood.db.nodes.p1.title,`保留 v${v} 節點`); eq(p.companies.petfood.me,'yu'); });
   });
+  await T('W6：公司選擇器位於身分選擇器上方',()=>{
+    render(); const c=$('companySel'),m=$('meSel'); ok(c&&m); ok(c.compareDocumentPosition(m)&Node.DOCUMENT_POSITION_FOLLOWING);
+    eq([...c.options].map(x=>x.textContent),['毛研食品｜寵物食品製造','峰曜科技｜電子產品製造','光點企劃｜活動行銷','雲序軟體｜SaaS 軟體服務','築衡工程｜營建工程']);
+  });
+  await T('W6：切換公司使用目標預設負責人並清空暫態 UI',async()=>{
+    ui.page='ops'; ui.node='p1'; ui.connect={from:'p1'}; ui.opsTab='po'; ui.chat=[{text:'舊公司'}];
+    undoStack.push({label:'舊公司',snap:JSON.stringify(db)});
+    $('askInput').value='舊公司提問'; toast('舊公司通知');
+    window._pq=setTimeout(()=>openDlg('舊公司搜尋結果'),20);
+    ok(switchCompany('electronics').ok); eq(company.id,'electronics'); eq(me().id,'el-lin');
+    eq(ui.page,'overview'); eq(ui.node,projects().find(visible)?.id||null); eq(ui.connect,null); eq(ui.chat.length,0); eq(undoStack.length,0);
+    await new Promise(resolve=>setTimeout(resolve,40));
+    eq($('askInput').value,'');eq($('toasts').children.length,0);ok(!$('dlg').open);
+  });
+  await T('W6：公司資料來回切換會持久化且不互改',()=>{
+    projects()[0].title='毛研自訂名稱'; save(); switchCompany('electronics');
+    const other=projects()[0]?.title; switchCompany('petfood'); eq(projects()[0].title,'毛研自訂名稱'); ok(other!=='毛研自訂名稱');
+    ui.me='lin';save();load();eq(ui.me,'lin');eq(company.id,'petfood');eq(projects()[0].title,'毛研自訂名稱');
+    switchCompany('electronics');switchCompany('petfood');eq(ui.me,'yu');
+  });
+  await T('W6：持久化失敗時公司切換完全不生效',()=>{
+    ui.page='ops';ui.node='p1';undoStack.push({label:'保留',snap:JSON.stringify(db)});
+    const before=JSON.stringify({portfolio,ui,undoStack,db,audit});const set=Storage.prototype.setItem;
+    try { Storage.prototype.setItem=function(){throw new Error('quota');}; ok(!switchCompany('electronics').ok); }
+    finally { Storage.prototype.setItem=set; }
+    eq(JSON.stringify({portfolio,ui,undoStack,db,audit}),before);eq(company.id,'petfood');
+  });
   // ── 新測試加在這一行上面 ──
   return results;
 })()

@@ -980,6 +980,25 @@ function save() {
   if(!persistPortfolio(candidate)) return false;
   portfolio=candidate; return true;
 }
+function resetTransientCompanyUI() {
+  const userId=ui.me;
+  Object.keys(ui).forEach(k=>delete ui[k]);
+  Object.assign(ui,{me:userId,page:'overview',node:projects().find(visible)?.id||null,tab:'board',expanded:{},scale:'week',cascade:true,crit:false,chat:[],opsTab:OPS_CONFIG.mode==='petfood'?'suppliers':OPS_CONFIG.modules[0]?.id||'',opsSel:null,docsAll:false,connect:null,fv:[3,4],trace:'',gsel:null,tlDept:'all'});
+  undoStack.length=0; drag=null; dragId=null; TL=null;
+  closeDlg(); closeDrawer(); $('dlg').innerHTML=''; $('drawer').innerHTML='';
+  $('app').classList.remove('side-open','ai-open');
+  $('askInput').value=''; $('toasts').innerHTML=''; clearTimeout(window._pq);
+}
+function switchCompany(targetId, writer = persistPortfolio) {
+  if(!COMPANY_ORDER.includes(targetId)) return {ok:false,error:'找不到公司'};
+  if(targetId===company.id) return {ok:true};
+  const candidate=syncActiveCompany(cloneData(portfolio)), target=candidate.companies[targetId];
+  candidate.activeCompanyId=targetId;
+  target.me=target.users[target.defaultUserId]?target.defaultUserId:Object.keys(target.users)[0];
+  if(!writer(candidate)) return {ok:false,error:'資料無法儲存，尚未切換公司'};
+  portfolio=candidate; activateCompany(targetId,{resetIdentity:true}); resetTransientCompanyUI(); render();
+  return {ok:true};
+}
 function commit(label, fn) {
   undoStack.push({ label, snap: JSON.stringify(db) });
   if (undoStack.length > 60) undoStack.shift();
@@ -1667,9 +1686,11 @@ function renderProjects() {
 }
 function renderMe() {
   const u = me();
-  $('me').innerHTML = `<div class="row">${av(u.id, 34)}<div style="min-width:0"><div style="font-weight:500">${esc(u.name)}</div><div class="small muted">${esc(u.title)}</div></div></div>
+  $('me').innerHTML = `<label class="small muted" for="companySel">切換公司（Demo，用來體驗不同產業）</label>
+    <select id="companySel">${COMPANY_ORDER.map(id=>`<option value="${id}" ${id===company.id?'selected':''}>${esc(COMPANY_META[id].name)}｜${esc(COMPANY_META[id].industry)}</option>`).join('')}</select>
+    <div class="row">${av(u.id, 34)}<div style="min-width:0"><div style="font-weight:500">${esc(u.name)}</div><div class="small muted">${esc(u.title)}</div></div></div>
     <label class="small muted" for="meSel">切換身分（Demo，用來體驗權限差異）</label>
-    <select id="meSel">${Object.entries(USERS).map(([id, x]) => `<option value="${id}" ${id === ui.me ? 'selected' : ''}>${x.name}｜${ROLES[x.role]}｜${esc(deptName(x.dept))}</option>`).join('')}</select>
+    <select id="meSel">${Object.entries(USERS).map(([id, x]) => `<option value="${esc(id)}" ${id === ui.me ? 'selected' : ''}>${esc(x.name)}｜${esc(ROLES[x.role])}｜${esc(deptName(x.dept))}</option>`).join('')}</select>
     <button class="reset" type="button" id="resetBtn">重置 Demo 資料</button>`;
 }
 function mbar() {
@@ -3666,6 +3687,7 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('change', (e) => {
   const t = e.target;
+  if(t.id==='companySel') { const r=switchCompany(t.value); if(!r.ok) { t.value=company.id; return toast(r.error,'warn'); } return toast(`已切換至${company.name}`); }
   if (t.id === 'meSel') { ui.me = t.value; save(); if (ui.page === 'node' && node(ui.node) && !visible(node(ui.node))) { const p = projects().find(visible); if (p) ui.node = p.id; } ui.chat.push({ title: '切換身分', text: `目前身分：${me().name}（${ROLES[me().role]}・${deptName(me().dept)}）。畫面、可操作的按鈕與可見的機密欄位都會跟著改變。` }); return render(); }
   if (t.id === 'eDept') { const cur = $('eOwner').value; $('eOwner').innerHTML = ownerOpts(t.value, deptMembers(t.value).includes(cur) ? cur : ''); return; }
   if (t.id === 'cascadeChk') { ui.cascade = t.checked; return; }
