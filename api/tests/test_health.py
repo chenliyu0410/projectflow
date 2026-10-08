@@ -80,6 +80,8 @@ def test_only_health_routes_exist():
         "/projects/{project_id}/assignment-options",
         "/projects/{project_id}/nodes",
         "/workflows",
+        "/workspace/overview",
+        "/workspace/my-tasks",
     }
 
 

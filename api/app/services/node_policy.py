@@ -98,3 +98,19 @@ def blocked_by_pending_gate(db: Session, current: CurrentUser, node: Node) -> bo
         Gate.node_id.in_(lower_phase_ids),
         Gate.status == "pending",
     ).limit(1)) is not None
+
+
+def visible_workspace_nodes(db: Session, current: CurrentUser) -> tuple[dict[str, Project], list[Node]]:
+    """Authorize the complete company-scoped collection before aggregation/filtering."""
+    projects = {
+        project.id: project
+        for project in db.scalars(select(Project).where(
+            Project.organization_id == current.organization.id,
+        ).order_by(Project.created_at, Project.id))
+        if can_view_project(current, project)
+    }
+    nodes = [
+        node for node in db.scalars(select(Node).where(Node.organization_id == current.organization.id))
+        if node.project_id in projects and can_view_node(current, node)
+    ]
+    return projects, nodes
