@@ -15,9 +15,9 @@
 |---|---|
 | 目前工作項目 | **🔨 P0 正式版技術骨架與規則；D52已確認計畫並開始執行** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 切到`feature/p0-formal-foundation`，以分支PROGRESS為準；Task1先啟用正式規則、寫API測試並實跑RED，再實作。依P0→P1a→P1b→P1c逐段驗收、更新README及依D50推送。 |
+| 下一個動作 | Task1已獨立審查通過；Native執行Task2 React健康介面，先寫測試實跑RED。各階段完成更新README並依D50推送。 |
 | 分支 | `feature/p0-formal-foundation`（G3開工commit後建立）；舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
-| 最新程式 commit | 產品仍為W6 Task6 `0934e48`。正式版規劃基準`104cdc2`；本段新增P0可執行計畫及D51授權，尚未建立api／web／deploy。 |
+| 最新程式 commit | 正式版P0 Task1 `8e84a9b`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 174/174`（2026-10-08，W6 ff 合併到 main 後 Edge headless 8001 實跑，無 page error）。原有149項＋25項W6；桌面1280／375px 共508畫面、10項重載、console/page errors空。歷史：W3 149/149、W2 137/137、W1 64/64。 |
 | 資料版本 | `db.v = 6`；v6 公司容器，`load()` 讀 v2–v6；localStorage key 是 `projectflow-demo-v2` |
@@ -393,7 +393,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
 |---|---|---|---|---|
-| 1 | 正式軌規則、FastAPI存活／真實DB就緒檢查 | 🔨 執行中 | 預期新增8項pytest；RED `1 warning, 1 error in 0.81s`，exit 1：`ModuleNotFoundError: No module named 'app.main'`（依賴安裝成功後重跑；安裝中一次pytest不存在不算RED） | `P0 task 1: add formal rules and API health checks` |
+| 1 | 正式軌規則、FastAPI存活／真實DB就緒檢查 | ✅ Arendt獨立審查通過，無Critical／Important | 預期新增8項pytest；RED `1 warning, 1 error in 0.81s`，exit 1：缺`app.main`（安裝中pytest不存在不算RED）；GREEN `8 passed, 1 warning in 0.49s` exit0，pip check通過。reviewer另驗9個負向行為通過；真DB留Task3 | `e6082f9..8e84a9b`；`P0 task 1: add formal rules and API health checks` |
 | 2 | React狀態介面、載入／失敗／重試 | 未開始 | 新增6項Vitest＋production build；目前未執行 | `P0 task 2: add React health surface` |
 | 3 | Docker Compose、PostgreSQL、桌面／手機與DB恢復 | 未開始 | 新增4項Playwright＋實際DB outage/recovery；目前未執行 | `P0 task 3: verify containerized foundation` |
 
@@ -434,6 +434,10 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 5. 待處理問題（Issue register）
+
+**P0新增**
+- P0-T1-m1（minor，OPEN，不阻塞）：`api/tests/test_health.py`缺查詢結果非1、查詢階段錯誤、checker非布林的持續回歸案例；Arendt唯讀補驗均通過，後續擴充API測試時納入。
+- P0-T1-m2（minor，OPEN，不阻塞）：Starlette TestClient對httpx提出棄用警告；目前鎖版8項均通過，升級測試依賴時處理，不盲目換版。
 
 - **ID 規則**：
   - F11 的項目來自 F11 的執行紀錄，2026-10-01 已經逐項在程式碼中核對過，共 39 個 ID（N2 已併入 T4-m1）。
