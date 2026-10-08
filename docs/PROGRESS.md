@@ -15,7 +15,7 @@
 |---|---|
 | 目前工作項目 | **W6 多公司產業範例 — 🔨 執行中** |
 | 模式 | **展示模式**（D30，2026-10-05 起）：主要功能能用為主，流程照 [WORKFLOW §13](WORKFLOW.md#13-展示模式人類-2026-10-05-指示progress-d30)，也就是一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤；spec 沒寫到的小細節由 AI 代決（D32），手機版仍要能看（D33）。恢復完整流程時把這一欄改成「完整流程」 |
-| 下一個動作 | W6 Task 4：產業營運資料 renderer 與狀態／條件，先 RED。P0 保留暫停。 |
+| 下一個動作 | W6 Task 5：附件鍵隔離與只重設目前公司，先 RED。P0 保留暫停。 |
 | 分支 | `feature/w6-multi-company-industry-demo`（主 checkout；P0 保留於 `paused/p0-formal-product-plan`） |
 | 最新程式 commit | W3 功能 `c8b4c3b`，審查修正 `9bb9a52`；W3 合併收尾 `dee40fb`。W5 文件同步 `aafc5ca`，只更新 README／PROGRESS，沒有改產品程式。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
@@ -363,7 +363,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | 1 | v6 公司容器、v2–v5 遷移與部分損壞修復 | ✅ | `d879db1..4f3a0e6` | RED `失敗 11/153`（4 項 W6 與 7 項既有版本／路徑）→ GREEN `全部通過 153/153`；審查發現配方陣列缺失／null 成員未修復，補斷言 RED `失敗 1/153` → GREEN `全部通過 153/153`。獨立審查修正後通過；Edge 重載 v5、兩種損壞 v6 都正確，僅重建毛研、保留他公司並顯示提示，無 page error。 | `W6 task 1: add v6 company storage` |
 | 2 | 左下角公司選擇器、原子切換與暫態 UI 清理 | ✅ | `40c1f4c..c9689a4` | RED `失敗 4/157`（選擇器、切換、持久化、失敗原子性）→ GREEN `全部通過 157/157`；暫態補測 RED `失敗 1/157` → GREEN `全部通過 157/157`；獨立審查 PASS。1280／375 五公司切換 DOM 無水平溢出；截圖最終驗收再停用轉場檢查。 | `W6 task 2: add company switching` |
 | 3 | 五家公司成員、部門、專案、工作流與稽核種子資料 | ✅ | `77e2b5f..9242e35` | RED `失敗 4/162`（最低量、主專案完整、部門、標題）；非毛研引用測試原已通過 → GREEN `全部通過 162/162`。整合修正 riskText 的採購單假設及清 UI 前先找可見專案。獨立審查 Approved；五公司 overview／templates／review／mytasks／audit 及 timeline／people／records 無無效文字／page error，十套工作流驗證合法；375px 側欄截圖已檢視。 | `W6 task 3: seed five industry companies` |
-| 4 | 設定驅動的產業營運資料、連結、狀態與條件 | ⬜ | — | RED → GREEN | `W6 task 4: render industry operations` |
+| 4 | 設定驅動的產業營運資料、連結、狀態與條件 | ✅ | `db9a240..56b94dd` | RED `失敗 4/166` → GREEN `全部通過 166/166`；legacy 事件跨公司防護 RED `失敗 1/166` → GREEN `全部通過 166/166`。獨立審查 PASS。四產業 24 分頁於1280／375 無主頁水平溢出，四筆 blocker 均可解除；手機截圖已檢視；無 page error。plan 回歸測試「採購單」改驗既有「採購」，加測七個 F10 分頁。 | `W6 task 4: render industry operations` |
 | 5 | 附件公司前綴、舊鍵相容與只重設目前公司 | ⬜ | — | RED → GREEN | `W6 task 5: isolate attachments and reset` |
 | 6 | 跨公司隔離強化、README 與桌面／375px 驗收 | ⬜ | — | RED → `174/174` | `W6 task 6: harden isolation and document demo` |
 
