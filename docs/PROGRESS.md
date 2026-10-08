@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2b 📋 G1／G2定稿；G3隔離基準執行中** |
+| 目前工作項目 | **P2b 🔨 執行中；G3隔離基準通過** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
-| 下一個動作 | D64已授權繼續實作，以Demo效果為主；完成G3隔離基準後開feature/p2b-collaboration，先旅程RED再依八Task TDD與雙獨立審查。P2a人類簽核未完成。 |
-| 分支 | `main`；P2a已ff-only合併，已刪除合併後的feature分支。 |
+| 下一個動作 | G3完整隔離基準通過；切feature/p2b-collaboration，先前移旅程RED，再Task1 migration／協作policy TDD與雙獨立審查。P2a人類簽核未完成。 |
+| 分支 | `feature/p2b-collaboration`（主checkout、無worktree）；main於feature期間凍結。 |
 | 最新程式 commit | P2a Task6 `8dc914a`（產品最後修正`a5d1594`），G4／合併HEAD `d8499cd`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | G6 main隔離verify：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s、cleanup及最終exit0；專用真PG另1passed/0.41s，無seed重啟detail相等；1280/375無水平溢出或非預期錯誤。 |
 | 資料版本 | Demo v6/key不變；正式PostgreSQL17 migration `20261008_0002` head。日期nullable DATE，舊資料保留驗證通過。15173新本機試用環境已初始化，acceptance volume保留且容器停止。 |
 | 認領中 | Codex：P2b G3基準與逐Task實作，2026-10-08。 |
-| 阻塞／待人類 | P2b無待決產品規則；D59–D64已決；P1c／P2a人類試用簽核、D43／D10未完成。未開始P2b產品實作，LAN未授權。 |
+| 阻塞／待人類 | P2b無待決產品規則；D59–D64已決；P1c／P2a人類試用簽核、D43／D10未完成。P2b依D64開工；LAN未授權。 |
 | 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b僅本機G1文件草案，未push。 |
 
 ---
@@ -88,7 +88,7 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec／Plan | 依賴 |
 |---|---|---|---|---|---|
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
-| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | 📋 G1／G2定稿 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；D64已授權實作，G3基準執行中 | P2a |
+| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | 🔨 G3執行中 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；D64已授權實作，G3基準執行中 | P2a |
 | 後續2 | P2c | 時程、模板管理、前置相依與相依圖 | ⬜ | 各階段另訂spec／plan | P2a，順序依人類本次選擇 |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
@@ -105,7 +105,7 @@
 
 ## 3. 工作項目明細
 
-### P2b 回報與協作 — 📋 定稿，G3基準執行中
+### P2b 回報與協作 — 🔨 G3執行中
 
 **授權**：人類於P2a完成後指示「繼續進行」（D58），接續路線圖B1–B6；不是P2a試用簽核通過或新產品規則已核准。
 
@@ -113,11 +113,11 @@
 
 **獨立文件審查**：review_finalized_docs（spec）與review_task1（plan品質）均Approved。第1輪提出commit結果不明不能刪成功附件、nonroot新files volume可寫初始化兩Important，已補spec§7.2／§9及Task4故障／fresh-volume驗收並複審關閉；舊待定措辭同步修正。此為文件審查，不是G3授權或產品GREEN。
 
-**狀態**：D59–D63均已定案為A；完整spec與[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已依D64核准，正跑G3基準。未開feature分支，未改產品／測試／DB／15173。P2a測試基準為歷史證據，本次只做文件／程式比對及diff檢查。
+**狀態**：D59–D63均已定案為A；完整spec與八Task plan依D64核准，G3完整隔離基準API182passed1skip／Vitest96／build0／E2E9(19.3s)全部exit0，專用PG另1passed(0.44s)。primary已pg_dump備份及env指紋存ignored .superpowers/p2b/，未改業務資料。由主checkout開feature，先前移E2E RED，再Task1。
 
 | Task | 範圍 | 狀態 | 測試／commit |
 |---|---|---|---|
-| 1 | 保留資料migration與共用協作policy | ⬜ | 待G3基準與前移旅程RED |
+| 1 | 保留資料migration與共用協作policy | 🔨 | G3已通過，開始前移旅程RED與Task1 TDD |
 | 2 | 回報審核與task生命週期 | ⬜ | 未執行 |
 | 3 | 筆記、協作管理與紀錄查詢 | ⬜ | 未執行 |
 | 4 | 持久化附件與故障恢復 | ⬜ | 未執行 |
@@ -125,6 +125,8 @@
 | 6 | 審核中心與安全稽核API | ⬜ | 未執行 |
 | 7 | 審核中心與稽核UI | ⬜ | 未執行 |
 | 8 | 隔離整合、恢復、文件交付 | ⬜ | 未執行 |
+
+**G3證據**：ignored .superpowers/p2b/g3-baseline.txt（verify --keep-running exit0），g3-postgresql.txt（專用DB p2a_migration_a1d830b188e1，1passed/0.44s exit0）。acceptance15175保留供逐Task；primary15173不跑業務測試。primary-before.sql為本次唯讀pg_dump備份、primary-env-sha256.txt為設定指紋，均不進Git、不輸出內容。
 
 **待執行工程驗收**
 - [ ] D59–D63角色／公司／可見性與無副作用矩陣。
