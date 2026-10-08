@@ -260,7 +260,7 @@ P2b功能已實作，正在整合驗收；最終審查／合併／15173升級狀
 
 **相容性變更**：task的一般status PATCH只處理todo／doing；review必須送出回報、done必須確認回報，不能直接PATCH繞過。POST `/nodes/{id}/reports`必填result（達成／部分達成／未達成）、summary及finished_on，可附attachment_ids；送出建立不可變新版本並進review。POST `/reports/{id}/review`使用approved／rejected，退回必填comment並回doing，新送出另建版本。管理者明確選「送出並確認」才自核；一般任務owner不能自行審核。POST `/nodes/{id}/lifecycle`為skip／reopen／restore且必填reason；不遞迴改子樹，不覆寫Gate。
 
-新增GET `/nodes/{id}/records`、POST `/nodes/{id}/notes`、PATCH `/notes/{id}`、GET／PUT `/nodes/{id}/collaborators`、GET `/workspace/reviews`與安全分頁GET `/audit-logs`。筆記只由作者修改，expected_revision防覆寫；協作替換也須expected_revision。指定協作者／指定部門主管可讀寫本節點紀錄、送回報，沒有新增的狀態／metadata／Gate操作權，不自動取得子樹權限。我的任務列出本人負責或協作task。移除協作後每次讀取／下載重新授權；readonly仍不可寫。舊版本所述report／audit API-only與公司全範圍稽核為歷史紀錄，P2b改以當下可見節點與安全欄位投影為準。
+新增GET `/nodes/{id}/records`、POST `/nodes/{id}/notes`、PATCH `/notes/{id}`、GET／PUT `/nodes/{id}/collaborators`、GET `/workspace/reviews`與安全分頁GET `/audit-logs`。筆記只由作者修改，expected_revision防覆寫；協作替換也須expected_revision。指定協作者／指定部門主管的協作資格僅提供本節點紀錄讀取及筆記／附件操作資格；協作本身不授予送完成回報、審核、狀態、metadata或Gate操作權，也不自動取得子樹權限。送完成回報仍須符合原有can_work_node；同一使用者若另具負責人、管理者等既有角色身分，其權限依原規則另行判定。我的任務列出本人負責或協作task。移除協作後每次讀取／下載重新授權；readonly仍不可寫。舊版本所述report／audit API-only與公司全範圍稽核為歷史紀錄，P2b改以當下可見節點與安全欄位投影為準。
 
 附件使用raw bytes POST `/nodes/{id}/attachments?filename=...`，不使用multipart。GET `/attachments/{id}/download`每次驗權，強制attachment及nosniff、不提供公開URL或內嵌預覽；DELETE同路徑只軟刪，已提交回報附件一律鎖定不可刪。允許pdf/png/jpg/jpeg/txt/csv/docx/xlsx/pptx/zip，單檔10,000,000 bytes，API驗內容與檔名；不提供病毒掃描。公司quota預設1,000,000,000 bytes（PF_ATTACHMENT_QUOTA_BYTES）；pending也預留容量，軟刪不釋放容量或刪實體。GET `/nodes/{id}/attachment-quota`供當下可上傳者看公司剩餘容量。上傳失敗請先讀取確認，不自動重送。
 
