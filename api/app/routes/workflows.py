@@ -6,7 +6,7 @@ from app.audit import log_audit
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.models import Gate, Node, Project, Workflow, WorkflowNode
-from app.permissions import can_work_project
+from app.permissions import can_work_node, can_work_project
 from app.schemas import GateStatusUpdate, ProjectFromWorkflowCreate
 
 router = APIRouter(tags=["workflows"])
@@ -72,7 +72,9 @@ def update_gate(gate_id: str, payload: GateStatusUpdate, current: CurrentUser = 
     project = db.execute(
         select(Project).where(Project.organization_id == current.organization.id, Project.id == gate.project_id)
     ).scalar_one()
-    if not can_work_project(current, project) and current.user.role != "reviewer":
+    node = db.execute(select(Node).where(Node.organization_id == current.organization.id, Node.id == gate.node_id)).scalar_one()
+    scoped_reviewer = current.user.role == "reviewer" and can_work_node(db, current, node)
+    if not can_work_project(current, project) and not scoped_reviewer:
         raise HTTPException(status_code=403, detail="沒有核准閘門權限")
     gate.status = payload.status
     log_audit(db, current, "gate.approve", node_id=gate.node_id, payload={"gate_id": gate.id, "status": payload.status})

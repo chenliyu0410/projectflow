@@ -68,3 +68,15 @@ def test_gate_approval_allows_later_stage_for_authorized_user(client):
     later_task = next(node for node in client.get(f"/projects/{project['id']}").json()["nodes"] if node["title"] == "試作工單")
     ok = client.patch(f"/nodes/{later_task['id']}/status", json={"status": "doing"})
     assert ok.status_code == 200
+
+
+def test_reviewer_cannot_approve_unrelated_gate(client):
+    login(client, "food", "yu")
+    workflow_id = client.get("/workflows").json()["items"][0]["id"]
+    project = client.post("/projects/from-workflow", json={"workflow_id": workflow_id, "title": "Gate審核範圍"}).json()
+    gate = client.get(f"/projects/{project['id']}").json()["gates"][0]
+    client.post("/auth/logout")
+
+    login(client, "food", "chen", "demo-chen")
+    response = client.patch(f"/gates/{gate['id']}", json={"status": "approved"})
+    assert response.status_code == 403
