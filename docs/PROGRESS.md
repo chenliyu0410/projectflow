@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P2a ✅ 工程交付完成；下一項P2b尚未規格化** |
+| 目前工作項目 | **P2b ✏️ G1規格中；P2a已完成** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
-| 下一個動作 | 人類於15173試用P2a並記錄意見；後續按路線圖進P2b G1／G2，另審規格與計畫後才實作。本次P2a授權已完成。 |
+| 下一個動作 | 請人類選D59：回報驅動完成（推薦）或回報／狀態分開。已完成G1現況與流程草案；確認後續審核、協作及附件規則，再定稿spec與G2可執行plan。P2a人類簽核未完成。 |
 | 分支 | `main`；P2a已ff-only合併，已刪除合併後的feature分支。 |
 | 最新程式 commit | P2a Task6 `8dc914a`（產品最後修正`a5d1594`），G4／合併HEAD `d8499cd`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | G6 main隔離verify：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s、cleanup及最終exit0；專用真PG另1passed/0.41s，無seed重啟detail相等；1280/375無水平溢出或非預期錯誤。 |
 | 資料版本 | Demo v6/key不變；正式PostgreSQL17 migration `20261008_0002` head。日期nullable DATE，舊資料保留驗證通過。15173新本機試用環境已初始化，acceptance volume保留且容器停止。 |
 | 認領中 | — |
-| 阻塞／待人類 | 無P2a工程阻塞；P1c／P2a人類試用簽核、D43／D10未完成。P2b–P2d未交付，LAN部署未授權。 |
-| 遠端 | 已依D50成功push origin/main：`ff0cdbe..0403e7b`；本次發布紀錄commit接續同步，無force。 |
+| 阻塞／待人類 | P2b G1待D59流程選擇，其餘規則依序確認；P1c／P2a人類試用簽核、D43／D10未完成。未開始P2b產品實作，LAN未授權。 |
+| 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b僅本機G1文件草案，未push。 |
 
 ---
 
@@ -88,7 +88,7 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec／Plan | 依賴 |
 |---|---|---|---|---|---|
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
-| 下一項 | P2b | 回報／審核、筆記、附件與稽核介面 | ⬜ | 各階段另訂spec／plan | P2a |
+| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | ✏️ G1（人類指示繼續） | [G1討論草案](superpowers/specs/2026-10-08-p2b-collaboration-design.md)；D59待人類，G2未開始 | P2a |
 | 後續2 | P2c | 時程、模板管理、前置相依與相依圖 | ⬜ | 各階段另訂spec／plan | P2a，順序依人類本次選擇 |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
@@ -104,6 +104,16 @@
 ---
 
 ## 3. 工作項目明細
+
+### P2b 回報與協作 — ✏️ G1討論中
+
+**授權**：人類於P2a完成後指示「繼續進行」（D58），接續路線圖B1–B6；不是P2a試用簽核通過或新產品規則已核准。
+
+**本次交付**：[G1討論草案](superpowers/specs/2026-10-08-p2b-collaboration-design.md)。核對既有reports／status／audit API、permissions、models、Compose與README F6／F11。核心差異是Report POST不改status，但status PATCH可直接done；D59先選回報是否驅動完成，推薦送出review→核准done／退回doing，新版本保留歷史，API不可繞過。
+
+**獨立文件核對**：review_finalized_docs Approved，現況與程式相符、歷史相容風險及待定界線明確；此為草案審查，不是G1人類核准。
+
+**狀態**：D59及後續審核／附件／協作細則未定案；無可執行G2 plan，未開feature分支、未改產品／測試／DB／15173。P2a測試基準為歷史證據，本次只做文件／程式比對及diff檢查。
 
 ### P2a 完整任務操作 — ✅ 工程交付完成
 
@@ -748,6 +758,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | ID | 來源 | 問題 | 預設／建議 | 狀態 |
 |---|---|---|---|---|
+| D59 | P2b G1完成流程 | 現有Report不改status且可直接done；P2b是否要求完成必須經回報審核 | A推薦：送出review、核准done、退回doing／重送新版本，API禁止繞過；B：回報審核與狀態分開、保留直接done。舊資料不回退、不刪歷史 | 待人類選擇；具體比較見P2b草案§3，後續再定審核授權與附件／協作細則 |
+| D58 | P2b G1啟動 | P2a交付後人類指示「繼續進行」 | 按既定路線圖開始P2b規格與計畫，保留資料、隔離測試與人類簽核界線 | 已決定：2026-10-08授權接續G1／G2準備；不是未定案規則已核准或P2a人類簽核通過 |
 | D1 | W1、W2 | W1 和 W2 的執行順序 | **先做 W1，再做 W2。** 理由：W1 的測試數（44→51→57）和「db.v 維持 3」只有先做才成立；W2 只需要調整一個片段；W1 的測試可以當作 W2 改寫權限時的回歸網 | 採預設 |
 | D2 | 流程 | 分支與合併方式 | 每個工作項目開一個分支 `feature/<wid>-<slug>`，直接在主 checkout 開，**不用 worktree**。plan 或 skill 要求用 worktree 時，以這條為準。整體審查結論是 Ready to merge、測試全部通過，而且所有審查都是獨立進行的（不是自我審查），這時 **AI 可以在本地用 `git merge --ff-only` 合併進 `main`**，然後刪除分支（WORKFLOW G5，比照 F11 的先例）。不 push | 採預設（人類可以改成「合併前一律問我」） |
 | D3 | 流程 | 要不要 push 到 `origin` | 由人類執行，或由人類明確授權。AI 不會自己 push | 已決定 2026-10-01：人類授權 push 交接系統（連同 `edf46b6`、`dfc0126`），已完成。2026-10-01 第二次授權：人類指示「完成後上傳到GIT」，W1 完成並合併進 `main` 後，把 `main` push 到 `origin`。2026-10-02：人類指示「推上 git」，W1 合併後已把 `main` push 到 `origin`（不 force，只推 `main`）。每次授權都只限該次，之後每次 push 仍要人類明確授權。2026-10-02 第三次：人類指示「你這個階段做完就先暫停，幫我 commit and push」，W2 Task 5 完成後 push `main` 和 `feature/w2-departments`（人類選「推兩個，README 寫在分支」）。2026-10-05：人類指示「push上去」，Codex 已 push `main` 到 `origin/main`（`8041e14..a2f7e85`），沒有 push 或刪除遠端 feature 分支。2026-10-05：人類指示「確認後推上去」與「git 上的 readme 也要記得更新進度」，Codex 已 push W3、W5 README 更新與看板收尾到 `origin/main` |
@@ -812,6 +824,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-6｜P2b G1啟動與完成流程提案
+- **做了什麼**：人類指示繼續，記錄D58；main乾淨，fetch + ff-only為c0284f6最新。讀AGENTS／WORKFLOW／PROGRESS／路線圖，核對reports/status/audit與資料模型，建立P2b G1討論草案及D59兩方案。
+- **審查／驗證**：review_finalized_docs獨立文件核對Approved，git diff --check通過；本次未跑產品測試，不把P2a歷史182／96／9當P2b驗收。無產品、測試、DB、Compose或15173改動。
+- **下一步**：人類先選D59回報驅動完成（推薦）或與狀態分開；再依序確認審核權限、協作、附件等，定稿spec後寫可執行G2 plan。草案§5僅拆分準備，不是實作授權。
+- **保留**：P2a人類簽核仍未勾；本機main僅新增規格草案與PROGRESS，未push，沒有feature分支或認領殘留。
+
 ### 2026-10-08｜Codex GPT-6｜P2a工程交付完成
 - **做了什麼**：依D56定稿規格／計畫，D57補裝環境；六Task逐一TDD／獨立審查／PROGRESS提交，Task4登出及Task5舊reload競態均以真RED修正。Task1–4第二位品質審查已補核，六Task最終均Approved；G4兩位Ready to merge: Yes，d8499cd ff-only合併main。
 - **驗證**：Task證據見§3；G6 .superpowers/p2a/g6-main-verify.txt：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s及cleanup exit0。跳過的專用PG另實跑1passed；旧row／audit保留，日期null／保存／CHECK通過；acceptance不seed重啟完整detail相等。1280／375截圖已實看，非預期console／HTTP／pageerror0；Demo與tests diff空。
@@ -837,10 +855,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **驗證**：真實RED/GREEN見§3，合併後verify API80/1warning/35.71s、Vitest56、build0、E2E6/10.2s、cleanup及最終exit0。shared count12／hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7不變、marker404、ready200；隔離marker200。重複seed七帳號/env/snapshot保留，migrationhead。Demo與tests diff空。
 - **環境／清理**：15173 primary保留試用；驗收15175停止，pgdata保留，沒有down-v、刪專案、旋轉密碼或提交.env。G3舊E2E基準另建2共享測試專案，之後全部隔離，未清理既有歷史資料。依D50發布main，結果記遠端欄。
 - **下一步**：人類完成試用清單的桌面／手機／角色體驗與簽核；此項保持未勾選。未實測新機器clone、未部署LAN／TLS、Report／Audit為API-only，真AI／ERP／AD／完整RAG及P2未開工。timeout／gate reload自動回歸Minor留存，P1b-F-m1已FIXED。
-
-### 2026-10-08｜Codex GPT-6｜P1b React核心UI完成
-- **做了什麼**：依人類「開始實作」於主checkout完成P1b四Task，登入／session／logout、專案詳情／節點樹／路徑、四欄看板／Gate、工作流建立與真Compose smoke；Task1兩Important經TDD修正。所有Task各有獨立spec Boyle與quality Ramanujan審查，G4兩位均Ready to merge: Yes，ff-only合併main。README／正式開發指南／看板已同步。
-- **驗證**：Task1 RED10→GREEN11，修正RED5及2→GREEN18；Task2 RED9→GREEN27；Task3 RED18→GREEN45；Task4 RED9→GREEN55，E2E RED2failed2passed→GREEN4。合併後API `35 passed, 1 warning in 19.63s`、Vitest55、build0、E2E `4 passed (3.6s)`，各exit0。Compose rebuild／migration／seed0；1280／375 create／Gate409保留todo→approve→doing／readonly nooverflow，pageerror與非預期HTTP/console0，各預期401/409resource兩筆。長標題375及gate reload500retry／401login另驗pass；Demo與tests diff空。
-- **環境／清理**：Compose http://127.0.0.1:15173 保留供試用；只關本次Vite15174 PID33460，不動其他服務或volume。測試另建unique專案，seed任務狀態未改；測試專案保留（目前無刪除API）。 ignored .env／依賴／截圖不提交。依D50推送origin main，發布結果寫回看板。
-- **發布**：已成功push `85813ef..255f435`；P1b feature分支已刪除，只留下main與原有歷史分支。本筆發布紀錄接續同步origin main。
-- **下一步**：P1c部署／測試／內部試用驗收計畫，D51授權持續有效。本段只完成P1b；timeout、gate reload自動回歸與E2E預期HTTP次數三項Minor見§5。
