@@ -14,7 +14,7 @@ export interface NodeItem {
 }
 export interface GateItem { id: string; project_id: string; node_id: string; status: 'pending' | 'approved'; }
 export interface ProjectDetail extends ProjectSummary { nodes: NodeItem[]; gates: GateItem[]; capabilities: { create_node: boolean }; }
-export type WorkspaceRoute = { page: 'overview' | 'my-tasks' } | { page: 'project'; projectId: string | null; nodeId: string | null };
+export type WorkspaceRoute = { page: 'overview' | 'my-tasks' | 'reviews' | 'audit' } | { page: 'project'; projectId: string | null; nodeId: string | null };
 export interface WorkflowSummary { id: string; name: string; }
 export interface AssignmentOptions { users: { id: string; display_name: string }[]; departments: { id: string; name: string }[]; }
 export interface NodeMetadata { title: string; owner_user_id: string | null; department_id: string | null; start_date: string | null; due_date: string | null; }
@@ -30,3 +30,7 @@ export type RecordItem = Report | Note | (Attachment & { type: 'attachment'; nod
 export interface RecordPage { items: RecordItem[]; next_cursor: string | null; }
 export interface Collaborators extends AssignmentOptions { revision: number; }
 export interface Quota { limit_bytes: number; charged_bytes: number; remaining_bytes: number; }
+export interface ReviewItem { type: 'report' | 'gate'; id: string; node_id: string; node_title: string; project_id: string; project_title: string; created_at: string; status: string; version?: number; result?: string; summary?: string; finished_on?: string | null; submitted_by?: string; submitted_by_display_name?: string | null; capabilities: { review_report?: boolean; approve_gate?: boolean }; }
+export interface ReviewPage { items: ReviewItem[]; next_cursor: string | null; }
+export interface AuditItem { id: string; action: string; summary: string; node_id: string | null; node_title: string | null; project_id: string | null; project_title: string | null; actor_display_name: string | null; created_at: string; payload: Record<string, unknown>; }
+export interface AuditPage { items: AuditItem[]; next_cursor: string | null; }

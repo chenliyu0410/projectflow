@@ -1,3 +1,4 @@
+import type { ReviewPage, AuditPage } from './types';
 import { useEffect, useRef, useState } from 'react';
 import type {
   Attachment,
@@ -67,17 +68,20 @@ export async function requestJson<T>(
                   : response.status === 411
                     ? '無法確認檔案大小，請重新選擇檔案'
                     : response.status === 422 && path !== '/auth/login'
-                      ? path.includes('/attachments')
-                        ? '請檢查附件內容、檔名與實際長度是否符合格式'
-                        : path.includes('/reports')
-                          ? '請檢查成果說明、結果、實際完成日或審核意見'
-                          : path.includes('/notes')
-                            ? '請檢查筆記內容與修訂版本'
-                            : path.includes('/collaborators')
-                              ? '請檢查協作選擇與修訂版本'
-                              : path.includes('/lifecycle')
-                                ? '請填寫有效的操作理由'
-                                : '請檢查欄位內容：名稱、日期或指派不符合規則'
+                      ? path.includes('/workspace/reviews') ||
+                        path.includes('/audit-logs')
+                        ? '篩選或分頁參數已失效，請清除篩選或重新載入'
+                        : path.includes('/attachments')
+                          ? '請檢查附件內容、檔名與實際長度是否符合格式'
+                          : path.includes('/reports')
+                            ? '請檢查成果說明、結果、實際完成日或審核意見'
+                            : path.includes('/notes')
+                              ? '請檢查筆記內容與修訂版本'
+                              : path.includes('/collaborators')
+                                ? '請檢查協作選擇與修訂版本'
+                                : path.includes('/lifecycle')
+                                  ? '請填寫有效的操作理由'
+                                  : '請檢查欄位內容：名稱、日期或指派不符合規則'
                       : '操作失敗，請稍後再試';
     throw new ApiError(response.status, message);
   }
@@ -90,6 +94,21 @@ export async function requestJson<T>(
 }
 
 export const api = {
+  reviews: (cursor: string | null = null, signal?: AbortSignal) =>
+    requestJson<ReviewPage>(
+      `/workspace/reviews?${new URLSearchParams({ kind: 'all', limit: '50', ...(cursor ? { cursor } : {}) })}`,
+      { signal },
+    ),
+  audit: (
+    action: string,
+    nodeId: string | null,
+    cursor: string | null = null,
+    signal?: AbortSignal,
+  ) =>
+    requestJson<AuditPage>(
+      `/audit-logs?${new URLSearchParams({ action, limit: '50', ...(nodeId ? { node_id: nodeId } : {}), ...(cursor ? { cursor } : {}) })}`,
+      { signal },
+    ),
   records: (
     id: string,
     scope = 'self',

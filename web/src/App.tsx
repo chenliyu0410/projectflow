@@ -1,3 +1,5 @@
+import ReviewCenter from './components/ReviewCenter';
+import AuditLogView from './components/AuditLogView';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError } from './api';
@@ -274,7 +276,7 @@ export default function App() {
         <button type="submit" disabled={busy}>{busy ? '登入中' : '登入'}</button>
       </form> : <>
         {session ? <WorkspaceShell route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate}>
-        <section aria-label={route.page === 'project' ? '專案' : route.page === 'overview' ? '總覽頁面' : '我的任務頁面'}>
+        <section aria-label={route.page === 'project' ? '專案' : route.page === 'overview' ? '總覽頁面' : route.page === 'my-tasks' ? '我的任務頁面' : route.page === 'reviews' ? '審核中心頁面' : '稽核紀錄頁面'}>
           {session && canCreate && <div className="project-toolbar">{session.user.role === 'admin' && <button disabled={busy || mutating || state !== 'ready'} onClick={() => { begin(); closeCreation(); setCreationMode('blank'); setCreationOpen(true); setMessage(''); }}>新增空白專案</button>}<button disabled={busy || mutating || workflowLoading || state !== 'ready'} onClick={() => void openCreation()}>新增專案</button></div>}
           {creationOpen && <form className="creation-form" onSubmit={event => void createProject(event)}>
             {creationMode === 'workflow' && <label>工作流模板<select value={workflowId} disabled={workflowLoading || mutating} onChange={event => setWorkflowId(event.target.value)}>
@@ -291,6 +293,8 @@ export default function App() {
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
+          {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
+          {state === 'ready' && !busy && !creationOpen && route.page === 'audit' && <AuditLogView openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && route.page === 'my-tasks' && <MyTasks openNode={(projectId, nodeId) => navigate({ page: 'project', projectId, nodeId })} expired={expireSession} />}
           {state === 'ready' && route.page === 'project' && project && <><div className="project-toolbar">
             {canAddNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('create')}>新增子節點</button>}

@@ -167,3 +167,14 @@ textarea:focus-visible { outline: 3px solid #397793; outline-offset: 2px; }
 .attachment-table td:last-child { display: flex; gap: 6px; flex-wrap: wrap; }
 @media(max-width:720px) { .report-card > h3 { margin: -14px -14px 12px; padding: 14px; } }
 @media(max-width:720px) { .attachment-table td::before { content: attr(data-label); display: block; font-weight: 600; color: #616a6c; margin-bottom: 4px; } .attachment-table td:last-child::before { width: 100%; } }
+.review-center, .audit-view, .audit-list { display: grid; gap: 14px; min-width: 0; }
+.review-entry { display: grid; gap: 10px; border-top: 1px solid #d8dedf; padding: 16px 0; margin-top: 12px; min-width: 0; }
+.review-entry p { margin: 0; }
+.review-node { font-size: 16px; font-weight: 600; }
+.audit-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.audit-filters label { min-width: 180px; flex: 1; }
+.audit-changes { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin: 14px 0 0; }
+.audit-changes dt { color: #616a6c; font-size: 13px; }
+.audit-changes dd { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.audit-list .record-actions button { max-width: 100%; overflow-wrap: anywhere; }
+@media(max-width:720px) { .audit-changes { grid-template-columns: minmax(0,1fr); } }
