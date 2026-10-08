@@ -123,20 +123,33 @@ def check_p2b_migration_keeps_historical_reports(url,monkeypatch):
         db.execute(text("INSERT INTO organizations VALUES ('org','org','Original')"))
         db.execute(text("INSERT INTO users VALUES ('user','org','user','User','admin','hash',CURRENT_TIMESTAMP)"))
         db.execute(text("INSERT INTO projects VALUES ('project','org','Original project','user',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)"))
-        db.execute(text("INSERT INTO nodes VALUES ('task','org','project',NULL,'task','Original task','done','user',NULL,10,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'2026-10-01','2026-10-08')"))
-        for i in range(2):
-            db.execute(text("INSERT INTO task_reports VALUES (:id,'org','task','old arbitrary','old summary','submitted','user',CURRENT_TIMESTAMP)"),{'id':f'r{i}'})
-        db.execute(text("INSERT INTO audit_logs VALUES ('audit','org','user','task','report.submit','{}',CURRENT_TIMESTAMP)"))
-        before={t:[tuple(r) for r in db.execute(text(f'SELECT * FROM {t} ORDER BY id'))] for t in ('nodes','task_reports','audit_logs')}
+        db.execute(text("INSERT INTO departments VALUES ('dept','org','Original department','user')"))
+        db.execute(text("INSERT INTO nodes VALUES ('phase','org','project',NULL,'phase','Original phase','doing','user','dept',5,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'2026-09-01','2026-12-31')"))
+        db.execute(text("INSERT INTO nodes VALUES ('task','org','project','phase','task','Original task','done','user','dept',10,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'2026-10-01','2026-10-08')"))
+        db.execute(text("INSERT INTO nodes VALUES ('review-task','org','project','task','task','Legacy review task','review','user','dept',20,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'2026-10-02','2026-10-09')"))
+        for node_id in ('task', 'review-task'):
+            for i in range(2):
+                db.execute(text("INSERT INTO task_reports VALUES (:id,'org',:node,'old arbitrary','old summary','submitted','user',CURRENT_TIMESTAMP)"),{'id':f'{node_id}-r{i}','node':node_id})
+            db.execute(text("INSERT INTO audit_logs VALUES (:id,'org','user',:node,'report.submit','{}',CURRENT_TIMESTAMP)"),{'id':f'{node_id}-audit','node':node_id})
+        tables=('organizations','users','projects','departments','nodes','task_reports','audit_logs')
+        before={t:[tuple(r) for r in db.execute(text(f'SELECT * FROM {t} ORDER BY id'))] for t in tables}
+        counts={t:db.execute(text(f'SELECT count(*) FROM {t}')).scalar_one() for t in tables}
     command.upgrade(config,'head')
     with engine.connect() as db:
         inspector=inspect(engine)
         assert 'node_collaborators' in inspector.get_table_names()
-        assert [tuple(r) for r in db.execute(text('SELECT * FROM audit_logs ORDER BY id'))]==before['audit_logs']
-        assert tuple(db.execute(text('SELECT * FROM nodes')).one())==before['nodes'][0]+(0,)
+        for table in tables:
+            assert db.execute(text(f'SELECT count(*) FROM {table}')).scalar_one()==counts[table]
+        for table in ('organizations','users','projects','departments','audit_logs'):
+            assert [tuple(r) for r in db.execute(text(f'SELECT * FROM {table} ORDER BY id'))]==before[table]
+        nodes=[tuple(r) for r in db.execute(text('SELECT * FROM nodes ORDER BY id'))]
+        assert nodes==[row+(0,) for row in before['nodes']]
+        # Both legacy terminal and review states retain non-null owner/department/parent relationships.
+        for node_id, expected_status, expected_parent in (('task','done','phase'),('review-task','review','task')):
+            assert tuple(db.execute(text('SELECT status,parent_id,owner_user_id,department_id FROM nodes WHERE id=:id'),{'id':node_id}).one())==(expected_status,expected_parent,'user','dept')
         rows=[tuple(r) for r in db.execute(text('SELECT * FROM task_reports ORDER BY id'))]
+        assert len(rows)==len(before['task_reports'])==4
         assert all(row[:8]==old and row[8:14]==(None,)*6 and not row[14] for row,old in zip(rows,before['task_reports']))
-        assert len(rows)==2
         assert db.execute(text('SELECT charged_bytes FROM attachment_quotas')).scalar_one()==0
         for table in ('node_collaborators','task_notes','attachments'):
             assert db.execute(text(f'SELECT count(*) FROM {table}')).scalar_one()==0
