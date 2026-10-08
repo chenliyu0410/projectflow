@@ -15,11 +15,11 @@
 |---|---|
 | 目前工作項目 | **P1a後端核心執行中（至P1c已授權）** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 切到 `feature/p1a-backend-core`，進度以該分支的 PROGRESS 為準；依P1a plan Native TDD執行Task1。D53已授權中間自行推進，重大問題才停下來問。 |
-| 分支 | `feature/p1a-backend-core`（準備建立）；P0分支已ff-only合併並依G6刪除。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
-| 最新程式 commit | 正式版P0 Task3 `18df1ea`，合併HEAD `435af43`；Demo仍為W6 `0934e48`，未修改。 |
+| 下一個動作 | 依P1a plan Native TDD執行Task2（Project／Department／Node API、`can_view`／`can_work`與audit helper）。D53已授權中間自行推進，重大問題才停下來問。 |
+| 分支 | `feature/p1a-backend-core`；P0分支已ff-only合併並依G6刪除。舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
+| 最新程式 commit | P1a Task1修正 `014c0b3`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | 2026-10-08 P1a開工前重跑：pytest `8 passed, 1 warning in 0.69s`、Vitest `6 passed (6)`、Playwright `4 passed (999ms)`、build exit0；P0真DB中斷／恢復、同volume、1280／375px、5秒逾時與遲到回應仍引用P0驗收。Demo仍`全部通過 174/174`，P1a未改Demo。 |
+| 測試基準 | 2026-10-08 P1a Task1：RED `ModuleNotFoundError: No module named 'app.database'` exit1；GREEN `15 passed, 1 warning in 2.95s`、pip check無broken、Alembic SQLite smoke exit0。P0 Vitest `6 passed (6)`、Playwright `4 passed (999ms)`、build exit0於開工前通過；Demo仍`全部通過 174/174`，P1a未改Demo。 |
 | 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17僅健康探測，尚無業務schema／migration（P1a引入）。 |
 | 認領中 | Codex GPT-5，2026-10-08 P1a Native execution |
 | 阻塞／待人類 | 無；D53指示中間自行進行，只在重大範圍／安全／無法照plan時詢問。D51整體授權不變，D43、D10不擴大MVP。 |
@@ -425,8 +425,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
 |---|---|---|---|---|
-| 1 | Session登入、資料庫層、Alembic migration骨架 | 🔨 執行中 | 新增auth／migration測試；RED缺`app.database`／`app.seed`／routes／migration，GREEN後全部auth與migration測試通過 | `P1a task 1: add sessions and migration foundation` |
-| 2 | Project／Department／Node API、`can_view`／`can_work`與audit helper | ⬜ | 新增project/node權限與跨公司測試；GREEN後目前API測試全通 | `P1a task 2: add scoped projects and node permissions` |
+| 1 | Session登入、資料庫層、Alembic migration骨架 | ✅ Bohr獨立審查第1輪Needs fixes：Alembic config Critical、composite FK與workflow content Important、logout精準撤銷與EOF Minor；修正commit後測試化覆蓋並通過 | RED：依賴安裝成功後，pytest `ModuleNotFoundError: No module named 'app.database'` exit1。GREEN：auth/migration `7 passed, 1 warning`、完整API `15 passed, 1 warning in 2.95s`、pip check無broken、Alembic SQLite smoke exit0。reviewer fix RED：3 failed（logout只撤目前session、Alembic config、migration FK/content）→ GREEN 7 passed | `038ce64..014c0b3`（`ae292e7`實作、`014c0b3`修正） |
+| 2 | Project／Department／Node API、`can_view`／`can_work`與audit helper | 🔨 執行中 | 新增project/node權限與跨公司測試；GREEN後目前API測試全通 | `P1a task 2: add scoped projects and node permissions` |
 | 3 | Workflow建立專案與Gate阻擋 | ⬜ | 新增workflow/gate測試；含跨公司workflow ID、pending gate直接status更新阻擋 | `P1a task 3: add workflows and gate enforcement` |
 | 4 | Report、Audit API與真PostgreSQL migration／seed驗收 | ⬜ | 新增report/audit測試；完整API pytest、Vitest、build、P0 E2E回歸；Compose PostgreSQL實跑migration與seed | `P1a task 4: add reports audit and database acceptance` |
 
@@ -714,3 +714,4 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **沒做的事／偏離 plan**：尚未建立 W6 feature 分支、修改產品程式或測試；沒有 push。P0 仍依 D45 暫停。
 - **下一步**：人類審閱 `docs/superpowers/plans/2026-10-08-multi-company-industry-demo.md` 並選擇執行方式；建議 Native execution。開始後照 Task 0 先確認／改名歷史 W3 feature branch、跑 `149/149` 基準，再建立 `feature/w6-multi-company-industry-demo`。
 - **注意**：執行時 `resetAll()` 保留為測試用完整重設，產品左下角改走 `resetActiveCompany()`；v6 執行期投影不得掃描其他公司，切換／重設必須先成功持久化候選資料。
+
