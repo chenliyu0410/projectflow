@@ -13,11 +13,11 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **🔨 P0 正式版技術骨架與規則；D52已確認計畫並開始執行** |
+| 目前工作項目 | **🔍 P0 三Task已完成並独立審查；進行G4整體審查** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | Task1／2已獨立審查通過；Task3先實跑Playwright RED，再建立Compose與真實DB驗收。各階段完成更新README並依D50推送。 |
+| 下一個動作 | G4審查整個P0分支、複驗後依D2 ff-only到main；更新README／PROGRESS，依D50推送。下一階段P1a需細化計畫，整體至P1c授權不變。 |
 | 分支 | `feature/p0-formal-foundation`（G3開工commit後建立）；舊`paused/p0-formal-product-plan`維持`40f8cc2`備查。 |
-| 最新程式 commit | 正式版P0 Task2 `4a2088b`；Demo仍為W6 `0934e48`，未修改。 |
+| 最新程式 commit | 正式版P0 Task3 `18df1ea`；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | `tests/records.html`：`全部通過 174/174`（2026-10-08，W6 ff 合併到 main 後 Edge headless 8001 實跑，無 page error）。原有149項＋25項W6；桌面1280／375px 共508畫面、10項重載、console/page errors空。歷史：W3 149/149、W2 137/137、W1 64/64。 |
 | 資料版本 | `db.v = 6`；v6 公司容器，`load()` 讀 v2–v6；localStorage key 是 `projectflow-demo-v2` |
@@ -75,7 +75,7 @@
 | 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
 | 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
-| — | P0 | 正式軌技術骨架與規則 | 🔨 執行中（D52計畫確認） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | API與規則→React→Docker／PostgreSQL驗收；Task1先RED |
+| — | P0 | 正式軌技術骨架與規則 | 🔍 G4整體審查中 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task均獨立審查通過，API8／React6／E2E4及真實DB恢復已驗收 |
 | — | P1a–P1c | 正式版MVP：核心後端、React流程、部署／測試／驗收 | 已授權，依序待P0完成（D51） | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 各階段開工前細化 | 正式DB另管migration | P0→P1a→P1b→P1c；P2以後的真AI／ERP／AD／完整RAG不在本輪 |
 
 **排程規則**
@@ -381,7 +381,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ---
 
-### P0 正式版技術骨架與規則 — 🔨 執行中
+### P0 正式版技術骨架與規則 — 🔍 G4整體審查
 
 **授權**：D51已授權做到P1c；D52「好開始」確認P0計畫。Native執行與逐Task獨立審查，正式規則於Task1啟用後安裝依賴。
 
@@ -395,7 +395,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 |---|---|---|---|---|
 | 1 | 正式軌規則、FastAPI存活／真實DB就緒檢查 | ✅ Arendt獨立審查通過，無Critical／Important | 預期新增8項pytest；RED `1 warning, 1 error in 0.81s`，exit 1：缺`app.main`（安裝中pytest不存在不算RED）；GREEN `8 passed, 1 warning in 0.49s` exit0，pip check通過。reviewer另驗9個負向行為通過；真DB留Task3 | `e6082f9..8e84a9b`；`P0 task 1: add formal rules and API health checks` |
 | 2 | React狀態介面、載入／失敗／重試 | ✅ Faraday獨立審查Approved，無issues | 預期新增6項Vitest＋build；RED `Test Files 1 failed (1); Tests no tests` exit1，缺`./App`；GREEN `Test Files 1 passed (1); Tests 6 passed (6)` exit0、build exit0、runtime audit零漏洞。lock結構比對一致（初次JSON字串比對誤判順序，已改deepEqual驗證）。逾時／遲到請求留Task3補驗 | `b35ca9d..4a2088b`；`P0 task 2: add React health surface` |
-| 3 | Docker Compose、PostgreSQL、桌面／手機與DB恢復 | 🔍 已驗收、待獨立審查 | 預期新增4項E2E；RED `4 failed` exit1：proxy readiness、1280px、375px、unknown API均connection refused；GREEN `4 passed (1.1s)`、恢復後`4 passed (978ms)` exit0。API `8 passed, 1 warning in 0.50s`、React `6 passed (6)`、npm ci／build exit0。真DB與畫面中斷／恢復通過 | BASE `7b2f8065a749e36549b452c33fe9f89c4005adf7`；`P0 task 3: verify containerized foundation` |
+| 3 | Docker Compose、PostgreSQL、桌面／手機與DB恢復 | ✅ Goodall獨立審查Approved，無issues | 預期新增4項E2E；RED `4 failed` exit1：proxy readiness、1280px、375px、unknown API均connection refused；GREEN `4 passed (1.1s)`、恢復後`4 passed (978ms)` exit0。API `8 passed, 1 warning in 0.50s`、React `6 passed (6)`、npm ci／build exit0。真DB與畫面中斷／恢復通過；reviewer另驗HTTP／資產／OpenAPI及部署狀態 | `7b2f806..18df1ea`；`P0 task 3: verify containerized foundation` |
 
 **環境預檢（2026-10-08，只讀）**：Node24.19.0、npm11.17.0、Python3.13.9、Docker Engine29.7.2／Compose5.4.0可用，Docker daemon可連線；15173／18000未被占用。已查npm／PyPI版本並列於plan，未安裝產品依賴。
 
