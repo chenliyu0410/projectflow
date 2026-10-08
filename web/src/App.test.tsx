@@ -21,6 +21,106 @@ function projectButton(title = projects.items[0].title) {
 const taskNode = detail.nodes.find(node => node.id === 'task')!;
 const pendingGate = { id: 'g1', project_id: 'p1', node_id: 'phase', status: 'pending' };
 const gateDetail = { ...detail, gates: [pendingGate] };
+const workflowList = { items: [{ id: 'w1', name: '食品新品開發' }] };
+async function fillCreation() {
+  fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
+  await screen.findByRole('option', { name: '食品新品開發' });
+  fireEvent.change(screen.getByLabelText('工作流模板'), { target: { value: 'w1' } });
+  fireEvent.change(screen.getByLabelText('新專案名稱'), { target: { value: secondProject.title } });
+}
+
+describe('P1b workflow creation', () => {
+  it('creates via workflow using only workflow/title and selects the new project', async () => {
+    const fetcher = kanbanFetch().mockResolvedValueOnce(response(workflowList)).mockResolvedValueOnce(response(secondProject, 201))
+      .mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(secondDetail));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    await fillCreation();
+    fireEvent.click(screen.getByRole('button', { name: '建立專案' }));
+    expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
+    expect(fetcher).toHaveBeenNthCalledWith(5, '/api/projects/from-workflow', expect.objectContaining({ credentials: 'include', method: 'POST', body: JSON.stringify({ workflow_id: 'w1', title: secondProject.title }) }));
+    expect(projectButton(secondProject.title)).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByLabelText('新專案名稱')).not.toBeInTheDocument();
+  });
+
+  it('requires both fields, cancels cleanly and caches templates', async () => {
+    const fetcher = kanbanFetch().mockResolvedValueOnce(response(workflowList));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
+    await screen.findByRole('option', { name: '食品新品開發' });
+    expect(screen.getByRole('button', { name: '建立專案' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('工作流模板'), { target: { value: 'w1' } });
+    fireEvent.change(screen.getByLabelText('新專案名稱'), { target: { value: '   ' } });
+    expect(screen.getByRole('button', { name: '建立專案' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: '取消' }));
+    expect(screen.queryByLabelText('新專案名稱')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '新增專案' }));
+    expect(screen.getByLabelText('新專案名稱')).toHaveValue('');
+    expect(fetcher.mock.calls.filter(([path]) => path === '/api/workflows')).toHaveLength(1);
+  });
+
+  it.each([403, 404, 500])('maps creation errors safely and permits retry (%s)', async status => {
+    const fetcher = kanbanFetch().mockResolvedValueOnce(response(workflowList)).mockResolvedValueOnce(response({ detail: 'private-secret' }, status))
+      .mockResolvedValueOnce(response(secondProject, 201)).mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(secondDetail));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    await fillCreation();
+    fireEvent.click(screen.getByRole('button', { name: '建立專案' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(status === 403 ? '沒有建立專案權限' : status === 404 ? '找不到工作流模板' : '操作失敗，請稍後再試');
+    expect(document.body).not.toHaveTextContent('private-secret');
+    expect(screen.getByLabelText('新專案名稱')).toHaveValue(secondProject.title);
+    fireEvent.click(screen.getByRole('button', { name: '建立專案' }));
+    expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
+  });
+
+  it('retries template loading after failure', async () => {
+    vi.stubGlobal('fetch', kanbanFetch().mockRejectedValueOnce(new Error('private-secret')).mockResolvedValueOnce(response(workflowList)));
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('無法連線，請稍後再試');
+    fireEvent.click(screen.getByRole('button', { name: '重試模板' }));
+    expect(await screen.findByRole('option', { name: '食品新品開發' })).toBeInTheDocument();
+  });
+
+  it('disables duplicate creation submissions', async () => {
+    let resolveCreate!: (value: ReturnType<typeof response>) => void;
+    const fetcher = kanbanFetch().mockResolvedValueOnce(response(workflowList)).mockImplementationOnce(() => new Promise(resolve => { resolveCreate = resolve; }))
+      .mockResolvedValueOnce(response({ items: [...projects.items, secondProject] })).mockResolvedValueOnce(response(secondDetail));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    await fillCreation();
+    const button = screen.getByRole('button', { name: '建立專案' });
+    fireEvent.click(button); fireEvent.click(button);
+    expect(button).toBeDisabled();
+    expect(fetcher.mock.calls.filter(([path]) => path === '/api/projects/from-workflow')).toHaveLength(1);
+    await act(async () => { resolveCreate(response(secondProject, 201)); });
+    expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
+  });
+
+  it('hides creation from readonly', async () => {
+    vi.stubGlobal('fetch', kanbanFetch(gateDetail, { ...session, user: { ...session.user, role: 'readonly' } }));
+    render(<App />);
+    await screen.findByRole('heading', { name: detail.title });
+    expect(screen.queryByRole('button', { name: '新增專案' })).not.toBeInTheDocument();
+  });
+
+  it.each(['templates', 'create'])('ignores old %s response after logout', async stage => {
+    let resolveOld!: (value: ReturnType<typeof response>) => void;
+    const fetcher = kanbanFetch();
+    if (stage === 'create') fetcher.mockResolvedValueOnce(response(workflowList));
+    fetcher.mockImplementationOnce(() => new Promise(resolve => { resolveOld = resolve; })).mockResolvedValueOnce(response(undefined, 204));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    if (stage === 'create') { await fillCreation(); fireEvent.click(screen.getByRole('button', { name: '建立專案' })); }
+    else fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
+    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    await screen.findByRole('heading', { name: '登入專流' });
+    await act(async () => { resolveOld(response(stage === 'create' ? secondProject : workflowList)); });
+    expect(screen.getByRole('heading', { name: '登入專流' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('新專案名稱')).not.toBeInTheDocument();
+  });
+});
 function statusControl(column = '待處理') {
   return within(screen.getByLabelText(column)).getByRole('combobox', { name: '殺菌條件驗證狀態' });
 }

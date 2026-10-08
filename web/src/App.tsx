@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError } from './api';
-import type { NodeItem, NodeStatus, ProjectDetail, ProjectSummary, SessionInfo } from './types';
+import type { NodeItem, NodeStatus, ProjectDetail, ProjectSummary, SessionInfo, WorkflowSummary } from './types';
 
 type State = 'checking-session' | 'login' | 'loading' | 'ready' | 'error';
 const columns: { status: NodeStatus; label: string }[] = [
@@ -46,6 +46,11 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [mutating, setMutating] = useState(false);
   const mutationId = useRef<number | null>(null);
+  const [creationOpen, setCreationOpen] = useState(false);
+  const [workflows, setWorkflows] = useState<WorkflowSummary[] | null>(null);
+  const [workflowLoading, setWorkflowLoading] = useState(false);
+  const [workflowId, setWorkflowId] = useState('');
+  const [projectTitle, setProjectTitle] = useState('');
   const sequence = useRef(0);
   const controller = useRef<AbortController | null>(null);
 
@@ -60,6 +65,7 @@ export default function App() {
     return request.id === sequence.current && !request.controller.signal.aborted;
   }
   function clearSession() {
+    closeCreation(); setWorkflows(null);
     setSession(null); setProjects([]); setSelectedId(null); setProject(null); setSelectedNodeId(null); setPassword(''); setState('login');
   }
   function failed(error: unknown, request: ReturnType<typeof begin>, loginFailure = false) {
@@ -99,6 +105,7 @@ export default function App() {
   async function selectProject(id: string) {
     if (busy) return;
     const request = begin();
+    closeCreation();
     setSelectedId(id); setProject(null); setSelectedNodeId(null); setMessage(''); setState('loading');
     await loadDetail(id, request);
   }
@@ -137,6 +144,7 @@ export default function App() {
   async function logout() {
     if (busy) return;
     const request = begin();
+    closeCreation();
     setBusy(true); setMessage('');
     try {
       await api.logout(request.controller.signal);
@@ -180,6 +188,50 @@ export default function App() {
   const canApprove = session && project && session.user.role !== 'readonly' && (
     session.user.role === 'admin' || session.user.id === project.owner_user_id || session.user.role === 'reviewer'
   );
+  const canCreate = session?.user.role === 'admin' || session?.user.role === 'project_owner';
+  function closeCreation() {
+    setCreationOpen(false); setWorkflowLoading(false); setWorkflowId(''); setProjectTitle('');
+  }
+  async function openCreation() {
+    if (!canCreate || busy || mutating || state !== 'ready') return;
+    setCreationOpen(true); setMessage('');
+    if (workflows !== null) return;
+    const request = begin();
+    setWorkflowLoading(true);
+    try {
+      const result = await api.workflows(request.controller.signal);
+      if (current(request)) setWorkflows(result.items);
+    } catch (error) {
+      if (current(request)) {
+        if (error instanceof ApiError && error.status === 401) clearSession();
+        setMessage(error instanceof ApiError ? error.message : '操作失敗，請稍後再試');
+      }
+    } finally { if (current(request)) setWorkflowLoading(false); }
+  }
+  async function createProject(event: FormEvent) {
+    event.preventDefault();
+    if (!canCreate || !workflowId || !projectTitle.trim() || workflowLoading || mutationId.current !== null) return;
+    const request = begin();
+    mutationId.current = request.id; setMutating(true); setMessage('');
+    let created = false;
+    try {
+      const result = await api.createFromWorkflow({ workflow_id: workflowId, title: projectTitle.trim() }, request.controller.signal);
+      if (!current(request)) return;
+      created = true; closeCreation(); setProject(null); setSelectedNodeId(null); setSelectedId(result.id); setState('loading');
+      setProjects(value => value.some(item => item.id === result.id) ? value : [...value, result]);
+      const list = await api.projects(request.controller.signal);
+      if (!current(request)) return;
+      setProjects(list.items);
+      await loadDetail(result.id, request);
+    } catch (error) {
+      if (!current(request)) return;
+      if (created) projectFailed(error, request);
+      else if (error instanceof ApiError && error.status === 401) { clearSession(); setMessage(error.message); }
+      else setMessage(error instanceof ApiError && error.status === 403 ? '沒有建立專案權限'
+        : error instanceof ApiError && error.status === 404 ? '找不到工作流模板'
+          : error instanceof ApiError ? error.message : '操作失敗，請稍後再試');
+    } finally { if (current(request)) { mutationId.current = null; setMutating(false); } }
+  }
 
   return <>
     <header>
@@ -198,6 +250,18 @@ export default function App() {
       </form> : <>
         {session && <aside aria-label="專案清單"><h2>專案</h2>{projects.map(item => <button key={item.id} disabled={busy} aria-pressed={item.id === selectedId} onClick={() => void selectProject(item.id)}>{item.title}</button>)}</aside>}
         <section aria-label="專案">
+          {session && canCreate && <div className="project-toolbar"><button disabled={busy || mutating || workflowLoading || state !== 'ready'} onClick={() => void openCreation()}>新增專案</button></div>}
+          {creationOpen && <form className="creation-form" onSubmit={event => void createProject(event)}>
+            <label>工作流模板<select value={workflowId} disabled={workflowLoading || mutating} onChange={event => setWorkflowId(event.target.value)}>
+              <option value="">選擇模板</option>{workflows?.map(workflow => <option key={workflow.id} value={workflow.id}>{workflow.name}</option>)}
+            </select></label>
+            <label>新專案名稱<input value={projectTitle} disabled={mutating} onChange={event => setProjectTitle(event.target.value)} /></label>
+            {workflowLoading && <p role="status">載入模板中</p>}
+            {!workflowLoading && workflows === null && <button type="button" onClick={() => void openCreation()}>重試模板</button>}
+            {workflows?.length === 0 && <p>目前沒有工作流模板</p>}
+            <div className="form-actions"><button type="submit" disabled={!workflowId || !projectTitle.trim() || mutating || workflowLoading}>建立專案</button>
+              <button type="button" disabled={mutating} onClick={() => { begin(); closeCreation(); setMessage(''); }}>取消</button></div>
+          </form>}
           {state === 'checking-session' && <p role="status">確認登入狀態中</p>}
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
@@ -212,7 +276,7 @@ export default function App() {
               <p>尚有階段閘門待核准，後續階段可能被阻擋</p>
               {canApprove && project.gates.filter(gate => gate.status === 'pending').map(gate => <div className="gate-row" key={gate.id}>
                 <span>{project.nodes.find(node => node.id === gate.node_id)?.title ?? '階段閘門'}</span>
-                <button disabled={mutating} onClick={() => void mutate('gate', gate.id)}>核准閘門</button>
+                <button disabled={mutating || creationOpen} onClick={() => void mutate('gate', gate.id)}>核准閘門</button>
               </div>)}
             </div>}
             <section aria-label="看板" className="kanban">
@@ -220,7 +284,7 @@ export default function App() {
                 <h2>{column.label}</h2>
                 {project.nodes.filter(node => node.kind === 'task' && node.status === column.status).map(node => <article key={node.id} className="task-card">
                   <button className="task-title" aria-pressed={node.id === selectedNodeId} onClick={() => setSelectedNodeId(node.id)}>{node.title}</button>
-                  {session?.user.role !== 'readonly' && <label>狀態<select aria-label={`${node.title}狀態`} value={node.status} disabled={mutating} onChange={event => void mutate('status', node.id, event.target.value as NodeStatus)}>
+                  {session?.user.role !== 'readonly' && <label>狀態<select aria-label={`${node.title}狀態`} value={node.status} disabled={mutating || creationOpen} onChange={event => void mutate('status', node.id, event.target.value as NodeStatus)}>
                     {columns.map(option => <option key={option.status} value={option.status}>{option.label}</option>)}
                   </select></label>}
                 </article>)}

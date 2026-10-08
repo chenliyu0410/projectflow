@@ -70,6 +70,8 @@ aside button[aria-pressed="true"] { border-color: #21684f; background: #edf6f0; 
 .node-tree button { width: 100%; text-align: left; overflow-wrap: anywhere; }
 .node-tree button[aria-pressed="true"] { border-color: #397793; background: #edf4f8; }
 .gate-banner { border-left: 3px solid #b68d20; background: #fff8dc; padding: 12px; display: grid; gap: 12px; }
+.project-toolbar, .form-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.creation-form { border-block: 1px solid #d8dedf; padding: 16px 0; }
 .gate-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .gate-row span { min-width: 0; overflow-wrap: anywhere; }
 .kanban { grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; gap: 12px; }

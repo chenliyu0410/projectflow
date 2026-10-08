@@ -4,13 +4,13 @@
 
 ## 公司邊界
 
-業務資料以organization_id識別公司。API從已驗證身分取得可用公司，查詢與外鍵須限制公司；不能信任前端傳來的公司參數。稽核、檔案讀寫與工作流建立同樣受限。P0歷史階段只有健康檢查；目前P1a業務API已完成，P1b Task 1–2已通過獨立審查，Task 3看板與閘門控制已實作、待獨立審查。
+業務資料以organization_id識別公司。API從已驗證身分取得可用公司，查詢與外鍵須限制公司；不能信任前端傳來的公司參數。稽核、檔案讀寫與工作流建立同樣受限。目前P1a業務API、P1b Task 1–3已通過獨立審查；Task 4工作流建立與瀏覽器測試已實作、待獨立審查。P1c部署／測試／內部試用驗收仍未完成。
 
 ## 環境需求
 
 - 本機開發：Python 3.13、Node 24.15以上且小於25；套件分別使用`api/requirements.lock`及`web/package-lock.json`。
 - 完整環境：Docker Desktop的Linux容器引擎與Docker Compose。容器自帶Python／Node，不依賴主機安裝的執行環境。
-- P0僅為本機技術骨架，沒有登入、業務資料、migration或正式環境強化；不可直接當成內網正式版發布。
+- 目前為本機MVP開發環境；P1c正式部署強化與內部試用驗收尚未完成，不可直接視為內網正式版發布。
 
 ## 本機API
 
@@ -36,9 +36,9 @@ npm.cmd --prefix web run build
 npm.cmd --prefix web run dev
 ```
 
-開啟`http://127.0.0.1:15173`。開發代理將`/api`送到`http://127.0.0.1:18000`，不需要放寬跨來源政策。API使用其他埠時，先在同一終端設定`$env:API_PROXY_TARGET = 'http://127.0.0.1:<埠號>'`。目前前端先確認session，未登入時顯示登入表單；公司預設food，種子帳號見下表。登入後僅傳HttpOnly cookie，不接受前端切換公司或推斷完整操作權限；API為權限權威。專案清單可切換詳情；節點樹依sort_order排列，選取節點顯示完整路徑，空專案顯示沒有節點。載入錯誤可重試，401會清除session回登入；切換或登出後不套用舊詳情回應。工作流建立尚待Task 4。
+開啟`http://127.0.0.1:15173`。開發代理將`/api`送到`http://127.0.0.1:18000`，不需要放寬跨來源政策。API使用其他埠時，先在同一終端設定`$env:API_PROXY_TARGET = 'http://127.0.0.1:<埠號>'`。目前前端先確認session，未登入時顯示登入表單；公司預設food，種子帳號見下表。登入後僅傳HttpOnly cookie，不接受前端切換公司或推斷完整操作權限；API為權限權威。專案清單可切換詳情；節點樹依sort_order排列，選取節點顯示完整路徑，空專案顯示沒有節點。載入錯誤可重試，401會清除session回登入；切換或登出後不套用舊回應。admin／project_owner可開啟「新增專案」的inline表單，選擇工作流模板並填名稱建立；成功後更新清單並選取新專案，403／404使用安全訊息。
 
-四欄看板只顯示task節點；狀態選單透過API更新，成功才移欄，失敗保留原狀態。pending閘門顯示警示；admin、專案owner與reviewer顯示核准操作，實際權限由API強制。readonly隱藏狀態與核准操作。403／409使用固定安全訊息；請求期間停用重複寫入，切換專案或登出後忽略舊mutation回應。Task 3尚待獨立審查，瀏覽器整體驗收於Task 4進行。
+四欄看板只顯示task節點；狀態選單透過API更新，成功才移欄，失敗保留原狀態。pending閘門顯示警示；admin、專案owner與reviewer顯示核准操作，實際權限由API強制。readonly隱藏狀態、核准與建立操作。403／409使用固定安全訊息；請求期間停用重複寫入，切換專案或登出後忽略舊mutation回應。
 
 ## 完整容器環境
 
@@ -66,13 +66,13 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --build
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml ps
 ```
 
-開啟[專流正式版](http://127.0.0.1:15173)。現有Compose仍為舊build，P1b Task 4才重建並驗收瀏覽器流程。API存活檢查位於`http://127.0.0.1:18000/health`；`/health`不依賴DB，`/health/ready`確認真實DB連線。P0歷史前端曾透過`/api/health/ready`顯示「已連線」或「無法連線」；目前原始碼主畫面已改為登入與專案清單。
+開啟[專流正式版](http://127.0.0.1:15173)，目前Compose已重建為登入／專案工作流UI。首次啟動還須執行下節migration／seed。API存活檢查位於`http://127.0.0.1:18000/health`；`/health`不依賴DB，`/health/ready`確認真實DB連線，前端代理也提供`/api/health`與`/api/health/ready` HTTP檢查。
 
 三個服務屬於`projectflow-formal`專案；PostgreSQL只在容器網路內開放，資料保留在`projectflow-formal_pgdata`。對外埠僅綁127.0.0.1。若埠被占用，只改本機`deploy/.env`的`WEB_PORT`／`API_PORT`，不要停掉其他人的服務；開發Vite可用`npm.cmd --prefix web run dev -- --port <空閒埠>`並同步設定API_PROXY_TARGET。本機API與Compose API不能同時占用18000。
 
-## P0歷史整合驗收與恢復
+## 整合驗收與恢復
 
-本節健康頁操作與既有E2E為P0歷史驗收；P1b瀏覽器測試將在Task 4更新，不能用舊build通過結果宣稱P1b通過。
+E2E保留API存活／就緒與未知路由檢查，1280px／375px測試登入、指定seed專案、建立唯一測試專案、gate阻擋／核准／狀態更新及readonly。每次重跑另建專案，不修改seed節點狀態；測試專案會留在本機資料庫，沒有刪除API。
 
 先啟動完整Compose，再逐行執行：
 
@@ -86,7 +86,7 @@ try { npm.cmd exec -- playwright install chromium } finally { Pop-Location }
 npm.cmd --prefix web run e2e
 ```
 
-如果WEB_PORT不是15173，在E2E之前設定`$env:PF_BASE_URL = 'http://127.0.0.1:<實際WEB_PORT>'`。測試檢查真實代理、桌面1280px／手機375px的重試、圖示載入、水平溢出與console，截圖位於被忽略的`web/test-results/`。
+如果WEB_PORT不是15173，在E2E之前設定`$env:PF_BASE_URL = 'http://127.0.0.1:<實際WEB_PORT>'`。登入、建立、gate阻擋／核准、readonly截圖位於被忽略的`web/test-results/`。每階段檢查水平溢出；pageerror必須0，HTTP及Chrome resource console錯誤僅按URL+status排除初始`/api/auth/me` 401與測試task的預期409，其他錯誤必須0，不宣稱console全空。
 
 只對本專案測試資料庫中斷：
 
@@ -94,15 +94,17 @@ npm.cmd --prefix web run e2e
 try {
   docker compose --env-file deploy/.env -f deploy/docker-compose.yml stop db
   if ($LASTEXITCODE -ne 0) { throw 'Cannot stop database' }
-  # 此時在畫面按重新檢查，應顯示無法連線；存活200、就緒503。
-  Read-Host '確認無法連線後按Enter恢復資料庫'
+  curl.exe -s -o NUL -w '%{http_code}' http://127.0.0.1:15173/api/health
+  curl.exe -s -o NUL -w '%{http_code}' http://127.0.0.1:15173/api/health/ready
+  # 預期存活200、就緒503；登入UI的資料載入會顯示安全錯誤。
+  Read-Host '確認HTTP狀態後按Enter恢復資料庫'
 } finally {
   docker compose --env-file deploy/.env -f deploy/docker-compose.yml up -d --wait db
   if ($LASTEXITCODE -ne 0) { throw 'Database recovery failed' }
 }
 ```
 
-恢復後按「重新檢查」應回到「已連線」。此操作不改密碼、不刪volume。完整停機可執行以下命令，保留資料；**不可加`-v`，不可使用prune清理資料**：
+恢復後`/api/health/ready`應回200；登入UI載入失敗時按「重試」，或重新登入後選取專案。此操作不改密碼、不刪volume。上述中斷步驟是手動驗收流程，本輪Task 4未中斷DB。完整停機可執行以下命令，保留資料；**不可加`-v`，不可使用prune清理資料**：
 
 ```powershell
 docker compose --env-file deploy/.env -f deploy/docker-compose.yml down
@@ -116,6 +118,13 @@ P1a 使用 Alembic migration 管理正式業務 schema。啟動完整 Compose �
 
 ```powershell
 api/.venv/Scripts/python.exe -m alembic -c api/alembic.ini upgrade head
+```
+
+Compose容器內工作目錄為`/app`，設定檔是`alembic.ini`，不可套用主機的`api/alembic.ini`路徑：
+
+```powershell
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml exec api python -m alembic upgrade head
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml exec api python -m app.seed
 ```
 
 本機測試會使用 SQLite 暫存資料庫檢查路由與權限；完整 PostgreSQL migration 仍必須在 Compose DB 上實跑。登入使用本地種子帳號與 HttpOnly session cookie，只供 P1a/P1b MVP 驗證，不代表 AD/LDAP 已完成。
