@@ -15,14 +15,14 @@
 |---|---|
 | 目前工作項目 | **P2b ✏️ G1規格中；P2a已完成** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、逐Task獨立spec／品質審查；人類試用另簽核。 |
-| 下一個動作 | D59／D60已選A；下一步確認D61協作可見範圍，再續附件等規則並定稿spec及G2 plan。P2a人類簽核未完成。 |
+| 下一個動作 | D59–D61已選A；下一步確認D62筆記／附件整組規則，再完成剩餘流程細節並定稿spec及G2 plan。P2a人類簽核未完成。 |
 | 分支 | `main`；P2a已ff-only合併，已刪除合併後的feature分支。 |
 | 最新程式 commit | P2a Task6 `8dc914a`（產品最後修正`a5d1594`），G4／合併HEAD `d8499cd`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | G6 main隔離verify：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s、cleanup及最終exit0；專用真PG另1passed/0.41s，無seed重啟detail相等；1280/375無水平溢出或非預期錯誤。 |
 | 資料版本 | Demo v6/key不變；正式PostgreSQL17 migration `20261008_0002` head。日期nullable DATE，舊資料保留驗證通過。15173新本機試用環境已初始化，acceptance volume保留且容器停止。 |
 | 認領中 | — |
-| 阻塞／待人類 | P2b G1待D61協作範圍，其餘規則依序確認；P1c／P2a人類試用簽核、D43／D10未完成。未開始P2b產品實作，LAN未授權。 |
+| 阻塞／待人類 | P2b G1待D62筆記／附件，其餘規則依序確認；P1c／P2a人類試用簽核、D43／D10未完成。未開始P2b產品實作，LAN未授權。 |
 | 遠端 | P2a已發布`c0284f6`；本次fetch + ff-only已最新。P2b僅本機G1文件草案，未push。 |
 
 ---
@@ -88,7 +88,7 @@
 | 順位 | ID | 工作項目 | 狀態 | Spec／Plan | 依賴 |
 |---|---|---|---|---|---|
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
-| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | ✏️ G1（人類指示繼續） | [G1討論草案](superpowers/specs/2026-10-08-p2b-collaboration-design.md)；D59／D60已決，D61待人類，G2未開始 | P2a |
+| 進行中 | P2b | 回報／審核、筆記、附件與稽核介面 | ✏️ G1（人類指示繼續） | [G1討論草案](superpowers/specs/2026-10-08-p2b-collaboration-design.md)；D59–D61已決，D62待人類，G2未開始 | P2a |
 | 後續2 | P2c | 時程、模板管理、前置相依與相依圖 | ⬜ | 各階段另訂spec／plan | P2a，順序依人類本次選擇 |
 | 後續3 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
@@ -109,11 +109,11 @@
 
 **授權**：人類於P2a完成後指示「繼續進行」（D58），接續路線圖B1–B6；不是P2a試用簽核通過或新產品規則已核准。
 
-**本次交付**：[G1討論草案](superpowers/specs/2026-10-08-p2b-collaboration-design.md)。核對既有reports／status／audit API、permissions、models、Compose與README F6／F11。核心差異是Report POST不改status，但status PATCH可直接done；D59人類已選A：送出review→核准done／退回doing，新版本保留歷史，API不可繞過；D60已選A，管理員／實際專案擁有者可在有送出權時明確送出並確認並保留稽核；D61協作範圍待選。
+**本次交付**：[G1討論草案](superpowers/specs/2026-10-08-p2b-collaboration-design.md)。核對既有reports／status／audit API、permissions、models、Compose與README F6／F11。核心差異是Report POST不改status，但status PATCH可直接done；D59人類已選A：送出review→核准done／退回doing，新版本保留歷史，API不可繞過；D60已選A，管理員／實際專案擁有者可在有送出權時明確送出並確認並保留稽核；D61已選A：指定協作人員與協作部門主管，指定節點不繼承；D62筆記／附件待選。
 
 **獨立文件核對**：review_finalized_docs Approved，現況與程式相符、歷史相容風險及待定界線明確；此為草案審查，不是G1人類核准。
 
-**狀態**：D59／D60均已定案為A；D61協作及後續附件等細則未定案；無可執行G2 plan，未開feature分支、未改產品／測試／DB／15173。P2a測試基準為歷史證據，本次只做文件／程式比對及diff檢查。
+**狀態**：D59–D61均已定案為A；D62筆記／附件及其餘細則未定案；無可執行G2 plan，未開feature分支、未改產品／測試／DB／15173。P2a測試基準為歷史證據，本次只做文件／程式比對及diff檢查。
 
 ### P2a 完整任務操作 — ✅ 工程交付完成
 
@@ -758,7 +758,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | ID | 來源 | 問題 | 預設／建議 | 狀態 |
 |---|---|---|---|---|
-| D61 | P2b G1協作範圍 | 協作部門加入後哪些人可看與寫筆記 | A推薦：指定協作人員及協作部門主管，其他成員不自動取得；B：整個協作部門。兩者僅指定節點不繼承，不因協作授予送回報／審核／metadata權；readonly仍不可寫，我的任務納入協作task | 待人類，完整範圍／撤銷／隱藏父節點规则見草案§3 |
+| D62 | P2b G1筆記／附件 | 筆記修訂、附件保存／移除、格式與容量 | 筆記僅作者可改、不刪、留修訂；附件限PDF/PNG/JPEG/TXT/CSV/Office新格式/ZIP且只下載；一般附件軟刪、已送回報附件不可刪。A推薦單檔10 MB，B25 MB；兩者每公司初始1 GB含軟刪／未關聯，主機可調高，SHA-256／持久化volume／逐次授權 | 待人類；完整權限與失敗行為見草案§3 |
+| D61 | P2b G1協作範圍 | 協作部門加入後哪些人可看與寫筆記 | A推薦：指定協作人員及協作部門主管，其他成員不自動取得；B：整個協作部門。兩者僅指定節點不繼承，不因協作授予送回報／審核／metadata權；readonly仍不可寫，我的任務納入協作task | 已決定2026-10-08：人類選A（推薦），指定人員與協作部門主管；範圍／撤銷／隱藏父節點依草案§3 |
 | D60 | P2b G1審核授權 | 誰可審核，管理者是否能確認自己提交的回報 | 同公司且可見的admin／實際專案擁有者／負責部門主管／具can_work_node範圍reviewer可審，readonly拒絕。A推薦僅admin／實際owner且有送出權可明確送出並確認並完整稽核；B同一審核範圍但一律不能自審 | 已決定2026-10-08：人類選A（推薦）；審核者範圍及管理者明確自行確認依草案§3，不擴大Gate權限、不自動核准 |
 | D59 | P2b G1完成流程 | 現有Report不改status且可直接done；P2b是否要求完成必須經回報審核 | A推薦：送出review、核准done、退回doing／重送新版本，API禁止繞過；B：回報審核與狀態分開、保留直接done。舊資料不回退、不刪歷史 | 已決定2026-10-08：人類選A（推薦），回報驅動完成；同意不包含後續尚未確認的審核授權與附件／協作細則 |
 | D58 | P2b G1啟動 | P2a交付後人類指示「繼續進行」 | 按既定路線圖開始P2b規格與計畫，保留資料、隔離測試與人類簽核界線 | 已決定：2026-10-08授權接續G1／G2準備；不是未定案規則已核准或P2a人類簽核通過 |
@@ -826,6 +827,11 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-6｜P2b D61採A與D62筆記附件提案
+- **決策**：人類選D61 A，指定協作人員及協作部門主管取得指定節點協作權，不自動擴張部門或子樹。更新規格與進度，整理D62笔記與附件整組候選規則。
+- **驗證**：對照README F11的作者修訂、10 MB、軟刪及回報附件保護，git diff --check；只改文件，無產品／DB／15173變更，未跑產品測試。
+- **下一步**：确认D62，再處理剩餘流程細節並完成spec／plan；草案未定稿、未push，人類試用簽核不變。
+
 ### 2026-10-08｜Codex GPT-6｜P2b D60採A與D61協作提案
 - **決策**：人類選D60 A，確認審核者範圍與管理員／實際專案擁有者明確自行確認，仍需送出權及完整稽核。同步spec與看板，新增D61指定協作人員／部門主管或全協作部門兩方案。
 - **驗證**：比對README F6最小可見範圍及P2a可見根／本人列表規則，git diff --check；未跑產品測試或改業務程式／DB／15173。
@@ -847,9 +853,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **驗證**：Task證據見§3；G6 .superpowers/p2a/g6-main-verify.txt：API182passed1skip3warnings/125.26s、Vitest96/3.33s、build0、E2E9/16.8s及cleanup exit0。跳過的專用PG另實跑1passed；旧row／audit保留，日期null／保存／CHECK通過；acceptance不seed重啟完整detail相等。1280／375截圖已實看，非預期console／HTTP／pageerror0；Demo與tests diff空。
 - **本機部署／保留**：本機部署前無deploy/.env、formal volume或15173/18000 listener（歷史P1c的12專案環境不在這台Docker主機，未重設或刪除任何資料）。G6回歸後以start.py --seed-demo初次建立本機試用環境；僅初始化新volume，之後重啟不seed。15173首頁／health／ready200、acceptance404，migration20261008_0002 head；未在primary執行自動業務測試。env ignored、不輸出私密設定，acceptance容器已停止但volume與測試資料保留。
 - **交付／下一步**：README／指南／人類試用清單已更新；已依授權成功push main（ff0cdbe..0403e7b），收尾文件另經review_finalized_docs Approved；此發布紀錄接續同步。保留15173供人類以food／yu／demo-yu試用；P1c及P2a簽核均未代勾。P2b另走G1／G2，不把本次完成視為P2b–P2d或LAN已交付。
-
-### 2026-10-08｜Codex GPT-6｜P2a定稿與G3環境檢查
-- **做了什麼**：初始Git乾淨，fetch + ff-only確認`ff0cdbe`已同步；記錄人類D56同意，定稿spec／plan。獨立review_finalized_docs指出兩項文件歷史／現況措辭，已修正。
-- **驗證**：Python鎖版依賴安裝exit0；API80 passed／1 warning／29.09s，exit0。verify因npm缺失exit1；Docker與WSL亦未安裝，沒有Compose／E2E／PostgreSQL驗收證據，不宣稱功能RED或P2a完成。
-- **環境／保留**：D57已授權本機補裝；Node24.20／Docker Desktop4.94／Compose5.5.1／Playwright與ignored Python及npm依賴已安裝，Vitest56／build exit0。Docker Desktop已啟動但引擎未就緒；VirtualMachinePlatform啟用exit3010需重啟，WSL管理員安裝仍在StagePackageAsync。沒有專案服務／DB寫入、.env覆寫、volume刪除或產品修改。定稿commit `544f48b`；未達驗收發布條件，未push。
-- **下一步**：等待Windows重啟，確認WSL安裝結果（管理員winget程序仍在處理；本次exec session1498，PID4896），必要時續裝；確認docker info後跑完整隔離G3基準。已安裝工具可能需重啟Codex刷新PATH。通過後開feature/p2a-task-workspace，先Task6旅程RED再逐Task TDD與獨立審查。人類試用維持未簽核。
