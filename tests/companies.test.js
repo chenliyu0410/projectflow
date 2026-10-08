@@ -93,6 +93,30 @@
       ns.flatMap(n=>n.links||[]).forEach(l=>{const list=id==='petfood'?c.db.ops[{supplier:'suppliers',formula:'formulas',po:'pos',wo:'wos'}[l.t]]:c.db.ops.records[l.t];ok(list?.some(r=>r.id===l.id),id+l.id);});
     });
   });
+  await T('W6：四個新產業各有六個正確營運模組',()=>{
+    const labels={electronics:['供應商','零件','BOM','採購單','試產批次','驗證項目'],events:['供應商','場地','預算','採購','場次','交付物'],software:['需求','版本','缺陷','環境','部署','事件'],construction:['承包商','材料','合約','工單','查驗','變更單']};
+    Object.entries(labels).forEach(([id,names])=>{switchCompany(id);eq(OPS_CONFIG.modules.map(m=>m.label),names);ok(OPS_CONFIG.modules.every(m=>m.columns?.every(c=>c.key&&c.label&&c.type)));});
+  });
+  await T('W6：通用營運頁跳脫文字並容忍未知資料',()=>{
+    switchCompany('software');const r=db.ops.records.requirement[0];r.title='<img src=x onerror=alert(1)>';ui.opsTab='requirement';
+    const html=pageOps();ok(html.includes('&lt;img'));ok(!html.includes('<img src=x'));eq(opsRecords('missing'),[]);eq(opsRecord('requirement','missing'),null);
+    ui.opsSel='missing';ok(pageOps().includes('找不到營運記錄'));
+    ui.opsTab='missing';ok(pageOps().includes('需求'));
+    const u=ui.me;ui.me='sw-an';ok(!pageOps().includes('120,000'));ui.me=u;
+    OPS_CONFIG.modules.push(null,{id:'bad',label:'損壞'});ui.opsTab='bad';ok(pageOps().includes('目前沒有營運資料'));
+    ok(linkCard({t:'missing',id:'<壞連結>'},projects()[0]).includes('&lt;壞連結&gt;'));
+  });
+  await T('W6：通用營運條件由狀態推進解除',()=>{
+    switchCompany('software');const cond={kind:'ops',module:'deployment',id:'SW-DEP-PROD',field:'status',need:'已完成',label:'正式環境部署'};
+    ok(!condMet(cond));const snapshot=JSON.stringify(db);ui.me='sw-an';ok(!advanceOpsRecord('deployment','SW-DEP-PROD').ok);eq(JSON.stringify(db),snapshot);ui.me='sw-yi';
+    let steps=0;while(!condMet(cond)&&steps<6){advanceOpsRecord('deployment','SW-DEP-PROD');steps++;}ok(steps<6);ok(condMet(cond));ok(audit.acts.some(x=>x.text.includes('SW-DEP-PROD')));
+    const saved=JSON.parse(localStorage.getItem(KEY));ok(saved.companies.software.audit.acts.some(x=>x.text.includes('SW-DEP-PROD')));eq(opsRecord('deployment','SW-DEP-PROD').status,'已完成');
+    const before=JSON.stringify(db);poNext('PO-2604');woNext('WO-T2603');erpSync();eq(JSON.stringify(db),before);
+  });
+  await T('W6：毛研食品仍使用完整配方採購工單追溯頁',()=>{
+    switchCompany('petfood');const html=pageOps();['配方','採購','工單','追溯'].forEach(text=>ok(html.includes(text)));
+    ['suppliers','materials','formulas','pos','wos','trace','erp'].forEach(tab=>{ui.opsTab=tab;const h=pageOps();ok(h.length>100);ok(!/undefined|NaN/.test(h));});
+  });
   // ── 新測試加在這一行上面 ──
   return results;
 })()

@@ -998,7 +998,11 @@ function seedIndustryCompany(id) {
   d.notes.push({id:`${id}-nt1`,node_id:target.id,body:'等待'+def.modules.find(x=>x[0]===module)[2]+'，完成後接續執行。',author:owner,created_at:'2026/09/29 10:00',edited_at:null});
   d.docs.push({id:`${id}-doc1`,node:first.parent,title:'專案範圍與交付',level:'internal',versions:[{v:1,by:owner,at:'2026/09/01',body:'# '+def.titles[0]+'\n\n'+def.phases.map(p=>'- '+p[0]).join('\n')}]});
   const access=Object.keys(users).filter(uid=>['owner','admin'].includes(users[uid].role));
-  return {...meta,me:owner,users,fieldAccess:{cost:[...access],price:[...access],ratio:[...access]},tags:[...def.departments],tagDept:Object.fromEntries(departments.map(d=>[d.name,d.id])),opsConfig:{mode:'generic',title:meta.name+'營運資料',modules:def.modules.map(([id,label])=>({id,label}))},db:d,audit:{acts:[{at:'2026/09/29 10:00',actor:owner,node:first.id,action:'階段確認',text:first.title+'已完成確認'}],ai:[],sync:[],notes:[]}};
+  const modules=def.modules.map(([mid,label])=>({id:mid,label,description:meta.industry+'／'+label+'紀錄',
+    columns:[{key:'id',label:'編號',type:'text'},{key:'title',label:label+'項目',type:'text'},{key:'owner',label:'負責人',type:'member'},{key:'date',label:'預定日期',type:'date'},{key:'amount',label:'預算／費用',type:'money',access:'cost'},{key:'status',label:'狀態',type:'status'},{key:'progress',label:'進度',type:'progress'}],
+    flow:mid===module?[initial,'處理中',need]:['待辦','進行中','已完成'],syncLabel:'推進狀態',
+    events:mid===module?[{recordId,atStatus:need,targetNodeId:target.id,text:def.modules.find(x=>x[0]===module)[2]+'已完成，可接續專案任務'}]:[]}));
+  return {...meta,me:owner,users,fieldAccess:{cost:[...access],price:[...access],ratio:[...access]},tags:[...def.departments],tagDept:Object.fromEntries(departments.map(d=>[d.name,d.id])),opsConfig:{mode:'generic',title:meta.name+'營運資料',modules},db:d,audit:{acts:[{at:'2026/09/29 10:00',actor:owner,node:first.id,action:'階段確認',text:first.title+'已完成確認'}],ai:[],sync:[],notes:[]}};
 }
 function seedPortfolio() { return {v:6,activeCompanyId:'petfood',companies:Object.fromEntries(COMPANY_ORDER.map(id=>[id,seedCompany(id)]))}; }
 function validCompanyState(x, id) {
@@ -1197,6 +1201,7 @@ function approversFor(n) { return Object.keys(USERS).filter((id) => { const prev
 /* ================= 前置條件（F4） ================= */
 const DONE = (s) => s === 'done' || s === 'skipped';
 function condMet(c) {
+  if(c.kind==='ops') { const record=opsRecord(c.module,c.id); return !!record && record[c.field||'status']===c.need; }
   if (c.kind === 'po') { const po = db.ops.pos.find((p) => p.id === c.id); return !!po && po.status === c.need; }
   return false;
 }
@@ -1429,7 +1434,7 @@ const fileStore = (() => {
 })();
 function resetAll() {
   try { localStorage.removeItem(KEY); } catch (err) { /* 忽略 */ }
-  portfolio = seedPortfolio(); activateCompany('petfood', {resetIdentity:true}); undoStack.length = 0;
+  portfolio = seedPortfolio(); activateCompany('petfood', {resetIdentity:true}); resetTransientCompanyUI();
   Object.assign(ui, { page: 'node', node: 'p1', tab: 'board', chat: [], expanded: {}, redteam: '', tlDept: 'all' });
   render();
   return fileStore.clear();
@@ -1741,7 +1746,7 @@ function renderNav() {
     ['overview', '所有專案總覽', '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
     ['mytasks', '我的任務', '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>'],
     ['review', '審核中心', '<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/>'],
-    ['ops', '研發營運資料', '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>'],
+    ['ops', '營運資料', '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>'],
     ['templates', '模板庫', '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'],
     ['aigov', 'AI 政策與稽核', '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>'],
     ['audit', '活動與稽核紀錄', '<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/>'],
@@ -2275,6 +2280,11 @@ function viewDocs(n) {
 
 /* ---------- 資料（F10 任務關聯） ---------- */
 function linkCard(l, n) {
+  if(OPS_CONFIG.mode!=='petfood') {
+    const module=opsModule(l.t), record=opsRecord(l.t,l.id);
+    if(!record) return `<div class="empty">找不到營運記錄：${esc(l.t)}／${esc(l.id)}</div>`;
+    return `<div class="panel"><span class="tag gray">${esc(module.label)}</span><h3>${esc(record.title||record.id)}</h3><p>${esc(record.status||'—')}</p><button class="btn sm" type="button" data-ops="${esc(l.t)}:${esc(l.id)}">查看</button></div>`;
+  }
   const O = db.ops;
   if (l.t === 'supplier') {
     const s = O.suppliers.find((x) => x.id === l.id); if (!s) return '';
@@ -2558,8 +2568,52 @@ function pageAudit() {
 }
 
 /* ================= 研發營運資料（F10） ================= */
-function pageOps() {
+function opsModules() { return Array.isArray(OPS_CONFIG?.modules) ? OPS_CONFIG.modules.filter(m=>m && typeof m.id==='string' && Array.isArray(m.columns)) : []; }
+function opsModule(id) { return opsModules().find(m=>m.id===id)||null; }
+function opsRecords(id) { const records=opsModule(id) && db.ops?.records?.[id]; return Array.isArray(records)?records.filter(r=>r && typeof r.id==='string'):[]; }
+function opsRecord(moduleId, recordId) { return opsRecords(moduleId).find(r=>r.id===recordId)||null; }
+function renderOpsValue(record, column) {
+  if(column.access && !seeField(column.access)) return lockCell();
+  const value=record[column.key]; if(value===null || value===undefined) return '—';
+  switch(column.type) {
+    case 'member': return esc(uname(value));
+    case 'date': return esc(/^\d{4}-\d{2}-\d{2}$/.test(String(value))?ymd(value):'—');
+    case 'number': return Number.isFinite(+value)?esc((+value).toLocaleString()):'—';
+    case 'money': return Number.isFinite(+value)?money(+value):'—';
+    case 'progress': return Number.isFinite(+value)?esc(Math.max(0,Math.min(100,+value)))+'%':'—';
+    default: return esc(value);
+  }
+}
+function canAdvanceOps(record) { const target=record?.node && node(record.node); return !!target && can('edit',target); }
+function advanceOpsRecord(moduleId, recordId) {
+  const module=opsModule(moduleId), record=opsRecord(moduleId,recordId), flow=module?.flow;
+  if(!record || !Array.isArray(flow)) return {ok:false,error:'找不到營運記錄'};
+  if(!canAdvanceOps(record)) return {ok:false,error:'你的角色無權推進此營運狀態'};
+  const i=flow.indexOf(record.status); if(i<0 || i>=flow.length-1) return {ok:false,error:'已是最終狀態'};
+  commit('推進營運狀態',()=>{
+    record.status=flow[i+1];record.progress=Math.round((i+1)/(flow.length-1)*100);
+    log(record.id,'營運更新',`${module.label} ${record.id}：${record.status}`);
+    (module.events||[]).filter(e=>e && e.recordId===record.id && e.atStatus===record.status && node(e.targetNodeId)).forEach(e=>{log(e.targetNodeId,'營運連動',e.text);toast(e.text);});
+  });
+  toast(`已更新${module.label}：${record.status}`);return {ok:true};
+}
+function pageOps() { return OPS_CONFIG.mode==='petfood'?pagePetfoodOps():pageGenericOps(); }
+function pageGenericOps() {
+  const modules=opsModules();
+  if(!modules.length) return '<div class="empty">目前沒有營運資料</div>';
+  // 已知但損壞的模組保留空狀態；未知的選取回到第一個模組。
+  if(!opsModule(ui.opsTab) && OPS_CONFIG.modules.some(m=>m?.id===ui.opsTab)) return '<div class="empty">目前沒有營運資料</div>';
+  const module=opsModule(ui.opsTab)||modules[0];ui.opsTab=module.id;
+  const records=opsRecords(module.id), columns=module.columns.filter(c=>c && c.key && c.label && c.type), selected=ui.opsSel?opsRecord(module.id,ui.opsSel):records[0];
+  const link=(r)=>r.node && node(r.node) && can('view',node(r.node))?`<button class="iconbtn" type="button" data-enter="${esc(r.node)}">↗ ${esc(node(r.node).title)}</button>`:'—';
+  return `<div class="pagehead"><h1 class="serif">${esc(OPS_CONFIG.title||'營運資料')}</h1></div>
+    <div class="tabs" role="tablist">${modules.map(m=>`<button class="tab" type="button" role="tab" data-opstab="${esc(m.id)}" aria-selected="${m.id===module.id}">${esc(m.label)}</button>`).join('')}</div>
+    ${records.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr>${columns.map(c=>`<th>${esc(c.label)}</th>`).join('')}<th>專案任務</th><th></th></tr></thead><tbody>${records.map(r=>`<tr>${columns.map(c=>`<td>${renderOpsValue(r,c)}</td>`).join('')}<td>${link(r)}</td><td><button class="btn sm" type="button" data-opsel="${esc(r.id)}">詳情</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">目前沒有營運資料</div>'}
+    ${selected?`<section><h2>${esc(selected.title||selected.id)}</h2><p>${esc(selected.description||module.description||'')}</p><dl class="kv">${columns.map(c=>`<dt>${esc(c.label)}</dt><dd>${renderOpsValue(selected,c)}</dd>`).join('')}<dt>專案任務</dt><dd>${link(selected)}</dd></dl>${canAdvanceOps(selected)&&Array.isArray(module.flow)&&module.flow.indexOf(selected.status)>=0&&module.flow.indexOf(selected.status)<module.flow.length-1?`<button class="btn sm" type="button" data-ops-advance="${esc(selected.id)}" data-ops-module="${esc(module.id)}">${esc(module.syncLabel||'推進狀態')}</button>`:''}</section>`:ui.opsSel?'<div class="empty">找不到營運記錄</div>':''}`;
+}
+function pagePetfoodOps() {
   const tabs = [['suppliers', '供應商'], ['materials', '原料 / 物料'], ['formulas', '配方'], ['pos', '採購'], ['wos', '工單'], ['trace', '批號追溯'], ['erp', 'ERP 同步']];
+  if(!tabs.some(([id])=>id===ui.opsTab)) ui.opsTab='suppliers';
   const body = { suppliers: opsSuppliers, materials: opsMaterials, formulas: opsFormulas, pos: opsPOs, wos: opsWOs, trace: opsTrace, erp: opsERP }[ui.opsTab]();
   return `<div class="pagehead"><div><h1 class="serif">研發營運資料</h1><p>現階段以 ERP 為主：標示「來自 ERP」的欄位在本系統唯讀；配方研發版本、供應商評估、試驗紀錄由本系統管理。（Demo 使用模擬 ERP 資料）</p></div>
     <div class="row"><span class="small muted">欄位權限：比例 ${seeField('ratio') ? '✓' : '🔒'}　價格 ${seeField('price') ? '✓' : '🔒'}　成本 ${seeField('cost') ? '✓' : '🔒'}</span></div></div>
@@ -3414,6 +3468,7 @@ function openAddLink(nodeId) {
 
 /* ================= 營運資料事件（F10） ================= */
 function poNext(id) {
+  if(OPS_CONFIG.mode!=='petfood') return toast('此公司不使用這項營運功能','warn');
   const po = db.ops.pos.find((p) => p.id === id);
   const nx = PO_FLOW[PO_FLOW.indexOf(po.status) + 1]; if (!nx) return;
   const before = db.deps.filter((d) => d.cond && d.cond.id === id);
@@ -3433,6 +3488,7 @@ function poNext(id) {
   }
 }
 function woNext(id) {
+  if(OPS_CONFIG.mode!=='petfood') return toast('此公司不使用這項營運功能','warn');
   const w = db.ops.wos.find((x) => x.id === id);
   const nx = WO_FLOW[WO_FLOW.indexOf(w.status) + 1]; if (!nx) return;
   commit(`${id} → ${nx}`, () => {
@@ -3447,6 +3503,7 @@ function woNext(id) {
   }
 }
 function erpSync() {
+  if(OPS_CONFIG.mode!=='petfood') return toast('此公司不使用這項營運功能','warn');
   const before = slipOf('p1').days;
   const changes = [];
   commit('ERP 同步', () => {
@@ -3712,12 +3769,13 @@ document.addEventListener('click', (e) => {
   if (ds.ovApprove) return decideOverride(ds.ovApprove, true);
   if (ds.ovReject) return decideOverride(ds.ovReject, false);
   // 營運資料
+  if (ds.opsAdvance) { const r=advanceOpsRecord(ds.opsModule,ds.opsAdvance); if(!r.ok) toast(r.error,'warn'); return; }
   if (ds.opstab) { ui.opsTab = ds.opstab; ui.opsSel = null; return render(); }
   if (ds.opsel) { ui.opsSel = ds.opsel; return render(); }
   if (ds.ops) { const [tab, id] = ds.ops.split(':'); return go('ops', { opsTab: tab, opsSel: id }); }
   if (ds.poNext) return poNext(ds.poNext);
   if (ds.woNext) return woNext(ds.woNext);
-  if (ds.poTask) {
+  if (ds.poTask && OPS_CONFIG.mode==='petfood') {
     const po = db.ops.pos.find((p) => p.id === ds.poTask);
     const host = linkedNodes('po', po.id)[0]; const parent = host ? host.parent : 'p1';
     const t = { name: '到貨驗收', nodes: [{ k: 'r', p: null, title: `到貨驗收：${po.id}`, tag: '品保', off: 0, dur: 0, dp: [], dept: 'd-qa' }, ...['核對數量與外觀', '抽樣檢驗', 'COA / 規格書核對', '入庫與批號登錄'].map((x, i) => ({ k: 'k' + i, p: 'r', title: x, tag: '品保', off: i, dur: 0, dp: ['d-qa'], dept: 'd-qa' }))], deps: [0, 1, 2].map((i) => ({ f: 'k' + i, t: 'k' + (i + 1), type: 'FS', lag: 0 })), docs: [] };
@@ -3766,6 +3824,7 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('change', (e) => {
   const t = e.target;
+  if(OPS_CONFIG.mode!=='petfood' && (t.dataset.fitem || t.dataset.module || t.id==='fvA' || t.id==='fvB')) return;
   if(t.id==='companySel') { const r=switchCompany(t.value); if(!r.ok) { t.value=company.id; return toast(r.error,'warn'); } return toast(`已切換至${company.name}`); }
   if (t.id === 'meSel') { ui.me = t.value; save(); if (ui.page === 'node' && node(ui.node) && !visible(node(ui.node))) { const p = projects().find(visible); if (p) ui.node = p.id; } ui.chat.push({ title: '切換身分', text: `目前身分：${me().name}（${ROLES[me().role]}・${deptName(me().dept)}）。畫面、可操作的按鈕與可見的機密欄位都會跟著改變。` }); return render(); }
   if (t.id === 'eDept') { const cur = $('eOwner').value; $('eOwner').innerHTML = ownerOpts(t.value, deptMembers(t.value).includes(cur) ? cur : ''); return; }
