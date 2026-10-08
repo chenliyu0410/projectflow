@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **P1b React核心UI審查通過，可合併** |
+| 目前工作項目 | **P1b React核心UI已完成；下一步P1c** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 完成最終回歸，ff-only合併P1b，依D50更新交接並push origin main。 |
-| 分支 | `feature/p1b-react-core-ui`（由main開出，主checkout） |
-| 最新程式 commit | P1b Task4 `1f76fea`；Demo仍為W6 `0934e48`，未修改。 |
+| 下一個動作 | 細化P1c部署／測試／MVP內部試用验收計畫，沿用D51授權；P1b四Task與G4已完成。 |
+| 分支 | `main`；P1b已ff-only合併，feature分支於G6收尾後刪除；舊paused分支保留。 |
+| 最新程式 commit | P1b Task4 `1f76fea`、文件驗收 `113345c`，均已ff-only進main；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | P1b Task4：API `35 passed, 1 warning in 20.25s`、Vitest55、build exit0、Playwright `4 passed (3.7s)`，Compose rebuild／migration／seed exit0。1280／375 login/create/Gate409→approve→doing/readonly nooverflow、pageerror0、unexpectedHTTP/console0；各預期resource401/409兩筆。Demo仍174/174，未修改。 |
-| 資料版本 | Demo `db.v = 6`與key `projectflow-demo-v2`不變；正式PostgreSQL17使用migration `20261008_0001_p1a_core` 建立P1a核心schema。 |
-| 認領中 | Codex GPT-6，2026-10-08；人類已指示「開始實作」 |
+| 測試基準 | P1b合併後main：API `35 passed, 1 warning in 19.63s`、Vitest `55 passed (55)`、build exit0、Playwright `4 passed (3.6s)` exit0；Compose migration／seed已exit0。1280／375完整workflow/readonly nooverflow、pageerror0、unexpectedHTTP/console0；各預期resource401/409兩筆。Demo仍174/174，未修改。 |
+| 資料版本 | Demo `db.v = 6`與key不變；正式PostgreSQL17 migration `20261008_0001_p1a_core`不變，P1b只有UI與smoke測試專案。 |
+| 認領中 | — |
 | 阻塞／待人類 | 無；D50授權階段完成後push GitHub main。D51整體授權不變，D43、D10不擴大MVP。 |
-| 遠端 | 2026-10-08已成功push origin main `e163de1..290c3fe`，ls-remote確認，包含完整P1a；本筆發布紀錄隨後同步。僅main，無force／PR／其他分支。 |
+| 遠端 | 推送前已核對origin main為 `85813ef`，與本機追蹤紀錄一致。P1b依D50完成審查驗收後push origin main；確切結果以下方交接及git log為準。僅main，無force／PR。 |
 
 ---
 
@@ -77,7 +77,8 @@
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
 | — | P0 | 正式軌技術骨架與規則 | ✅ 已發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
 | — | P1a | 正式版MVP：登入、公司隔離、migration與核心後端API | ✅ 完成並發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1a計畫](superpowers/plans/2026-10-08-p1a-backend-core.md) | 正式PostgreSQL migration `20261008_0001_p1a_core` | 四Task與G4獨立審查通過；API35／Vitest6／E2E4與build通過，真PostgreSQL migration／seed smoke通過 |
-| — | P1b–P1c | 正式版MVP：React流程、部署／測試／內部試用驗收 | 🟢 P1b可合併；P1c待細化 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1b計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md)；P1c開工前另細化 | 沿P1a正式DB | P1a→P1b→P1c |
+| — | P1b | 正式版MVP：React核心UI | ✅ 已合併main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1b計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md) | 沿P1a正式DB | 四Task與G4獨立審查、合併後完整回歸通過 |
+| — | P1c | 正式版MVP：部署／測試／內部試用驗收 | ⬜ 待細化計畫；D51已授權 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | 開工前細化 | 沿P1a正式DB | P1b ✅ |
 
 **排程規則**
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -445,11 +446,13 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 2. P0 Compose刻意不暴露DB host port；seed實跑預設在API container內執行，不為seed臨時開DB對外埠。
 3. P1a測試可用SQLite暫存DB檢查路由與權限，但完成驗收必須在真PostgreSQL跑migration與seed。
 
-### P1b 正式版 React 核心 UI — 🟢 可合併
+### P1b 正式版 React 核心 UI — ✅ 完成
 
 **授權**：D51已授權做到P1c；人類2026-10-08指示「開始實作」，確認P1b計畫並進入G3。Pre-flight：API `35 passed, 1 warning in 29.36s`、Vitest `6 passed (6)`、build exit0、Playwright `4 passed (1.0s)`，各exit0；無feature分支，working tree乾淨。
 
 **計畫**：[2026-10-08-p1b-react-core-ui](superpowers/plans/2026-10-08-p1b-react-core-ui.md)。P1b只接React核心業務流程；P1c才做部署／測試／內部試用驗收。
+
+**完成摘要**：四Task與兩位獨立審查均通過，G4 Ready to merge: Yes，ff-only合併main；合併後API35／Vitest55／E2E4與build通過。登入／專案導覽／看板／Gate／工作流建立可於 http://127.0.0.1:15173 試用。Demo、後端、migration、依賴未改。三項Minor已記§5，P1c尚未完成。
 
 | Task | 交付 | 狀態 | 驗證預期 | commit主旨 |
 |---|---|---|---|---|
@@ -720,6 +723,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-08｜Codex GPT-6｜P1b React核心UI完成
+- **做了什麼**：依人類「開始實作」於主checkout完成P1b四Task，登入／session／logout、專案詳情／節點樹／路徑、四欄看板／Gate、工作流建立與真Compose smoke；Task1兩Important經TDD修正。所有Task各有獨立spec Boyle與quality Ramanujan審查，G4兩位均Ready to merge: Yes，ff-only合併main。README／正式開發指南／看板已同步。
+- **驗證**：Task1 RED10→GREEN11，修正RED5及2→GREEN18；Task2 RED9→GREEN27；Task3 RED18→GREEN45；Task4 RED9→GREEN55，E2E RED2failed2passed→GREEN4。合併後API `35 passed, 1 warning in 19.63s`、Vitest55、build0、E2E `4 passed (3.6s)`，各exit0。Compose rebuild／migration／seed0；1280／375 create／Gate409保留todo→approve→doing／readonly nooverflow，pageerror與非預期HTTP/console0，各預期401/409resource兩筆。長標題375及gate reload500retry／401login另驗pass；Demo與tests diff空。
+- **環境／清理**：Compose http://127.0.0.1:15173 保留供試用；只關本次Vite15174 PID33460，不動其他服務或volume。測試另建unique專案，seed任務狀態未改；測試專案保留（目前無刪除API）。 ignored .env／依賴／截圖不提交。依D50推送origin main，發布結果寫回看板。
+- **下一步**：P1c部署／測試／內部試用验收計畫，D51授權持續有效。本段只完成P1b；timeout、gate reload自動回歸與E2E預期HTTP次數三項Minor見§5。
+
 ### 2026-10-08｜Codex GPT-5｜P1b React核心UI計畫完成
 - **做了什麼**：依人類指示「進行P1b」與看板下一步，讀P1a後端API、正式MVP spec、P1a plan與現有React殼，新增 [P1b React核心UI可執行計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md)。計畫拆成4個Native Task：登入/session、專案樹與麵包屑、看板／Gate、工作流建立與Playwright smoke。尚未修改產品程式。
 - **驗證／審查**：本次為G2 plan文件；已自檢placeholder掃描，計畫列出Global Constraints、Review Focus、Files、Interfaces、RED/GREEN命令、commit主旨與完成驗收。未跑產品測試，沒有宣稱P1b GREEN。
@@ -744,9 +753,4 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **沒做的事**：新可執行計畫尚待人類審閱；未建立api／web／deploy、未安裝產品依賴、未改AGENTS／WORKFLOW或Demo。不能宣稱P0、P1a、P1b、P1c已實作。
 - **下一步**：請人類審閱新P0計畫，沿用Native執行並依repo逐Task獨立審查；通過後Task1先記RED。整體交付到P1c已明確授權，不要再次詢問是否啟動正式版。每階段更新README／看板並依D50推送。
 
-### 2026-10-08｜Codex GPT-5｜P0 規劃恢復與階段發布
-- **做了什麼**：先確認舊P0與main互非祖先並登記D49；人類批准後，以`39948a8`建立新的`feature/p0-formal-product-plan`為主線，保留舊paused分支於`40f8cc2`。帶回兩份規劃文件、對齊W6公司邊界，明示舊計畫仍是待細化草稿；更新README／PROGRESS。新增D50記錄每完成階段更新README並push GitHub的持續授權。
-- **驗證／審查**：文件commit `a1e84a6`；兩Demo與tests相對基準完全不變，四文件相對連結無缺失，diff check通過。獨立Planck給`Ready to merge: Yes`。沒有重跑產品測試，也沒有宣稱P0實作完成。
-- **Git／發布**：依D49已ff-only合併main，依D50成功push `e452173..5b02e47`，發布W6與本段P0規劃；本筆收尾同步推送。只push origin main，不force、不rebase、不開PR。舊paused分支不推送或改寫；合併後新feature分支依G6刪除，後續以main為準。
-- **下一步**：確認範圍並細化P0可執行計畫；正式產品實作仍須授權。每階段同步README與看板後發布。
 
