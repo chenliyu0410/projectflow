@@ -26,6 +26,26 @@ async function enter() {
 function treeButton(name: string) { return within(screen.getByLabelText('節點樹')).getByRole('button', { name }); }
 
 describe('P2a workspace navigation', () => {
+  it.each(['tree', 'project breadcrumb', 'node breadcrumb', 'board card', 'skipped card'])('preserves pending logout when clicking %s', async entry => {
+    let resolveLogout!: (value: ReturnType<typeof response>) => void;
+    const fetcher = setup().mockImplementationOnce(() => new Promise(done => { resolveLogout = done; }));
+    await enter();
+    fireEvent.click(treeButton('根')); fireEvent.click(treeButton('階段')); fireEvent.click(treeButton('父任務'));
+    const target = entry === 'tree' ? treeButton('子任務')
+      : entry === 'project breadcrumb' ? within(screen.getByLabelText('節點路徑')).getByRole('button', { name: summary.title })
+      : entry === 'node breadcrumb' ? within(screen.getByLabelText('節點路徑')).getByRole('button', { name: '階段' })
+      : within(screen.getByLabelText('看板')).getByRole('button', { name: entry === 'board card' ? '子任務' : '略過任務' });
+    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    expect(screen.getByRole('button', { name: '登出' })).toBeDisabled();
+    fireEvent.click(target);
+    const logoutRequest = fetcher.mock.calls.find(([path]) => path === '/api/auth/logout')!;
+    expect(logoutRequest[1].signal.aborted).toBe(false);
+    await act(async () => { resolveLogout(response(undefined, 204)); });
+    expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '登入' })).not.toBeDisabled();
+    expect(screen.queryByLabelText('節點樹')).not.toBeInTheDocument();
+  });
+
   it('lands on overview, keeps identity and uses collapsible navigation without loading detail', async () => {
     const fetcher = setup();
     expect(await screen.findByRole('heading', { name: '總覽' })).toBeInTheDocument();

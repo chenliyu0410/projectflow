@@ -90,6 +90,7 @@ export default function App() {
     begin(); closeCreation(); setProject(null); setMessage(''); setRoute(next); setState('ready');
   }
   function selectNode(nodeId: string | null) {
+    if (busy) return;
     begin(); closeCreation(); setMessage(''); setSelectedNodeId(nodeId);
   }
   function retry() {
