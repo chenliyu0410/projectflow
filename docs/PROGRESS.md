@@ -15,7 +15,7 @@
 |---|---|
 | 目前工作項目 | **P1b React核心UI已完成；下一步P1c** |
 | 模式 | **正式軌完整流程**：Native實作、TDD、每Task獨立審查；正式版安全／重要問題均須解決。Demo歷史展示模式不作為正式版放寬標準。 |
-| 下一個動作 | 細化P1c部署／測試／MVP內部試用验收計畫，沿用D51授權；P1b四Task與G4已完成。 |
+| 下一個動作 | 細化P1c部署／測試／MVP內部試用驗收計畫，沿用D51授權；P1b四Task與G4已完成。 |
 | 分支 | `main`；P1b已ff-only合併，feature分支於G6收尾後刪除；舊paused分支保留。 |
 | 最新程式 commit | P1b Task4 `1f76fea`、文件驗收 `113345c`，均已ff-only進main；Demo仍為W6 `0934e48`，未修改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
@@ -727,7 +727,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **做了什麼**：依人類「開始實作」於主checkout完成P1b四Task，登入／session／logout、專案詳情／節點樹／路徑、四欄看板／Gate、工作流建立與真Compose smoke；Task1兩Important經TDD修正。所有Task各有獨立spec Boyle與quality Ramanujan審查，G4兩位均Ready to merge: Yes，ff-only合併main。README／正式開發指南／看板已同步。
 - **驗證**：Task1 RED10→GREEN11，修正RED5及2→GREEN18；Task2 RED9→GREEN27；Task3 RED18→GREEN45；Task4 RED9→GREEN55，E2E RED2failed2passed→GREEN4。合併後API `35 passed, 1 warning in 19.63s`、Vitest55、build0、E2E `4 passed (3.6s)`，各exit0。Compose rebuild／migration／seed0；1280／375 create／Gate409保留todo→approve→doing／readonly nooverflow，pageerror與非預期HTTP/console0，各預期401/409resource兩筆。長標題375及gate reload500retry／401login另驗pass；Demo與tests diff空。
 - **環境／清理**：Compose http://127.0.0.1:15173 保留供試用；只關本次Vite15174 PID33460，不動其他服務或volume。測試另建unique專案，seed任務狀態未改；測試專案保留（目前無刪除API）。 ignored .env／依賴／截圖不提交。依D50推送origin main，發布結果寫回看板。
-- **下一步**：P1c部署／測試／內部試用验收計畫，D51授權持續有效。本段只完成P1b；timeout、gate reload自動回歸與E2E預期HTTP次數三項Minor見§5。
+- **下一步**：P1c部署／測試／內部試用驗收計畫，D51授權持續有效。本段只完成P1b；timeout、gate reload自動回歸與E2E預期HTTP次數三項Minor見§5。
 
 ### 2026-10-08｜Codex GPT-5｜P1b React核心UI計畫完成
 - **做了什麼**：依人類指示「進行P1b」與看板下一步，讀P1a後端API、正式MVP spec、P1a plan與現有React殼，新增 [P1b React核心UI可執行計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md)。計畫拆成4個Native Task：登入/session、專案樹與麵包屑、看板／Gate、工作流建立與Playwright smoke。尚未修改產品程式。
@@ -752,5 +752,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **驗證**：只讀環境預檢確認Node/Python/Docker daemon/Compose可用；npm／PyPI查版本。計畫中2份Python程式以AST解析、2份JSON解析、7段PowerShell語法解析均通過；這些不是產品測試GREEN。文件連結與diff check另在commit前檢查。
 - **沒做的事**：新可執行計畫尚待人類審閱；未建立api／web／deploy、未安裝產品依賴、未改AGENTS／WORKFLOW或Demo。不能宣稱P0、P1a、P1b、P1c已實作。
 - **下一步**：請人類審閱新P0計畫，沿用Native執行並依repo逐Task獨立審查；通過後Task1先記RED。整體交付到P1c已明確授權，不要再次詢問是否啟動正式版。每階段更新README／看板並依D50推送。
-
-
