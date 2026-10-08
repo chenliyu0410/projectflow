@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.audit import log_audit
 from app.auth import CurrentUser, require_session
 from app.database import get_session
-from app.models import Department, Node, Project, User
+from app.models import Department, Gate, Node, Project, User
 from app.permissions import can_view_project, can_work_node, can_work_project
 from app.schemas import NodeCreate, NodeStatusUpdate, ProjectCreate
 
@@ -28,6 +28,41 @@ def node_out(node: Node) -> dict:
         "department_id": node.department_id,
         "sort_order": node.sort_order,
     }
+
+
+def gate_out(gate: Gate) -> dict:
+    return {"id": gate.id, "project_id": gate.project_id, "node_id": gate.node_id, "status": gate.status}
+
+
+def blocked_by_pending_gate(db: Session, current: CurrentUser, node: Node) -> bool:
+    if node.status != "todo":
+        return False
+    if node.parent_id is None:
+        return False
+    phase = db.execute(
+        select(Node).where(Node.organization_id == current.organization.id, Node.id == node.parent_id)
+    ).scalar_one_or_none()
+    if phase is None or phase.kind != "phase":
+        return False
+    lower_phase_ids = db.execute(
+        select(Node.id).where(
+            Node.organization_id == current.organization.id,
+            Node.project_id == node.project_id,
+            Node.kind == "phase",
+            Node.sort_order < phase.sort_order,
+        )
+    ).scalars().all()
+    if not lower_phase_ids:
+        return False
+    pending = db.execute(
+        select(Gate.id).where(
+            Gate.organization_id == current.organization.id,
+            Gate.project_id == node.project_id,
+            Gate.node_id.in_(lower_phase_ids),
+            Gate.status == "pending",
+        )
+    ).first()
+    return pending is not None
 
 
 def get_project_or_404(db: Session, current: CurrentUser, project_id: str) -> Project:
@@ -75,7 +110,10 @@ def get_project(project_id: str, current: CurrentUser = Depends(require_session)
     nodes = db.execute(
         select(Node).where(Node.organization_id == current.organization.id, Node.project_id == project.id).order_by(Node.sort_order, Node.created_at)
     ).scalars()
-    return {**project_out(current, project), "nodes": [node_out(node) for node in nodes]}
+    gates = db.execute(
+        select(Gate).where(Gate.organization_id == current.organization.id, Gate.project_id == project.id).order_by(Gate.created_at)
+    ).scalars()
+    return {**project_out(current, project), "nodes": [node_out(node) for node in nodes], "gates": [gate_out(gate) for gate in gates]}
 
 
 @router.post("/projects/{project_id}/nodes", status_code=status.HTTP_201_CREATED)
@@ -126,6 +164,8 @@ def update_node_status(node_id: str, payload: NodeStatusUpdate, current: Current
         raise HTTPException(status_code=404, detail="找不到節點")
     if not can_work_node(db, current, node):
         raise HTTPException(status_code=403, detail="沒有操作此節點的權限")
+    if payload.status in {"doing", "review", "done", "skipped"} and blocked_by_pending_gate(db, current, node):
+        raise HTTPException(status_code=409, detail="前一階段閘門尚未通過")
     node.status = payload.status
     log_audit(db, current, "node.status", node_id=node.id, payload={"status": payload.status})
     db.commit()

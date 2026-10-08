@@ -32,7 +32,7 @@
 | W5 README 對齊現況 | ✅ 完成 | §1 快速開始和 §2 功能總覽已對齊 full demo 現況（D30） |
 | W6 多公司產業範例 | ✅ 完成並發布 | 已合併並推送 GitHub `main`：五個公司空間、產業工作流與營運模組、v6 遷移、獨立附件與單公司重設 |
 | P0 正式版骨架 | ✅ 完成並發布GitHub main | API 8項、React 6項、Playwright 4項及build通過；Docker／PostgreSQL中斷恢復、桌面／手機驗收通過。[正式版開發](docs/formal-development.md)、[P0計畫](docs/superpowers/plans/2026-10-08-p0-formal-foundation.md) |
-| P1a 正式版後端核心 | 🔨 執行中（Task 2） | 已完成登入/session與migration骨架；正在加入Project／Node／Department API、公司隔離、`can_work`與稽核。Workflow／Gate／Report／AuditLog完整驗收仍在後續Task；[P1a計畫](docs/superpowers/plans/2026-10-08-p1a-backend-core.md) |
+| P1a 正式版後端核心 | 🔨 執行中（Task 3） | 已完成登入/session、migration骨架、Project／Node／Department API、公司隔離、`can_work`與稽核；正在加入Workflow建立專案與Gate阻擋。Report與最終PostgreSQL驗收仍在後續Task；[P1a計畫](docs/superpowers/plans/2026-10-08-p1a-backend-core.md) |
 | P1b → P1c 正式版MVP | 已授權；待P1a完成後細化 | React工作流程 → 部署／測試／內部試用驗收；P2以後非目標未納入 |
 
 **目前做到哪裡**

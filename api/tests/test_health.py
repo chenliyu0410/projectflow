@@ -67,10 +67,13 @@ def test_only_health_routes_exist():
         "/auth/logout",
         "/auth/me",
         "/departments",
+        "/gates/{gate_id}",
         "/health",
         "/health/ready",
         "/nodes/{node_id}/status",
         "/projects",
+        "/projects/from-workflow",
         "/projects/{project_id}",
         "/projects/{project_id}/nodes",
+        "/workflows",
     }

@@ -5,7 +5,7 @@ import psycopg
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from app.routes import audit_logs, auth, departments, projects
+from app.routes import audit_logs, auth, departments, projects, workflows
 
 
 def database_ready() -> bool:
@@ -26,6 +26,7 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     application.include_router(departments.router)
     application.include_router(projects.router)
     application.include_router(audit_logs.router)
+    application.include_router(workflows.router)
 
     @application.get("/health")
     def health():

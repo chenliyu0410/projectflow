@@ -143,6 +143,16 @@ Invoke-WebRequest -Uri "$base/audit-logs" -WebSession $pf
 
 目前後端已提供 `/departments`、`/projects`、`/projects/{project_id}`、`/projects/{project_id}/nodes`、`/nodes/{node_id}/status` 與 `/audit-logs`。所有業務查詢都以 session 內的公司為準；query string 或 JSON payload 的公司欄位不能切換公司。
 
+工作流與閘門 API：
+
+```powershell
+Invoke-WebRequest -Uri "$base/workflows" -WebSession $pf
+Invoke-WebRequest -Uri "$base/projects/from-workflow" -Method Post -ContentType 'application/json' -Body '{"workflow_id":"<workflow id>","title":"測試專案"}' -WebSession $pf
+Invoke-WebRequest -Uri "$base/gates/<gate id>" -Method Patch -ContentType 'application/json' -Body '{"status":"approved"}' -WebSession $pf
+```
+
+`/projects/from-workflow` 會依目前 session 公司建立專案、節點與 pending gate；猜測其他公司的 workflow id 會回 404。後續階段任務在前一階段 gate pending 時，直接打 `/nodes/{node_id}/status` 也會回 409，不能用 `override` payload 繞過。
+
 ## 工作流程
 
 主checkout一次一個feature分支，TDD、每Task獨立審查、PROGRESS唯一進度來源。每階段完成更新README、驗收後ff-only到main並依D50推送，不force。正式資料庫未導入migration前，不可建立業務表或宣稱P1a完成。

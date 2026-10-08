@@ -48,6 +48,19 @@ class NodeCreate(BaseModel):
     department_id: str | None = None
 
 
+class ProjectFromWorkflowCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    workflow_id: str
+    title: str
+
+
+class GateStatusUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["approved"]
+
+
 class NodeStatusUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
