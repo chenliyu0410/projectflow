@@ -141,7 +141,7 @@ Invoke-WebRequest -Uri "$base/departments" -WebSession $pf
 Invoke-WebRequest -Uri "$base/audit-logs" -WebSession $pf
 ```
 
-目前後端已提供 `/departments`、`/projects`、`/projects/{project_id}`、`/projects/{project_id}/nodes`、`/nodes/{node_id}/status` 與 `/audit-logs`。所有業務查詢都以 session 內的公司為準；query string 或 JSON payload 的公司欄位不能切換公司。
+目前後端已提供 `/departments`、`/projects`、`/projects/{project_id}`、`/projects/{project_id}/nodes`、`/nodes/{node_id}/status`、`/nodes/{node_id}/reports` 與 `/audit-logs`。所有業務查詢都以 session 內的公司為準；query string 或 JSON payload 的公司欄位不能切換公司。
 
 工作流與閘門 API：
 
@@ -152,6 +152,15 @@ Invoke-WebRequest -Uri "$base/gates/<gate id>" -Method Patch -ContentType 'appli
 ```
 
 `/projects/from-workflow` 會依目前 session 公司建立專案、節點與 pending gate；猜測其他公司的 workflow id 會回 404。後續階段任務在前一階段 gate pending 時，直接打 `/nodes/{node_id}/status` 也會回 409，不能用 `override` payload 繞過。
+
+完成回報 API：
+
+```powershell
+Invoke-WebRequest -Uri "$base/nodes/<node id>/reports" -Method Post -ContentType 'application/json' -Body '{"result":"達成","summary":"已完成測試"}' -WebSession $pf
+Invoke-WebRequest -Uri "$base/audit-logs" -WebSession $pf
+```
+
+回報會建立 `submitted` 狀態的 task report，並在同一家公司寫入 `report.submit` 稽核紀錄。唯讀角色與跨公司 node id 不能送出回報。
 
 ## 工作流程
 

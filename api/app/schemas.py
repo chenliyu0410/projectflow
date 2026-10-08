@@ -61,6 +61,13 @@ class GateStatusUpdate(BaseModel):
     status: Literal["approved"]
 
 
+class ReportCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    result: str
+    summary: str
+
+
 class NodeStatusUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

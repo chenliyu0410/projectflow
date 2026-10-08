@@ -1,5 +1,12 @@
 from pathlib import Path
 
+from app.database import sqlalchemy_url
+
+
+def test_sqlalchemy_uses_psycopg_driver_for_postgresql():
+    assert sqlalchemy_url("postgresql://user:pass@db:5432/projectflow") == "postgresql+psycopg://user:pass@db:5432/projectflow"
+    assert sqlalchemy_url("sqlite:///tmp.db") == "sqlite:///tmp.db"
+
 
 def test_alembic_config_uses_api_root_and_no_logging_sections_required():
     ini = Path("api/alembic.ini").read_text(encoding="utf-8")

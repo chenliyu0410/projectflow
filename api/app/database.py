@@ -16,8 +16,14 @@ def database_url() -> str:
     return value
 
 
+def sqlalchemy_url(value: str) -> str:
+    if value.startswith("postgresql://"):
+        return "postgresql+psycopg://" + value.removeprefix("postgresql://")
+    return value
+
+
 def get_engine():
-    return create_engine(database_url(), pool_pre_ping=True, future=True)
+    return create_engine(sqlalchemy_url(database_url()), pool_pre_ping=True, future=True)
 
 
 def get_session() -> Iterator[Session]:

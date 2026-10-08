@@ -70,6 +70,7 @@ def test_only_health_routes_exist():
         "/gates/{gate_id}",
         "/health",
         "/health/ready",
+        "/nodes/{node_id}/reports",
         "/nodes/{node_id}/status",
         "/projects",
         "/projects/from-workflow",

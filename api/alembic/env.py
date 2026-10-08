@@ -5,6 +5,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.database import Base
+from app.database import sqlalchemy_url
 import app.models  # noqa: F401
 
 config = context.config
@@ -18,7 +19,7 @@ def database_url() -> str:
     value = os.environ.get("DATABASE_URL")
     if not value:
         raise RuntimeError("DATABASE_URL is required")
-    return value
+    return sqlalchemy_url(value)
 
 
 def run_migrations_offline() -> None:
