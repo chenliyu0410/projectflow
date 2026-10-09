@@ -13,10 +13,10 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI2 ✅ 產業模板與本機展示公司切換已交付；P2d後移** |
+| 目前工作項目 | **UI2追加 ✅ 既有專案已套用模板，waa已移除** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | 人類試用15173的12套模板與左下五公司切換；P2d先定範圍，不自動啟動。 |
-| 分支 | `main`（UI2從BASE `467de27` ff-only交付；主checkout）。 |
+| 下一個動作 | 人類重新整理15173，試用已補齊的主食罐／連接器專案；P2d先定範圍，不自動啟動。 |
+| 分支 | `main`；UI2資料補齊從BASE `7a2e2d5` ff-only交付。 |
 | 最新程式 commit | UI2 `3441289`；UI1 `b8110d7`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | UI2：API完整351pass/1舊route清單fail/7skip→相關22pass；Vitest170pass→相關9pass；build0；E2E18pass/2舊模板排序fail→相關4pass。詳§3，不假稱首次全綠。 |
@@ -91,6 +91,7 @@
 | 已完成 | P2b | 回報／審核、筆記、附件與稽核介面 | ✅ 工程交付 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；八Task／G4雙審、G6隔離回歸及保留資料部署通過 | P2a |
 | 已完成 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
 | 已完成 | UI1 | 前端介面對齊：Demo框架／配色／卡片／工作區／時程 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)，D67人類指定，既有真實功能不變 | P2a/P2b/P2c |
+| 已完成 | UI2追加 | 既有專案套用模板，移除waa | ✅ | 人類直接要求；[資料操作計畫](superpowers/plans/2026-10-09-ui2-project-fill.md) | UI2 |
 | 已完成 | UI2 | 產業模板與左下展示公司切換 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-09-ui2-showcase-library.md)，D68人類指定本機一鍵切換 | UI1 |
 | 後續 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
@@ -106,6 +107,16 @@
 ---
 
 ## 3. 工作項目明細
+
+### UI2追加 既有專案補齊 — ✅ 資料交付
+
+2026-10-09人類直接要求將模板套用現有專案，並明確回答「移除waa」。[短計畫](superpowers/plans/2026-10-09-ui2-project-fill.md)；僅維護脚本，沒有新增套用UI或改API／schema。
+
+- 主食罐新增20節點、沿用市場與配方：現在5階段／17任務。連接器新增18節點：現在5階段／14任務，電子NPI中筆電專屬任務改為連接器結構／模具／端子與接觸電阻。新日期2026-10-09起算、todo／pending，不假造完成。
+- waa確認僅1個project root，依授權備份後移除專案及root；未刪其他內容。新增38nodes／10gates／19dependencies／3audits。除明列waa兩row，其他舊row欄位逐值保留，files SHA及原env相同、DB容器不變。
+- 隔離測試4/4 exit0：保留原值與冪等、預覽回滾、waa變更拒絕並整筆回滾、mode off拒絕。一位唯讀獨立審查Ready to apply；關聯筆記/附件拒刪分支由程式保護，未另做直接測試。不重跑未改動UI/API全量。
+- primary預覽、停止API一致DB/files備份、apply一次成功，再預覽already_applied無新增；ready200。證據與私密備份ignored `.superpowers/ui2-fill/`。維護脚本預設回滾，需顯式--apply，stable audit marker防重複。
+- 人類試用未代勾，P2d仍後移。D50本輪維護脚本與交付紀錄隨main推送。
 
 ### UI2 產業模板與本機展示公司切換 — ✅ 工程交付
 
