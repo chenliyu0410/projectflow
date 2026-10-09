@@ -3,6 +3,8 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import { api, useRecordMutation } from '../api';
 import type { RecordReload } from '../api';
 import type { NodeItem, ProjectDetail } from '../types';
+import { subtree } from './NodeWorkspace';
+import { percent, progressMap } from '../progress';
 const dayMs = 86400000;
 export function calendarDay(value: string) {
   return Date.parse(`${value}T00:00:00Z`) / dayMs;
@@ -48,17 +50,26 @@ export function timelineRows(nodes: NodeItem[], collapsed: Set<string>) {
 }
 export default function TimelineView({
   project,
+  scopeId = null,
   select,
+  up,
   reload,
   expired,
   color = 'var(--teal)',
 }: {
   project: ProjectDetail;
+  /** Like the Demo, a node's timeline shows only that node and its descendants. */
+  scopeId?: string | null;
   select: (id: string) => void;
+  up?: (id: string | null) => void;
   reload: RecordReload;
   expired: () => void;
   color?: string;
 }) {
+  const root = scopeId ? project.nodes.find((n) => n.id === scopeId) : undefined;
+  const nodes = root ? subtree(project.nodes, root.id) : project.nodes;
+  const parent = root?.parent_id ? project.nodes.find((n) => n.id === root.parent_id) : undefined;
+  const values = progressMap(project.nodes);
   const [zoom, setZoom] = useState('week');
   const [collapsed, setCollapsed] = useState(new Set<string>());
   const [draft, setDraft] = useState<{
@@ -83,7 +94,7 @@ export default function TimelineView({
   const today = calendarDay(
     `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
   );
-  const dates = project.nodes.flatMap((n) =>
+  const dates = nodes.flatMap((n) =>
     [n.start_date, n.due_date].filter((d): d is string => !!d).map(calendarDay),
   );
   const left = Math.min(today, ...dates) - 2,
@@ -117,7 +128,7 @@ export default function TimelineView({
     backgroundPosition: `${(firstMonday - left) * actualScale}px 0`,
   };
   const short = (day: number) => { const d = new Date(day * dayMs); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`; };
-  const rows = timelineRows(project.nodes, collapsed);
+  const rows = timelineRows(nodes, collapsed);
   const taskCount = (id: string) => {
     const seen = new Set<string>([id]); const pending = [id]; let total = 0;
     while (pending.length) { const current = pending.pop()!; for (const c of project.nodes) if (c.parent_id === current && !seen.has(c.id)) { seen.add(c.id); pending.push(c.id); if (c.kind === 'task') total += 1; } }
@@ -189,7 +200,13 @@ export default function TimelineView({
   return (
     <section className="timeline-view" aria-label="專案時程">
       <div className="tl-tools">
-        <span className="tag">總覽圖</span>
+        {root ? (
+          <button type="button" className="tl-up" onClick={() => up?.(parent?.id ?? null)}>
+            ↑ 上一層：{parent?.title ?? project.title}
+          </button>
+        ) : (
+          <span className="tag">總覽圖</span>
+        )}
         <span>點名稱進入節點；拖移任務條改期、拖右端改截止日，或按 ✎ 輸入日期，確認後才儲存。只變更選定節點的日期，不自動順延其他任務。</span>
         <span className="seg" role="group" aria-label="時程刻度">
           {([['day', '日'], ['week', '週'], ['month', '月']] as const).map(([value, text]) => (
@@ -278,7 +295,7 @@ export default function TimelineView({
       <div className="timeline-scroll">
         <div className="timeline-grid" style={{ width: `calc(${width}px + var(--tl-label))`, ['--c' as string]: color }}>
           <div className="timeline-axis">
-            <span>{`總覽圖・節點（${rows.length}）`}</span>
+            <span>{root ? `展開圖・子任務（${Math.max(0, rows.length - 1)}）` : `總覽圖・任務（${nodes.filter((n) => n.kind === 'task').length}）`}</span>
             <div style={{ width }}>
               {months.map((t) => (
                 <span key={`m${t}`} className="tick-month" style={{ left: (t - left) * actualScale }}>
@@ -359,12 +376,14 @@ export default function TimelineView({
                         calendarDay(d.start_date) +
                         1) *
                       actualScale;
+                    const progress = percent(values.get(n.id) ?? 0);
                     return (
                       <div
                         className={`timeline-bar status-${n.status} ${children ? 'parent' : ''}`}
                         style={{ left: position, width: Math.max(length, 8) }}
-                        title={`${n.title} ${d.start_date} – ${d.due_date}・${statusText[n.status]}・負責人 ${n.owner_display_name ?? '未指派'}`}
+                        title={`${n.title} ${d.start_date} – ${d.due_date}・${statusText[n.status]}・負責人 ${n.owner_display_name ?? '未指派'}${children ? `・進度 ${progress}%（涵蓋所有子任務）` : ''}`}
                       >
+                        {children && <span className="pf" aria-hidden="true" style={{ width: `${progress}%` }} />}
                         <button
                           aria-label={`時程任務：${n.title}`}
                           onPointerDown={(e) => begin(e, n)}
@@ -383,7 +402,7 @@ export default function TimelineView({
                               select(n.id);
                           }}
                         >
-                          {length > 50 ? (n.owner_display_name ?? '') : ''}
+                          {length > 50 ? (children ? `${n.owner_display_name ?? '未指派'}・${progress}%` : (n.owner_display_name ?? '')) : ''}
                         </button>
                         {n.kind === 'task' && n.capabilities.edit_metadata && (
                           <button
@@ -412,17 +431,17 @@ export default function TimelineView({
           ))}
         </div>
       </div>
-      {project.nodes.length === 0 && <p>目前沒有可見節點</p>}
+      {nodes.length === 0 && <p>目前沒有可見節點</p>}
       <section className="unscheduled-list">
         <h3>未排程</h3>
-        {project.nodes
+        {nodes
           .filter((n) => !full(n))
           .map((n) => (
             <p key={n.id}>
               {n.title}：{n.start_date ?? '未設定'} ～ {n.due_date ?? '未設定'}
             </p>
           ))}
-        {project.nodes.every(full) && <p>所有可見節點已有完整日期</p>}
+        {nodes.every(full) && <p>所有可見節點已有完整日期</p>}
       </section>
     </section>
   );

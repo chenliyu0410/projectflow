@@ -32,7 +32,7 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
   useEffect(() => {
     // Sidebar progress is decoration; pages own error and expiry handling for the same endpoint.
     const request = new AbortController();
-    api.overview(request.signal).then(data => setProgress(Object.fromEntries(data.projects.map(item => [item.id, item.completion_percent]))), () => undefined);
+    api.overview(request.signal).then(data => setProgress(Object.fromEntries(data.projects.map(item => [item.id, item.progress_percent ?? null]))), () => undefined);
     return () => request.abort();
   }, [projects, location]);
   function go(next: WorkspaceRoute) { if (expanded) toggle.current?.focus(); setExpanded(false); navigate(next); }

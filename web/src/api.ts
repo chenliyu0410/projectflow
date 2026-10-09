@@ -21,8 +21,8 @@ import type {
   MyTask,
   NodeCreate,
   NodeItem,
-  NodeMetadata,
   NodeStatus,
+  NodeUpdate,
   ProjectDetail,
   ProjectSummary,
   SessionInfo,
@@ -37,6 +37,14 @@ export class ApiError extends Error {
     super(message);
   }
 }
+
+// Fixed TP-A conflict texts may be shown as-is; any other backend detail stays hidden.
+export const KNOWN_CONFLICTS = new Set([
+  '子節點尚未全部完成',
+  '不能移到自己的子任務底下',
+  '不能移到已完成、待確認或已略過的任務底下',
+  '移動後會和前置相依衝突，請先移除相依連線',
+]);
 
 export async function requestJson<T>(
   path: string,
@@ -58,6 +66,16 @@ export async function requestJson<T>(
   }
   // Never display backend details, which may include validation input or secrets.
   if (!response.ok) {
+    if (response.status === 409) {
+      let detail: unknown;
+      try {
+        detail = ((await response.json()) as { detail?: unknown } | null)?.detail;
+      } catch {
+        detail = undefined;
+      }
+      if (typeof detail === 'string' && KNOWN_CONFLICTS.has(detail))
+        throw new ApiError(409, detail);
+    }
     const message =
       response.status === 401
         ? path === '/auth/login'
@@ -162,6 +180,16 @@ export const api = {
   ) =>
     requestJson<RecordPage>(
       `/nodes/${id}/records?${new URLSearchParams({ scope, limit: String(limit), ...(cursor ? { cursor } : {}) })}`,
+      { signal },
+    ),
+  projectRecords: (
+    id: string,
+    cursor: string | null = null,
+    limit = 50,
+    signal?: AbortSignal,
+  ) =>
+    requestJson<RecordPage>(
+      `/projects/${id}/records?${new URLSearchParams({ limit: String(limit), ...(cursor ? { cursor } : {}) })}`,
       { signal },
     ),
   report: (
@@ -308,14 +336,16 @@ export const api = {
       body: JSON.stringify(payload),
       signal,
     }),
-  updateNode: (
-    id: string,
-    payload: Partial<NodeMetadata>,
-    signal?: AbortSignal,
-  ) =>
+  updateNode: (id: string, payload: NodeUpdate, signal?: AbortSignal) =>
     requestJson<NodeItem>(`/nodes/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
+      signal,
+    }),
+  moveNode: (id: string, parentId: string, signal?: AbortSignal) =>
+    requestJson<NodeItem>(`/nodes/${id}/move`, {
+      method: 'POST',
+      body: JSON.stringify({ parent_id: parentId }),
       signal,
     }),
   overview: (signal?: AbortSignal) =>

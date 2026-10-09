@@ -110,9 +110,19 @@ def project_payload(action, raw, node, context, projects, references):
     if action in {'node.reopen', 'node.skip', 'node.restore'}:
         reason = text_value(raw.get('reason'), 2000)
         return {'reason': reason} if reason is not None else {}
+    if action == 'node.move':
+        result = {}
+        for key in ['from_parent_id', 'to_parent_id']:
+            parent = safe_id(raw.get(key), references['nodes'])
+            if parent and references['nodes'][parent].project_id == node.project_id:
+                result[key] = parent
+                result[key.replace('_id', '_title')] = references['nodes'][parent].title
+        return result
     if action in {'node.create', 'node.update'}:
         fields = {'title': lambda value: text_value(value, 200),
                   'start_date': date_value, 'due_date': date_value,
+                  'weight': lambda value: value if type(value) is int and 0 <= value <= 100 else None,
+                  'progress': lambda value: value if type(value) is int and 0 <= value <= 100 else None,
                   'owner_user_id': lambda value: safe_id(value, context.users),
                   'department_id': lambda value: safe_id(value, context.departments)}
         result = {}
@@ -154,7 +164,7 @@ def project_payload(action, raw, node, context, projects, references):
 
 
 SUMMARIES = {'project.create': '建立專案', 'workflow.instantiate': '套用工作流', 'node.create': '新增節點',
-             'node.update': '更新節點資料', 'node.status': '更新節點狀態', 'node.reopen': '恢復工作',
+             'node.update': '更新節點資料', 'node.status': '更新節點狀態', 'node.move': '移動節點', 'node.reopen': '恢復工作',
              'node.skip': '略過任務', 'node.restore': '恢復略過任務', 'gate.approve': '核准閘門',
              'report.submit': '送出回報', 'report.approve': '確認回報', 'report.reject': '退回回報',
              'note.create': '新增筆記', 'note.update': '修訂筆記', 'collaborators.update': '更新協作設定',

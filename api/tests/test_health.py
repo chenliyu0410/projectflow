@@ -95,6 +95,8 @@ def test_only_health_routes_exist():
         "/workflows/{workflow_id}",
         "/workflows/{workflow_id}/copy",
         "/projects/{project_id}/dependencies",
+        "/projects/{project_id}/records",
+        "/nodes/{node_id}/move",
         "/dependencies/{dependency_id}",
         "/workspace/overview",
         "/workspace/my-tasks",

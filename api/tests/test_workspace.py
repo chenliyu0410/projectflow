@@ -59,13 +59,16 @@ def test_overview_visible_tasks_count_parents_and_exclude_hidden(client,engine,w
     assert value['task_counts']=={'todo':1,'doing':1,'review':1,'done':2,'skipped':2}
     assert value['completion_percent']==40
     projects={p['id']:p for p in value['projects']}
+    # Weighted progress uses visible nodes only: a1's visible child a5 (doing 50) stands in for it; hidden-task is ignored.
     assert projects['ws-a']=={'id':'ws-a','title':'Alpha工作','task_counts':{'todo':1,'doing':1,'review':1,'done':1,'skipped':1},'completion_percent':25,
-                            'current_phase_title':None,'due_date':'2028-03-01','overdue_count':0}
+                            'progress_percent':60,'current_phase_title':None,'due_date':'2028-03-01','overdue_count':0}
     # Workloads count only visible open tasks: chen's hidden head-task must not appear for a member.
     assert value['people']==[{'user_id':workspace['member'],'display_name':'明成員','department_name':'品保','open_count':3,'overdue_count':0}]
     assert {d['id']:d['open_count'] for d in value['departments']}[workspace['dept']]==3
     assert projects['ws-b']['completion_percent']==100
+    assert projects['ws-b']['progress_percent']==100
     assert projects['ws-empty']['completion_percent'] is None
+    assert projects['ws-empty']['progress_percent'] is None
     with Session(engine) as db:
         db.get(Node,'hidden-task').status='todo'
         db.get(Node,'hidden-phase').title='Another secret'

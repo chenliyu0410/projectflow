@@ -1,0 +1,97 @@
+[
+  {
+    "name": "葉任務各狀態與手填進度",
+    "nodes": [
+      { "id": "t1", "parent_id": null, "kind": "task", "status": "todo", "sort_order": 1 },
+      { "id": "t2", "parent_id": null, "kind": "task", "status": "doing", "sort_order": 2 },
+      { "id": "t3", "parent_id": null, "kind": "task", "status": "doing", "progress": 30, "sort_order": 3 },
+      { "id": "t4", "parent_id": null, "kind": "task", "status": "review", "progress": 30, "sort_order": 4 },
+      { "id": "t5", "parent_id": null, "kind": "task", "status": "done", "sort_order": 5 },
+      { "id": "t6", "parent_id": null, "kind": "task", "status": "skipped", "sort_order": 6 }
+    ],
+    "expected": { "t1": 0, "t2": 50, "t3": 30, "t4": 90, "t5": 100, "t6": 100 },
+    "project": 62
+  },
+  {
+    "name": "加權平均",
+    "nodes": [
+      { "id": "p", "parent_id": null, "kind": "phase", "status": "todo", "sort_order": 1 },
+      { "id": "a", "parent_id": "p", "kind": "task", "status": "done", "weight": 3, "sort_order": 2 },
+      { "id": "b", "parent_id": "p", "kind": "task", "status": "todo", "sort_order": 3 }
+    ],
+    "expected": { "p": 75, "a": 100, "b": 0 },
+    "project": 75
+  },
+  {
+    "name": "權重 0",
+    "nodes": [
+      { "id": "x", "parent_id": null, "kind": "phase", "status": "doing", "sort_order": 1 },
+      { "id": "d1", "parent_id": "x", "kind": "task", "status": "done", "weight": 0, "sort_order": 2 },
+      { "id": "d2", "parent_id": "x", "kind": "task", "status": "doing", "sort_order": 3 },
+      { "id": "y", "parent_id": null, "kind": "phase", "status": "doing", "sort_order": 4 },
+      { "id": "e1", "parent_id": "y", "kind": "task", "status": "done", "weight": 0, "sort_order": 5 }
+    ],
+    "expected": { "x": 50, "d1": 100, "d2": 50, "y": 0, "e1": 100 },
+    "project": 25
+  },
+  {
+    "name": "沒有子節點的階段",
+    "nodes": [
+      { "id": "ph1", "parent_id": null, "kind": "phase", "status": "done", "sort_order": 1 },
+      { "id": "ph2", "parent_id": null, "kind": "phase", "status": "skipped", "sort_order": 2 },
+      { "id": "ph3", "parent_id": null, "kind": "phase", "status": "doing", "sort_order": 3 }
+    ],
+    "expected": { "ph1": 100, "ph2": 100, "ph3": 0 },
+    "project": 67
+  },
+  {
+    "name": "專案根節點下四層",
+    "nodes": [
+      { "id": "root", "parent_id": null, "kind": "project", "status": "todo", "sort_order": 0 },
+      { "id": "ph", "parent_id": "root", "kind": "phase", "status": "doing", "sort_order": 1 },
+      { "id": "t1", "parent_id": "ph", "kind": "task", "status": "done", "sort_order": 2 },
+      { "id": "t2", "parent_id": "ph", "kind": "task", "status": "doing", "sort_order": 3 },
+      { "id": "s1", "parent_id": "t2", "kind": "task", "status": "doing", "progress": 20, "sort_order": 4 },
+      { "id": "s2", "parent_id": "t2", "kind": "task", "status": "todo", "sort_order": 5 },
+      { "id": "ss1", "parent_id": "s1", "kind": "task", "status": "review", "sort_order": 6 },
+      { "id": "ss2", "parent_id": "s1", "kind": "task", "status": "done", "sort_order": 7 }
+    ],
+    "expected": { "root": 74, "ph": 74, "t1": 100, "t2": 48, "s1": 95, "s2": 0, "ss1": 90, "ss2": 100 },
+    "project": 74
+  },
+  {
+    "name": "看不到上層的節點當頂層",
+    "nodes": [
+      { "id": "o1", "parent_id": "hidden", "kind": "task", "status": "done", "sort_order": 1 },
+      { "id": "o2", "parent_id": "o1", "kind": "task", "status": "todo", "sort_order": 2 },
+      { "id": "o3", "parent_id": null, "kind": "task", "status": "doing", "sort_order": 3 }
+    ],
+    "expected": { "o1": 0, "o2": 0, "o3": 50 },
+    "project": 25
+  },
+  {
+    "name": "損壞的循環資料",
+    "nodes": [
+      { "id": "c1", "parent_id": "c2", "kind": "task", "status": "done", "sort_order": 1 },
+      { "id": "c2", "parent_id": "c1", "kind": "task", "status": "todo", "sort_order": 2 }
+    ],
+    "expected": { "c1": 0, "c2": 0 },
+    "project": 0
+  },
+  {
+    "name": "四捨五入（37.5 → 38）",
+    "nodes": [
+      { "id": "u1", "parent_id": null, "kind": "task", "status": "done", "sort_order": 1 },
+      { "id": "u2", "parent_id": null, "kind": "task", "status": "todo", "sort_order": 2 },
+      { "id": "u3", "parent_id": null, "kind": "task", "status": "doing", "progress": 25, "weight": 2, "sort_order": 3 }
+    ],
+    "expected": { "u1": 100, "u2": 0, "u3": 25 },
+    "project": 38
+  },
+  {
+    "name": "沒有可見節點",
+    "nodes": [],
+    "expected": {},
+    "project": null
+  }
+]

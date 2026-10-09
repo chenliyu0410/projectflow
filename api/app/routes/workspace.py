@@ -11,6 +11,7 @@ from app.database import get_session
 from app.models import Gate
 from app.permissions import can_work_node, can_work_project
 from app.services.node_policy import node_out, visible_workspace_nodes
+from app.services.progress import project_progress
 
 from app.services.record_policy import load_policy_context, is_collaborator, can_review_report, authorized_page, page_timestamp
 
@@ -58,9 +59,11 @@ def overview(current: CurrentUser = Depends(require_session), db: Session = Depe
     overdue = dict.fromkeys(projects, 0)
     latest_due: dict[str, date | None] = dict.fromkeys(projects)
     phases: dict[str, list] = {pid: [] for pid in projects}
+    project_nodes: dict[str, list] = {pid: [] for pid in projects}
     people: dict[str, dict] = {}
     department_open = dict.fromkeys(context.departments, 0)
     for node in nodes:
+        project_nodes[node.project_id].append(node)
         if node.due_date is not None and (latest_due[node.project_id] is None or node.due_date > latest_due[node.project_id]):
             latest_due[node.project_id] = node.due_date
         if node.kind == "phase" and node.parent_id is None:
@@ -102,6 +105,7 @@ def overview(current: CurrentUser = Depends(require_session), db: Session = Depe
         "projects": [
             {"id": project.id, "title": project.title, "task_counts": per_project[project.id],
              "completion_percent": completion_percent(per_project[project.id]),
+             "progress_percent": project_progress(project_nodes[project.id]),
              "current_phase_title": current_phase(project.id),
              "due_date": latest_due[project.id].isoformat() if latest_due[project.id] else None,
              "overdue_count": overdue[project.id]}

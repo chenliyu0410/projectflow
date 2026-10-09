@@ -624,3 +624,28 @@ button.danger { border-color: #E3B294; color: var(--red); }
   .timeline-label .cnt { display: none; }
 }
 @media (max-width: 720px) { .timeline-scroll { display: block; } }
+
+/* TP-A：看板拖曳、卡片子任務與進度、滑過高亮（Demo .card / .mini / .sublist） */
+.task-card[draggable=true] { cursor: grab; }
+.task-card[draggable=true]:active { cursor: grabbing; }
+.task-card { transition: box-shadow .15s, border-color .15s; }
+.task-card.dragging { opacity: .4; }
+.task-card.nest { outline: 2px dashed var(--teal); outline-offset: 2px; }
+.task-card.hl { box-shadow: 0 0 0 2px var(--orange); }
+.task-card.hl-src { box-shadow: 0 0 0 2px var(--teal); }
+.kanban-column.over { background: #E2DCCF; }
+.card-waiting { margin: 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.mini { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); min-width: 0; }
+.mini > span:first-child { white-space: nowrap; }
+.mini .track { flex-grow: 1; min-width: 16px; height: 4px; border-radius: 2px; background: #E6E1D6; overflow: hidden; }
+.mini .track span { display: block; height: 100%; background: var(--teal); }
+.sublist { list-style: none; margin: 0; padding: 6px 0 0; display: flex; flex-direction: column; gap: 4px; border-top: 1px dashed var(--line); }
+.sublist button { display: flex; align-items: center; gap: 6px; width: 100%; border: 0; background: transparent; padding: 3px 2px; font-size: 12.5px; text-align: left; border-radius: 4px; min-height: 0; }
+.sublist button:hover { background: var(--ground); }
+.sublist .dot { margin-right: 0; flex-shrink: 0; }
+.iconbtn { border: 0; background: transparent; border-radius: 6px; padding: 2px 6px; color: var(--muted); font-size: 12px; min-height: 0; }
+.iconbtn:hover { background: var(--ground); color: var(--ink); }
+.card-foot .report-quick { color: var(--teal); white-space: nowrap; }
+.tl-up { border-radius: 8px; padding: 4px 10px; font-size: 13px; }
+.timeline-bar.parent .pf { position: absolute; left: 0; top: 0; bottom: 0; background: var(--c, var(--teal)); opacity: .3; pointer-events: none; }
+.timeline-bar.parent > button { position: relative; }

@@ -129,6 +129,25 @@ def list_records(node_id: str, scope: Literal['self', 'subtree'] = 'self',
             if can_view_node(current, n, context=context):
                 nodes[nid] = n
             pending.extend(children.get(nid, []))
+    return record_page(db, context, org, nodes, node_id, scope, after, limit)
+
+
+@router.get('/projects/{project_id}/records')
+def list_project_records(project_id: str, limit: int = Query(50, ge=1, le=100), cursor: str | None = None,
+                         current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    """Read-only roll-up of every record on the project's visible nodes."""
+    org = current.organization.id
+    context = load_policy_context(db, current)
+    project = db.scalar(select(Project).where(Project.id == project_id, Project.organization_id == org))
+    if project is None or not can_view_project(current, project):
+        raise HTTPException(status_code=404, detail='找不到專案')
+    after = decode_cursor(cursor, org, project.id, 'project')
+    nodes = {n.id: n for n in db.scalars(select(Node).where(Node.organization_id == org, Node.project_id == project.id))
+             if can_view_node(current, n, context=context)}
+    return record_page(db, context, org, nodes, project.id, 'project', after, limit)
+
+
+def record_page(db, context, org, nodes, cursor_id, scope, after, limit):
     # Query record content only for the final authorized node set, before pagination.
     entries = []
     attachments = attachments_for(db, org, nodes)
@@ -150,6 +169,6 @@ def list_records(node_id: str, scope: Literal['self', 'subtree'] = 'self',
     page = entries[:limit]
     next_cursor = None
     if len(entries) > limit:
-        data = {'organization_id': org, 'node_id': node_id, 'scope': scope, 'key': page[-1][0]}
+        data = {'organization_id': org, 'node_id': cursor_id, 'scope': scope, 'key': page[-1][0]}
         next_cursor = base64.urlsafe_b64encode(json.dumps(data, separators=(',', ':')).encode()).decode()
     return {'items': [entry[1] for entry in page], 'next_cursor': next_cursor}

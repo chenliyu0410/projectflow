@@ -13,6 +13,7 @@ const actions: Record<string, string> = {
   'node.create': '新增節點',
   'node.update': '更新節點資料',
   'node.status': '更新節點狀態',
+  'node.move': '移動節點',
   'node.reopen': '恢復工作',
   'node.skip': '略過任務',
   'node.restore': '恢復略過任務',
@@ -107,11 +108,17 @@ function AuditChanges({ item }: { item: AuditItem }) {
         )[p.kind],
       );
   }
+  if (item.action === 'node.move') {
+    add('原上層', p.from_parent_title);
+    add('新上層', p.to_parent_title);
+  }
   if (item.action === 'node.update') {
     for (const [key, label] of [
       ['title', '名稱'],
       ['start_date', '開始日期'],
       ['due_date', '截止日期'],
+      ['weight', '權重'],
+      ['progress', '進度 %'],
     ]) {
       const v = object(p[key]);
       add(label + '（修改前）', v.before);

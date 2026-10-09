@@ -10,7 +10,7 @@ from app.services.attachment_store import bind_attachments, attachments_for, att
 from app.auth import CurrentUser
 from app.models import Node, Project, TaskReport, now_utc
 from app.permissions import can_manage_project, can_view_node, can_view_project
-from app.services.node_policy import containing_phase, pending_gate_for_node, node_out
+from app.services.node_policy import containing_phase, pending_gate_for_node, node_out, require_children_finished
 from app.services.record_policy import load_policy_context, can_submit_report, can_review_report, can_self_approve_report
 
 
@@ -65,6 +65,7 @@ def submit_report(db, current, node_id, payload):
         conflict()
     require_gate(db, current, node)
     require_dependencies(db, current, node)
+    require_children_finished(db, current, node)
     report = TaskReport(organization_id=current.organization.id, node_id=node.id,
         result=payload.result, summary=payload.summary, finished_on=payload.finished_on,
         submitted_by=current.user.id, workflow_version=2, version=context.latest_versions.get(node.id, 0) + 1,
@@ -100,6 +101,7 @@ def review_report(db, current, report_id, payload):
         conflict()
     if payload.decision == 'approved':
         require_gate(db, current, node)
+        require_children_finished(db, current, node)
     else:
         containing_phase(db, current, node)
     report.status = payload.decision

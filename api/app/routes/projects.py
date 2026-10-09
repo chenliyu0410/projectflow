@@ -6,10 +6,11 @@ from app.audit import log_audit
 from app.services.dependency_service import require_dependencies
 from app.auth import CurrentUser, require_session
 from app.database import get_session
-from app.models import Department, Gate, Node, Project, User
+from app.models import Department, Gate, Node, NodeDependency, Project, User
 from app.permissions import can_view_node, can_view_project, can_work_node, can_manage_project, can_edit_node
-from app.schemas import NodeCreate, NodeUpdate, NodeStatusUpdate, ProjectCreate
-from app.services.node_policy import node_out, json_value, validate_assignments, validate_dates, blocked_by_pending_gate
+from app.schemas import NodeCreate, NodeMove, NodeUpdate, NodeStatusUpdate, ProjectCreate
+from app.services.node_policy import (node_out, json_value, validate_assignments, validate_dates, blocked_by_pending_gate,
+                                      require_children_finished)
 
 from app.services.record_policy import load_policy_context
 from app.services.report_service import lock_node, conflict
@@ -138,6 +139,8 @@ def update_node_status(node_id: str, payload: NodeStatusUpdate, current: Current
         conflict()
     if node.kind == "task" and node.status == "todo" and payload.status == "doing":
         require_dependencies(db, current, node)
+    if payload.status == "done" and node.status != "done":
+        require_children_finished(db, current, node)
     node.status = payload.status
     log_audit(db, current, "node.status", node_id=node.id, payload={"status": payload.status})
     db.commit()
@@ -172,6 +175,8 @@ def update_node(node_id: str, payload: NodeUpdate, current: CurrentUser = Depend
     fields = payload.model_dump(exclude_unset=True)
     if {"owner_user_id", "department_id"} & fields.keys() and not can_manage_project(current, project):
         raise HTTPException(status_code=403, detail="沒有指派權限")
+    if "progress" in fields and node.kind != "task":
+        raise HTTPException(status_code=422, detail="只有任務可以填寫進度")
     validate_dates(fields.get("start_date", node.start_date), fields.get("due_date", node.due_date))
     validate_assignments(db, current, fields)
     changes = {key: {"before": json_value(getattr(node, key)), "after": json_value(value)}
@@ -182,4 +187,60 @@ def update_node(node_id: str, payload: NodeUpdate, current: CurrentUser = Depend
         log_audit(db, current, "node.update", node_id=node.id, payload=changes)
         db.commit()
         db.refresh(node)
+    return node_out(db, current, project, node, context=context)
+
+
+@router.post("/nodes/{node_id}/move")
+def move_node(node_id: str, payload: NodeMove, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    """Re-parent a task inside its project; structure changes are a project-manager action."""
+    node, project, context = lock_node(db, current, node_id)
+    if not can_manage_project(current, project):
+        raise HTTPException(status_code=403, detail="沒有移動節點的權限")
+    if node.kind != "task":
+        raise HTTPException(status_code=422, detail="只能移動任務")
+    target = db.scalar(select(Node).where(
+        Node.organization_id == current.organization.id, Node.project_id == project.id, Node.id == payload.parent_id,
+    ).with_for_update().execution_options(populate_existing=True))
+    if target is None or not can_view_node(current, target, context=context):
+        raise HTTPException(status_code=404, detail="找不到目標節點")
+    if target.kind not in {"project", "phase", "task"}:
+        raise HTTPException(status_code=422, detail="無法移到此種節點底下")
+    # Walk the complete stored chain (hidden ancestors included) to refuse cycles.
+    nodes = {n.id: n for n in db.scalars(select(Node).where(
+        Node.organization_id == current.organization.id, Node.project_id == project.id))}
+    chain, cursor = [], target
+    while cursor is not None:
+        if cursor.id == node.id:
+            raise HTTPException(status_code=409, detail="不能移到自己的子任務底下")
+        if cursor.id in chain:
+            raise HTTPException(status_code=409, detail="節點階層異常，無法移動")
+        chain.append(cursor.id)
+        cursor = nodes.get(cursor.parent_id) if cursor.parent_id is not None else None
+    if target.status in {"review", "done", "skipped"}:
+        raise HTTPException(status_code=409, detail="不能移到已完成、待確認或已略過的任務底下")
+    if node.parent_id == target.id:
+        return node_out(db, current, project, node, context=context)
+    children: dict[str | None, list[str]] = {}
+    for item in nodes.values():
+        children.setdefault(item.parent_id, []).append(item.id)
+    family, pending = set(), [node.id]
+    while pending:
+        current_id = pending.pop()
+        if current_id not in family:
+            family.add(current_id)
+            pending.extend(children.get(current_id, []))
+    ancestors = set(chain)
+    edge = db.scalar(select(NodeDependency.id).where(
+        NodeDependency.organization_id == current.organization.id, NodeDependency.project_id == project.id,
+        ((NodeDependency.predecessor_id.in_(family) & NodeDependency.successor_id.in_(ancestors))
+         | (NodeDependency.predecessor_id.in_(ancestors) & NodeDependency.successor_id.in_(family))),
+    ).limit(1))
+    if edge is not None:
+        raise HTTPException(status_code=409, detail="移動後會和前置相依衝突，請先移除相依連線")
+    previous = node.parent_id
+    node.parent_id = target.id
+    node.sort_order = max(item.sort_order for item in nodes.values()) + 10
+    log_audit(db, current, "node.move", node_id=node.id, payload={"from_parent_id": previous, "to_parent_id": target.id})
+    db.commit()
+    db.refresh(node)
     return node_out(db, current, project, node, context=context)

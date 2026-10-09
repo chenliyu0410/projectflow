@@ -42,7 +42,7 @@ def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *,
     return {
         **{key: json_value(getattr(node, key)) for key in (
             'id', 'project_id', 'parent_id', 'kind', 'title', 'status', 'owner_user_id',
-            'department_id', 'sort_order', 'start_date', 'due_date')},
+            'department_id', 'sort_order', 'start_date', 'due_date', 'weight', 'progress')},
         'owner_display_name': owner.display_name if owner is not None and owner.organization_id == current.organization.id else None,
         'department_name': department.name if department is not None and department.organization_id == current.organization.id else None,
         'capabilities': {
@@ -54,6 +54,7 @@ def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *,
             'review_report': can_review_report(db, current, project, node, context=context),
             'manage_collaborators': manage,
             'lifecycle': manage and node.kind == 'task',
+            'move': manage and node.kind == 'task',
         },
         'blocked': node.kind == 'task' and node.id in context.blocked_node_ids,
         'state_actions': state_actions(db, current, project, node, context=context),
@@ -86,6 +87,21 @@ def containing_phase(db: Session, current: CurrentUser, node: Node) -> Node | No
         if parent is None:
             raise HTTPException(status_code=409, detail="節點階層異常，無法變更狀態")
         cursor = parent
+
+
+def require_children_finished(db: Session, current: CurrentUser, node: Node) -> None:
+    """A parent cannot become done while any child, visible or not, is still open.
+
+    The message never names or counts children, so hidden nodes are not disclosed.
+    """
+    unfinished = db.scalar(select(Node.id).where(
+        Node.organization_id == current.organization.id,
+        Node.project_id == node.project_id,
+        Node.parent_id == node.id,
+        Node.status.not_in(["done", "skipped"]),
+    ).limit(1))
+    if unfinished is not None:
+        raise HTTPException(status_code=409, detail="子節點尚未全部完成")
 
 
 def pending_gate_for_node(db: Session, current: CurrentUser, node: Node) -> bool:

@@ -84,7 +84,7 @@ async function enter() {
 function boardButton(name: string) { return within(screen.getByLabelText('看板')).getByRole('button', { name }); }
 function phaseButton(name: string) { return within(screen.getByLabelText('開發階段與閘門')).getByRole('button', { name: `進入階段：${name}` }); }
 function crumb(name: string) { return within(screen.getByLabelText('節點路徑')).getByRole('button', { name }); }
-function cardTitles() { return within(screen.getByLabelText('看板')).queryAllByRole('button').map(button => button.textContent); }
+function cardTitles() { return [...screen.getByLabelText('看板').querySelectorAll('button.task-title')].map(button => button.textContent); }
 
 describe('P2a workspace navigation', () => {
   it('loads visible overview statistics and opens a project', async () => {
@@ -267,9 +267,9 @@ describe('phase status clarification', () => {
   it.each([false, true])('explains manual phase status for readonly=%s but not tasks', readonly => {
     const props = { project: detail, select: vi.fn(), readonly, canApprove: false, disabled: false, mutate: vi.fn() };
     const { rerender } = render(<NodeWorkspace {...props} selectedNodeId="階段" />);
-    expect(within(screen.getByLabelText('節點詳情')).getByText('階段狀態為手動設定，不代表子任務完成率。')).toBeInTheDocument();
+    expect(within(screen.getByLabelText('節點詳情')).getByText('階段狀態為手動設定；子節點全部完成或略過後才能標為完成。')).toBeInTheDocument();
     rerender(<NodeWorkspace {...props} selectedNodeId="父任務" />);
-    expect(screen.queryByText('階段狀態為手動設定，不代表子任務完成率。')).not.toBeInTheDocument();
+    expect(screen.queryByText('階段狀態為手動設定；子節點全部完成或略過後才能標為完成。')).not.toBeInTheDocument();
   });
 });
 
@@ -279,7 +279,7 @@ describe('UI3 Demo home pages', () => {
     const counts = { todo: 2, doing: 1, review: 2, done: 1, skipped: 0 };
     vi.stubGlobal('fetch', vi.fn(async () => response({
       project_count: 1, task_counts: counts, completion_percent: 17, today: '2026-10-09', overdue_count: 2,
-      projects: [{ id: 'p', title: '四層專案', task_counts: counts, completion_percent: 17, current_phase_title: '小量試作', due_date: '2026-12-31', overdue_count: 2 }],
+      projects: [{ id: 'p', title: '四層專案', task_counts: counts, completion_percent: 17, progress_percent: 41, current_phase_title: '小量試作', due_date: '2026-12-31', overdue_count: 2 }],
       people: [{ user_id: 'a', display_name: '明成員', department_name: '品保', open_count: 3, overdue_count: 1 }, { user_id: 'b', display_name: '林業務', department_name: null, open_count: 1, overdue_count: 0 }],
       departments: [{ id: 'd', name: '品保', open_count: 3 }],
     })));
@@ -291,7 +291,8 @@ describe('UI3 Demo home pages', () => {
     expect(screen.getByLabelText('未完成任務')).toHaveTextContent('5');
     const row = within(screen.getByRole('table', { name: '專案進度' })).getAllByRole('row')[1];
     expect(row).toHaveTextContent('小量試作'); expect(row).toHaveTextContent('2026/12/31'); expect(row).toHaveTextContent('延遲 2 項');
-    expect(within(row).getByRole('progressbar', { name: '四層專案完成率' })).toHaveAttribute('aria-valuenow', '17');
+    // TP-A: the table shows weighted progress; the company card keeps the visible-task completion rate.
+    expect(within(row).getByRole('progressbar', { name: '四層專案進度' })).toHaveAttribute('aria-valuenow', '41');
     expect(screen.getByText('明成員').closest('.load-row')).toHaveTextContent('3 項，1 項延遲');
     expect(screen.getByText('林業務').closest('.load-row')).toHaveTextContent('1 項');
   });

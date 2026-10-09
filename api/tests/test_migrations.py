@@ -35,6 +35,49 @@ def test_alembic_revision_contains_required_business_tables():
     assert "ForeignKeyConstraint([\"organization_id\", \"node_id\"]" in revision
 
 
+def seed_at_revision(url, revision, prepare):
+    """Upgrade to `revision`, then copy rows built with today's ORM, keeping only columns that revision has.
+
+    Historical migration checks cannot use the ORM directly once later stages add columns.
+    """
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import MetaData, create_engine, insert, select
+    from sqlalchemy.orm import Session
+    from sqlalchemy.pool import StaticPool
+    from app.database import Base
+    import app.models  # noqa: F401  (register every table)
+    command.upgrade(Config('api/alembic.ini'), revision)
+    scratch = create_engine('sqlite://', poolclass=StaticPool, connect_args={'check_same_thread': False})
+    Base.metadata.create_all(scratch)
+    with Session(scratch) as db:
+        prepare(db)
+        db.commit()
+    target = create_engine(sqlalchemy_url(url))
+    reflected = MetaData()
+    reflected.reflect(target)
+    with scratch.connect() as source, target.begin() as dest:
+        for table in Base.metadata.sorted_tables:
+            if table.name not in reflected.tables:
+                continue
+            existing = reflected.tables[table.name]
+            columns = [column for column in table.columns if column.name in existing.c]
+            rows = [dict(row._mapping) for row in source.execute(select(*columns))]
+            # Self-references (node parents, template parents) must exist before their children.
+            self_refs = [fk.parent.name for fk in table.foreign_keys if fk.column.table is table and fk.parent.name != 'organization_id']
+            ordered, emitted = [], set()
+            while rows:
+                ready = [row for row in rows if all(row[ref] is None or row[ref] in emitted for ref in self_refs)] or rows[:1]
+                for row in ready:
+                    rows.remove(row)
+                    ordered.append(row)
+                    emitted.add(row.get('id'))
+            if ordered:
+                dest.execute(insert(existing), ordered)
+    scratch.dispose()
+    target.dispose()
+
+
 def check_date_migration_preserves_existing_rows(url, monkeypatch):
     from alembic import command
     from alembic.config import Config
@@ -134,7 +177,7 @@ def check_p2b_migration_keeps_historical_reports(url,monkeypatch):
         tables=('organizations','users','projects','departments','nodes','task_reports','audit_logs')
         before={t:[tuple(r) for r in db.execute(text(f'SELECT * FROM {t} ORDER BY id'))] for t in tables}
         counts={t:db.execute(text(f'SELECT count(*) FROM {t}')).scalar_one() for t in tables}
-    command.upgrade(config,'head')
+    command.upgrade(config,'20261009_0004')
     with engine.connect() as db:
         inspector=inspect(engine)
         assert 'node_collaborators' in inspector.get_table_names()
@@ -154,6 +197,7 @@ def check_p2b_migration_keeps_historical_reports(url,monkeypatch):
         for table in ('node_collaborators','task_notes','attachments'):
             assert db.execute(text(f'SELECT count(*) FROM {table}')).scalar_one()==0
     engine.dispose()
+    command.upgrade(config,'head')
 
 
 def test_p2b_migration_keeps_historical_reports(tmp_path, monkeypatch):
@@ -262,9 +306,8 @@ def check_p2c_migration_preserves_collaboration(url,monkeypatch):
     from app.seed import seed_demo_data
     from app.models import Node,Workflow,TaskReport,TaskNote,Attachment,AuditLog,User
     monkeypatch.setenv('DATABASE_URL',url)
-    config=Config('api/alembic.ini');command.upgrade(config,'20261008_0003')
-    engine=create_engine(sqlalchemy_url(url))
-    with Session(engine) as db:
+    config=Config('api/alembic.ini')
+    def prepare(db):
         seed_demo_data(db);db.commit()
         user=db.scalars(select(User).where(User.username=='yu')).one()
         node=db.scalars(select(Node).where(Node.organization_id==user.organization_id,Node.kind=='task')).first()
@@ -275,13 +318,15 @@ def check_p2c_migration_preserves_collaboration(url,monkeypatch):
         db.add_all([report,note]);db.flush()
         db.add(Attachment(organization_id=user.organization_id,node_id=node.id,uploaded_by=user.id,original_name='saved.txt',storage_key='b'*32,size_bytes=5,state='ready',sha256='c'*64,note_id=note.id))
         db.add(AuditLog(organization_id=user.organization_id,node_id=node.id,actor_user_id=user.id,action='note.create',payload={'note_id':note.id,'body':note.body}))
-        db.commit()
+    seed_at_revision(url,'20261008_0003',prepare)
+    engine=create_engine(sqlalchemy_url(url))
     tables=['organizations','users','departments','department_members','projects','nodes','workflows','workflow_nodes','gates','task_reports','task_notes','attachments','audit_logs','attachment_quotas','node_collaborators']
     def snapshot():
         with engine.connect() as db:return {table:[tuple(row) for row in db.execute(text('SELECT * FROM '+table+' ORDER BY '+('organization_id' if table=='attachment_quotas' else 'id')))] for table in tables}
-    before=snapshot();command.upgrade(config,'head');assert snapshot()==before
+    before=snapshot();command.upgrade(config,'20261009_0004');assert snapshot()==before
     with engine.connect() as db:assert db.execute(text('SELECT count(*) FROM node_dependencies')).scalar_one()==0
     engine.dispose()
+    command.upgrade(config,'head')
 
 
 def test_p2c_migration_preserves_existing_collaboration(tmp_path,monkeypatch):
@@ -312,3 +357,62 @@ def test_p2c_postgresql_migration_and_dependency_constraints(monkeypatch):
                 with pytest.raises(IntegrityError):db.add(NodeDependency(**{**values,**change}));db.commit()
                 db.rollback()
     finally:engine.dispose()
+
+
+def check_tp_a_migration_preserves_nodes(url,monkeypatch):
+    from datetime import date,datetime,timezone
+    import pytest
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine,text,select
+    from sqlalchemy.exc import IntegrityError
+    from app.seed import seed_demo_data
+    from app.models import Node,NodeDependency,TaskReport,User
+    monkeypatch.setenv('DATABASE_URL',url)
+    config=Config('api/alembic.ini')
+    def prepare(db):
+        seed_demo_data(db);db.commit()
+        user=db.scalars(select(User).where(User.username=='yu')).one()
+        first=db.scalars(select(Node).where(Node.organization_id==user.organization_id,Node.kind=='task').order_by(Node.sort_order)).first()
+        first.status='done';first.start_date=date(2026,10,1);first.due_date=date(2026,10,9)
+        second=Node(organization_id=user.organization_id,project_id=first.project_id,parent_id=first.parent_id,kind='task',title='後續',status='doing',sort_order=999)
+        db.add(second);db.flush()
+        db.add(NodeDependency(organization_id=user.organization_id,project_id=first.project_id,predecessor_id=first.id,successor_id=second.id,created_by=user.id))
+        db.add(TaskReport(organization_id=user.organization_id,node_id=first.id,submitted_by=user.id,result='達成',summary='kept',workflow_version=2,version=1,status='approved',finished_on=date(2026,10,9),reviewed_by=user.id,reviewed_at=datetime(2026,10,9,tzinfo=timezone.utc),self_approved=True))
+    seed_at_revision(url,'20261009_0004',prepare)
+    engine=create_engine(sqlalchemy_url(url))
+    tables=['organizations','users','departments','department_members','projects','nodes','workflows','workflow_nodes','gates','task_reports','task_notes','attachments','audit_logs','attachment_quotas','node_collaborators','node_dependencies']
+    def snapshot():
+        with engine.connect() as db:return {table:[tuple(row) for row in db.execute(text('SELECT * FROM '+table+' ORDER BY '+('organization_id' if table=='attachment_quotas' else 'id')))] for table in tables}
+    before=snapshot()
+    assert before['nodes'] and before['node_dependencies'] and before['task_reports']
+    command.upgrade(config,'20261010_0005')
+    after=snapshot()
+    # Every existing value is unchanged; each node only gains weight 1 and no manual progress.
+    assert after['nodes']==[row+(1,None) for row in before['nodes']]
+    assert {table:rows for table,rows in after.items() if table!='nodes'}=={table:rows for table,rows in before.items() if table!='nodes'}
+    node_id=before['nodes'][0][0]
+    for column,value in [('weight',-1),('weight',101),('progress',-1),('progress',101)]:
+        with pytest.raises(IntegrityError):
+            with engine.begin() as db:db.execute(text(f'UPDATE nodes SET {column}=:value WHERE id=:id'),{'value':value,'id':node_id})
+    with engine.begin() as db:db.execute(text('UPDATE nodes SET weight=0,progress=100 WHERE id=:id'),{'id':node_id})
+    with engine.begin() as db:db.execute(text('UPDATE nodes SET weight=1,progress=NULL WHERE id=:id'),{'id':node_id})
+    command.downgrade(config,'20261009_0004')
+    assert snapshot()==before
+    command.upgrade(config,'head')
+    engine.dispose()
+
+
+def test_tp_a_migration_preserves_nodes(tmp_path,monkeypatch):
+    check_tp_a_migration_preserves_nodes(f"sqlite:///{tmp_path/'tp-a-migration.db'}",monkeypatch)
+
+
+def test_tp_a_postgresql_migration_preserves_nodes(monkeypatch):
+    import os,pytest
+    from sqlalchemy.engine import make_url
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url:pytest.skip('Fresh dedicated p2b_test PostgreSQL URL required for TP-A migration')
+    parsed=make_url(url)
+    assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
+    assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
+    check_tp_a_migration_preserves_nodes(url,monkeypatch)

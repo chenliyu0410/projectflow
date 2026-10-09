@@ -9,15 +9,19 @@ import {
 import type { RecordReload } from '../api';
 import type { DependencyData, ProjectDetail } from '../types';
 import DependencyGraph from './DependencyGraph';
+import { subtree } from './NodeWorkspace';
 export default function DependencyPanel({
   projectId,
   project,
+  scopeId = null,
   select,
   reload,
   expired,
 }: {
   projectId: string;
   project?: ProjectDetail;
+  /** Like the Demo, a node's graph shows only the tasks below it; the list keeps edges touching them. */
+  scopeId?: string | null;
   select: (id: string) => void;
   reload: RecordReload;
   expired: () => void;
@@ -49,6 +53,23 @@ export default function DependencyPanel({
   useEffect(() => {
     void load();
   }, []);
+  const below =
+    scopeId && project
+      ? new Set(
+          subtree(project.nodes, scopeId)
+            .filter((n) => n.id !== scopeId)
+            .map((n) => n.id),
+        )
+      : null;
+  const touches = (id: string) => !below || below.has(id) || id === scopeId;
+  const graphData =
+    data && below
+      ? { ...data, nodes: data.nodes.filter((n) => below.has(n.id)) }
+      : data;
+  const listed =
+    data?.items.filter(
+      (e) => touches(e.predecessor_id) || touches(e.successor_id),
+    ) ?? [];
   return (
     <section className="dependency-panel" aria-label="前置設定">
       <div className="graph-tools">
@@ -150,15 +171,15 @@ export default function DependencyPanel({
               </form>
             )
           )}
-          <DependencyGraph data={data} select={select} nodes={project?.nodes} />
+          <DependencyGraph data={graphData!} select={select} nodes={project?.nodes} />
           <details className="panel dependency-list">
-            <summary>連線清單（{data.items.length}）</summary>
+            <summary>連線清單（{listed.length}）</summary>
             <h3>可見前置連線</h3>
-            {data.items.length === 0 ? (
+            {listed.length === 0 ? (
               <p>目前沒有兩端皆可見的前置連線</p>
             ) : (
               <ul>
-                {data.items.map((e) => (
+                {listed.map((e) => (
                   <li key={e.id}>
                     <span>
                       {data.nodes.find((n) => n.id === e.predecessor_id)?.title}{' '}
@@ -182,7 +203,7 @@ export default function DependencyPanel({
               </ul>
             )}
             {data.nodes
-              .filter((n) => n.blocked)
+              .filter((n) => n.blocked && touches(n.id))
               .map((n) => (
                 <p key={n.id}>
                   <button className="row-link" onClick={() => select(n.id)}>{n.title}</button>

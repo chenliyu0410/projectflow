@@ -35,9 +35,9 @@ export default function WorkspaceOverview({ openProject, expired, showAssignHint
         <tbody>{data.projects.map((project, index) => <tr key={project.id}>
           <td><span className="cell-title"><span className="project-dot" aria-hidden="true" style={{ background: projectColor(index) }}/><button className="row-link" onClick={() => openProject(project.id)}>{project.title}</button></span></td>
           <td>{project.current_phase_title ?? '—'}</td>
-          <td className="progress-cell">{project.completion_percent === null ? <span className="muted">—</span> : <>
-            <span className="bar-track" role="progressbar" aria-label={`${project.title}完成率`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={project.completion_percent}><span style={{ width: `${project.completion_percent}%`, background: projectColor(index) }}/></span>
-            <span className="muted">{project.completion_percent}%</span></>}</td>
+          <td className="progress-cell">{project.progress_percent == null ? <span className="muted">—</span> : <>
+            <span className="bar-track" role="progressbar" aria-label={`${project.title}進度`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={project.progress_percent}><span style={{ width: `${project.progress_percent}%`, background: projectColor(index) }}/></span>
+            <span className="muted">{project.progress_percent}%</span></>}</td>
           <td>{slashDate(project.due_date)}</td>
           <td>{project.overdue_count ? <span className="tag warn">延遲 {project.overdue_count} 項</span> : project.due_date ? <span className="tag">如期</span> : <span className="muted">—</span>}</td>
           <td>{project.task_counts.review || ''}</td>

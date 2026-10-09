@@ -109,6 +109,8 @@ class Node(Base):
         UniqueConstraint("organization_id", "id"),
         UniqueConstraint("organization_id", "project_id", "id", name="uq_nodes_project_id"),
         CheckConstraint("start_date IS NULL OR due_date IS NULL OR start_date <= due_date", name="ck_nodes_date_order"),
+        CheckConstraint("weight >= 0 AND weight <= 100", name="ck_nodes_weight_range"),
+        CheckConstraint("progress IS NULL OR (progress >= 0 AND progress <= 100)", name="ck_nodes_progress_range"),
         ForeignKeyConstraint(["organization_id", "project_id"], ["projects.organization_id", "projects.id"]),
         ForeignKeyConstraint(["organization_id", "parent_id"], ["nodes.organization_id", "nodes.id"]),
         ForeignKeyConstraint(["organization_id", "department_id"], ["departments.organization_id", "departments.id"]),
@@ -128,6 +130,9 @@ class Node(Base):
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     sort_order: Mapped[int] = mapped_column(default=0, nullable=False)
+    # TP-A rollup: weight for the parent's weighted average; manual progress only for doing leaf tasks.
+    weight: Mapped[int] = mapped_column(default=1, server_default="1", nullable=False)
+    progress: Mapped[int | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
 

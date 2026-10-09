@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError } from '../api';
-import type { AssignmentOptions, NodeItem, NodeMetadata } from '../types';
+import type { AssignmentOptions, NodeItem, NodeMetadata, NodeUpdate } from '../types';
 
-export default function NodeEditor({ projectId, mode, node, parent, canAssign, reload, close, expired }: {
-  projectId: string; mode: 'create' | 'edit'; node: NodeItem | null; parent: NodeItem | null; canAssign: boolean;
+export default function NodeEditor({ projectId, mode, node, parent, canAssign, leaf = false, reload, close, expired }: {
+  projectId: string; mode: 'create' | 'edit'; node: NodeItem | null; parent: NodeItem | null; canAssign: boolean; leaf?: boolean;
   reload: (nodeId: string) => Promise<void>; close: () => void; expired: () => void;
 }) {
   const initial: NodeMetadata = { title: node?.title ?? '', start_date: node?.start_date ?? null, due_date: node?.due_date ?? null,
     owner_user_id: node?.owner_user_id ?? null, department_id: node?.department_id ?? null };
   const [title, setTitle] = useState(initial.title); const [start, setStart] = useState(initial.start_date ?? ''); const [due, setDue] = useState(initial.due_date ?? '');
   const [owner, setOwner] = useState(initial.owner_user_id ?? ''); const [department, setDepartment] = useState(initial.department_id ?? '');
+  // TP-A rollup fields: the weight counts toward the parent; manual progress only applies to a doing leaf task.
+  const initialWeight = String(node?.weight ?? 1); const initialProgress = node?.progress == null ? '' : String(node.progress);
+  const [weight, setWeight] = useState(initialWeight); const [progress, setProgress] = useState(initialProgress);
+  const showProgress = mode === 'edit' && node?.kind === 'task' && node.status === 'doing' && leaf;
   const allowPhase = !parent || parent.kind === 'project'; const [kind, setKind] = useState<'phase' | 'task'>(allowPhase ? 'phase' : 'task');
   const [options, setOptions] = useState<AssignmentOptions | null>(null); const [optionsError, setOptionsError] = useState('');
   const [loading, setLoading] = useState(canAssign); const [saving, setSaving] = useState(false); const [error, setError] = useState('');
@@ -26,10 +30,15 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, r
   }
   useEffect(() => { if (canAssign) void loadOptions(); return () => { ++sequence.current; controller.current?.abort(); }; }, []);
   const payload: NodeMetadata = { title: title.trim(), start_date: start || null, due_date: due || null, owner_user_id: owner || null, department_id: department || null };
-  const changes: Partial<NodeMetadata> = {};
+  const changes: NodeUpdate = {};
   for (const key of ['title', 'start_date', 'due_date', ...(canAssign ? ['owner_user_id', 'department_id'] as const : [])] as (keyof NodeMetadata)[]) {
     if (payload[key] !== initial[key]) Object.assign(changes, { [key]: payload[key] });
   }
+  const percentField = (value: string) => /^\d{1,3}$/.test(value) && Number(value) <= 100;
+  const invalidWeight = mode === 'edit' && !percentField(weight);
+  const invalidProgress = showProgress && progress !== '' && !percentField(progress);
+  if (mode === 'edit' && !invalidWeight && weight !== initialWeight) changes.weight = Number(weight);
+  if (showProgress && !invalidProgress && progress !== initialProgress) changes.progress = progress === '' ? null : Number(progress);
   const invalidDates = !!start && !!due && start > due;
   async function refresh(id: string, request: ReturnType<typeof begin>) {
     try { await reload(id); if (current(request)) close(); }
@@ -37,7 +46,7 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, r
   }
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (savingRef.current || loading || optionsError || savedNodeId || !payload.title || payload.title.length > 200 || invalidDates || (mode === 'edit' && !Object.keys(changes).length)) return;
+    if (savingRef.current || loading || optionsError || savedNodeId || !payload.title || payload.title.length > 200 || invalidDates || invalidWeight || invalidProgress || (mode === 'edit' && !Object.keys(changes).length)) return;
     const request = begin(); savingRef.current = true; setSaving(true); setError('');
     try {
       const result = mode === 'create' ? await api.createNode(projectId, { ...payload, kind, parent_id: parent?.id ?? null }, request.signal)
@@ -78,7 +87,11 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, r
       <label>開始日期<input type="date" min="0001-01-01" max="9999-12-31" value={start} disabled={saving} onChange={event => setStart(event.target.value)} /></label>
       <label>截止日期<input type="date" min="0001-01-01" max="9999-12-31" value={due} disabled={saving} onChange={event => setDue(event.target.value)} /></label>
       {invalidDates && <p role="alert">開始日期不得晚於截止日期</p>}
-      <div className="form-actions"><button type="submit" disabled={saving || loading || !!optionsError || !payload.title || invalidDates || (mode === 'edit' && !Object.keys(changes).length)}>儲存</button><button type="button" disabled={saving} onClick={close}>取消</button></div>
+      {mode === 'edit' && <label>權重（彙總進度用）<input type="number" inputMode="numeric" min={0} max={100} step={1} value={weight} disabled={saving} onChange={event => setWeight(event.target.value)} /></label>}
+      {invalidWeight && <p role="alert">權重需為 0–100 的整數</p>}
+      {showProgress && <label>進度 %<input type="number" inputMode="numeric" min={0} max={100} step={1} placeholder="50" value={progress} disabled={saving} onChange={event => setProgress(event.target.value)} /><small>留空時依狀態計算（進行中 50%）</small></label>}
+      {invalidProgress && <p role="alert">進度需為 0–100 的整數</p>}
+      <div className="form-actions"><button type="submit" disabled={saving || loading || !!optionsError || !payload.title || invalidDates || invalidWeight || invalidProgress || (mode === 'edit' && !Object.keys(changes).length)}>儲存</button><button type="button" disabled={saving} onClick={close}>取消</button></div>
     </>}
   </form>;
 }

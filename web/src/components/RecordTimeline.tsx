@@ -13,13 +13,17 @@ import NoteEditor from './NoteEditor';
 import AttachmentList from './AttachmentList';
 function Timeline({
   node,
+  projectId,
+  descendantTasks,
   userId,
   reload,
   expired,
   select,
   readScope,
 }: {
-  node: NodeItem;
+  node: NodeItem | null;
+  projectId: string;
+  descendantTasks: number;
   userId: string;
   reload: RecordReload;
   expired: () => void;
@@ -41,13 +45,21 @@ function Timeline({
     setLoading(true);
     setError('');
     try {
-      const page = await api.records(
-        node.id,
-        readScope,
-        append ? cursor : null,
-        50,
-        r.controller.signal,
-      );
+      const page =
+        node === null
+          ? await api.projectRecords(
+              projectId,
+              append ? cursor : null,
+              50,
+              r.controller.signal,
+            )
+          : await api.records(
+              node.id,
+              readScope,
+              append ? cursor : null,
+              50,
+              r.controller.signal,
+            );
       if (scope.current(r)) {
         setItems((old) =>
           append
@@ -76,7 +88,7 @@ function Timeline({
   useEffect(() => {
     void load();
   }, []);
-  const canWrite = !!node.capabilities?.write_record;
+  const canWrite = !!node?.capabilities?.write_record;
   const attachments = new Map<string, Attachment>();
   for (const item of items) {
     if (item.type === 'attachment') attachments.set(item.id, item);
@@ -91,7 +103,7 @@ function Timeline({
   };
   function source(item: RecordItem) {
     return (
-      readScope === 'subtree' && (
+      readScope !== 'self' && (
         <button className="record-source" onClick={() => select(item.node_id)}>
           {item.node_title}
         </button>
@@ -100,8 +112,10 @@ function Timeline({
   }
   return (
     <div className="records" aria-label="任務紀錄">
-      {readScope === 'subtree' && (
-        <p>以下為可見後代紀錄彙總；不包含不可見節點。</p>
+      {readScope !== 'self' && (
+        <p>
+          這是上層節點，以下彙總整棵子樹（{descendantTasks} 個子任務）的紀錄，只能檢視；要新增請進入個別任務。不包含你看不到的節點。
+        </p>
       )}
       {loading && <p role="status">載入紀錄中</p>}
       {error && (
@@ -128,7 +142,7 @@ function Timeline({
       </section>
       <section className="record-panel" aria-label="筆記">
         <h3>筆記{!loading && !error && count('note')}</h3>
-        {canWrite && readScope === 'self' && (
+        {node && canWrite && readScope === 'self' && (
           <NoteEditor nodeId={node.id} reload={reload} expired={expired} />
         )}
         {items
@@ -157,7 +171,7 @@ function Timeline({
                     </button>
                   )}
               </div>
-              {editing?.id === note.id ? (
+              {node && editing?.id === note.id ? (
                 <NoteEditor
                   key={note.id}
                   nodeId={node.id}
@@ -189,10 +203,10 @@ function Timeline({
                 ? 'partial'
                 : 'complete'
         }
-        nodeId={node.id}
+        nodeId={node?.id ?? ''}
         userId={userId}
         canWrite={canWrite && readScope === 'self'}
-        manage={!!node.capabilities?.manage_collaborators}
+        manage={!!node?.capabilities?.manage_collaborators}
         reload={reload}
         expired={expired}
       />
@@ -207,18 +221,22 @@ function Timeline({
 }
 
 export default function RecordTimeline(props: {
-  node: NodeItem;
+  node: NodeItem | null;
+  projectId: string;
+  leaf: boolean;
+  descendantTasks: number;
   userId: string;
   reload: RecordReload;
   expired: () => void;
   select: (id: string) => void;
 }) {
+  // Like the Demo, upper nodes open on the read-only roll-up of their subtree; the project level only has the roll-up.
   const [scope, setScope] = useState(
-    props.node.kind === 'task' ? 'self' : 'subtree',
+    props.node === null ? 'project' : props.leaf ? 'self' : 'subtree',
   );
   return (
     <>
-      {props.node.kind !== 'task' && (
+      {props.node !== null && !props.leaf && (
         <label>
           紀錄範圍
           <select

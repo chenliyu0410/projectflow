@@ -80,12 +80,22 @@ class NodeCreate(NodeMetadata):
 
 class NodeUpdate(NodeMetadata):
     title: str | None = None
+    weight: int | None = Field(default=None, ge=0, le=100, strict=True)
+    progress: int | None = Field(default=None, ge=0, le=100, strict=True)
 
     @model_validator(mode="after")
     def nonempty(self):
         if not self.model_fields_set:
             raise ValueError("請提供要更新的欄位")
+        if "weight" in self.model_fields_set and self.weight is None:
+            raise ValueError("權重需為 0–100 的整數")
         return self
+
+
+class NodeMove(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    parent_id: str = Field(min_length=1, max_length=36)
 
 
 class ProjectFromWorkflowCreate(BaseModel):

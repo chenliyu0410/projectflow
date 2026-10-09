@@ -44,11 +44,17 @@ export default function ReportPanel({
   userId,
   reload,
   expired,
+  autoOpen = false,
+  openChildren = [],
 }: {
   node: NodeItem;
   userId: string;
   reload: RecordReload;
   expired: () => void;
+  /** Opened from a card's ✓ 回報 or a drag to 待確認／完成. */
+  autoOpen?: boolean;
+  /** Visible children that are not done or skipped; the API also refuses hidden ones. */
+  openChildren?: NodeItem[];
 }) {
   const scope = useRequestScope();
   const mutation = useRecordMutation(reload, expired);
@@ -63,7 +69,7 @@ export default function ReportPanel({
   const [comment, setComment] = useState('');
   const [action, setAction] = useState('');
   const [reason, setReason] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(autoOpen);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const reopen = useRef(false);
   async function load() {
@@ -119,8 +125,12 @@ export default function ReportPanel({
     void load();
   }, []);
   const actions = node.state_actions ?? [];
+  const childrenOpen = openChildren.length > 0;
+  const childrenText = `還有 ${openChildren.length} 項子任務未完成：${openChildren.map((child) => child.title).join('、')}；全部完成或略過後才能回報完成。`;
   const canSubmit =
-    !!node.capabilities?.submit_report && actions.includes('submit_report');
+    !!node.capabilities?.submit_report &&
+    actions.includes('submit_report') &&
+    !childrenOpen;
   const canReview =
     !!node.capabilities?.review_report &&
     latest &&
@@ -190,6 +200,7 @@ export default function ReportPanel({
             </button>
           )}
           {!loading && !error && pending && !canReview && <span className="small muted">等待有權審核者確認</span>}
+          {!loading && !error && childrenOpen && ['todo', 'doing', 'review'].includes(node.status) && <span className="small muted">{childrenText}</span>}
         </div>
       </div>
       {!loading && !error && (
@@ -311,7 +322,7 @@ export default function ReportPanel({
                   <div className="record-actions">
                     <button
                       className="primary"
-                      disabled={mutation.busy}
+                      disabled={mutation.busy || childrenOpen}
                       onClick={() =>
                         void mutation.execute((signal) =>
                           api.reviewReport(

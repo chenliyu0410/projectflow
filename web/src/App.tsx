@@ -5,10 +5,10 @@ import ReviewCenter from './components/ReviewCenter';
 import AuditLogView from './components/AuditLogView';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { api, ApiError } from './api';
+import { api, ApiError, KNOWN_CONFLICTS } from './api';
 import type { NodeStatus, ProjectDetail, ProjectSummary, SessionInfo, WorkflowSummary, WorkspaceRoute } from './types';
 import WorkspaceShell, { projectColor } from './components/WorkspaceShell';
-import NodeWorkspace, { isLeafTask } from './components/NodeWorkspace';
+import NodeWorkspace, { isLeafTask, levelOf } from './components/NodeWorkspace';
 import type { NodeTab } from './components/NodeWorkspace';
 import NodeEditor from './components/NodeEditor';
 import WorkspaceOverview from './components/WorkspaceOverview';
@@ -48,6 +48,8 @@ export default function App() {
   const [projectTitle, setProjectTitle] = useState('');
   const [projectStart, setProjectStart] = useState('');
   const [projectView, setProjectView] = useState<NodeTab>('board');
+  // A card's ✓ 回報 opens that task with its report form already expanded.
+  const [reportIntent, setReportIntent] = useState<string | null>(null);
   // Like the Demo: a leaf task opens on its records, anything else on its board.
   const defaultTab = (nodes: ProjectDetail['nodes'], nodeId: string | null): NodeTab => isLeafTask(nodes, nodes.find(node => node.id === nodeId)) ? 'records' : 'board';
   const sequence = useRef(0);
@@ -114,9 +116,17 @@ export default function App() {
     if (next.page === 'project' && next.projectId) { void selectProject(next.projectId, next.nodeId); return; }
     begin(); closeCreation(); setProject(null); setMessage(''); setRoute(next); setState('ready');
   }
-  function selectNode(nodeId: string | null) {
+  /** Timeline and graph drill-down keep their tab like the Demo; a leaf task still opens on its records. */
+  function selectNode(nodeId: string | null, preferTab?: NodeTab) {
     if (busy) return;
-    begin(); closeCreation(); setMessage(''); setProjectView(defaultTab(project?.nodes ?? [], nodeId)); setSelectedNodeId(nodeId);
+    const nodes = project?.nodes ?? [];
+    begin(); closeCreation(); setMessage(''); setReportIntent(null);
+    setProjectView(preferTab && !isLeafTask(nodes, nodes.find(node => node.id === nodeId)) ? preferTab : defaultTab(nodes, nodeId));
+    setSelectedNodeId(nodeId);
+  }
+  function openReport(nodeId: string) {
+    if (busy || mutationId.current !== null) return;
+    selectNode(nodeId); setReportIntent(nodeId);
   }
   function retry() {
     if (session && selectedId) void selectProject(selectedId, selectedNodeId);
@@ -205,12 +215,37 @@ export default function App() {
         setMessage(error instanceof ApiError && error.status === 403
           ? action === 'gate' ? '沒有核准此閘門的權限' : '沒有操作此節點的權限'
           : error instanceof ApiError && error.status === 409 && action === 'status'
-            ? '目前狀態不允許此操作，請檢查閘門與前置任務'
+            ? KNOWN_CONFLICTS.has(error.message) ? error.message : '目前狀態不允許此操作，請檢查閘門與前置任務'
             : error instanceof ApiError ? error.message : '操作失敗，請稍後再試');
       }
     } finally {
       if (current(request)) { mutationId.current = null; setMutating(false); }
     }
+  }
+  async function moveNode(id: string, parentId: string) {
+    if (!project || !session || busy || mutationId.current !== null || session.user.role === 'readonly') return;
+    const projectId = project.id;
+    const moved = project.nodes.find(node => node.id === id)?.title;
+    const target = project.nodes.find(node => node.id === parentId)?.title;
+    const request = begin();
+    mutationId.current = request.id; setMutating(true); setMessage('');
+    let saved = false;
+    try {
+      await api.moveNode(id, parentId, request.controller.signal);
+      saved = true;
+      if (!current(request)) return;
+      const detail = await api.project(projectId, request.controller.signal);
+      if (!current(request)) return;
+      setProject(detail); setRecordVersion(value => value + 1);
+      setMessage(`已將「${moved}」移到「${target}」底下${levelOf(detail.nodes, id) >= 5 ? '；層數超過 5 層，建議考慮拆成獨立專案' : ''}`);
+    } catch (error) {
+      if (!current(request)) return;
+      if (error instanceof ApiError && error.status === 401) { clearSession(); setMessage(error.message); }
+      else if (saved) setMessage('已移動，資料重新載入失敗，請重新整理');
+      else setMessage(error instanceof ApiError && error.status === 403 ? '你的角色無權移動此任務'
+        : error instanceof ApiError && error.status === 0 ? '連線中斷，請重新整理確認移動結果；不會自動重送'
+          : error instanceof ApiError ? error.message : '操作失敗，請稍後再試');
+    } finally { if (current(request)) { mutationId.current = null; setMutating(false); } }
   }
   const canApprove = session && project && session.user.role !== 'readonly' && (
     session.user.role === 'admin' || session.user.id === project.owner_user_id || session.user.role === 'reviewer'
@@ -296,7 +331,7 @@ export default function App() {
     try {
       const detail = await api.project(project.id, signal);
       if (signal.aborted || id !== sequence.current) return;
-      setProject(detail); setRecordVersion(value => value + 1);
+      setProject(detail); setRecordVersion(value => value + 1); setReportIntent(null);
       if (selectedNodeId && !detail.nodes.some(node => node.id === selectedNodeId)) { setSelectedNodeId(null); setMessage('找不到項目或已失去可見權限'); }
     } catch (error) {
       if (!signal.aborted && id === sequence.current && error instanceof ApiError && [403, 404].includes(error.status)) { setProject(null); setState('error'); setMessage(error.message); }
@@ -345,18 +380,21 @@ export default function App() {
             userId={session.user.id} userName={session.user.display_name} roleLabel={ROLE_LABELS[session.user.role] ?? session.user.role}
             reloadRecords={reloadRecords} expired={expireSession} recordVersion={recordVersion} recordsEnabled={!busy && !editor && !creationOpen}
             readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)}
+            move={(id, parentId) => void moveNode(id, parentId)} openReport={openReport} reportIntent={reportIntent} notify={setMessage}
             color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))}
             tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { begin(); closeCreation(); setProjectView(view); }}
             actions={<>
               {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
-              <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">另存為模板<span className="nav-badge">尚未提供</span></button>
-              <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">套用模板<span className="nav-badge">尚未提供</span></button>
+              {session.user.role !== 'readonly' && <>
+                <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">另存為模板<span className="nav-badge">尚未提供</span></button>
+                <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">套用模板<span className="nav-badge">尚未提供</span></button>
+              </>}
               {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
             </>}
             editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
-              canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} />}
-            timeline={!busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={selectNode} reload={reloadRecords} expired={expireSession} />}
-            graph={!busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} project={project} select={selectNode} reload={reloadRecords} expired={expireSession} />} />}
+              canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} />}
+            timeline={!busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} scopeId={selectedNodeId} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession} />}
+            graph={!busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} project={project} scopeId={selectedNodeId} select={id => selectNode(id, 'graph')} reload={reloadRecords} expired={expireSession} />} />}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}
         </section>
         </WorkspaceShell> : <section>{state === 'checking-session' && <p role="status">確認登入狀態中</p>}{state === 'error' && <button onClick={retry}>重試</button>}</section>}
