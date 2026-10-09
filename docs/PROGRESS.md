@@ -13,10 +13,10 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI2展示情境 ✅ 任務進行／完成／退回重送／待審已交付** |
+| 目前工作項目 | **UI2全模板展示 ✅ 現有15套模板均有進行情境** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | 人類重新整理15173，試用已補齊的主食罐／連接器專案；P2d先定範圍，不自動啟動。 |
-| 分支 | `main`，UI2展示情境從BASE `0928e1d` ff-only交付。 |
+| 下一個動作 | 人類於15173切換五家公司試用全部15個展示專案；P2d先定範圍，不自動啟動。 |
+| 分支 | `main`；全模板展示從BASE `89c944d` ff-only交付。 |
 | 最新程式 commit | UI2 `3441289`；UI1 `b8110d7`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | UI2：API完整351pass/1舊route清單fail/7skip→相關22pass；Vitest170pass→相關9pass；build0；E2E18pass/2舊模板排序fail→相關4pass。詳§3，不假稱首次全綠。 |
@@ -91,6 +91,7 @@
 | 已完成 | P2b | 回報／審核、筆記、附件與稽核介面 | ✅ 工程交付 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；八Task／G4雙審、G6隔離回歸及保留資料部署通過 | P2a |
 | 已完成 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
 | 已完成 | UI1 | 前端介面對齊：Demo框架／配色／卡片／工作區／時程 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)，D67人類指定，既有真實功能不變 | P2a/P2b/P2c |
+| 已完成 | UI2全模板 | 15套模板各有進行中的展示專案 | ✅ | [短計畫](superpowers/plans/2026-10-09-ui2-all-template-scenarios.md)；人類要求所有模板 | UI2 |
 | 已完成 | UI2追加 | 既有專案套用模板，移除waa | ✅ | 人類直接要求；[資料操作計畫](superpowers/plans/2026-10-09-ui2-project-fill.md) | UI2 |
 | 已完成 | UI2 | 產業模板與左下展示公司切換 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-09-ui2-showcase-library.md)，D68人類指定本機一鍵切換 | UI1 |
 | 後續 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
@@ -107,6 +108,16 @@
 ---
 
 ## 3. 工作項目明細
+
+### UI2 全模板進行情境 — ✅ 全15套資料交付
+
+人類要求「所有模板都在進行中，像DEMO豐富」。[短計畫](superpowers/plans/2026-10-09-ui2-all-template-scenarios.md)。實際庫為12catalog＋原食品／電子＋食品複本共15套，因此新增13案、沿用2案，而不是只處理catalog。
+
+- 食品4案38task、電子4案68task、活動3案47task、軟體2案16task、工程2案19task；每案皆有done／doing／review／todo。总計188task：39done、15doing、15review，其他119todo。前置阻擋和Gate沿真服務。
+- 新案第一phase完成且Gateapproved、第二phase進行且首task待審；另加獨立專案協調taskdoing及3筆筆記。4node舊模板補日期與待審後解鎖驗收task。既有2案不改，不改模板，不偽造實際結果；新案／回報／筆記均展示標示。待審由member展示執行者提交，管理者可真審核。
+- 新增13projects／208nodes／38gates／93dependencies／47reports／39notes／3展示member／231audit。全部原rows及欄位逐值保留，files SHA／env／DB容器相同；預覽rollback、停止API一致DB+files備份後apply，重跑全already-applied無重複。瀏覽器切換真session另記正常稽核。
+- 一次相關隔離測試3/3 exit0；擴充15套後相關3/3 exit0。覆蓋全部15案對應、每案真狀態/blocked/禁止自審、原rows逐值、預覽回滾、最後模板衝突時整批回滾、冪等與模式關閉。未改UI/API/schema，未重跑不相關全量。一次唯讀獨立審查與15套窄複核均Ready to apply。
+- 已在15173真UI依次切換五公司，專案數4/4/3/2/2、總覽完成率18/16/26/25/26%與DB相符，無空公司；目前停活動總覽。截圖與測試/備份ignored `.superpowers/ui2-all/`。人類試用未代勾；P2d維持後移，D50 main push。
 
 ### UI2 展示進行情境 — ✅ 資料交付
 
