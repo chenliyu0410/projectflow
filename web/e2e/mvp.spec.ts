@@ -84,7 +84,7 @@ for (const width of [1280, 375]) {
       // A member without the parent phase sees the owned task promoted onto the project board, and no phase strip.
       await expect(ming.getByLabel('看板')).not.toContainText(hidden.title);
       await expect(ming.getByLabel('開發階段與閘門')).toHaveCount(0);
-      await ming.getByLabel('看板').getByRole('button', { name: own.title }).click();
+      await ming.getByLabel('看板').getByRole('button', { name: own.title, exact: true }).click();
       await expect(ming.getByLabel('節點路徑')).toHaveText(`成貓主食罐正式版 / ${own.title}`);
       await ming.getByRole('combobox', { name: `${own.title}狀態` }).selectOption('todo');
       await expect(ming.getByLabel('節點詳情').getByRole('combobox', { name: `${own.title}狀態` })).toHaveValue('todo');
