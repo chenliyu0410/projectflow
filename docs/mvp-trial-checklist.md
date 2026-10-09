@@ -142,3 +142,5 @@ P2c交付：一次獨立審查Ready to merge: Yes，ff-only合併main；依D65�
 - [ ] 完成回報、紀錄／筆記／附件、審核、模板與稽核頁面符合試用需求。
 - [ ] 原有15173專案、日期與檔案仍在，理解UI1不代表P2d或完整Demo功能已交付。
 - [ ] 試用者填寫日期、意見與簽核（自動化不得代勾）。
+
+UI1發布完成：15173只替換web，ready200且CSS/JS與最終build一致；所有原row／欄位值、附件SHA、env、API/DB容器ID／映像／啟動時間前後相同。隔離acceptance down不-v，volume保留；不seed。

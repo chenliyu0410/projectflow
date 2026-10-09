@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI1 🟢 介面對齊驗收完成，待保留資料發布；P2d後移** |
+| 目前工作項目 | **UI1 ✅ 工程交付／15173新版已部署；P2d後移** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | UI1獨立審查Ready to merge；ff-only合併後只更新15173 web，核對API/DB/files/env保留並push main。P2d尚待定範圍。 |
-| 分支 | `feature/ui1-demo-alignment`（主checkout；BASE `5e1a83e`）。 |
-| 最新程式 commit | P2c整合 `5992ce6`；Demo仍W6 `0934e48`未改。 |
+| 下一個動作 | UI1已完成；請人類在15173試用新版介面並簽核。P2d排後且需定範圍，不自動啟動。 |
+| 分支 | `main`（UI1 `b8110d7` ff-only合併，feature安全刪除）。 |
+| 最新程式 commit | UI1 `b8110d7`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | P2c PG6pass、API344pass7skip+兩修正target通過、Vitest167/build0、E2E15pass+剩餘target通過；一次完整回歸及窄修正驗證，未假稱原verify exit0。 |
+| 測試基準 | UI1：完整Vitest165pass2fail→相關78/78pass；build0；完整E2E15pass3fail→相關11/11pass；新視覺／失效狀態2/2pass。失敗均舊結構斷言適配，未假稱首輪全過；API/PG沿P2c。 |
 | 資料版本 | Demo v6/key未改；正式migration `20261009_0004`。15173原有全部row/欄位值、檔案SHA與env保留；隔離acceptance/p2c-backend已down不-v，雙volume與專用DB保留。 |
-| 認領中 | Codex：UI1介面對齊、隔離驗收與交付。 |
-| 阻塞／待人類 | P2c無工程阻塞；P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核，UI1無產品決策阻塞，P2d後移且需定範圍；LAN未授權。 |
-| 遠端 | P2c交付`65f91cb`已push main且ls-remote核對一致；本發布紀錄隨main同步。本輪fetch無未知遠端改動，無force。 |
+| 認領中 | —（UI1工程交付完成）。 |
+| 阻塞／待人類 | UI1無工程阻塞；UI1及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。P2d後移且需定範圍；LAN未授權。 |
+| 遠端 | UI1程式`b8110d7`與本交付紀錄依D50一併push main；發布後核對ls-remote。開工fetch為`5e1a83e`，無未知改動、無force。 |
 
 ---
 
@@ -90,7 +90,7 @@
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
 | 已完成 | P2b | 回報／審核、筆記、附件與稽核介面 | ✅ 工程交付 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；八Task／G4雙審、G6隔離回歸及保留資料部署通過 | P2a |
 | 已完成 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
-| 本階段 | UI1 | 前端介面對齊：Demo框架／配色／卡片／工作區／時程 | 🟢 已驗收待發布 | [精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)，D67人類指定，既有真實功能不變 | P2a/P2b/P2c |
+| 已完成 | UI1 | 前端介面對齊：Demo框架／配色／卡片／工作區／時程 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)，D67人類指定，既有真實功能不變 | P2a/P2b/P2c |
 | 後續 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -106,7 +106,7 @@
 
 ## 3. 工作項目明細
 
-### UI1 前端介面對齊 — 🟢 已驗收待發布
+### UI1 前端介面對齊 — ✅ 工程交付
 
 D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)完成252px暖灰側欄、品牌／分組導覽／可捲專案清單／真實使用者、米白深綠視覺與本機中文字體／serif標題；主區獨立捲動，手機收合導覽與Escape／選頁焦點返回。總覽真統計／專案進度卡、我的任務篩選列表、工作區節點分區／麵包屑／操作與分頁／下一層卡片，以及紀錄、時程、模板、審核、稽核共用卡片與工具列。保留API、權限、Gate、FS、日期確認與所有既有操作。沒有新增假指標、Demo切換身分或未交付模組入口。
 
@@ -116,7 +116,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 
 **獨立審查**：唯讀`ui1_review`依WORKFLOW §14檢查diff與Demo／正式截圖，修正手機導覽focus後窄複核，結論 **Ready to merge**、無阻擋。沒有重跑另一套全量，沒有冒稱人類簽核。
 
-**限制與下一步**：對齊主要布局／色彩／資訊層級，並非Demo全部功能或逐像素一致；手機採單欄與日期表單。P2c的進階排程、自訂回報欄位與P2d文件／AI／營運仍延後。人類UI1視覺與操作試用仍待簽核。15173此筆紀錄尚待web-only更新，API/DB/files/env保留基線已建立。
+**限制與下一步**：對齊主要布局／色彩／資訊層級，並非Demo全部功能或逐像素一致；手機採單欄與日期表單。P2c的進階排程、自訂回報欄位與P2d文件／AI／營運仍延後。人類UI1視覺與操作試用仍待簽核。15173已web-only更新，CSS/JS實際回應與最終build逐bytes一致，health/ready200。前後所有原row/欄位值、files SHA、env相同；API/DB容器ID、映像與啟動時間皆未變。不seed、不重啟API/DB。隔離acceptance已down不-v，雙volume保留；自啟Demo18005已關。
 
 
 ### P2c 時程、模板與前置 — ✅ 精簡範圍工程交付
@@ -934,3 +934,10 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **獨立審查**：review_finalized_docs及review_task1第1輪提出附件commit結果不明清理與新volume非root權限兩Important；修正後兩位Approved，無剩餘Important／Critical。Dockerfile加入允許清單是本輪計畫草案修正，沒有實際改產品。
 - **驗證**：文件連結／git diff --check；未跑P2b產品測試、未改DB／容器／15173。沒有把文件審查當工程驗收或把歷史P2a結果當新GREEN。
 - **下一步**：人類整體審閱完整spec與plan；同意後定稿G1／G2，跑G3隔離基準，在主checkout開唯一feature分支，依八Task執行。無需重新詢問已選D59–D63。文件本機提交未push，試用簽核仍未代勾。
+
+### 2026-10-09｜Codex GPT-6｜UI1 介面對齊交付
+
+- BASE `5e1a83e` → `b8110d7`，一次唯讀獨立審查Ready to merge，ff-only main；D50授權發布。
+- 完成側欄、視覺、總覽／任務卡片、工作區、紀錄與時程／管理頁；Demo不改。兩種尺寸對照圖與驗收log在ignored `.superpowers/ui1/`。
+- 完整回歸與窄修正結果見UI1明細；primary只換web，原row、files、env、API/DB容器完全保留，靜態產物及ready檢查通過。
+- 人類試用未代勾，P2d後移且待定範圍。隔離容器與自啟Demo server已關、資料volume保留。
