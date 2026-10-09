@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI3 🔨 Demo框架與首頁對齊（D70：任務規劃器優先，UI4後先做TP-A至TP-G）** |
+| 目前工作項目 | **UI3 ✅ Demo框架與首頁對齊；下一階段UI4（D70：UI4後先做TP-A至TP-G）** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | 照[UI3短規格／計畫](superpowers/plans/2026-10-09-ui3-frame-home.md)實作步驟1–5，再跑一次完整隔離驗收與一位獨立審查。 |
-| 分支 | `feature/ui3-frame-home`（從`main`開出；期間main凍結）。 |
-| 最新程式 commit | `8d2c1dc`（15套模板展示）；D69、D70只改規劃文件。 |
+| 下一個動作 | UI4：先取Demo／正式版工作區、看板、回報、時程、相依圖、模板頁的同尺寸對照圖與差距表（可重用保留volume的`projectflow-ui3cmp`），再寫短規格／計畫；UI4只接既有功能，新規則歸TP。 |
+| 分支 | `main`；`feature/ui3-frame-home`已ff-only合併並刪除。 |
+| 最新程式 commit | `5598134`（UI3審查修正）；`a0c9936`為UI3文件。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | UI2：API完整351pass/1舊route清單fail/7skip→相關22pass；Vitest170pass→相關9pass；build0；E2E18pass/2舊模板排序fail→相關4pass。詳§3，不假稱首次全綠。 |
-| 資料版本 | Demo v6/key未改；migration `20261009_0004`。15173原rows/欄位/files/原env逐值保留，只增3公司/5身分/12模板/219節點/12稽核及本機展示旗標。acceptance down不-v，volume保留。 |
+| 測試基準 | UI3：PG6pass；API368pass/7skip/0fail；Vitest173pass；build0；E2E20/20（系統Edge）。首輪verify的E2E16項因本機沒有Playwright Chromium無法啟動瀏覽器；Edge首輪5fail為測試等待時序，修正後全過。詳§3。 |
+| 資料版本 | Demo v6/key未改；migration `20261009_0004`未改（UI3沒有schema變更）。15173更新API＋web後，全部rows／欄位值、附件SHA、env、DB容器逐一相同，新增0列。acceptance與ui3cmp都down不-v，volume保留。 |
 | 認領中 | 無。 |
-| 阻塞／待人類 | 無工程阻塞；UI1/UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。原P2d拆入UI5/F1，細節逐批定短範圍；LAN未授權。 |
-| 遠端 | D70規劃／README／路線圖／看板依D50發布main，push後核對遠端；不force。 |
+| 阻塞／待人類 | 無工程阻塞；UI3／UI1／UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。原P2d拆入UI5/F1，細節逐批定短範圍；LAN未授權。 |
+| 遠端 | UI3依D50發布main，push後核對遠端；不force。 |
 
 ---
 
@@ -94,8 +94,8 @@
 | 已完成 | UI2全模板 | 15套模板各有進行中的展示專案 | ✅ | [短計畫](superpowers/plans/2026-10-09-ui2-all-template-scenarios.md)；人類要求所有模板 | UI2 |
 | 已完成 | UI2追加 | 既有專案套用模板，移除waa | ✅ | 人類直接要求；[資料操作計畫](superpowers/plans/2026-10-09-ui2-project-fill.md) | UI2 |
 | 已完成 | UI2 | 產業模板與左下展示公司切換 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-09-ui2-showcase-library.md)，D68人類指定本機一鍵切換 | UI1 |
-| 進行中 | UI3 | Demo整體框架、首頁與我的任務精準對齊 | 🔨 `feature/ui3-frame-home` | D69／D70，[短規格／計畫](superpowers/plans/2026-10-09-ui3-frame-home.md) | UI1/2 |
-| 後續 | UI4 | 工作區／看板／回報／時程／模板操作一致 | ⬜ | 先接既有功能，再補差距；逐頁對照驗收 | UI3 |
+| 已完成 | UI3 | Demo整體框架、首頁與我的任務精準對齊 | ✅ 工程交付 | D69／D70，[短規格／計畫](superpowers/plans/2026-10-09-ui3-frame-home.md) | UI1/2 |
+| 下一階段 | UI4 | 工作區／看板／回報／時程／模板操作一致 | ⬜ | 先接既有功能，再補差距；逐頁對照驗收 | UI3 |
 | 後續 | TP-A | 任務規劃器：節點分頁、看板拖曳與卡片資訊、進度彙總、父節點完成規則 | ⬜ | D70人類2026-10-09指示，[範圍](superpowers/plans/2026-10-09-demo-parity-first.md#d70任務規劃器優先) | UI4 |
 | 後續 | TP-B | 任務規劃器：刪除、升降級、拖曳改層級、複製子樹、復原上一步 | ⬜ | D70 | TP-A |
 | 後續 | TP-C | 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑） | ⬜ | D70 | TP-B |
@@ -120,13 +120,19 @@
 
 ## 3. 工作項目明細
 
-### UI3 Demo框架與首頁對齊 — 🔨 執行中
+### UI3 Demo框架與首頁對齊 — ✅ 工程交付
 
-**授權／範圍**：D69、D70；D65精簡流程。範圍是Demo三區框架、側欄專案進度、右側副手框架、總覽與我的任務。[短規格／計畫](superpowers/plans/2026-10-09-ui3-frame-home.md)含逐頁差距表（17列）、允許檔案與驗收情境；唯讀API擴充為AI代決D71。
+**交付**：`03dc854..a0c9936`，一位唯讀獨立審查（首輪Ready to merge: No，2項Important；修正後複核Yes），ff-only main，D50 push。
 
-**對照結果**：Demo 1280為側欄252｜主區678｜副手350，正式版沒有副手、主區1028；總覽缺專案表、人員／部門負載，我的任務是卡片而非分組表格，手機頂部列與抽屜形式不同。截圖、量測與腳本在ignored `.superpowers/ui3/`。
+**畫面／互動對齊**：Demo三區（1280為252｜678｜350、1440為252｜838｜350，與Demo量測相同）；導覽名稱與線條圖示；側欄專案色、完成%與進度條；側欄「＋ 建立新專案」；總覽4卡、專案表、人員／部門負載；我的任務分組表格與位置欄；1180以下副手右抽屜、860以下導覽左抽屜，Escape關閉、焦點回開關，關閉時不可聚焦。1024／375沒有水平捲動。對照圖在ignored `.superpowers/ui3/`（Demo、final、mobile strip）。
 
-**執行注意**：Demo用另開的127.0.0.1:18005與Playwright全新context截圖，不跑測試頁，不清人類localhost資料。正式版截圖只用隔離環境：15175的acceptance資料庫累積了214個舊E2E專案，資料量不可比，所以另建乾淨的`projectflow-ui3cmp`（15179，有acceptance marker），seed後依序套用與15173相同的三個展示腳本。UI3之後依D70是UI4（只接既有功能），再到TP-A至TP-G。
+**正式功能完成**：首頁數字都來自真API（overview／my-tasks新增唯讀欄位，D71）；建立、公司切換、登出、審核、模板、稽核沿用既有功能。仍是展示預覽或未提供：AI副手內容（F1）、營運資料與AI政策頁（UI5／F1）、延後天數預測（TP-C）、待我指派與通知（TP-F）。與Demo的刻意差異：保留「可見任務完成率」第4張卡；我的任務預設列全部狀態（Demo只列未完成）並保留搜尋篩選。
+
+**審查與修正**：Important 1（捲動後按建立，表單在畫面外）→表單捲入畫面並取得焦點；Important 2（375有鎖標籤的標題被擠成一字一行）→標題保留基準寬度、標籤換行。E2E另抓到抽屜visibility隨動畫過渡造成開啟第一瞬間仍隱藏的時序，改成visibility立即切換、只動畫滑動，並支援reduced motion。其餘Minor延後：「☰ 選單」可見文字與aria-label不同、側欄進度換頁才更新、overview在總覽頁會請求兩次、1440只靠截圖核對。
+
+**測試（2026-10-09）**：API workspace 30pass（新增延遲／階段／負載／位置不洩漏）。`deploy/verify.py`一次：PG6pass、API368pass/7skip、Vitest173pass、build0；E2E16fail1皆為`browserType.launch: Executable doesn't exist`（本機沒有Playwright Chromium）、4pass。改用不提交的Edge channel設定：首輪15pass5fail（登入後未等側欄、抽屜開關時序），修正後完整E2E20/20；最後一個樣式修正後重跑visual-alignment＋workspace 5/5。Vitest在修正後再跑173/173。
+
+**15173發布**：停API後pg_dump＋files成套備份（ignored `.superpowers/ui3/primary/`），`up --build --no-deps api web`，不seed、不動DB容器。health／ready／web 200，前端產物含新首頁；全部rows／欄位值、附件SHA、env、DB容器ID逐一相同，新增0列。人類試用未代勾。
 
 ### UI2 全模板進行情境 — ✅ 全15套資料交付
 
@@ -719,6 +725,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | 項目 | 內容 | 證據 |
 |---|---|---|
+| UI3 | Demo三區框架、導覽與側欄進度、總覽表格與負載、我的任務分組表格、預覽副手 | `03dc854..a0c9936`；一次獨立審查（2 Important修正後Yes）；PG6、API368/7skip、Vitest173、build0、E2E20/20（系統Edge）。15173更新API＋web，資料逐值保留、新增0列。人類簽核未勾。 |
 | P2c | 日週月時程/拖移與手機改期、模板CRUD/copy/相對日、硬性FS與可見相依圖 | 6c45e51..5992ce6；D65一次獨立審查Ready to merge: Yes；PG6、API344+target2、Vitest167/build0、E2E15+target1，首次fail日志保留，不重跑main全量。無seed重啟/15173成套備份升0004，原值/filesSHA/env相同。精簡範圍之外明列延後，人類簽核未勾。 |
 | P2b | 回報審核、筆記修訂、指定協作、持久附件、審核中心與安全稽核 | ef39cdd..4d0323e；八Task TDD／雙審、G4 Ready to merge: Yes、ff-only main。G6強制PG1+3、API337/5skip、Vitest150、E2E13/build/cleanup exit0；重啟/恢復/配額、15173無seed升級舊資料與env不變。人類簽核未勾。 |
 | P2a | 工作區、總覽／我的任務、四層新增／metadata編輯、D56指派與日期、多層Gate | acf176e..8dc914a；六Task TDD、兩位獨立spec／品質審查與G4 Ready to merge: Yes；ff-only main，G6 API182／Vitest96／E2E9/build/cleanup exit0，真PG與無seed重啟保留資料通過。15173已就緒，人類簽核未勾。 |
@@ -974,6 +981,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-09｜Claude Code Opus 5.5｜D70任務規劃器優先、UI3交付
+
+- **做了什麼**：人類決定D70（文件先不算、復原只做上一步），路線改為UI3→UI4→TP-A至TP-G→UI5→F1→F2（`8a54cb2`、`6863500`）。UI3對照圖與17列差距表、短計畫（`03dc854`），實作與審查修正（`52218db`、`5598134`），文件（`a0c9936`）。
+- **驗證**：PG6、API368/7skip、Vitest173、build0、E2E20/20（系統Edge）；一位獨立審查，2項Important修正後複核Yes。15173資料逐值保留。
+- **沒做的事／偏離plan**：本機沒有Playwright內建Chromium，E2E改用系統Edge（暫時設定未提交）；比對環境另建乾淨的`projectflow-ui3cmp`，因15175有214個舊E2E專案。
+- **下一步**：UI4對照圖與差距表，再寫短計畫。
+- **注意**：`projectflow-ui3cmp`（15179）volume保留可重用；人類試用UI3／UI1／UI2／P1c–P2c未簽核；D10未決，F1前需決定。
+
 ### 2026-10-09｜Codex GPT-6｜D69 Demo畫面與操作優先重排
 
 - 人類要求重新規劃：先以Demo畫面及操作一致為優先，功能逐步补齊；UI3→UI4→UI5→F1→F2，P2d改為範圍索引。
@@ -998,9 +1013,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **順序**：UI1在P2d前；主要版面/視覺依Demo，接既有真實功能，未實作頁不放假資料。
 - **文件／盤點**：讀Demo CSS與正式版布局、整理短規格／計畫，未改產品、DB或容器；文件diff核對，無產品測試宣稱。
 - **下一步**：先隔離環境取得1280/375對照圖，實作UI1、一次獨立審查與前端回歸，再部署及D50推送；已完成P2c不重做，人類簽核維持未勾。
-
-### 2026-10-09｜Codex GPT-6｜P2c精簡範圍工程交付
-- **完成**：D66 A時程/模板/FS/簡單圖，未新增套件；一次獨立審查Ready to merge: Yes，Minor桌面寬度觸控點條記錄延後。
-- **驗證**：候選完整回歸一次，PG6通過；API344pass7skip2舊capfail→兩target通過，Vitest167/build0，E2E15pass1舊排序fail→剩餘target通過；不假稱首次verify全綠，不重跑main全量。1280/375真UI、20taskcycle、無seed資料保存通過，詳細`.superpowers/p2c/`。
-- **資料／部署**：ff-only main；15173停止API保存DB+files一致備份，不seed升0004，全部原欄位/row、檔案SHA與env不變，health/ready/web200。只跑隔離業務測試，acceptance/backend容器清空，雙volume與專用DB保留，Demo未改。
-- **發布／下一步**：交付`65f91cb`依人類「完成後推上git」已push main且遠端核對一致；feature安全刪除，發布紀錄隨main同步；P2d先定一個產業案例與短範圍，不自動開始未核准功能。人類簽核全未代勾。
