@@ -69,6 +69,25 @@ describe('calendar schedule', () => {
       'd',
     ]);
   });
+  it('keeps a month start label that follows the leading partial month closely', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 9, 12));
+    try {
+      // Range starts 2026-09-30, so 10/1 sits one day after the leading label.
+      const { container } = render(
+        <TimelineView
+          project={{ ...project, nodes: [{ ...node, start_date: '2026-10-02', due_date: '2026-10-20' }] }}
+          select={vi.fn()}
+          reload={vi.fn()}
+          expired={vi.fn()}
+        />,
+      );
+      const months = [...container.querySelectorAll('.tick-month')].map((e) => e.textContent);
+      expect(months).toEqual(['26/10']);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it('shows unscheduled null dates and supports accessible day/week/month controls', () => {
     render(
       <TimelineView

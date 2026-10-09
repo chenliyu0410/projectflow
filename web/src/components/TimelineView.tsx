@@ -104,7 +104,11 @@ export default function TimelineView({
   for (let d = left; d <= right; d++) {
     const date = new Date(d * dayMs);
     const x = (d - left) * actualScale;
-    if ((d === left || date.getUTCDate() === 1) && x - lastMonth >= 40) { months.push(d); lastMonth = x; }
+    if (d === left || date.getUTCDate() === 1) {
+      if (x - lastMonth >= 40) { months.push(d); lastMonth = x; }
+      // A real month start wins over the partial leading month it collides with.
+      else if (months.length === 1 && months[0] === left) { months[0] = d; lastMonth = x; }
+    }
     if ((zoom === 'day' ? actualScale >= 14 : zoom === 'week' && date.getUTCDay() === 1) && x - lastSub >= subGap) { subs.push(d); lastSub = x; }
   }
   const firstMonday = left + ((8 - new Date(left * dayMs).getUTCDay()) % 7);
