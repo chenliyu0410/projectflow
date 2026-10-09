@@ -6,7 +6,7 @@ import { projectColor } from './WorkspaceShell';
 const OPEN = ['todo', 'doing', 'review'] as const;
 export const slashDate = (value: string | null | undefined) => value ? value.split('-').join('/') : '—';
 
-export default function WorkspaceOverview({ openProject, expired }: { openProject: (id: string) => void; expired: () => void }) {
+export default function WorkspaceOverview({ openProject, expired, showAssignHint = false }: { openProject: (id: string) => void; expired: () => void; showAssignHint?: boolean }) {
   const [data, setData] = useState<WorkspaceOverviewData | null>(null);
   const [error, setError] = useState(''); const [loading, setLoading] = useState(true);
   const sequence = useRef(0); const controller = useRef<AbortController | null>(null);
@@ -19,7 +19,7 @@ export default function WorkspaceOverview({ openProject, expired }: { openProjec
   }
   useEffect(() => { void load(); return () => { ++sequence.current; controller.current?.abort(); }; }, []);
   const open = data ? OPEN.reduce((sum, status) => sum + data.task_counts[status], 0) : 0;
-  const active = data ? data.projects.filter(project => project.completion_percent !== 100).length : 0;
+  const active = data ? data.projects.filter(project => OPEN.some(status => project.task_counts[status] > 0)).length : 0;
   const people = data?.people ?? [];
   const heaviest = Math.max(1, ...people.map(person => person.open_count));
   return <section aria-label="總覽內容"><div className="page-heading"><h1>所有專案總覽</h1><p className="page-description">跨專案進度、預估完成與人員負載（今天 {slashDate(data?.today)}）</p></div>
@@ -39,7 +39,7 @@ export default function WorkspaceOverview({ openProject, expired }: { openProjec
             <span className="bar-track" role="progressbar" aria-label={`${project.title}完成率`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={project.completion_percent}><span style={{ width: `${project.completion_percent}%`, background: projectColor(index) }}/></span>
             <span className="muted">{project.completion_percent}%</span></>}</td>
           <td>{slashDate(project.due_date)}</td>
-          <td>{project.overdue_count ? <span className="tag warn">延遲 {project.overdue_count} 項</span> : <span className="tag">如期</span>}</td>
+          <td>{project.overdue_count ? <span className="tag warn">延遲 {project.overdue_count} 項</span> : project.due_date ? <span className="tag">如期</span> : <span className="muted">—</span>}</td>
           <td>{project.task_counts.review || ''}</td>
         </tr>)}</tbody>
       </table></div>}
@@ -50,7 +50,7 @@ export default function WorkspaceOverview({ openProject, expired }: { openProjec
               <span>{person.open_count} 項{person.overdue_count > 0 && <span className="late">，{person.overdue_count} 項延遲</span>}</span></div>
             <span className="bar-track" aria-hidden="true"><span className={person.open_count === heaviest ? 'hot' : ''} style={{ width: `${person.open_count / heaviest * 100}%` }}/></span>
           </div>)}
-          <p className="muted small">工作量最重的人以橘色標示，可在任務編輯中改派負責人。</p></div>
+          <p className="muted small">工作量最重的人以橘色標示{showAssignHint ? '，可在任務編輯中改派負責人' : ''}。</p></div>
         <div className="panel"><h3>部門負載</h3>
           {(data.departments ?? []).length === 0 ? <p className="muted">尚未設定部門。</p> : data.departments!.map(department => <div className="dept-row" key={department.id}><span>{department.name}</span><span>{department.open_count} 項</span></div>)}
         </div>

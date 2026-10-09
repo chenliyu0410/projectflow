@@ -422,7 +422,7 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
 @media (max-width: 1180px) {
   .app-shell { grid-template-columns: 252px minmax(0,1fr); }
-  .copilot { position: fixed; top: 0; right: 0; bottom: 0; z-index: 40; width: 350px; max-width: 100vw; transform: translateX(100%); visibility: hidden; transition: transform .2s, visibility .2s; }
+  .copilot { position: fixed; top: 0; right: 0; bottom: 0; z-index: 40; width: 350px; max-width: 100vw; transform: translateX(100%); visibility: hidden; transition: transform .2s; }
   .copilot.open { transform: none; visibility: visible; box-shadow: -10px 0 30px rgba(0,0,0,.15); }
   .copilot-close { display: inline-flex; }
   .mobile-navigation { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 26px 0; background: transparent; border: 0; }
@@ -432,7 +432,7 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 }
 @media (max-width: 860px) {
   .app-shell { grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); }
-  .workspace-navigation, .workspace-navigation.expanded { display: flex; position: fixed; top: 0; bottom: 0; left: 0; z-index: 40; width: 252px; transform: translateX(-100%); visibility: hidden; transition: transform .2s, visibility .2s; }
+  .workspace-navigation, .workspace-navigation.expanded { display: flex; position: fixed; top: 0; bottom: 0; left: 0; z-index: 40; width: 252px; transform: translateX(-100%); visibility: hidden; transition: transform .2s; }
   .workspace-navigation.expanded { transform: none; visibility: visible; box-shadow: 10px 0 30px rgba(0,0,0,.15); }
   .workspace-navigation .brand { display: flex; }
   .mobile-navigation { justify-content: space-between; padding: 14px 16px 0; }
@@ -445,10 +445,15 @@ table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 /* Long titles wrap inside the button; the dot stays on the first line like the Demo table. */
 .sidebar-projects { grid-template-columns: minmax(0,1fr); }
 .sidebar-projects > button { min-width: 0; }
-.cell-title { display: flex; align-items: flex-start; gap: 6px; min-width: 0; }
+.cell-title { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 6px; min-width: 0; }
 .cell-title .project-dot, .cell-title .dot { flex-shrink: 0; margin: 5px 0 0; }
-.cell-title .row-link { flex: 0 1 auto; min-width: 0; }
+/* A basis keeps the title beside the dot; a tag that does not fit moves to the next line, as in the Demo. */
+.cell-title .row-link { flex: 1 1 5em; min-width: 0; }
 .cell-title .tag { flex-shrink: 0; }
 .row-link + .tag { margin-left: 0; }
+.creation-form:focus { outline: none; }
 .overview-table td:nth-child(2), .overview-table td:nth-child(4) { white-space: nowrap; }
 @media (max-width: 860px) { .overview-table td:first-child, .task-group .data-table td:first-child { min-width: 9em; } }
+/* Visibility flips instantly (only the slide is animated) so a closed drawer is never focusable or clickable; motion follows the user's setting like the Demo. */
+@media (prefers-reduced-motion: reduce) { .workspace-navigation, .copilot { transition: none; } }
+.task-group .data-table td:nth-child(3) { white-space: nowrap; }

@@ -53,7 +53,6 @@ def overview(current: CurrentUser = Depends(require_session), db: Session = Depe
     context = load_policy_context(db, current)
     projects, nodes = visible_workspace_nodes(db, current, context=context)
     today = datetime.now(LOCAL_TZ).date()
-    by_id = {node.id: node for node in nodes}
     counts = empty_counts()
     per_project = {pid: empty_counts() for pid in projects}
     overdue = dict.fromkeys(projects, 0)

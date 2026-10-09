@@ -42,6 +42,7 @@ for (const width of [1280, 375]) {
       await page.getByLabel('帳號').fill(username);
       await page.getByLabel('密碼').fill(`demo-${username}`);
       await page.getByRole('button', { name: '登入', exact: true }).click();
+      await page.getByRole('heading', { name: '所有專案總覽', exact: true }).waitFor();
       if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
       if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await expect(page.getByLabel('專案清單')).toBeVisible();
       await expect(page.getByRole('status')).toHaveCount(0);
