@@ -13,15 +13,15 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI4 🔨 專案工作區與操作對齊**（D70：UI4後先做TP-A至TP-G） |
+| 目前工作項目 | **UI4 🟢 專案工作區與操作對齊**（D70：UI4後先做TP-A至TP-G） |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | UI4：依[短規格／計畫](superpowers/plans/2026-10-09-ui4-workspace-ops.md)在`feature/ui4-workspace-ops`實作步驟1–6，再一次獨立審查與`deploy/verify.py`完整回歸。對照圖與15列差距表已完成（ignored `.superpowers/ui4/baseline/`）。 |
+| 下一個動作 | UI4：ff-only合併main；15173只更新web（先停API成套備份DB＋files與env，不seed），健康檢查與資料逐值比對後依D50 push main。之後TP-A寫短規格／計畫。 |
 | 分支 | `feature/ui4-workspace-ops`（從`main`開出）；`main`凍結。 |
-| 最新程式 commit | `5598134`（UI3審查修正）；`a0c9936`為UI3文件。 |
+| 最新程式 commit | `ea9a3aa`（UI4審查修正）；`822470e`為UI4實作。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | UI3：PG6pass；API368pass/7skip/0fail；Vitest173pass；build0；E2E20/20（系統Edge）。首輪verify的E2E16項因本機沒有Playwright Chromium無法啟動瀏覽器；Edge首輪5fail為測試等待時序，修正後全過。詳§3。 |
-| 資料版本 | Demo v6/key未改；migration `20261009_0004`未改（UI3沒有schema變更）。15173更新API＋web後，全部rows／欄位值、附件SHA、env、DB容器逐一相同，新增0列。acceptance與ui3cmp都down不-v，volume保留。 |
-| 認領中 | Claude Code Opus 5.5，2026-10-09，UI4實作。 |
+| 測試基準 | UI4：`28e098c`上`deploy/verify.py`一次全過：PG6pass；API368pass/7skip/0fail；Vitest174pass；build0；E2E20/20（Playwright Chromium）。`ea9a3aa`月份標籤修正後Vitest175pass、build0、schedule＋visual-alignment E2E5/5。詳§3。 |
+| 資料版本 | Demo v6/key未改；migration `20261009_0004`未改（UI4只改React，沒有API／schema變更）。acceptance down不-v，volume保留；ui3cmp（15179）保留供對照。 |
+| 認領中 | Claude Code Opus 5.5，2026-10-09，UI4合併與發布。 |
 | 阻塞／待人類 | 無工程阻塞；UI3／UI1／UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。原P2d拆入UI5/F1，細節逐批定短範圍；LAN未授權。 |
 | 遠端 | UI3依D50發布main，push後核對遠端；不force。 |
 
@@ -95,7 +95,7 @@
 | 已完成 | UI2追加 | 既有專案套用模板，移除waa | ✅ | 人類直接要求；[資料操作計畫](superpowers/plans/2026-10-09-ui2-project-fill.md) | UI2 |
 | 已完成 | UI2 | 產業模板與左下展示公司切換 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-09-ui2-showcase-library.md)，D68人類指定本機一鍵切換 | UI1 |
 | 已完成 | UI3 | Demo整體框架、首頁與我的任務精準對齊 | ✅ 工程交付 | D69／D70，[短規格／計畫](superpowers/plans/2026-10-09-ui3-frame-home.md) | UI1/2 |
-| 進行中 | UI4 | 工作區／看板／回報／時程／模板操作一致 | 🔨 | D70／D72，[短規格／計畫](superpowers/plans/2026-10-09-ui4-workspace-ops.md) | UI3 |
+| 進行中 | UI4 | 工作區／看板／回報／時程／模板操作一致 | 🟢 可合併 | D70／D72，[短規格／計畫](superpowers/plans/2026-10-09-ui4-workspace-ops.md) | UI3 |
 | 後續 | TP-A | 任務規劃器：節點分頁、看板拖曳與卡片資訊、進度彙總、父節點完成規則 | ⬜ | D70人類2026-10-09指示，[範圍](superpowers/plans/2026-10-09-demo-parity-first.md#d70任務規劃器優先) | UI4 |
 | 後續 | TP-B | 任務規劃器：刪除、升降級、拖曳改層級、複製子樹、復原上一步 | ⬜ | D70 | TP-A |
 | 後續 | TP-C | 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑） | ⬜ | D70 | TP-B |
@@ -119,6 +119,22 @@
 ---
 
 ## 3. 工作項目明細
+
+### UI4 專案工作區與操作對齊 — 🟢 可合併
+
+**交付**：`9a47444..ea9a3aa`（計畫、實作`822470e`、審查修正`28e098c`、`ea9a3aa`），一位唯讀獨立審查（首輪Needs fixes，1項Blocking；修正後複核Ready to merge）。
+
+**畫面／互動對齊**：節點頁照Demo由上而下：麵包屑、h1目前節點、meta列（負責、期間、完成率、狀態、🔒等待前置）、右側操作、任務回報卡、專案層階段條／階段層閘門列、分頁「看板・時程・相依圖・文件・資料・成員與權限・紀錄」。主區節點樹移除。看板4欄，1280每欄與Demo同為148（改版前5欄各99、卡片標題被擠成兩字一行），375為4×240在框內橫捲。時程分段鈕、270／150px標籤欄、36px列、專案色條、兩層刻度、手機同一張圖；相依圖HTML方塊由左到右、直角箭頭、灰實線／橘虛線；模板庫卡片「用這套工作流建立專案」；審核中心三區與閘門表格。對照圖在ignored `.superpowers/ui4/`（baseline為Demo與改版前，round1／e2e為改版後）。
+
+**正式功能完成**：沒有新API、欄位或寫入規則，所有按鈕沿用既有capabilities；完成率、期間、階段條、相依圖只用API已過濾的可見節點。仍標「尚未提供」或延後：另存／套用模板（TP-E）、文件／資料（UI5／F1）、跳過申請與角色權限表（TP-F）、拖曳改狀態、卡片子任務數與迷你進度、節點自己的時程／相依圖、加權進度（TP-A）、自動順延與關鍵路徑（TP-C）、拖線建立（TP-D）、自訂回報欄位（TP-G）。刻意差異：狀態名稱沿用正式版用詞（D72）。
+
+**執行注意**：計畫允許清單在實作commit中補上`AttachmentList.tsx`，用途只是附件標題加數量（範圍第9項「紀錄」），未改上傳邏輯。
+
+**審查與修正**：Blocking——「取消回報」只收合表單，已上傳附件ID仍留在狀態，之後送出會夾帶看不到的附件；上傳中取消則送出鈕一直停用。修正為取消時清空附件與ready並把焦點還給「回報完成」，新增Vitest（對舊程式實跑RED：送出鈕仍disabled）。同輪順手修Minor：刻度依像素間距抽稀（避免年份打錯產生上萬標籤）、860以下圖寬跟150px標籤欄一致、審核中心初次載入錯誤不顯示（0）。複核抓到抽稀帶來的月份標籤回歸（起點殘段擋掉月初，「26/9」蓋在十月）→`ea9a3aa`改成月初優先並補Vitest（舊程式RED：收到`26/9`）。
+
+**後續Minor（未修）**：唯讀帳號也看得到停用的「另存為模板／套用模板」（不送請求）；「用這套工作流建立專案」只有負向測試，模板編輯中途按下未儲存內容直接丟失；模板卡按鈕文字為「查看內容」（計畫寫「查看與編輯」）；visual-alignment只跑1280／375，1440與188px欄寬靠截圖核對，未截階段條與閘門列；階段條按鈕aria-label蓋掉閘門狀態文字；時程條在手機從條上起手滑動無法橫捲（拖曳已忽略touch，不會誤寫）。
+
+**測試（2026-10-09）**：`822470e`首輪verify：PG6、API368/7skip、Vitest172pass1fail（UI3總覽測試：標題在載入中就出現，`findByRole`先返回後讀不到載入後文字；單獨重跑3次皆過，改為等待載入後文字）。`28e098c`完整`deploy/verify.py`一次全過：PG6pass、API368pass/7skip、Vitest174pass、build0、E2E20/20（本機Playwright Chromium，不再需要Edge）。`ea9a3aa`後Vitest175pass、build0、在重建的15175跑schedule＋visual-alignment E2E5/5，之後down不-v。
 
 ### UI3 Demo框架與首頁對齊 — ✅ 工程交付
 
