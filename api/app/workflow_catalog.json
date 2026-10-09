@@ -1,0 +1,2760 @@
+[
+  {
+    "key": "wf-laptop",
+    "industry": "electronics",
+    "name": "筆電新機種專流",
+    "description": "從市場洞察到售後與停產的產品開發流程",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "市場洞察",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 20
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "市場與競品分析",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 4
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "產品定位",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 5,
+        "due_offset": 9
+      },
+      {
+        "id": "task-0-2",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "晶片平台 Roadmap 對齊",
+        "sort_order": 3,
+        "gate_after": false,
+        "start_offset": 10,
+        "due_offset": 14
+      },
+      {
+        "id": "task-0-3",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "Business Case 與目標成本",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 15,
+        "due_offset": 19
+      },
+      {
+        "id": "task-0-4",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "立案審查（G0）",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 20,
+        "due_offset": 20
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "產品定義",
+        "sort_order": 6,
+        "gate_after": true,
+        "start_offset": 21,
+        "due_offset": 46
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "撰寫 PRD 規格書",
+        "sort_order": 7,
+        "gate_after": false,
+        "start_offset": 21,
+        "due_offset": 25
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "外觀設計與 CMF",
+        "sort_order": 8,
+        "gate_after": false,
+        "start_offset": 26,
+        "due_offset": 30
+      },
+      {
+        "id": "task-1-2",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "遴選 ODM",
+        "sort_order": 9,
+        "gate_after": false,
+        "start_offset": 31,
+        "due_offset": 35
+      },
+      {
+        "id": "task-1-3",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "鎖定長交期料件",
+        "sort_order": 10,
+        "gate_after": false,
+        "start_offset": 36,
+        "due_offset": 40
+      },
+      {
+        "id": "task-1-4",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "盤點上市地區法規",
+        "sort_order": 11,
+        "gate_after": false,
+        "start_offset": 41,
+        "due_offset": 45
+      },
+      {
+        "id": "task-1-5",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "規格凍結（G1）",
+        "sort_order": 12,
+        "gate_after": false,
+        "start_offset": 46,
+        "due_offset": 46
+      },
+      {
+        "id": "phase-2",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "設計開發",
+        "sort_order": 13,
+        "gate_after": true,
+        "start_offset": 47,
+        "due_offset": 73
+      },
+      {
+        "id": "task-2-0",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "線路圖與 PCB Layout",
+        "sort_order": 14,
+        "gate_after": false,
+        "start_offset": 47,
+        "due_offset": 52
+      },
+      {
+        "id": "task-2-1",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "機構設計與開模",
+        "sort_order": 15,
+        "gate_after": false,
+        "start_offset": 53,
+        "due_offset": 57
+      },
+      {
+        "id": "task-2-2",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "散熱設計",
+        "sort_order": 16,
+        "gate_after": false,
+        "start_offset": 58,
+        "due_offset": 62
+      },
+      {
+        "id": "task-2-3",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "BIOS／韌體開發",
+        "sort_order": 17,
+        "gate_after": false,
+        "start_offset": 63,
+        "due_offset": 68
+      },
+      {
+        "id": "task-2-4",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "零件承認",
+        "sort_order": 18,
+        "gate_after": false,
+        "start_offset": 69,
+        "due_offset": 72
+      },
+      {
+        "id": "task-2-5",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "EVT 準備審查（G2）",
+        "sort_order": 19,
+        "gate_after": false,
+        "start_offset": 73,
+        "due_offset": 73
+      },
+      {
+        "id": "phase-3",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "EVT 工程驗證",
+        "sort_order": 20,
+        "gate_after": true,
+        "start_offset": 74,
+        "due_offset": 93
+      },
+      {
+        "id": "task-3-0",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "EVT 試產",
+        "sort_order": 21,
+        "gate_after": false,
+        "start_offset": 74,
+        "due_offset": 78
+      },
+      {
+        "id": "task-3-1",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "開機除錯",
+        "sort_order": 22,
+        "gate_after": false,
+        "start_offset": 79,
+        "due_offset": 83
+      },
+      {
+        "id": "task-3-2",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "功能測試與問題追蹤",
+        "sort_order": 23,
+        "gate_after": false,
+        "start_offset": 84,
+        "due_offset": 88
+      },
+      {
+        "id": "task-3-3",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "設計修正（ECN）",
+        "sort_order": 24,
+        "gate_after": false,
+        "start_offset": 89,
+        "due_offset": 92
+      },
+      {
+        "id": "task-3-4",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "EVT Exit（G3）",
+        "sort_order": 25,
+        "gate_after": false,
+        "start_offset": 93,
+        "due_offset": 93
+      },
+      {
+        "id": "phase-4",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "DVT 設計驗證",
+        "sort_order": 26,
+        "gate_after": true,
+        "start_offset": 94,
+        "due_offset": 115
+      },
+      {
+        "id": "task-4-0",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "DVT 試產",
+        "sort_order": 27,
+        "gate_after": false,
+        "start_offset": 94,
+        "due_offset": 98
+      },
+      {
+        "id": "task-4-1",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "可靠度測試",
+        "sort_order": 28,
+        "gate_after": false,
+        "start_offset": 99,
+        "due_offset": 104
+      },
+      {
+        "id": "task-4-2",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "效能與續航驗證",
+        "sort_order": 29,
+        "gate_after": false,
+        "start_offset": 105,
+        "due_offset": 109
+      },
+      {
+        "id": "task-4-3",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "認證送測",
+        "sort_order": 30,
+        "gate_after": false,
+        "start_offset": 110,
+        "due_offset": 114
+      },
+      {
+        "id": "task-4-4",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "設計凍結（G4）",
+        "sort_order": 31,
+        "gate_after": false,
+        "start_offset": 115,
+        "due_offset": 115
+      },
+      {
+        "id": "phase-5",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "PVT 生產驗證",
+        "sort_order": 32,
+        "gate_after": true,
+        "start_offset": 116,
+        "due_offset": 139
+      },
+      {
+        "id": "task-5-0",
+        "parent_id": "phase-5",
+        "kind": "task",
+        "title": "PVT 試產",
+        "sort_order": 33,
+        "gate_after": false,
+        "start_offset": 116,
+        "due_offset": 120
+      },
+      {
+        "id": "task-5-1",
+        "parent_id": "phase-5",
+        "kind": "task",
+        "title": "量產 SOP 與治具",
+        "sort_order": 34,
+        "gate_after": false,
+        "start_offset": 121,
+        "due_offset": 125
+      },
+      {
+        "id": "task-5-2",
+        "parent_id": "phase-5",
+        "kind": "task",
+        "title": "檢驗標準制定",
+        "sort_order": 35,
+        "gate_after": false,
+        "start_offset": 126,
+        "due_offset": 128
+      },
+      {
+        "id": "task-5-3",
+        "parent_id": "phase-5",
+        "kind": "task",
+        "title": "取得認證證書",
+        "sort_order": 36,
+        "gate_after": false,
+        "start_offset": 129,
+        "due_offset": 133
+      },
+      {
+        "id": "task-5-4",
+        "parent_id": "phase-5",
+        "kind": "task",
+        "title": "量產備料",
+        "sort_order": 37,
+        "gate_after": false,
+        "start_offset": 134,
+        "due_offset": 138
+      },
+      {
+        "id": "task-5-5",
+        "parent_id": "phase-5",
+        "kind": "task",
+        "title": "量產審查（G5）",
+        "sort_order": 38,
+        "gate_after": false,
+        "start_offset": 139,
+        "due_offset": 139
+      },
+      {
+        "id": "phase-6",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "量產",
+        "sort_order": 39,
+        "gate_after": true,
+        "start_offset": 140,
+        "due_offset": 150
+      },
+      {
+        "id": "task-6-0",
+        "parent_id": "phase-6",
+        "kind": "task",
+        "title": "首批量產與爬坡",
+        "sort_order": 40,
+        "gate_after": false,
+        "start_offset": 140,
+        "due_offset": 144
+      },
+      {
+        "id": "task-6-1",
+        "parent_id": "phase-6",
+        "kind": "task",
+        "title": "駐廠品保稽核",
+        "sort_order": 41,
+        "gate_after": false,
+        "start_offset": 145,
+        "due_offset": 149
+      },
+      {
+        "id": "task-6-2",
+        "parent_id": "phase-6",
+        "kind": "task",
+        "title": "出貨許可（G6）",
+        "sort_order": 42,
+        "gate_after": false,
+        "start_offset": 150,
+        "due_offset": 150
+      },
+      {
+        "id": "phase-7",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "上市",
+        "sort_order": 43,
+        "gate_after": false,
+        "start_offset": 151,
+        "due_offset": 170
+      },
+      {
+        "id": "task-7-0",
+        "parent_id": "phase-7",
+        "kind": "task",
+        "title": "命名與定價",
+        "sort_order": 44,
+        "gate_after": false,
+        "start_offset": 151,
+        "due_offset": 155
+      },
+      {
+        "id": "task-7-1",
+        "parent_id": "phase-7",
+        "kind": "task",
+        "title": "發表會與媒體評測",
+        "sort_order": 45,
+        "gate_after": false,
+        "start_offset": 156,
+        "due_offset": 160
+      },
+      {
+        "id": "task-7-2",
+        "parent_id": "phase-7",
+        "kind": "task",
+        "title": "通路鋪貨",
+        "sort_order": 46,
+        "gate_after": false,
+        "start_offset": 161,
+        "due_offset": 165
+      },
+      {
+        "id": "task-7-3",
+        "parent_id": "phase-7",
+        "kind": "task",
+        "title": "上市開賣",
+        "sort_order": 47,
+        "gate_after": false,
+        "start_offset": 166,
+        "due_offset": 170
+      },
+      {
+        "id": "phase-8",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "售後與停產",
+        "sort_order": 48,
+        "gate_after": false,
+        "start_offset": 171,
+        "due_offset": 190
+      },
+      {
+        "id": "task-8-0",
+        "parent_id": "phase-8",
+        "kind": "task",
+        "title": "保固與維修",
+        "sort_order": 49,
+        "gate_after": false,
+        "start_offset": 171,
+        "due_offset": 175
+      },
+      {
+        "id": "task-8-1",
+        "parent_id": "phase-8",
+        "kind": "task",
+        "title": "不良分析與改善",
+        "sort_order": 50,
+        "gate_after": false,
+        "start_offset": 176,
+        "due_offset": 180
+      },
+      {
+        "id": "task-8-2",
+        "parent_id": "phase-8",
+        "kind": "task",
+        "title": "韌體與驅動更新",
+        "sort_order": 51,
+        "gate_after": false,
+        "start_offset": 181,
+        "due_offset": 185
+      },
+      {
+        "id": "task-8-3",
+        "parent_id": "phase-8",
+        "kind": "task",
+        "title": "停產規劃",
+        "sort_order": 52,
+        "gate_after": false,
+        "start_offset": 186,
+        "due_offset": 190
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-0-1",
+        "successor_id": "task-0-2"
+      },
+      {
+        "predecessor_id": "task-0-2",
+        "successor_id": "task-0-3"
+      },
+      {
+        "predecessor_id": "task-0-3",
+        "successor_id": "task-0-4"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      },
+      {
+        "predecessor_id": "task-1-1",
+        "successor_id": "task-1-2"
+      },
+      {
+        "predecessor_id": "task-1-2",
+        "successor_id": "task-1-3"
+      },
+      {
+        "predecessor_id": "task-1-3",
+        "successor_id": "task-1-4"
+      },
+      {
+        "predecessor_id": "task-1-4",
+        "successor_id": "task-1-5"
+      },
+      {
+        "predecessor_id": "task-2-0",
+        "successor_id": "task-2-1"
+      },
+      {
+        "predecessor_id": "task-2-1",
+        "successor_id": "task-2-2"
+      },
+      {
+        "predecessor_id": "task-2-2",
+        "successor_id": "task-2-3"
+      },
+      {
+        "predecessor_id": "task-2-3",
+        "successor_id": "task-2-4"
+      },
+      {
+        "predecessor_id": "task-2-4",
+        "successor_id": "task-2-5"
+      },
+      {
+        "predecessor_id": "task-3-0",
+        "successor_id": "task-3-1"
+      },
+      {
+        "predecessor_id": "task-3-1",
+        "successor_id": "task-3-2"
+      },
+      {
+        "predecessor_id": "task-3-2",
+        "successor_id": "task-3-3"
+      },
+      {
+        "predecessor_id": "task-3-3",
+        "successor_id": "task-3-4"
+      },
+      {
+        "predecessor_id": "task-4-0",
+        "successor_id": "task-4-1"
+      },
+      {
+        "predecessor_id": "task-4-1",
+        "successor_id": "task-4-2"
+      },
+      {
+        "predecessor_id": "task-4-2",
+        "successor_id": "task-4-3"
+      },
+      {
+        "predecessor_id": "task-4-3",
+        "successor_id": "task-4-4"
+      },
+      {
+        "predecessor_id": "task-5-0",
+        "successor_id": "task-5-1"
+      },
+      {
+        "predecessor_id": "task-5-1",
+        "successor_id": "task-5-2"
+      },
+      {
+        "predecessor_id": "task-5-2",
+        "successor_id": "task-5-3"
+      },
+      {
+        "predecessor_id": "task-5-3",
+        "successor_id": "task-5-4"
+      },
+      {
+        "predecessor_id": "task-5-4",
+        "successor_id": "task-5-5"
+      },
+      {
+        "predecessor_id": "task-6-0",
+        "successor_id": "task-6-1"
+      },
+      {
+        "predecessor_id": "task-6-1",
+        "successor_id": "task-6-2"
+      },
+      {
+        "predecessor_id": "task-7-0",
+        "successor_id": "task-7-1"
+      },
+      {
+        "predecessor_id": "task-7-1",
+        "successor_id": "task-7-2"
+      },
+      {
+        "predecessor_id": "task-7-2",
+        "successor_id": "task-7-3"
+      },
+      {
+        "predecessor_id": "task-8-0",
+        "successor_id": "task-8-1"
+      },
+      {
+        "predecessor_id": "task-8-1",
+        "successor_id": "task-8-2"
+      },
+      {
+        "predecessor_id": "task-8-2",
+        "successor_id": "task-8-3"
+      }
+    ]
+  },
+  {
+    "key": "wf-event",
+    "industry": "events",
+    "name": "實體活動專流",
+    "description": "行銷部實體活動從策略、場地、招商到活動後分析的流程",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "活動策略規劃",
+        "sort_order": 0,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 35
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "市場分析",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 4
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "設定目標",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 5,
+        "due_offset": 9
+      },
+      {
+        "id": "task-0-2",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "定義 TA",
+        "sort_order": 3,
+        "gate_after": false,
+        "start_offset": 10,
+        "due_offset": 14
+      },
+      {
+        "id": "task-0-3",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "設計主題",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 15,
+        "due_offset": 19
+      },
+      {
+        "id": "task-0-4",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "設計流程",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 20,
+        "due_offset": 24
+      },
+      {
+        "id": "task-0-5",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "設計內容",
+        "sort_order": 6,
+        "gate_after": false,
+        "start_offset": 25,
+        "due_offset": 29
+      },
+      {
+        "id": "task-0-6",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "預算規劃",
+        "sort_order": 7,
+        "gate_after": false,
+        "start_offset": 30,
+        "due_offset": 34
+      },
+      {
+        "id": "task-0-7",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "預算核准",
+        "sort_order": 8,
+        "gate_after": false,
+        "start_offset": 35,
+        "due_offset": 35
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "場地規劃",
+        "sort_order": 9,
+        "gate_after": false,
+        "start_offset": 36,
+        "due_offset": 45
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "評估場地",
+        "sort_order": 10,
+        "gate_after": false,
+        "start_offset": 36,
+        "due_offset": 40
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "預定場地",
+        "sort_order": 11,
+        "gate_after": false,
+        "start_offset": 41,
+        "due_offset": 45
+      },
+      {
+        "id": "phase-2",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "活動招商與資源整合",
+        "sort_order": 12,
+        "gate_after": false,
+        "start_offset": 46,
+        "due_offset": 70
+      },
+      {
+        "id": "task-2-0",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "尋找合作品牌",
+        "sort_order": 13,
+        "gate_after": false,
+        "start_offset": 46,
+        "due_offset": 50
+      },
+      {
+        "id": "task-2-1",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "製作活動合作方案",
+        "sort_order": 14,
+        "gate_after": false,
+        "start_offset": 51,
+        "due_offset": 55
+      },
+      {
+        "id": "task-2-2",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "主持人/口播/翻譯/講師邀請",
+        "sort_order": 15,
+        "gate_after": false,
+        "start_offset": 56,
+        "due_offset": 60
+      },
+      {
+        "id": "task-2-3",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "餐點/飲品廠商",
+        "sort_order": 16,
+        "gate_after": false,
+        "start_offset": 61,
+        "due_offset": 65
+      },
+      {
+        "id": "task-2-4",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "製作宣傳素材",
+        "sort_order": 17,
+        "gate_after": false,
+        "start_offset": 66,
+        "due_offset": 70
+      },
+      {
+        "id": "phase-3",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "宣傳策略",
+        "sort_order": 18,
+        "gate_after": false,
+        "start_offset": 71,
+        "due_offset": 85
+      },
+      {
+        "id": "task-3-0",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "建立報名網頁",
+        "sort_order": 19,
+        "gate_after": false,
+        "start_offset": 71,
+        "due_offset": 75
+      },
+      {
+        "id": "task-3-1",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "宣傳節奏排程",
+        "sort_order": 20,
+        "gate_after": false,
+        "start_offset": 76,
+        "due_offset": 80
+      },
+      {
+        "id": "task-3-2",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "贈品/試用品製作",
+        "sort_order": 21,
+        "gate_after": false,
+        "start_offset": 81,
+        "due_offset": 85
+      },
+      {
+        "id": "phase-4",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "Run Down",
+        "sort_order": 22,
+        "gate_after": false,
+        "start_offset": 86,
+        "due_offset": 105
+      },
+      {
+        "id": "task-4-0",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "建立工作人員分工表",
+        "sort_order": 23,
+        "gate_after": false,
+        "start_offset": 86,
+        "due_offset": 90
+      },
+      {
+        "id": "task-4-1",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "建立活動 Run Down",
+        "sort_order": 24,
+        "gate_after": false,
+        "start_offset": 91,
+        "due_offset": 95
+      },
+      {
+        "id": "task-4-2",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "特殊安全規劃",
+        "sort_order": 25,
+        "gate_after": false,
+        "start_offset": 96,
+        "due_offset": 100
+      },
+      {
+        "id": "task-4-3",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "前一天排演最後 Check",
+        "sort_order": 26,
+        "gate_after": false,
+        "start_offset": 101,
+        "due_offset": 105
+      },
+      {
+        "id": "phase-5",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "活動執行",
+        "sort_order": 27,
+        "gate_after": false,
+        "start_offset": 106,
+        "due_offset": 110
+      },
+      {
+        "id": "task-5-0",
+        "parent_id": "phase-5",
+        "kind": "task",
+        "title": "現場內容紀錄",
+        "sort_order": 28,
+        "gate_after": false,
+        "start_offset": 106,
+        "due_offset": 110
+      },
+      {
+        "id": "phase-6",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "活動後再行銷",
+        "sort_order": 29,
+        "gate_after": false,
+        "start_offset": 111,
+        "due_offset": 125
+      },
+      {
+        "id": "task-6-0",
+        "parent_id": "phase-6",
+        "kind": "task",
+        "title": "活動精彩回顧",
+        "sort_order": 30,
+        "gate_after": false,
+        "start_offset": 111,
+        "due_offset": 115
+      },
+      {
+        "id": "task-6-1",
+        "parent_id": "phase-6",
+        "kind": "task",
+        "title": "活動花絮 / 精彩影片",
+        "sort_order": 31,
+        "gate_after": false,
+        "start_offset": 116,
+        "due_offset": 120
+      },
+      {
+        "id": "task-6-2",
+        "parent_id": "phase-6",
+        "kind": "task",
+        "title": "會員再行銷",
+        "sort_order": 32,
+        "gate_after": false,
+        "start_offset": 121,
+        "due_offset": 125
+      },
+      {
+        "id": "phase-7",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "數據分析",
+        "sort_order": 33,
+        "gate_after": false,
+        "start_offset": 126,
+        "due_offset": 135
+      },
+      {
+        "id": "task-7-0",
+        "parent_id": "phase-7",
+        "kind": "task",
+        "title": "KPI指標",
+        "sort_order": 34,
+        "gate_after": false,
+        "start_offset": 126,
+        "due_offset": 130
+      },
+      {
+        "id": "task-7-1",
+        "parent_id": "phase-7",
+        "kind": "task",
+        "title": "活動 ROI",
+        "sort_order": 35,
+        "gate_after": false,
+        "start_offset": 131,
+        "due_offset": 135
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-0-1",
+        "successor_id": "task-0-2"
+      },
+      {
+        "predecessor_id": "task-0-2",
+        "successor_id": "task-0-3"
+      },
+      {
+        "predecessor_id": "task-0-3",
+        "successor_id": "task-0-4"
+      },
+      {
+        "predecessor_id": "task-0-4",
+        "successor_id": "task-0-5"
+      },
+      {
+        "predecessor_id": "task-0-5",
+        "successor_id": "task-0-6"
+      },
+      {
+        "predecessor_id": "task-0-6",
+        "successor_id": "task-0-7"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      },
+      {
+        "predecessor_id": "task-2-0",
+        "successor_id": "task-2-1"
+      },
+      {
+        "predecessor_id": "task-2-1",
+        "successor_id": "task-2-2"
+      },
+      {
+        "predecessor_id": "task-2-2",
+        "successor_id": "task-2-3"
+      },
+      {
+        "predecessor_id": "task-2-3",
+        "successor_id": "task-2-4"
+      },
+      {
+        "predecessor_id": "task-3-0",
+        "successor_id": "task-3-1"
+      },
+      {
+        "predecessor_id": "task-3-1",
+        "successor_id": "task-3-2"
+      },
+      {
+        "predecessor_id": "task-4-0",
+        "successor_id": "task-4-1"
+      },
+      {
+        "predecessor_id": "task-4-1",
+        "successor_id": "task-4-2"
+      },
+      {
+        "predecessor_id": "task-4-2",
+        "successor_id": "task-4-3"
+      },
+      {
+        "predecessor_id": "task-6-0",
+        "successor_id": "task-6-1"
+      },
+      {
+        "predecessor_id": "task-6-1",
+        "successor_id": "task-6-2"
+      },
+      {
+        "predecessor_id": "task-7-0",
+        "successor_id": "task-7-1"
+      }
+    ]
+  },
+  {
+    "key": "electronics-0",
+    "industry": "electronics",
+    "name": "筆電 NPI 專流",
+    "description": "市場立案 → 產品定義 → 設計開發 → 試產驗證 → 量產上市",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "市場立案",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 7
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "市場與競品分析",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 3
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "Business Case 與目標成本",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 4,
+        "due_offset": 7
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "產品定義",
+        "sort_order": 3,
+        "gate_after": true,
+        "start_offset": 8,
+        "due_offset": 19
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "PRD 規格書",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 8,
+        "due_offset": 11
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "工業設計",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 12,
+        "due_offset": 15
+      },
+      {
+        "id": "task-1-2",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "法規盤點",
+        "sort_order": 6,
+        "gate_after": false,
+        "start_offset": 16,
+        "due_offset": 19
+      },
+      {
+        "id": "phase-2",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "設計開發",
+        "sort_order": 7,
+        "gate_after": true,
+        "start_offset": 20,
+        "due_offset": 31
+      },
+      {
+        "id": "task-2-0",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "PCB 設計",
+        "sort_order": 8,
+        "gate_after": false,
+        "start_offset": 20,
+        "due_offset": 23
+      },
+      {
+        "id": "task-2-1",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "散熱模組",
+        "sort_order": 9,
+        "gate_after": false,
+        "start_offset": 24,
+        "due_offset": 27
+      },
+      {
+        "id": "task-2-2",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "韌體開發",
+        "sort_order": 10,
+        "gate_after": false,
+        "start_offset": 28,
+        "due_offset": 31
+      },
+      {
+        "id": "phase-3",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "試產驗證",
+        "sort_order": 11,
+        "gate_after": true,
+        "start_offset": 32,
+        "due_offset": 43
+      },
+      {
+        "id": "task-3-0",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "EVT 試產",
+        "sort_order": 12,
+        "gate_after": false,
+        "start_offset": 32,
+        "due_offset": 35
+      },
+      {
+        "id": "task-3-1",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "可靠度與認證",
+        "sort_order": 13,
+        "gate_after": false,
+        "start_offset": 36,
+        "due_offset": 39
+      },
+      {
+        "id": "task-3-2",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "DVT/PVT 驗證",
+        "sort_order": 14,
+        "gate_after": false,
+        "start_offset": 40,
+        "due_offset": 43
+      },
+      {
+        "id": "phase-4",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "量產上市",
+        "sort_order": 15,
+        "gate_after": true,
+        "start_offset": 44,
+        "due_offset": 51
+      },
+      {
+        "id": "task-4-0",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "首批量產",
+        "sort_order": 16,
+        "gate_after": false,
+        "start_offset": 44,
+        "due_offset": 47
+      },
+      {
+        "id": "task-4-1",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "通路上市",
+        "sort_order": 17,
+        "gate_after": false,
+        "start_offset": 48,
+        "due_offset": 51
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      },
+      {
+        "predecessor_id": "task-1-1",
+        "successor_id": "task-1-2"
+      },
+      {
+        "predecessor_id": "task-2-0",
+        "successor_id": "task-2-1"
+      },
+      {
+        "predecessor_id": "task-2-1",
+        "successor_id": "task-2-2"
+      },
+      {
+        "predecessor_id": "task-3-0",
+        "successor_id": "task-3-1"
+      },
+      {
+        "predecessor_id": "task-3-1",
+        "successor_id": "task-3-2"
+      },
+      {
+        "predecessor_id": "task-4-0",
+        "successor_id": "task-4-1"
+      }
+    ]
+  },
+  {
+    "key": "electronics-1",
+    "industry": "electronics",
+    "name": "ECN 變更專流",
+    "description": "成本分析 → 替代料驗證",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "成本分析",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 7
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "目標成本拆解",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 3
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "替代料比價",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 4,
+        "due_offset": 7
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "替代料驗證",
+        "sort_order": 3,
+        "gate_after": true,
+        "start_offset": 8,
+        "due_offset": 15
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "替代料試驗",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 8,
+        "due_offset": 11
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "ECN 發行",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 12,
+        "due_offset": 15
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      }
+    ]
+  },
+  {
+    "key": "events-0",
+    "industry": "events",
+    "name": "活動執行專流",
+    "description": "策略與 brief → 創意與場地 → 供應商製作 → 宣傳與報名 → 彩排與活動 → 結案",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "策略與 brief",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 7
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "受眾與 KPI",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 3
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "預算核准",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 4,
+        "due_offset": 7
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "創意與場地",
+        "sort_order": 3,
+        "gate_after": true,
+        "start_offset": 8,
+        "due_offset": 15
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "主題設計",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 8,
+        "due_offset": 11
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "場地確認",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 12,
+        "due_offset": 15
+      },
+      {
+        "id": "phase-2",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "供應商製作",
+        "sort_order": 6,
+        "gate_after": true,
+        "start_offset": 16,
+        "due_offset": 23
+      },
+      {
+        "id": "task-2-0",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "視聽與舞台",
+        "sort_order": 7,
+        "gate_after": false,
+        "start_offset": 16,
+        "due_offset": 19
+      },
+      {
+        "id": "task-2-1",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "物料製作",
+        "sort_order": 8,
+        "gate_after": false,
+        "start_offset": 20,
+        "due_offset": 23
+      },
+      {
+        "id": "phase-3",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "宣傳與報名",
+        "sort_order": 9,
+        "gate_after": true,
+        "start_offset": 24,
+        "due_offset": 31
+      },
+      {
+        "id": "task-3-0",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "媒體宣傳",
+        "sort_order": 10,
+        "gate_after": false,
+        "start_offset": 24,
+        "due_offset": 27
+      },
+      {
+        "id": "task-3-1",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "報名頁面",
+        "sort_order": 11,
+        "gate_after": false,
+        "start_offset": 28,
+        "due_offset": 31
+      },
+      {
+        "id": "phase-4",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "彩排與活動",
+        "sort_order": 12,
+        "gate_after": true,
+        "start_offset": 32,
+        "due_offset": 39
+      },
+      {
+        "id": "task-4-0",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "全流程彩排",
+        "sort_order": 13,
+        "gate_after": false,
+        "start_offset": 32,
+        "due_offset": 35
+      },
+      {
+        "id": "task-4-1",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "活動執行",
+        "sort_order": 14,
+        "gate_after": false,
+        "start_offset": 36,
+        "due_offset": 39
+      },
+      {
+        "id": "phase-5",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "結案",
+        "sort_order": 15,
+        "gate_after": true,
+        "start_offset": 40,
+        "due_offset": 47
+      },
+      {
+        "id": "task-5-0",
+        "parent_id": "phase-5",
+        "kind": "task",
+        "title": "成效分析",
+        "sort_order": 16,
+        "gate_after": false,
+        "start_offset": 40,
+        "due_offset": 43
+      },
+      {
+        "id": "task-5-1",
+        "parent_id": "phase-5",
+        "kind": "task",
+        "title": "結案交付",
+        "sort_order": 17,
+        "gate_after": false,
+        "start_offset": 44,
+        "due_offset": 47
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      },
+      {
+        "predecessor_id": "task-2-0",
+        "successor_id": "task-2-1"
+      },
+      {
+        "predecessor_id": "task-3-0",
+        "successor_id": "task-3-1"
+      },
+      {
+        "predecessor_id": "task-4-0",
+        "successor_id": "task-4-1"
+      },
+      {
+        "predecessor_id": "task-5-0",
+        "successor_id": "task-5-1"
+      }
+    ]
+  },
+  {
+    "key": "events-1",
+    "industry": "events",
+    "name": "整合行銷專流",
+    "description": "議程與講者 → 場地與執行",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "議程與講者",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 7
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "議程規劃",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 3
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "講者邀請",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 4,
+        "due_offset": 7
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "場地與執行",
+        "sort_order": 3,
+        "gate_after": true,
+        "start_offset": 8,
+        "due_offset": 15
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "場地確認",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 8,
+        "due_offset": 11
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "現場執行",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 12,
+        "due_offset": 15
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      }
+    ]
+  },
+  {
+    "key": "software-0",
+    "industry": "software",
+    "name": "版本發佈專流",
+    "description": "需求探索 → 設計開發 → 測試資安 → 發佈 → 監控",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "需求探索",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 7
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "企業需求訪談",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 3
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "IdP 相容性確認",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 4,
+        "due_offset": 7
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "設計開發",
+        "sort_order": 3,
+        "gate_after": true,
+        "start_offset": 8,
+        "due_offset": 15
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "後端 SSO 整合",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 8,
+        "due_offset": 11
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "前端管理頁",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 12,
+        "due_offset": 15
+      },
+      {
+        "id": "phase-2",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "測試資安",
+        "sort_order": 6,
+        "gate_after": true,
+        "start_offset": 16,
+        "due_offset": 23
+      },
+      {
+        "id": "task-2-0",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "自動化測試",
+        "sort_order": 7,
+        "gate_after": false,
+        "start_offset": 16,
+        "due_offset": 19
+      },
+      {
+        "id": "task-2-1",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "滲透測試",
+        "sort_order": 8,
+        "gate_after": false,
+        "start_offset": 20,
+        "due_offset": 23
+      },
+      {
+        "id": "phase-3",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "發佈",
+        "sort_order": 9,
+        "gate_after": true,
+        "start_offset": 24,
+        "due_offset": 31
+      },
+      {
+        "id": "task-3-0",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "staging 驗證",
+        "sort_order": 10,
+        "gate_after": false,
+        "start_offset": 24,
+        "due_offset": 27
+      },
+      {
+        "id": "task-3-1",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "production 部署",
+        "sort_order": 11,
+        "gate_after": false,
+        "start_offset": 28,
+        "due_offset": 31
+      },
+      {
+        "id": "phase-4",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "監控",
+        "sort_order": 12,
+        "gate_after": true,
+        "start_offset": 32,
+        "due_offset": 39
+      },
+      {
+        "id": "task-4-0",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "登入成功率監控",
+        "sort_order": 13,
+        "gate_after": false,
+        "start_offset": 32,
+        "due_offset": 35
+      },
+      {
+        "id": "task-4-1",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "客戶回饋",
+        "sort_order": 14,
+        "gate_after": false,
+        "start_offset": 36,
+        "due_offset": 39
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      },
+      {
+        "predecessor_id": "task-2-0",
+        "successor_id": "task-2-1"
+      },
+      {
+        "predecessor_id": "task-3-0",
+        "successor_id": "task-3-1"
+      },
+      {
+        "predecessor_id": "task-4-0",
+        "successor_id": "task-4-1"
+      }
+    ]
+  },
+  {
+    "key": "software-1",
+    "industry": "software",
+    "name": "事件處理專流",
+    "description": "需求與開發 → 測試與上線",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "需求與開發",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 7
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "通知偏好設定",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 3
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "推播服務開發",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 4,
+        "due_offset": 7
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "測試與上線",
+        "sort_order": 3,
+        "gate_after": true,
+        "start_offset": 8,
+        "due_offset": 15
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "跨裝置測試",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 8,
+        "due_offset": 11
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "灰度上線",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 12,
+        "due_offset": 15
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      }
+    ]
+  },
+  {
+    "key": "construction-0",
+    "industry": "construction",
+    "name": "裝修工程專流",
+    "description": "設計 → 採購 → 施工 → 查驗 → 交付",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "設計",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 11
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "現場勘查",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 3
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "施工圖說",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 4,
+        "due_offset": 7
+      },
+      {
+        "id": "task-0-2",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "工程預算",
+        "sort_order": 3,
+        "gate_after": false,
+        "start_offset": 8,
+        "due_offset": 11
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "採購",
+        "sort_order": 4,
+        "gate_after": true,
+        "start_offset": 12,
+        "due_offset": 19
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "承包商遴選",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 12,
+        "due_offset": 15
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "材料核准",
+        "sort_order": 6,
+        "gate_after": false,
+        "start_offset": 16,
+        "due_offset": 19
+      },
+      {
+        "id": "phase-2",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "施工",
+        "sort_order": 7,
+        "gate_after": true,
+        "start_offset": 20,
+        "due_offset": 35
+      },
+      {
+        "id": "task-2-0",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "拆除工程",
+        "sort_order": 8,
+        "gate_after": false,
+        "start_offset": 20,
+        "due_offset": 23
+      },
+      {
+        "id": "task-2-1",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "機電配管",
+        "sort_order": 9,
+        "gate_after": false,
+        "start_offset": 24,
+        "due_offset": 27
+      },
+      {
+        "id": "task-2-2",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "室內裝修",
+        "sort_order": 10,
+        "gate_after": false,
+        "start_offset": 28,
+        "due_offset": 31
+      },
+      {
+        "id": "task-2-3",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "職安巡檢",
+        "sort_order": 11,
+        "gate_after": false,
+        "start_offset": 32,
+        "due_offset": 35
+      },
+      {
+        "id": "phase-3",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "查驗",
+        "sort_order": 12,
+        "gate_after": true,
+        "start_offset": 36,
+        "due_offset": 43
+      },
+      {
+        "id": "task-3-0",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "消防查驗",
+        "sort_order": 13,
+        "gate_after": false,
+        "start_offset": 36,
+        "due_offset": 39
+      },
+      {
+        "id": "task-3-1",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "缺失改善",
+        "sort_order": 14,
+        "gate_after": false,
+        "start_offset": 40,
+        "due_offset": 43
+      },
+      {
+        "id": "phase-4",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "交付",
+        "sort_order": 15,
+        "gate_after": true,
+        "start_offset": 44,
+        "due_offset": 51
+      },
+      {
+        "id": "task-4-0",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "竣工點交",
+        "sort_order": 16,
+        "gate_after": false,
+        "start_offset": 44,
+        "due_offset": 47
+      },
+      {
+        "id": "task-4-1",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "保固移交",
+        "sort_order": 17,
+        "gate_after": false,
+        "start_offset": 48,
+        "due_offset": 51
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-0-1",
+        "successor_id": "task-0-2"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      },
+      {
+        "predecessor_id": "task-2-0",
+        "successor_id": "task-2-1"
+      },
+      {
+        "predecessor_id": "task-2-1",
+        "successor_id": "task-2-2"
+      },
+      {
+        "predecessor_id": "task-2-2",
+        "successor_id": "task-2-3"
+      },
+      {
+        "predecessor_id": "task-3-0",
+        "successor_id": "task-3-1"
+      },
+      {
+        "predecessor_id": "task-4-0",
+        "successor_id": "task-4-1"
+      }
+    ]
+  },
+  {
+    "key": "construction-1",
+    "industry": "construction",
+    "name": "變更與查驗專流",
+    "description": "評估與採購 → 施工與驗收",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "評估與採購",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 7
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "負載評估",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 3
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "主機採購",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 4,
+        "due_offset": 7
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "施工與驗收",
+        "sort_order": 3,
+        "gate_after": true,
+        "start_offset": 8,
+        "due_offset": 15
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "設備安裝",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 8,
+        "due_offset": 11
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "性能驗收",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 12,
+        "due_offset": 15
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      }
+    ]
+  },
+  {
+    "key": "food-development",
+    "industry": "food",
+    "name": "寵物主食罐開發專流",
+    "description": "從市場定位、配方試作到保存驗證、檢驗與量產上市",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "市場與配方",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 19
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "競品分析與產品定位",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 4
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "營養標準比對",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 5,
+        "due_offset": 9
+      },
+      {
+        "id": "task-0-2",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "配方設計",
+        "sort_order": 3,
+        "gate_after": false,
+        "start_offset": 10,
+        "due_offset": 14
+      },
+      {
+        "id": "task-0-3",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "供應商評估",
+        "sort_order": 4,
+        "gate_after": false,
+        "start_offset": 15,
+        "due_offset": 19
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "小量試作",
+        "sort_order": 5,
+        "gate_after": true,
+        "start_offset": 20,
+        "due_offset": 34
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "小量試作",
+        "sort_order": 6,
+        "gate_after": false,
+        "start_offset": 20,
+        "due_offset": 24
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "質地與外觀調整",
+        "sort_order": 7,
+        "gate_after": false,
+        "start_offset": 25,
+        "due_offset": 29
+      },
+      {
+        "id": "task-1-2",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "原料送樣確認",
+        "sort_order": 8,
+        "gate_after": false,
+        "start_offset": 30,
+        "due_offset": 34
+      },
+      {
+        "id": "phase-2",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "殺菌與保存",
+        "sort_order": 9,
+        "gate_after": true,
+        "start_offset": 35,
+        "due_offset": 44
+      },
+      {
+        "id": "task-2-0",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "殺菌條件驗證（F0 值）",
+        "sort_order": 10,
+        "gate_after": false,
+        "start_offset": 35,
+        "due_offset": 39
+      },
+      {
+        "id": "task-2-1",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "加速保存試驗",
+        "sort_order": 11,
+        "gate_after": false,
+        "start_offset": 40,
+        "due_offset": 44
+      },
+      {
+        "id": "phase-3",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "檢驗與適口性",
+        "sort_order": 12,
+        "gate_after": true,
+        "start_offset": 45,
+        "due_offset": 59
+      },
+      {
+        "id": "task-3-0",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "營養成分送驗",
+        "sort_order": 13,
+        "gate_after": false,
+        "start_offset": 45,
+        "due_offset": 49
+      },
+      {
+        "id": "task-3-1",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "適口性測試（雙碗試驗）",
+        "sort_order": 14,
+        "gate_after": false,
+        "start_offset": 50,
+        "due_offset": 54
+      },
+      {
+        "id": "task-3-2",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "包裝標示審查",
+        "sort_order": 15,
+        "gate_after": false,
+        "start_offset": 55,
+        "due_offset": 59
+      },
+      {
+        "id": "phase-4",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "量產上市",
+        "sort_order": 16,
+        "gate_after": true,
+        "start_offset": 60,
+        "due_offset": 79
+      },
+      {
+        "id": "task-4-0",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "量產 SOP",
+        "sort_order": 17,
+        "gate_after": false,
+        "start_offset": 60,
+        "due_offset": 64
+      },
+      {
+        "id": "task-4-1",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "首批量產",
+        "sort_order": 18,
+        "gate_after": false,
+        "start_offset": 65,
+        "due_offset": 69
+      },
+      {
+        "id": "task-4-2",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "包材與設備確認",
+        "sort_order": 19,
+        "gate_after": false,
+        "start_offset": 70,
+        "due_offset": 74
+      },
+      {
+        "id": "task-4-3",
+        "parent_id": "phase-4",
+        "kind": "task",
+        "title": "通路上架",
+        "sort_order": 20,
+        "gate_after": false,
+        "start_offset": 75,
+        "due_offset": 79
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-0-1",
+        "successor_id": "task-0-2"
+      },
+      {
+        "predecessor_id": "task-0-2",
+        "successor_id": "task-0-3"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      },
+      {
+        "predecessor_id": "task-1-1",
+        "successor_id": "task-1-2"
+      },
+      {
+        "predecessor_id": "task-2-0",
+        "successor_id": "task-2-1"
+      },
+      {
+        "predecessor_id": "task-3-0",
+        "successor_id": "task-3-1"
+      },
+      {
+        "predecessor_id": "task-3-1",
+        "successor_id": "task-3-2"
+      },
+      {
+        "predecessor_id": "task-4-0",
+        "successor_id": "task-4-1"
+      },
+      {
+        "predecessor_id": "task-4-1",
+        "successor_id": "task-4-2"
+      },
+      {
+        "predecessor_id": "task-4-2",
+        "successor_id": "task-4-3"
+      }
+    ]
+  },
+  {
+    "key": "food-supplier",
+    "industry": "food",
+    "name": "供應商與原料導入專流",
+    "description": "供應商評估、原料送樣、試作驗證與採購導入",
+    "source": "參照 ProjectFlow Demo；相對日期為可調整建議",
+    "nodes": [
+      {
+        "id": "phase-0",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "需求與初評",
+        "sort_order": 0,
+        "gate_after": true,
+        "start_offset": 0,
+        "due_offset": 11
+      },
+      {
+        "id": "task-0-0",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "原料規格與需求確認",
+        "sort_order": 1,
+        "gate_after": false,
+        "start_offset": 0,
+        "due_offset": 3
+      },
+      {
+        "id": "task-0-1",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "供應商資料蒐集",
+        "sort_order": 2,
+        "gate_after": false,
+        "start_offset": 4,
+        "due_offset": 7
+      },
+      {
+        "id": "task-0-2",
+        "parent_id": "phase-0",
+        "kind": "task",
+        "title": "初步資格評估",
+        "sort_order": 3,
+        "gate_after": false,
+        "start_offset": 8,
+        "due_offset": 11
+      },
+      {
+        "id": "phase-1",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "送樣與檢驗",
+        "sort_order": 4,
+        "gate_after": true,
+        "start_offset": 12,
+        "due_offset": 23
+      },
+      {
+        "id": "task-1-0",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "安排原料送樣",
+        "sort_order": 5,
+        "gate_after": false,
+        "start_offset": 12,
+        "due_offset": 15
+      },
+      {
+        "id": "task-1-1",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "品質與安全檢驗",
+        "sort_order": 6,
+        "gate_after": false,
+        "start_offset": 16,
+        "due_offset": 19
+      },
+      {
+        "id": "task-1-2",
+        "parent_id": "phase-1",
+        "kind": "task",
+        "title": "樣品結果審查",
+        "sort_order": 7,
+        "gate_after": false,
+        "start_offset": 20,
+        "due_offset": 23
+      },
+      {
+        "id": "phase-2",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "試作驗證",
+        "sort_order": 8,
+        "gate_after": true,
+        "start_offset": 24,
+        "due_offset": 35
+      },
+      {
+        "id": "task-2-0",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "小量試作",
+        "sort_order": 9,
+        "gate_after": false,
+        "start_offset": 24,
+        "due_offset": 27
+      },
+      {
+        "id": "task-2-1",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "配方與製程適配確認",
+        "sort_order": 10,
+        "gate_after": false,
+        "start_offset": 28,
+        "due_offset": 31
+      },
+      {
+        "id": "task-2-2",
+        "parent_id": "phase-2",
+        "kind": "task",
+        "title": "試作成果確認",
+        "sort_order": 11,
+        "gate_after": false,
+        "start_offset": 32,
+        "due_offset": 35
+      },
+      {
+        "id": "phase-3",
+        "parent_id": null,
+        "kind": "phase",
+        "title": "採購導入",
+        "sort_order": 12,
+        "gate_after": true,
+        "start_offset": 36,
+        "due_offset": 47
+      },
+      {
+        "id": "task-3-0",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "報價與交期確認",
+        "sort_order": 13,
+        "gate_after": false,
+        "start_offset": 36,
+        "due_offset": 39
+      },
+      {
+        "id": "task-3-1",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "供應商核准",
+        "sort_order": 14,
+        "gate_after": false,
+        "start_offset": 40,
+        "due_offset": 43
+      },
+      {
+        "id": "task-3-2",
+        "parent_id": "phase-3",
+        "kind": "task",
+        "title": "首批採購驗收",
+        "sort_order": 15,
+        "gate_after": false,
+        "start_offset": 44,
+        "due_offset": 47
+      }
+    ],
+    "dependencies": [
+      {
+        "predecessor_id": "task-0-0",
+        "successor_id": "task-0-1"
+      },
+      {
+        "predecessor_id": "task-0-1",
+        "successor_id": "task-0-2"
+      },
+      {
+        "predecessor_id": "task-1-0",
+        "successor_id": "task-1-1"
+      },
+      {
+        "predecessor_id": "task-1-1",
+        "successor_id": "task-1-2"
+      },
+      {
+        "predecessor_id": "task-2-0",
+        "successor_id": "task-2-1"
+      },
+      {
+        "predecessor_id": "task-2-1",
+        "successor_id": "task-2-2"
+      },
+      {
+        "predecessor_id": "task-3-0",
+        "successor_id": "task-3-1"
+      },
+      {
+        "predecessor_id": "task-3-1",
+        "successor_id": "task-3-2"
+      }
+    ]
+  }
+]

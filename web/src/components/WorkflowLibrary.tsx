@@ -1,3 +1,4 @@
+import WorkflowCatalog from './WorkflowCatalog';
 import { useEffect, useRef, useState } from 'react';
 import {
   api,
@@ -362,6 +363,7 @@ export default function WorkflowLibrary({
   expired: () => void;
   changed: () => void;
 }) {
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const scope = useRequestScope();
   const [list, setList] = useState<WorkflowList | null>(null);
   const [detail, setDetail] = useState<WorkflowDetail | null>(null);
@@ -411,25 +413,27 @@ export default function WorkflowLibrary({
     setDetail(value);
     setSelected(value.id);
     setMode(null);
+    setCatalogOpen(false);
     changed();
   }
   return (
     <div className="workflow-library">
       <h1>模板庫</h1>
       <p>模板修改只影響之後建立的專案。複製會建立獨立模板。</p>
+      <div className="library-tabs"><button aria-pressed={!catalogOpen} onClick={()=>setCatalogOpen(false)}>公司模板</button><button aria-pressed={catalogOpen} onClick={()=>{setMode(null);setCatalogOpen(true);}}>產業範本</button></div>
+      {catalogOpen ? <WorkflowCatalog saved={saved} expired={expired}/> : <>
       {list?.capabilities?.create && (
         <button onClick={() => edit('new')}>新增模板</button>
       )}
       <div className="workflow-list" aria-label="模板清單">
         {list?.items.map((w) => (
-          <button
-            key={w.id}
+          <article className="company-template-card" key={w.id}><button
             aria-pressed={selected === w.id}
             onClick={() => void load(w.id)}
           >
             {w.name}
             {w.requires_start_date ? ' · 含相對日期' : ''}
-          </button>
+          </button>{w.phase_count !== undefined && <p className="catalog-counts">{w.phase_count} 階段 · {w.task_count} 任務</p>}{w.phase_titles && <p className="record-meta">{w.phase_titles.join(' → ')}</p>}</article>
         ))}
       </div>
       {loading && <p role="status">載入模板中</p>}
@@ -497,6 +501,7 @@ export default function WorkflowLibrary({
           </section>
         )
       )}
+      </>}
     </div>
   );
 }

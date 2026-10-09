@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI1 ✅ 工程交付／15173新版已部署；P2d後移** |
+| 目前工作項目 | **UI2 ✅ 產業模板與本機展示公司切換已交付；P2d後移** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | UI1已完成；請人類在15173試用新版介面並簽核。P2d排後且需定範圍，不自動啟動。 |
-| 分支 | `main`（UI1 `b8110d7` ff-only合併，feature安全刪除）。 |
-| 最新程式 commit | UI1 `b8110d7`；Demo仍W6 `0934e48`未改。 |
+| 下一個動作 | 人類試用15173的12套模板與左下五公司切換；P2d先定範圍，不自動啟動。 |
+| 分支 | `main`（UI2從BASE `467de27` ff-only交付；主checkout）。 |
+| 最新程式 commit | UI2見本階段交付commit；UI1 `b8110d7`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | UI1：完整Vitest165pass2fail→相關78/78pass；build0；完整E2E15pass3fail→相關11/11pass；新視覺／失效狀態2/2pass。失敗均舊結構斷言適配，未假稱首輪全過；API/PG沿P2c。 |
-| 資料版本 | Demo v6/key未改；正式migration `20261009_0004`。15173原有全部row/欄位值、檔案SHA與env保留；隔離acceptance/p2c-backend已down不-v，雙volume與專用DB保留。 |
-| 認領中 | —（UI1工程交付完成）。 |
-| 阻塞／待人類 | UI1無工程阻塞；UI1及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。P2d後移且需定範圍；LAN未授權。 |
-| 遠端 | UI1程式`b8110d7`與本交付紀錄依D50一併push main；發布後核對ls-remote。開工fetch為`5e1a83e`，無未知改動、無force。 |
+| 測試基準 | UI2：API完整351pass/1舊route清單fail/7skip→相關22pass；Vitest170pass→相關9pass；build0；E2E18pass/2舊模板排序fail→相關4pass。詳§3，不假稱首次全綠。 |
+| 資料版本 | Demo v6/key未改；migration `20261009_0004`。15173原rows/欄位/files/原env逐值保留，只增3公司/5身分/12模板/219節點/12稽核及本機展示旗標。acceptance down不-v，volume保留。 |
+| 認領中 | 無。 |
+| 阻塞／待人類 | 無工程阻塞；UI1/UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。P2d後移且需定範圍；LAN未授權。 |
+| 遠端 | UI2依D50隨main push，發布後核對ls-remote；BASE `467de27`，無force。 |
 
 ---
 
@@ -91,6 +91,7 @@
 | 已完成 | P2b | 回報／審核、筆記、附件與稽核介面 | ✅ 工程交付 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；八Task／G4雙審、G6隔離回歸及保留資料部署通過 | P2a |
 | 已完成 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
 | 已完成 | UI1 | 前端介面對齊：Demo框架／配色／卡片／工作區／時程 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)，D67人類指定，既有真實功能不變 | P2a/P2b/P2c |
+| 已完成 | UI2 | 產業模板與左下展示公司切換 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-09-ui2-showcase-library.md)，D68人類指定本機一鍵切換 | UI1 |
 | 後續 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -105,6 +106,16 @@
 ---
 
 ## 3. 工作項目明細
+
+### UI2 產業模板與本機展示公司切換 — ✅ 工程交付
+
+**範圍／授權**：D68明確選本機展示一鍵公司切換，D65精簡流程，短計畫在`superpowers/plans/2026-10-09-ui2-showcase-library.md`。12套五產業範本、搜尋／分類／卡片／階段預覽、另存公司模板與真實建立專案。公司模板補階段／任務摘要；左下選單真後端session輪替與舊token撤銷，指定五公司admin、預設關閉／loopback限定、专用展示身分標示。一般頁即切換，有表單先確認可取消；卸載舊公司畫面與清快取。
+
+**測試（2026-10-09）**：核心RED2fail（缺catalog／switch）後API定向6pass，再增四角色拒絕。一次完整API351pass、1fail（health的舊端點精確清單）、7條件PG skip，exit1；加入新路由後showcase+health共22pass exit0。Vitest完整170/170，最後相關showcase/library9/9，build exit0。E2E完整18pass/2fail exit1（mvp取電子模板第一筆，如今新範本排序在前且要求開始日）；改按原模板名稱選，保留原隔離斷言，mvp+showcase1280/375共4/4 exit0。未冒稱第二次全量全綠；無migration／附件變更，未重跑PG及附件故障矩陣。ignored證據`.superpowers/ui2/`。
+
+**驗證／審查**：瀏覽器真匯入、建立專案含10task/Gate、五公司輪替、取消保留表單、舊token401、跨公司404、切回原專案逐值相同，刷新保留展示身分。桌面1280／手機375截圖實看，無pageerror／非預期console。一位唯讀獨立審查Ready to merge；小項固定12標籤已改為動態結果，無剩餘阻擋。
+
+**發布／保留**：15173停止API後備份DB+files與env，更新API/web；只增3組公司、5個專用帳號、12模板／219節點／12稽核，重跑初始化全0。全部原rows/欄位、files SHA、原env逐值相同（只增PF_SHOWCASE_MODE=true），DB容器ID未變，migration0004未改。health/ready與web200，實際CSS/JS與最終build逐bytes相同。隔離acceptance down不-v，volume保留，不seed。無新增假專案、Demo不改，P2d未啟動；人類試用仍未代勾。
 
 ### UI1 前端介面對齊 — ✅ 工程交付
 
@@ -833,6 +844,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | ID | 來源 | 問題 | 預設／建議 | 狀態 |
 |---|---|---|---|---|
+| D68 | UI2展示豐富度 | 人類要求模板像Demo豐富、公司切換在左下 | 產業範本卡片與完整流程；五公司本機展示session切換，保留既有資料 | 已決定2026-10-09：明確選本機展示模式一鍵切換、標示展示身分；後端真session與隔離、模式預設關閉，P2d後移 |
 | D67 | 下一階段順序與前端介面 | 人類指定「把下一階段改成前端介面對齊」 | UI1排在P2d前，主要畫面以Demo布局／視覺／操作對照，接既有真API，未實作模組清楚標示 | 已決定2026-10-09：優先UI1側欄／配色／字級間距／總覽卡片／工作區與時程；不擴新後端功能、不改資料與權限，依D65精簡流程 |
 | D66 | P2c範圍與啟動 | 人類指示「繼續下一個階段」，並明確選A（推薦） | 日曆日、單任務改期、管理者／project_owner模板管理；同專案task硬性FS、done/skipped滿足、無覆寫；SS/FF/延遲/順延/關鍵路徑/子樹套用延後 | 已決定2026-10-09：採精簡範圍，短規格／計畫定稿開始實作；按D65階段一次審查/回歸，保留資料與基本權限 |
 | D65 | 正式軌後續流程 | 人類同意簡化提案，並要求不特別提專案用途，只將流程變簡單 | 每階段短規格／計畫、一次獨立審查、一次完整回歸，修正只驗受影響部分，一般畫面不強制TDD，每階段更新README／PROGRESS；展示主流程優先 | 已決定2026-10-09：採用精簡流程WORKFLOW§14；保留既有資料、隔離測試、基本公司角色權限與Git安全，不重做已完成功能，不代勾人類簽核；尚未定案的新功能另列範圍 |
@@ -907,6 +919,19 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-09｜Codex GPT-6｜UI2 產業模板與本機展示交付
+
+- 完成12套五產業模板卡片／預覽／真實匯入，左下五公司一鍵展示session切換，有表單可取消；D68與D65。
+- 一位獨立唯讀審查Ready to merge；全量回歸失敗如實保留，修正定向全部通過，詳細§3及ignored `.superpowers/ui2/`。
+- 15173 API/web已更新，原rows/files/env保留，只加展示公司身分模板與旗標；DB未重建，health及實際前端產物驗證完成。隔離容器已down、volume保留。
+- ff-only main與D50 push；人類試用未代勾，P2d需先定範圍。無工程阻擋。
+
+### 2026-10-09｜Codex GPT-6｜UI1 介面對齊交付
+
+- BASE `5e1a83e` → `b8110d7`，一次唯讀獨立審查Ready to merge，ff-only main；D50授權發布。
+- 完成側欄、視覺、總覽／任務卡片、工作區、紀錄與時程／管理頁；Demo不改。兩種尺寸對照圖與驗收log在ignored `.superpowers/ui1/`。
+- 完整回歸與窄修正結果見UI1明細；primary只換web，原row、files、env、API/DB容器完全保留，靜態產物及ready檢查通過。
+- 人類試用未代勾，P2d後移且待定範圍。隔離容器與自啟Demo server已關、資料volume保留。
 ### 2026-10-09｜Codex GPT-6｜D67下一階段改為前端介面對齊
 - **順序**：UI1在P2d前；主要版面/視覺依Demo，接既有真實功能，未實作頁不放假資料。
 - **文件／盤點**：讀Demo CSS與正式版布局、整理短規格／計畫，未改產品、DB或容器；文件diff核對，無產品測試宣稱。
@@ -922,22 +947,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **決策**：人類確認採簡化流程；AGENTS／WORKFLOW§14／路線圖／README同步，後續取消逐Task雙審及一般畫面強制TDD，採每階段一次獨立審查／完整回歸／交付紀錄。
 - **保留**：既有功能與資料、隔離測試、基本授權與Git安全；未改產品、DB、容器或人類簽核。
 - **下一步**：P2c先寫展示主流程短規格／計畫，不直接啟動未定案功能；本次git diff --check及一次獨立文件審查Approved，未跑產品測試。
-
-### 2026-10-08｜Codex GPT-6｜P2b工程交付完成
-- **完成**：D59–D64、八Task TDD與雙獨立審查；G4文件權限Important、phase文案Minor均修正，兩位Ready to merge: Yes，ff-only合併main。
-- **驗證**：G6 mandatory PG1+3、API337pass5conditional skip、Vitest150/build0/E2E13pass、四組phase真UI與隔離cleanup通過；DB+files無seed重啟、pending恢復與quota通過。全部證據ignored `.superpowers/p2b/`，失敗log亦保留，無偽造RED。
-- **資料／環境**：15173已備份後不seed升migration0003，原有全部欄位/row值與env指紋相同，health/ready200，files10001:10001/0700。acceptance/Task4容器已清、所有雙volume/專用DB保留；兩Demo未改。
-- **發布／下一步**：README／指南／試用清單／PROGRESS交付`409e9cb`依D50已push main且ls-remote核對一致；feature安全刪除，發布紀錄隨main同步；P2c只進G1規格準備，不自動實作未定案規則。P1c/P2a/P2b人類簽核一律未代勾；無工程阻塞。
-
-### 2026-10-08｜Codex GPT-6｜P2b D63採A、完整規格與八Task計畫送審
-- **決策與文件**：D63人類選A，D59–D63全數已決。完整spec補共用權限、task轉換矩陣、舊回報隔離、migration0003、API／分頁、附件預留配額／故障恢復、UI與部署契約；G2送審稿列明允許檔案與八Task TDD／雙審／保留資料驗收。
-- **獨立審查**：review_finalized_docs及review_task1第1輪提出附件commit結果不明清理與新volume非root權限兩Important；修正後兩位Approved，無剩餘Important／Critical。Dockerfile加入允許清單是本輪計畫草案修正，沒有實際改產品。
-- **驗證**：文件連結／git diff --check；未跑P2b產品測試、未改DB／容器／15173。沒有把文件審查當工程驗收或把歷史P2a結果當新GREEN。
-- **下一步**：人類整體審閱完整spec與plan；同意後定稿G1／G2，跑G3隔離基準，在主checkout開唯一feature分支，依八Task執行。無需重新詢問已選D59–D63。文件本機提交未push，試用簽核仍未代勾。
-
-### 2026-10-09｜Codex GPT-6｜UI1 介面對齊交付
-
-- BASE `5e1a83e` → `b8110d7`，一次唯讀獨立審查Ready to merge，ff-only main；D50授權發布。
-- 完成側欄、視覺、總覽／任務卡片、工作區、紀錄與時程／管理頁；Demo不改。兩種尺寸對照圖與驗收log在ignored `.superpowers/ui1/`。
-- 完整回歸與窄修正結果見UI1明細；primary只換web，原row、files、env、API/DB容器完全保留，靜態產物及ready檢查通過。
-- 人類試用未代勾，P2d後移且待定範圍。隔離容器與自啟Demo server已關、資料volume保留。

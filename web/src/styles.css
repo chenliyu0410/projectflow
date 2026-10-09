@@ -332,3 +332,24 @@ progress::-webkit-progress-bar { background: #E6E1D6; } progress::-webkit-progre
 }
 
 .workspace-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-width: 0; }
+
+/* UI2 industry catalog and explicit local showcase identity. */
+.library-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.library-tabs button[aria-pressed=true] { color: white; background: var(--teal); border-color: var(--teal); }
+.catalog-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.catalog-card { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px; background: white; border: 1px solid var(--line); border-top: 4px solid var(--teal); border-radius: 14px; min-width: 0; }
+.catalog-card h3 { font-size: 18px; margin: 0; }.catalog-card p { color: var(--muted); font-size: 13px; }.catalog-card button { margin-top: auto; border: 0; padding-left: 0; color: var(--teal); font-weight: 600; }
+.industry-electronics { border-top-color: #216677; }.industry-events { border-top-color: #914667; }.industry-software { border-top-color: #3D6F4E; }.industry-construction { border-top-color: #A9692E; }
+.catalog-counts { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 12px; }
+.catalog-stages { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }.catalog-stages article { background: var(--ground); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; overflow-wrap: anywhere; }.catalog-stages h3 { margin: 0 0 8px; }.catalog-stages ol { padding-left: 22px; font-size: 13px; line-height: 1.9; }
+.catalog-preview { scroll-margin: 20px; }.catalog-preview form { max-width: 500px; }.catalog-preview button[type=submit], .company-switch-confirm button:first-of-type { background: var(--teal); color: white; }
+.showcase-badge { padding: 4px 8px; background: #F7E6DA; color: #8A3F16 !important; border-radius: 6px; font-size: 12px; }.sidebar-session label { font-size: 12px; }.sidebar-session select { font-size: 12px; }
+.company-switch-confirm { display: grid; gap: 8px; }.company-switch-confirm p { font-size: 12px; }.company-switch-confirm button { font-size: 12px; }
+@media(max-width:1100px) { .catalog-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:720px) { .catalog-grid, .catalog-stages { grid-template-columns: minmax(0,1fr); } }
+
+.workflow-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.company-template-card { padding: 18px; background: white; border: 1px solid var(--line); border-radius: 14px; display: grid; gap: 10px; min-width: 0; }
+.company-template-card > button { padding: 0; border: 0; text-align: left; font-size: 16px; font-weight: 600; color: var(--teal); }
+.company-template-card p { overflow-wrap: anywhere; }
+@media(max-width:720px) { .workflow-list { grid-template-columns: minmax(0,1fr); } }

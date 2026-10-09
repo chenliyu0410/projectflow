@@ -66,6 +66,8 @@ def test_only_health_routes_exist():
         "/auth/login",
         "/auth/logout",
         "/auth/me",
+        "/auth/showcase/switch",
+        "/workflow-catalog",
         "/departments",
         "/gates/{gate_id}",
         "/health",

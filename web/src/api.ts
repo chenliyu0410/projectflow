@@ -1,4 +1,5 @@
 import type {
+  CatalogEntry,
   WorkflowDetail,
   WorkflowWrite,
   WorkflowList,
@@ -272,6 +273,8 @@ export const api = {
       );
     return response.blob();
   },
+  workflowCatalog: (signal?: AbortSignal) => requestJson<{items: CatalogEntry[]; can_import: boolean}>('/workflow-catalog', {signal}),
+  switchCompany: (organization_key: string, signal?: AbortSignal) => requestJson<SessionInfo>('/auth/showcase/switch', {method: 'POST', body: JSON.stringify({organization_key}), signal}),
   me: (signal?: AbortSignal) =>
     requestJson<SessionInfo>('/auth/me', { signal }),
   login: (

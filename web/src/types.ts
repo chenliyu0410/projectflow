@@ -2,7 +2,7 @@ export type Role = 'admin' | 'project_owner' | 'reviewer' | 'member' | 'readonly
 export type NodeStatus = 'todo' | 'doing' | 'review' | 'done' | 'skipped';
 export interface User { id: string; username: string; display_name: string; role: Role | string; }
 export interface Organization { id: string; key: string; name: string; }
-export interface SessionInfo { user: User; organization: Organization; }
+export interface SessionInfo { user: User; organization: Organization; showcase?: { active: boolean; companies: { key: string; name: string; industry: string }[] }; }
 export interface ProjectSummary { id: string; title: string; organization_key: string; owner_user_id: string | null; }
 export interface NodeItem {
   id: string; project_id: string; parent_id: string | null; kind: 'project' | 'phase' | 'task' | string;
@@ -16,7 +16,7 @@ export interface NodeItem {
 export interface GateItem { id: string; project_id: string; node_id: string; status: 'pending' | 'approved'; }
 export interface ProjectDetail extends ProjectSummary { nodes: NodeItem[]; gates: GateItem[]; capabilities: { create_node: boolean }; }
 export type WorkspaceRoute = { page: 'overview' | 'my-tasks' | 'reviews' | 'audit' | 'workflows' } | { page: 'project'; projectId: string | null; nodeId: string | null };
-export interface WorkflowSummary { id: string; name: string; requires_start_date?: boolean; capabilities?: { edit: boolean; copy: boolean }; }
+export interface WorkflowSummary { phase_count?: number; task_count?: number; phase_titles?: string[]; id: string; name: string; requires_start_date?: boolean; capabilities?: { edit: boolean; copy: boolean }; }
 export interface AssignmentOptions { users: { id: string; display_name: string }[]; departments: { id: string; name: string }[]; }
 export interface NodeMetadata { title: string; owner_user_id: string | null; department_id: string | null; start_date: string | null; due_date: string | null; }
 export interface NodeCreate extends NodeMetadata { kind: 'phase' | 'task'; parent_id: string | null; }
@@ -42,3 +42,5 @@ export interface WorkflowDetail extends WorkflowWrite { id: string; requires_sta
 export interface WorkflowList { items: WorkflowSummary[]; capabilities?: { create: boolean }; }
 export interface Dependency extends DependencyInput { id: string; project_id: string; }
 export interface DependencyData { items: Dependency[]; nodes: { id: string; title: string; status: NodeStatus; blocked: boolean }[]; capabilities: { manage: boolean }; }
+
+export interface CatalogEntry extends WorkflowWrite { key: string; industry: string; description: string; source: string; }

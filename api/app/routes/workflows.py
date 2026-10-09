@@ -18,7 +18,7 @@ def list_workflows(current: CurrentUser = Depends(require_session), db: Session 
     items=[]
     for workflow in db.scalars(select(Workflow).where(Workflow.organization_id==current.organization.id).order_by(Workflow.name,Workflow.id)):
         value=service.detail(db,current,workflow)
-        items.append({key:value[key] for key in ['id','name','requires_start_date','capabilities']})
+        items.append({**{key:value[key] for key in ['id','name','requires_start_date','capabilities']}, 'phase_count': sum(n['kind']=='phase' for n in value['nodes']), 'task_count': sum(n['kind']=='task' for n in value['nodes']), 'phase_titles': [n['title'] for n in value['nodes'] if n['kind']=='phase']})
     return {'items':items,'capabilities':{'create':service.can_edit(current)}}
 
 
@@ -67,3 +67,9 @@ def update_gate(gate_id: str, payload: GateStatusUpdate, current: CurrentUser = 
     db.commit()
     db.refresh(gate)
     return {"id": gate.id, "project_id": gate.project_id, "node_id": gate.node_id, "status": gate.status}
+
+
+@router.get('/workflow-catalog')
+def workflow_catalog(current: CurrentUser = Depends(require_session)):
+    from app.showcase import catalog
+    return {'items': catalog(), 'can_import': service.can_edit(current)}

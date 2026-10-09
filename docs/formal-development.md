@@ -306,3 +306,20 @@ UI1只改React介面，API契約與migration0004維持。桌面252px側欄與主
 總覽使用原可見統計與done/(task-skipped)進度；我的任務保留查詢／狀態；節點樹、详情與下一層卡片分區，回報／筆記／附件保留完整內容及操作。時程日週月、桌面拖拉與手機日期表單、FS／Gate與真API權限不變。未提供的Demo模組不加入可操作入口。
 
 驗收使用15175 acceptance marker；`npm.cmd --prefix web run e2e -- visual-alignment.spec.ts`保存桌面／手機PNG至ignored `.superpowers/ui1/`，涵蓋主要頁面、長名稱、空／載入／錯誤重試與登入失效。完整回歸首次結構selector失敗及修正定點結果如實記在PROGRESS。發布只build/up `web --no-deps`，不重啟API/DB、不seed；部署前後核對原row、files SHA、env與API/DB容器身分。
+
+
+## UI2 產業範本與本機展示公司切換
+
+模板庫分「公司模板」與「產業範本」。12套涵蓋食品2、電子3、活動3、軟體2、工程2；包括Demo筆電與活動完整流程及各產業精簡流程，食品內容另補開發／供應商導入。卡片顯示階段／任務數，範本可搜尋、分類與預覽。相對日為可編輯建議；Gate與硬性FS接既有模板契約，沒有移植Demo未支援的部門、自訂欄位等資料。admin／project_owner可將範本另存公司模板；其他角色可預覽。建立專案仍選公司模板並指定開始日。
+
+`PF_SHOWCASE_MODE`預設false。僅明確啟用的loopback部署、五個指定公司的已登入admin能使用左下公司選單。選擇後換發真實HttpOnly session並撤銷舊token，使用目標公司的專用「展示管理者」，清除原公司畫面並回總覽。有開啟表單時先確認／可取消，其他頁直接切換；手機先展開導覽。模式關閉後專用展示session失效，原有登入帳號／密碼不變。
+
+本機展示初始化（先備份，既有Compose啟動後執行）：
+
+```powershell
+docker compose --project-name projectflow-formal --env-file deploy/.env -f deploy/docker-compose.yml exec -T api python -m app.showcase
+```
+
+須先在本機`deploy/.env`加入`PF_SHOWCASE_MODE=true`並重建API；勿用seed代替。初始化僅補缺公司／隨機不可知密碼的專用帳號／模板，穩定ID保留使用者已改模板，重跑不覆寫。15173本次新增3家公司、5個專用身分、12模板／219節點與12稽核；既有全部rows、欄位、附件及原環境設定逐值保留，migration仍0004。DB容器未重建，僅API/web更新；旗標只增加在ignored本機env。公司新建時沒有假專案，請用模板建立真實專案。這不是LAN部署授權。
+
+UI2完整回歸與定向修正見PROGRESS，七項專用PG條件測試本輪未跑；本次沒有schema、migration與附件邏輯變更。獨立審查Ready to merge，1280／375畫面已實看；人類試用另簽核。

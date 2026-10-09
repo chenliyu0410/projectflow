@@ -150,7 +150,7 @@ for (const width of [1280, 375]) {
       const otherNode = (await otherDetail.json()).nodes[0];
       const workflows = await electronics.request.get('/api/workflows');
       expect(workflows.status()).toBe(200);
-      const otherCreated = await electronics.request.post('/api/projects/from-workflow', { data: { workflow_id: (await workflows.json()).items[0].id, title: `跨公司 ${randomUUID()}` } });
+      const otherCreated = await electronics.request.post('/api/projects/from-workflow', { data: { workflow_id: (await workflows.json()).items.find((item: {name:string}) => item.name === '電子新品開發').id, title: `跨公司 ${randomUUID()}` } });
       expect(otherCreated.status()).toBe(201);
       const otherWorkflow = await electronics.request.get(`/api/projects/${(await otherCreated.json()).id}`);
       expect(otherWorkflow.status()).toBe(200);

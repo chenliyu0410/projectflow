@@ -29,6 +29,7 @@ class OrganizationOut(BaseModel):
 class LoginResponse(BaseModel):
     user: UserOut
     organization: OrganizationOut
+    showcase: dict | None = None
 
 
 MeResponse = LoginResponse
@@ -245,3 +246,8 @@ class WorkflowWrite(BaseModel):
 class WorkflowCopy(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     name: str | None = Field(default=None, min_length=1, max_length=160)
+
+
+class ShowcaseSwitch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    organization_key: str

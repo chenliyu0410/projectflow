@@ -16,6 +16,7 @@ import MyTasks from './components/MyTasks';
 type State = 'checking-session' | 'login' | 'loading' | 'ready' | 'error';
 export default function App() {
   const [state, setState] = useState<State>('checking-session');
+  const [switchTarget, setSwitchTarget] = useState('');
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [route, setRoute] = useState<WorkspaceRoute>({ page: 'overview' });
@@ -56,7 +57,7 @@ export default function App() {
     return request.id === sequence.current && !request.controller.signal.aborted;
   }
   function clearSession() {
-    closeCreation(); setWorkflows(null);
+    closeCreation(); setWorkflows(null); setSwitchTarget('');
     setSession(null); setProjects([]); setRoute({ page: 'overview' }); setProject(null); setPassword(''); setState('login');
   }
   function failed(error: unknown, request: ReturnType<typeof begin>, loginFailure = false) {
@@ -138,6 +139,24 @@ export default function App() {
     }
     catch (error) { failed(error, request, !authenticated); }
     finally { if (current(request)) setBusy(false); }
+  }
+  async function switchCompany(target = switchTarget) {
+    if (!target || busy || !session?.showcase) return;
+    const request = begin();
+    closeCreation(); setSwitchTarget(''); setBusy(true); setState('loading'); setMessage('');
+    setProject(null); setProjects([]); setWorkflows(null); setRecordVersion(0); setRoute({page:'overview'});
+    try {
+      const value = await api.switchCompany(target, request.controller.signal);
+      if (current(request)) await loadProjects(request, value);
+    } catch (error) {
+      // A dropped response can still mean the cookie changed. Re-read the real session;
+      // never restore previous-company data or automatically repeat the switch mutation.
+      if (current(request)) {
+        setBusy(false);
+        await restore();
+        setMessage(error instanceof ApiError ? error.message : '切換失敗，已重新確認登入公司');
+      }
+    } finally { if (current(request)) setBusy(false); }
   }
   async function logout() {
     if (busy) return;
@@ -276,7 +295,7 @@ export default function App() {
         <label>密碼<input type="password" value={password} onChange={event => setPassword(event.target.value)} required disabled={busy} autoComplete="current-password" /></label>
         <button type="submit" disabled={busy}>{busy ? '登入中' : '登入'}</button>
       </form> : <>
-        {session ? <WorkspaceShell route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} session={<><span aria-label="目前公司">{session.organization.name}</span><div className="session-person"><span className="avatar" aria-hidden="true">{session.user.display_name.slice(0, 1)}</span><strong>{session.user.display_name}</strong></div><button disabled={busy} onClick={() => void logout()}>登出</button></>}>
+        {session ? <WorkspaceShell key={session.organization.id} route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} session={<><span aria-label="目前公司">{session.organization.name}</span>{session.showcase && <><label>切換公司（本機展示）<select aria-label="切換公司（本機展示）" value={switchTarget || session.organization.key} disabled={busy || mutating} onChange={e=>{const key=e.target.value;if(key===session.organization.key){setSwitchTarget('');return;}if(document.querySelector('.workspace-content form')) setSwitchTarget(key);else void switchCompany(key);}}>{session.showcase.companies.map(company=><option key={company.key} value={company.key}>{company.name}｜{company.industry}</option>)}</select></label><span className="showcase-badge">{session.showcase.active ? '展示身分 · 管理者' : '本機展示模式'}</span>{switchTarget && <div className="company-switch-confirm" role="group" aria-label="確認切換公司"><p>將以展示管理者進入所選公司。未儲存的表單內容將離開。</p><button disabled={busy} onClick={()=>void switchCompany()}>確認切換公司</button><button disabled={busy} onClick={()=>setSwitchTarget('')}>取消切換</button></div>}</>}<div className="session-person"><span className="avatar" aria-hidden="true">{session.user.display_name.slice(0, 1)}</span><strong>{session.user.display_name}</strong></div><button disabled={busy} onClick={() => void logout()}>登出</button></>}>
         {message && <p role="alert">{message}</p>}
         <section aria-label={route.page === 'project' ? '專案' : route.page === 'overview' ? '總覽頁面' : route.page === 'my-tasks' ? '我的任務頁面' : route.page === 'reviews' ? '審核中心頁面' : route.page === 'audit' ? '稽核紀錄頁面' : '模板庫頁面'}>
           {session && canCreate && <div className="project-toolbar global-actions">{session.user.role === 'admin' && <button disabled={busy || mutating || state !== 'ready'} onClick={() => { begin(); closeCreation(); setCreationMode('blank'); setCreationOpen(true); setMessage(''); }}>新增空白專案</button>}<button disabled={busy || mutating || workflowLoading || state !== 'ready'} onClick={() => void openCreation()}>新增專案</button></div>}
