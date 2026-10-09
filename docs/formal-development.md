@@ -323,3 +323,11 @@ docker compose --project-name projectflow-formal --env-file deploy/.env -f deplo
 須先在本機`deploy/.env`加入`PF_SHOWCASE_MODE=true`並重建API；勿用seed代替。初始化僅補缺公司／隨機不可知密碼的專用帳號／模板，穩定ID保留使用者已改模板，重跑不覆寫。15173本次新增3家公司、5個專用身分、12模板／219節點與12稽核；既有全部rows、欄位、附件及原環境設定逐值保留，migration仍0004。DB容器未重建，僅API/web更新；旗標只增加在ignored本機env。公司新建時沒有假專案，請用模板建立真實專案。這不是LAN部署授權。
 
 UI2完整回歸與定向修正見PROGRESS，七項專用PG條件測試本輪未跑；本次沒有schema、migration與附件邏輯變更。獨立審查Ready to merge，1280／375畫面已實看；人類試用另簽核。
+
+## UI3 Demo框架與首頁
+
+寬度大於1180為Demo三區：側欄252｜主區｜右側AI副手350。861–1180副手改右側抽屜，860以下導覽也改左側抽屜；頂部列左「☰ 選單」、右「✦ AI 副手」，Escape關閉並把焦點還給開關，抽屜關閉時不可聚焦。導覽名稱照Demo，「營運資料」「AI 政策與稽核」停用並標「尚未提供」；「專案工作區」改由側欄專案清單進入。建立入口在側欄「＋ 建立新專案」，管理者在表單內選空白或從模板。AI副手只是標示「展示預覽」的位置，快捷動作與提問框停用，不產生任何回答。
+
+`GET /workspace/overview`新增唯讀欄位`today`（台灣日曆日）、`overdue_count`、各專案`current_phase_title`／`due_date`／`overdue_count`、`people`、`departments`；`GET /workspace/my-tasks`新增可見祖先`path`。全部從既有可見節點計算，不改schema、不新增查詢；看不到的節點不進統計、負載與位置欄。
+
+對照截圖用的乾淨隔離環境`projectflow-ui3cmp`（15179，acceptance marker）只存在本機，seed後依序套用三個展示腳本；不要拿15175累積的E2E資料比較畫面。若本機沒有Playwright內建Chromium，可用不提交的暫時設定`{...base, use: {...base.use, channel: 'msedge'}}`改以系統Edge跑同一套E2E；結果與環境如實記在PROGRESS。
