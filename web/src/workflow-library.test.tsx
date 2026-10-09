@@ -41,6 +41,9 @@ const list = {
   items: [{ id: 'w', name: '既有模板', requires_start_date: true }],
   capabilities: { create: true },
 };
+// UI4：卡片標題按鈕的「 · 含相對日期」改放在 sr-only span 裡；
+// jsdom 的名稱計算會修掉 span 開頭的空白（得到「既有模板· 含相對日期」），故容許該空白差異。
+const cardTitle = /^既有模板\s?· 含相對日期$/;
 const response = (body: unknown, status = 200) => ({
   ok: status < 400,
   status,
@@ -121,7 +124,7 @@ describe('workflow library', () => {
       if (p === '/api/workflows/copy') return response({}, 500);
     });
     fireEvent.click(
-      await screen.findByRole('button', { name: '既有模板 · 含相對日期' }),
+      await screen.findByRole('button', { name: cardTitle }),
     );
     fireEvent.click(await screen.findByRole('button', { name: '複製模板' }));
     fireEvent.change(screen.getByLabelText('模板名稱'), {
@@ -145,7 +148,7 @@ describe('workflow library', () => {
   it('updates existing templates without allowing nested phases', async () => {
     const { fetcher } = setup();
     fireEvent.click(
-      await screen.findByRole('button', { name: '既有模板 · 含相對日期' }),
+      await screen.findByRole('button', { name: cardTitle }),
     );
     fireEvent.click(await screen.findByRole('button', { name: '編輯模板' }));
     expect(screen.queryByLabelText('父節點 1')).not.toBeInTheDocument();
@@ -168,7 +171,7 @@ describe('workflow library', () => {
       ),
     );
     fireEvent.click(
-      await screen.findByRole('button', { name: '既有模板 · 含相對日期' }),
+      await screen.findByRole('button', { name: cardTitle }),
     );
     await screen.findByRole('region', { name: '模板內容' });
     expect(
@@ -180,6 +183,9 @@ describe('workflow library', () => {
     expect(
       screen.queryByRole('button', { name: '複製模板' }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '用這套工作流建立專案' }),
+    ).not.toBeInTheDocument();
   });
   it('ignores late detail expiry when replaced by a new form', async () => {
     let resolve!: (v: unknown) => void;
@@ -187,7 +193,7 @@ describe('workflow library', () => {
       p === '/api/workflows/w' ? new Promise((r) => (resolve = r)) : undefined,
     );
     fireEvent.click(
-      await screen.findByRole('button', { name: '既有模板 · 含相對日期' }),
+      await screen.findByRole('button', { name: cardTitle }),
     );
     fireEvent.click(screen.getByRole('button', { name: '新增模板' }));
     fireEvent.change(screen.getByLabelText('模板名稱'), {

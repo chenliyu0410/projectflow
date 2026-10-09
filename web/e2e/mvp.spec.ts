@@ -68,7 +68,7 @@ for (const width of [1280, 375]) {
       const chen = await role('chen');
       await openSeed(chen);
       const ownParent = seedNodes.find(n => n.id === own.parent_id)!;
-      await chen.getByLabel('節點樹').getByRole('button', { name: ownParent.title, exact: true }).click();
+      await chen.getByRole('button', { name: `進入階段：${ownParent.title}`, exact: true }).click();
       await chen.getByRole('combobox', { name: `${own.title}狀態` }).selectOption('doing');
       await expect(chen.getByLabel('進行中').getByRole('combobox', { name: `${own.title}狀態` })).toHaveValue('doing');
       await snapshot(chen, 'chen');
@@ -81,9 +81,11 @@ for (const width of [1280, 375]) {
       expect((await restricted.json()).nodes.map((n: { id: string }) => n.id).sort())
         .toEqual(seedNodes.filter(n => n.owner_user_id === memberId).map(n => n.id).sort());
       await openSeed(ming);
-      await ming.getByLabel('節點樹').getByRole('button', { name: own.title }).click();
+      // A member without the parent phase sees the owned task promoted onto the project board, and no phase strip.
+      await expect(ming.getByLabel('看板')).not.toContainText(hidden.title);
+      await expect(ming.getByLabel('開發階段與閘門')).toHaveCount(0);
+      await ming.getByLabel('看板').getByRole('button', { name: own.title }).click();
       await expect(ming.getByLabel('節點路徑')).toHaveText(`成貓主食罐正式版 / ${own.title}`);
-      await expect(ming.getByLabel('節點樹')).not.toContainText(hidden.title);
       await ming.getByRole('combobox', { name: `${own.title}狀態` }).selectOption('todo');
       await expect(ming.getByLabel('節點詳情').getByRole('combobox', { name: `${own.title}狀態` })).toHaveValue('todo');
       const reportProject = await yu.request.post('/api/projects', { data: { title: `P2b role report ${randomUUID()}` } });
@@ -124,9 +126,11 @@ for (const width of [1280, 375]) {
       const hiddenProject = await ming.request.get(`/api/projects/${projectId}`);
       expect(hiddenProject.status()).toBe(200);
       expect((await hiddenProject.json()).gates).toEqual([]);
-      await yu.getByRole('button', { name: '核准閘門' }).click();
+      await yu.getByRole('button', { name: `進入階段：${detail.nodes.find((n: { id: string }) => n.id === gate.node_id).title}`, exact: true }).click();
+      await yu.getByLabel('階段閘門').getByRole('button', { name: '核准閘門' }).click();
       await expect(yu.getByRole('button', { name: '核准閘門' })).toHaveCount(0);
-      await yu.getByLabel('節點樹').getByRole('button', { name: detail.nodes.find((n: { id: string }) => n.id === task.parent_id).title, exact: true }).click();
+      await yu.getByLabel('節點路徑').getByRole('button', { name: title, exact: true }).click();
+      await yu.getByRole('button', { name: `進入階段：${detail.nodes.find((n: { id: string }) => n.id === task.parent_id).title}`, exact: true }).click();
       await yu.getByRole('combobox', { name: '試作工單狀態' }).selectOption('doing');
       await expect(yu.getByLabel('進行中').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('doing');
       await snapshot(yu, 'yu');

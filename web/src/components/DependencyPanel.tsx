@@ -7,15 +7,17 @@ import {
   useRecordMutation,
 } from '../api';
 import type { RecordReload } from '../api';
-import type { DependencyData } from '../types';
+import type { DependencyData, ProjectDetail } from '../types';
 import DependencyGraph from './DependencyGraph';
 export default function DependencyPanel({
   projectId,
+  project,
   select,
   reload,
   expired,
 }: {
   projectId: string;
+  project?: ProjectDetail;
   select: (id: string) => void;
   reload: RecordReload;
   expired: () => void;
@@ -26,6 +28,7 @@ export default function DependencyPanel({
   const [loading, setLoading] = useState(true);
   const [pre, setPre] = useState('');
   const [post, setPost] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
   const mutation = useRecordMutation(reload, expired);
   async function load() {
     const r = scope.begin();
@@ -48,11 +51,21 @@ export default function DependencyPanel({
   }, []);
   return (
     <section className="dependency-panel" aria-label="前置設定">
-      <h2>前置相依</h2>
-      <p>
-        只管理同專案任務的完成至開始前置，延遲為 0
-        天。移除連線不會刪除任務；閘門仍獨立檢查。
-      </p>
+      <div className="graph-tools">
+        {data?.capabilities.manage && (
+          <button
+            aria-expanded={formOpen}
+            disabled={loading || !!error}
+            onClick={() => setFormOpen((value) => !value)}
+          >
+            <span aria-hidden="true">＋ </span>建立相依連線
+          </button>
+        )}
+        <span>
+          只管理同專案任務的完成至開始前置，延遲為 0
+          天。移除連線不會刪除任務；閘門仍獨立檢查。
+        </span>
+      </div>
       {loading && <p role="status">載入前置設定中</p>}
       {error && (
         <>
@@ -71,7 +84,7 @@ export default function DependencyPanel({
               重試前置載入
             </button>
           ) : (
-            data.capabilities.manage && (
+            data.capabilities.manage && formOpen && (
               <form
                 className="record-panel dependency-form"
                 onSubmit={(e) => {
@@ -137,7 +150,9 @@ export default function DependencyPanel({
               </form>
             )
           )}
-          <div className="record-panel">
+          <DependencyGraph data={data} select={select} nodes={project?.nodes} />
+          <details className="panel dependency-list">
+            <summary>連線清單（{data.items.length}）</summary>
             <h3>可見前置連線</h3>
             {data.items.length === 0 ? (
               <p>目前沒有兩端皆可見的前置連線</p>
@@ -166,16 +181,15 @@ export default function DependencyPanel({
                 ))}
               </ul>
             )}
-          </div>
-          {data.nodes
-            .filter((n) => n.blocked)
-            .map((n) => (
-              <p key={n.id}>
-                <button onClick={() => select(n.id)}>{n.title}</button>
-                ：尚有未完成的前置任務
-              </p>
-            ))}
-          <DependencyGraph data={data} select={select} />
+            {data.nodes
+              .filter((n) => n.blocked)
+              .map((n) => (
+                <p key={n.id}>
+                  <button className="row-link" onClick={() => select(n.id)}>{n.title}</button>
+                  ：尚有未完成的前置任務
+                </p>
+              ))}
+          </details>
         </>
       )}
     </section>

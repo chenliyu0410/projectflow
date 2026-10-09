@@ -31,10 +31,13 @@ for (const width of [1280, 375]) {
       await expect(page.getByLabel('可見任務完成率',{exact:true})).toBeVisible();
       if(width===375)await page.getByRole('button',{name:'切換導覽'}).click();
       if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button',{name:title,exact:true}).click();
-      await page.getByLabel('節點樹').getByRole('button',{name:'附件與協作任務',exact:true}).click();
+      await page.getByLabel('看板').getByRole('button',{name:'附件與協作任務',exact:true}).click();
+      await expect(page.getByRole('tab',{name:'紀錄',exact:true})).toHaveAttribute('aria-selected','true');
+      await page.getByRole('tab',{name:'成員與權限',exact:true}).click();
       await page.getByRole('button',{name:'協作設定',exact:true}).click();await page.getByRole('checkbox',{name:member.user.display_name,exact:true}).check();await page.getByRole('button',{name:'儲存協作',exact:true}).click();
       await expect(page.getByRole('button',{name:'協作設定',exact:true})).toBeVisible();
       await expect(page.getByLabel('協作人員')).toContainText(member.user.display_name);
+      await page.getByRole('tab',{name:'紀錄',exact:true}).click();
       expect((await member.request.post(`/api/nodes/${nid}/notes`,{data:{body:'協作筆記'}})).status()).toBe(201);
       expect((await member.request.patch(`/api/nodes/${nid}/status`,{data:{status:'doing'}})).status()).toBe(403);
       const bytes=Buffer.from(`P2b persistent bytes ${randomUUID()}`);const filename=`驗收附件-${'長名稱'.repeat(8)}.txt`;
@@ -51,7 +54,7 @@ for (const width of [1280, 375]) {
       const attachment=recordData.items.find((item:{type:string})=>item.type==='attachment');expect(attachment.sha256).toBe(createHash('sha256').update(bytes).digest('hex'));
       expect((await foreign.request.get(`/api/attachments/${attachment.id}/download`)).status()).toBe(404);
       expect((await readonly.request.delete(`/api/attachments/${attachment.id}`)).status()).toBe(403);
-      const reportBytes=Buffer.from('locked report evidence');await expect(page.getByLabel('回報附件',{exact:true})).toBeEnabled();await page.getByLabel('回報附件',{exact:true}).setInputFiles({name:'回報證據.txt',mimeType:'text/plain',buffer:reportBytes});
+      const reportBytes=Buffer.from('locked report evidence');await page.getByLabel('完成回報',{exact:true}).getByRole('button',{name:'回報完成',exact:true}).click();await expect(page.getByLabel('回報附件',{exact:true})).toBeEnabled();await page.getByLabel('回報附件',{exact:true}).setInputFiles({name:'回報證據.txt',mimeType:'text/plain',buffer:reportBytes});
       await expect(page.getByLabel('完成回報',{exact:true})).toContainText('上傳完成');
       await page.getByLabel('成果說明',{exact:true}).fill('管理者自行確認成果');await page.getByLabel('實際完成日',{exact:true}).fill('2026-10-08');await page.getByRole('button',{name:'送出並確認',exact:true}).click();
       await expect(page.getByLabel('完成回報',{exact:true}).getByRole('heading',{name:'已完成',exact:true})).toBeVisible();
@@ -61,6 +64,7 @@ for (const width of [1280, 375]) {
       expect(report.attachments).toHaveLength(1);expect((await admin.request.delete(`/api/attachments/${report.attachments[0].id}`)).status()).toBe(409);
       await page.getByRole('button',{name:`移除 ${filename}`,exact:true}).click();await expect(downloadButton).toHaveCount(0);
       expect((await admin.request.get(`/api/attachments/${attachment.id}/download`)).status()).toBe(404);
+      await page.getByRole('tab',{name:'成員與權限',exact:true}).click();
       await page.getByRole('button',{name:'協作設定',exact:true}).click();await page.getByRole('checkbox',{name:member.user.display_name,exact:true}).uncheck();await page.getByRole('button',{name:'儲存協作',exact:true}).click();
       await expect(page.getByLabel('協作人員')).toContainText('尚未設定協作');expect((await member.request.get(`/api/nodes/${nid}/records`)).status()).toBe(404);
       const audit=await admin.request.get(`/api/audit-logs?node_id=${nid}`);expect(audit.status()).toBe(200);const auditText=await audit.text();

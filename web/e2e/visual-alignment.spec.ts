@@ -25,7 +25,7 @@ for (const width of [1280, 375]) test(`UI1 visual alignment and navigation at ${
   await page.getByLabel('帳號').fill('yu'); await page.getByLabel('密碼').fill('demo-yu');
   await page.getByRole('button', { name: '登入', exact: true }).click();
   await expect(page.getByLabel('可見任務完成率', { exact: true })).toBeVisible();
-  const dir = '../.superpowers/ui3/e2e'; await mkdir(dir, { recursive: true });
+  const dir = '../.superpowers/ui4/e2e'; await mkdir(dir, { recursive: true });
   const capture = async (name: string) => {
     if (name !== 'loading') await expect(page.getByRole('status').filter({ hasText: '載入' })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -52,11 +52,18 @@ for (const width of [1280, 375]) test(`UI1 visual alignment and navigation at ${
   await page.getByLabel('搜尋任務').fill(title); await expect(page.locator('.task-group tbody tr')).toHaveCount(3); await capture('tasks');
   await menu(); await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
   await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible(); await capture('workspace');
+  // UI4: Demo board is four columns (148px each at 1280 with the copilot open, 240px scrolling inside the board on phones).
+  expect(await page.locator('.kanban-column').evaluateAll(cols => cols.map(c => Math.round(c.getBoundingClientRect().width)))).toEqual(Array(4).fill(width === 1280 ? 148 : 240));
   await page.getByRole('tab', { name: '時程', exact: true }).click(); await expect(page.getByLabel('專案時程')).toBeVisible(); await capture('timeline');
-  await page.getByRole('tab', { name: '前置相依', exact: true }).click(); await expect(page.getByLabel('前置設定')).toBeVisible(); await capture('dependencies');
-  await page.getByRole('tab', { name: '工作區', exact: true }).click();
-  await page.getByLabel('節點樹').getByRole('button', { name: '需求確認與規格整理', exact: true }).click();
-  await expect(page.getByRole('tab', { name: '紀錄', exact: true })).toHaveAttribute('aria-selected', 'true'); await expect(page.getByRole('textbox', { name: '成果說明', exact: true })).toBeVisible(); await capture('records');
+  await page.getByRole('tab', { name: '相依圖', exact: true }).click(); await expect(page.getByLabel('前置設定')).toBeVisible(); await capture('dependencies');
+  await page.getByRole('tab', { name: '看板', exact: true }).click();
+  await page.getByLabel('看板').getByRole('button', { name: '需求確認與規格整理', exact: true }).click();
+  await expect(page.getByRole('tab', { name: '紀錄', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('textbox', { name: '成果說明', exact: true })).toHaveCount(0);
+  await page.getByLabel('完成回報', { exact: true }).getByRole('button', { name: '回報完成', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: '成果說明', exact: true })).toBeVisible(); await capture('records');
+  await page.getByRole('button', { name: '取消回報', exact: true }).click();
+  await page.getByRole('tab', { name: '成員與權限', exact: true }).click(); await expect(page.getByLabel('此節點的成員')).toContainText('負責人'); await capture('people');
   for (const [label, heading, name] of [['模板庫','模板庫','templates'],['審核中心','審核中心','reviews'],['活動與稽核紀錄','稽核紀錄','audit']]) {
     await nav(label); await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible(); await capture(name);
   }

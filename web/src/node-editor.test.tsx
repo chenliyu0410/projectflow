@@ -18,8 +18,9 @@ const overview = { project_count: 1, task_counts: { todo: 1, doing: 0, review: 0
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
 async function openEditor() {
   fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
-  const tree = await screen.findByLabelText('節點樹');
-  fireEvent.click(within(tree).getByRole('button', { name: '原任務' }));
+  // UI4: the node tree is gone; tasks are entered from their project-board card.
+  const board = await screen.findByLabelText('看板');
+  fireEvent.click(within(board).getByRole('button', { name: '原任務' }));
   fireEvent.click(screen.getByRole('button', { name: '編輯節點' }));
 }
 function setup(write: () => Promise<unknown> = async () => response(task), role = 'member') {
@@ -98,13 +99,16 @@ describe('P2a node editor', () => {
     fireEvent.click(screen.getByRole('button', { name: '儲存' }));
     await waitFor(() => expect(screen.queryByLabelText('節點名稱')).not.toBeInTheDocument());
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent(task.title);
-    expect(within(screen.getByLabelText('節點樹')).getByRole('button', { name: task.title })).toHaveAttribute('aria-pressed', 'true');
+    // UI4: the selected node is marked in the breadcrumb (the node tree was removed).
+    expect(within(screen.getByLabelText('節點詳情')).getByRole('heading', { level: 1, name: task.title })).toBeInTheDocument();
+    expect(within(screen.getByLabelText('節點路徑')).getByRole('button', { name: task.title })).toHaveAttribute('aria-current', 'location');
   });
 
   it('hides editing and creation even if readonly receives historical editor capabilities', async () => {
     const fetcher = setup(undefined, 'readonly');
     fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
-    fireEvent.click(within(await screen.findByLabelText('節點樹')).getByRole('button', { name: '原任務' }));
+    fireEvent.click(within(await screen.findByLabelText('看板')).getByRole('button', { name: '原任務' }));
+    expect(await screen.findByRole('heading', { level: 1, name: '原任務' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '編輯節點' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '新增子節點' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '建立新專案' })).not.toBeInTheDocument();
@@ -191,7 +195,7 @@ describe('P2a blank project creation', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('已儲存，資料重新載入失敗');
     expect(screen.queryByRole('button', { name: '建立專案' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '重試' }));
-    expect(await screen.findByLabelText('節點樹')).toBeInTheDocument();
+    expect(within(await screen.findByLabelText('看板')).getByRole('button', { name: task.title })).toBeInTheDocument();
     expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1);
     expect(fetcher).toHaveBeenCalledWith('/api/projects', expect.objectContaining({ method: 'POST', body: JSON.stringify({ title: '新空白專案' }) }));
     expect(details).toBe(2);

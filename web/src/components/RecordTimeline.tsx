@@ -11,7 +11,6 @@ import type { NodeItem, Note, RecordItem, Attachment } from '../types';
 import { ReportSummary } from './ReportPanel';
 import NoteEditor from './NoteEditor';
 import AttachmentList from './AttachmentList';
-import CollaboratorEditor from './CollaboratorEditor';
 function Timeline({
   node,
   userId,
@@ -85,6 +84,11 @@ function Timeline({
       for (const attachment of item.attachments)
         attachments.set(attachment.id, attachment);
   }
+  // Counts follow the Demo headings; while more pages exist they only cover what has loaded.
+  const count = (type: RecordItem['type']) => {
+    const n = items.filter((i) => i.type === type).length;
+    return cursor ? `（已載入 ${n}）` : `（${n}）`;
+  };
   function source(item: RecordItem) {
     return (
       readScope === 'subtree' && (
@@ -109,7 +113,7 @@ function Timeline({
         </>
       )}
       <section className="record-panel" aria-label="回報歷史">
-        <h3>回報歷史</h3>
+        <h3>回報歷史{!loading && !error && count('report')}</h3>
         {items
           .filter((i) => i.type === 'report')
           .map((item) => (
@@ -123,7 +127,7 @@ function Timeline({
         )}
       </section>
       <section className="record-panel" aria-label="筆記">
-        <h3>筆記</h3>
+        <h3>筆記{!loading && !error && count('note')}</h3>
         {canWrite && readScope === 'self' && (
           <NoteEditor nodeId={node.id} reload={reload} expired={expired} />
         )}
@@ -197,13 +201,7 @@ function Timeline({
           載入更多紀錄
         </button>
       )}
-      <CollaboratorEditor
-        nodeId={node.id}
-        projectId={node.project_id}
-        manage={!!node.capabilities?.manage_collaborators}
-        reload={reload}
-        expired={expired}
-      />
+
     </div>
   );
 }

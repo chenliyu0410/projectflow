@@ -209,7 +209,7 @@ export default function AttachmentList({
   }
   return (
     <section className="record-panel" aria-label="附件">
-      <h3>附件</h3>
+      <h3>附件{readState === 'complete' ? `（${items.length}）` : readState === 'partial' ? `（已載入 ${items.length}）` : ''}</h3>
       {canWrite && (
         <AttachmentUpload
           nodeId={nodeId}

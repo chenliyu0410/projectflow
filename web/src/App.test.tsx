@@ -33,10 +33,15 @@ async function openWorkspace() {
   await screen.findByRole('heading', { name: '所有專案總覽' });
   fireEvent.click(projectButton());
 }
+// UI4: the main-area node tree is gone; phases are entered from the project-level phase strip.
 function selectPhase() {
-  const tree = within(screen.getByLabelText('節點樹'));
-  fireEvent.click(tree.getByRole('button', { name: detail.title }));
-  fireEvent.click(tree.getByRole('button', { name: '市場與配方' }));
+  fireEvent.click(within(screen.getByLabelText('開發階段與閘門')).getByRole('button', { name: '進入階段：市場與配方' }));
+}
+function boardButton(name: string) {
+  return within(screen.getByLabelText('看板')).getByRole('button', { name });
+}
+function crumbs() {
+  return screen.getByLabelText('節點路徑');
 }
 async function fillCreation() {
   await screen.findByRole('heading', { name: detail.title });
@@ -159,13 +164,20 @@ it('renders an owned task with hidden parent as a selectable root and kanban ite
   render(<App />);
   await openWorkspace();
   await screen.findByRole('heading', { name: detail.title });
-  const tree = within(screen.getByLabelText('節點樹'));
-  fireEvent.click(tree.getByRole('button', { name: taskNode.title }));
-  expect(tree.getAllByRole('button')).toHaveLength(1);
-  expect(screen.getByLabelText('節點路徑')).toHaveTextContent(taskNode.title);
-  expect(screen.getByLabelText('節點路徑')).not.toHaveTextContent('市場與配方');
+  // The orphaned task is promoted to the project-level board as its only selectable card.
+  const board = within(screen.getByLabelText('看板'));
+  expect(board.getAllByRole('button')).toHaveLength(1);
+  expect(board.getByRole('combobox', { name: `${taskNode.title}狀態` })).toBeInTheDocument();
+  expect(screen.queryByLabelText('開發階段與閘門')).not.toBeInTheDocument();
+  fireEvent.click(board.getByRole('button', { name: taskNode.title }));
+  expect(crumbs()).toHaveTextContent(taskNode.title);
+  expect(crumbs()).not.toHaveTextContent('市場與配方');
   expect(within(screen.getByLabelText('節點詳情')).getByRole('combobox', { name: `${taskNode.title}狀態` })).toBeInTheDocument();
+  // A leaf task opens on its records; its own board has no next level and therefore no controls.
+  expect(screen.getByRole('tab', { name: '紀錄' })).toHaveAttribute('aria-selected', 'true');
+  fireEvent.click(screen.getByRole('tab', { name: '看板' }));
   expect(within(screen.getByLabelText('看板')).queryByRole('combobox')).not.toBeInTheDocument();
+  expect(screen.getByLabelText('看板')).toHaveTextContent('目前沒有下一層節點');
 });
 
 describe('P1b kanban and gates', () => {
@@ -221,9 +233,17 @@ describe('P1b kanban and gates', () => {
     stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
-    expect(await screen.findByText('尚有階段閘門待核准，後續階段可能被阻擋')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '核准閘門' }));
+    await screen.findByRole('heading', { name: detail.title });
+    // UI4: gates are approved on their phase page, not from a banner repeated on every level.
+    expect(screen.queryByRole('button', { name: '核准閘門' })).not.toBeInTheDocument();
+    selectPhase();
+    const gate = within(screen.getByLabelText('階段閘門'));
+    expect(gate.getByText('尚有階段閘門待核准，後續階段可能被阻擋')).toBeInTheDocument();
+    expect(gate.getByText('待核准')).toBeInTheDocument();
+    fireEvent.click(gate.getByRole('button', { name: '核准閘門' }));
     await waitFor(() => expect(screen.queryByText('尚有階段閘門待核准，後續階段可能被阻擋')).not.toBeInTheDocument());
+    expect(within(screen.getByLabelText('階段閘門')).getByText('✓ 已核准')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '核准閘門' })).not.toBeInTheDocument();
     expect(fetcher).toHaveBeenNthCalledWith(4, '/api/gates/g1', expect.objectContaining({ method: 'PATCH', credentials: 'include', body: JSON.stringify({ status: 'approved' }) }));
     expect(fetcher).toHaveBeenLastCalledWith('/api/projects/p1', expect.objectContaining({ credentials: 'include' }));
   });
@@ -233,7 +253,8 @@ describe('P1b kanban and gates', () => {
     stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
-    fireEvent.click(await screen.findByRole('button', { name: '核准閘門' }));
+    fireEvent.click(await screen.findByRole('button', { name: '進入階段：市場與配方' }));
+    fireEvent.click(screen.getByRole('button', { name: '核准閘門' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('沒有核准此閘門的權限');
     expect(document.body).not.toHaveTextContent('private-secret');
     expect(screen.getByText('尚有階段閘門待核准，後續階段可能被阻擋')).toBeInTheDocument();
@@ -280,7 +301,8 @@ describe('P1b kanban and gates', () => {
     stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
-    fireEvent.click(await screen.findByRole('button', { name: '核准閘門' }));
+    fireEvent.click(await screen.findByRole('button', { name: '進入階段：市場與配方' }));
+    fireEvent.click(screen.getByRole('button', { name: '核准閘門' }));
     fireEvent.click(projectButton(secondProject.title));
     await screen.findByRole('heading', { name: secondProject.title });
     await act(async () => { resolveGate(response({ ...pendingGate, status: 'approved' })); });
@@ -317,20 +339,28 @@ describe('P1b kanban and gates', () => {
 });
 
 describe('P1b project navigation', () => {
-  it('loads detail, orders the tree and selects a leaf with full breadcrumbs', async () => {
+  it('loads detail, orders the board and selects a leaf with full breadcrumbs', async () => {
     stubFetch(vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response(projects)).mockResolvedValueOnce(response(detail)));
     render(<App />);
     await openWorkspace();
     expect(await screen.findByRole('heading', { name: detail.title })).toBeInTheDocument();
-    expect(screen.getByLabelText('節點路徑')).toHaveTextContent(detail.title);
-    const tree = within(screen.getByLabelText('節點樹'));
+    expect(crumbs()).toHaveTextContent(detail.title);
+    // The project-kind root is not a card; its phase is the top level and its tasks are flattened in sort order.
+    const cardTitles = () => within(screen.getByLabelText('看板')).getAllByRole('button').map(button => button.textContent);
+    expect(within(screen.getByLabelText('開發階段與閘門')).getAllByRole('button').map(button => button.getAttribute('aria-label'))).toEqual(['進入階段：市場與配方']);
+    expect(cardTitles()).toEqual(['殺菌條件驗證', '後續任務']);
+    expect(within(screen.getByLabelText('待處理')).getAllByText('市場與配方')).toHaveLength(2);
     selectPhase();
-    expect(tree.getAllByRole('button').filter(button => button.hasAttribute('aria-pressed')).map(button => button.textContent)).toEqual([detail.title, '市場與配方', '殺菌條件驗證', '後續任務']);
-    fireEvent.click(tree.getByRole('button', { name: '殺菌條件驗證' }));
-    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('成貓主食罐正式版 / 成貓主食罐正式版 / 市場與配方 / 殺菌條件驗證');
-    expect(tree.getByRole('button', { name: '殺菌條件驗證' })).toHaveAttribute('aria-pressed', 'true');
-    fireEvent.click(tree.getByRole('button', { name: '市場與配方' }));
-    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('成貓主食罐正式版 / 成貓主食罐正式版 / 市場與配方');
+    expect(crumbs()).toHaveTextContent('成貓主食罐正式版 / 成貓主食罐正式版 / 市場與配方');
+    expect(cardTitles()).toEqual(['殺菌條件驗證', '後續任務']);
+    fireEvent.click(boardButton('殺菌條件驗證'));
+    expect(crumbs()).toHaveTextContent('成貓主食罐正式版 / 成貓主食罐正式版 / 市場與配方 / 殺菌條件驗證');
+    expect(within(crumbs()).getByRole('button', { name: '殺菌條件驗證' })).toHaveAttribute('aria-current', 'location');
+    expect(screen.getByRole('heading', { level: 1, name: '殺菌條件驗證' })).toBeInTheDocument();
+    fireEvent.click(within(crumbs()).getByRole('button', { name: '市場與配方' }));
+    expect(crumbs()).toHaveTextContent('成貓主食罐正式版 / 成貓主食罐正式版 / 市場與配方');
+    expect(crumbs()).not.toHaveTextContent('殺菌條件驗證');
+    expect(within(crumbs()).getByRole('button', { name: '市場與配方' })).toHaveAttribute('aria-current', 'location');
   });
 
   it('switches project and resets node selection, including empty trees', async () => {
@@ -340,11 +370,14 @@ describe('P1b project navigation', () => {
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
     selectPhase();
-    fireEvent.click(within(screen.getByLabelText('節點樹')).getByRole('button', { name: '殺菌條件驗證' }));
+    fireEvent.click(boardButton('殺菌條件驗證'));
+    expect(screen.getByRole('heading', { level: 1, name: '殺菌條件驗證' })).toBeInTheDocument();
     fireEvent.click(projectButton(secondProject.title));
     expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
-    expect(screen.getByLabelText('節點路徑')).toHaveTextContent(secondProject.title);
-    expect(screen.getByText('這個專案還沒有節點')).toBeInTheDocument();
+    expect(crumbs()).toHaveTextContent(secondProject.title);
+    expect(crumbs()).not.toHaveTextContent('市場與配方');
+    expect(screen.getByRole('tab', { name: '看板' })).toHaveAttribute('aria-selected', 'true');
+    expect(within(screen.getByLabelText('看板')).getByText('這個專案還沒有節點。按「新增子節點」開始拆解。')).toBeInTheDocument();
     expect(projectButton(secondProject.title)).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByText('殺菌條件驗證')).not.toBeInTheDocument();
     expect(fetcher).toHaveBeenLastCalledWith('/api/projects/p2', expect.objectContaining({ credentials: 'include' }));
@@ -402,7 +435,8 @@ describe('P1b project navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
     await act(async () => { resolveDetail(response(detail)); });
-    expect(screen.queryByLabelText('節點樹')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('節點詳情')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('看板')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '登入專流' })).toBeInTheDocument();
   });
 });

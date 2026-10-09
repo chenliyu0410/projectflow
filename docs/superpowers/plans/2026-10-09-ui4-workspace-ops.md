@@ -52,7 +52,7 @@ Demo在另開的127.0.0.1:18005用Playwright全新context截圖（毛研食品�
 
 ## 允許檔案
 
-- 前端：`web/src/App.tsx`、`types.ts`、`styles.css`、`components/NodeWorkspace.tsx`、`ReportPanel.tsx`、`RecordTimeline.tsx`、`CollaboratorEditor.tsx`、`TimelineView.tsx`、`DependencyPanel.tsx`、`DependencyGraph.tsx`、`WorkflowLibrary.tsx`、`ReviewCenter.tsx`、`NavIcons.tsx`。
+- 前端：`web/src/App.tsx`、`types.ts`、`styles.css`、`components/NodeWorkspace.tsx`、`ReportPanel.tsx`、`RecordTimeline.tsx`、`AttachmentList.tsx`、`CollaboratorEditor.tsx`、`TimelineView.tsx`、`DependencyPanel.tsx`、`DependencyGraph.tsx`、`WorkflowLibrary.tsx`、`ReviewCenter.tsx`、`NavIcons.tsx`。
 - 測試：`web/src`既有`*.test.tsx`、`web/e2e`既有`*.spec.ts`，只適配文案與結構（移除節點樹後的進入方式、分頁名稱、回報表單要先按「回報完成」、閘門改在階段頁或審核中心核准、手機時程改用✎）；不移除功能、權限、公司隔離與資料保存斷言。`visual-alignment.spec.ts`加UI4截圖。
 - 文件：本計畫、README、PROGRESS、`docs/mvp-trial-checklist.md`（新增UI4試用段）、`docs/formal-development.md`（操作說明有變時）。
 - 不改：API、models、migration、deploy、Demo與其測試。

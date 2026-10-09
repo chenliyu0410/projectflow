@@ -36,7 +36,22 @@ describe('visible dependency editing', () => {
     expect(screen.getAllByText(/尚有未完成的前置任務/).length).toBeGreaterThan(
       0,
     );
-    fireEvent.keyDown(entry, { key: 'Enter' });
+    expect(entry).toHaveAttribute(
+      'title',
+      expect.stringContaining('：尚有未完成的前置任務'),
+    );
+    expect(
+      screen.getByRole('button', { name: '開啟任務：前項' }),
+    ).not.toHaveAttribute('title', expect.stringContaining('尚有未完成'));
+    // UI4：方塊改為原生 HTML button，可用 Tab 聚焦、Enter／Space 由瀏覽器觸發 click。
+    // jsdom 不會把 keyDown 轉成 click，因此驗證它是可聚焦的原生按鈕後以 click 代表啟用。
+    expect(entry.tagName).toBe('BUTTON');
+    expect(entry).not.toBeDisabled();
+    expect(entry).not.toHaveAttribute('tabindex', '-1');
+    entry.focus();
+    expect(entry).toHaveFocus();
+    fireEvent.click(entry);
+    expect(select).toHaveBeenCalledTimes(1);
     expect(select).toHaveBeenCalledWith('b');
     expect(screen.queryByText('hidden')).not.toBeInTheDocument();
   });
@@ -56,6 +71,11 @@ describe('visible dependency editing', () => {
         expired={vi.fn()}
       />,
     );
+    const open = await screen.findByRole('button', { name: '建立相依連線' });
+    expect(open).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByLabelText('前置任務')).not.toBeInTheDocument();
+    fireEvent.click(open);
+    expect(open).toHaveAttribute('aria-expanded', 'true');
     fireEvent.change(await screen.findByLabelText('前置任務'), {
       target: { value: 'b' },
     });
@@ -65,6 +85,10 @@ describe('visible dependency editing', () => {
     fireEvent.click(screen.getByRole('button', { name: '新增前置' }));
     expect(await screen.findByRole('alert')).not.toHaveTextContent('INTERNAL');
     expect(screen.getByLabelText('前置任務')).toHaveValue('b');
+    expect(screen.getByLabelText('後續任務')).toHaveValue('a');
+    expect(f.mock.calls.filter(([, i]) => i?.method === 'POST')).toHaveLength(
+      1,
+    );
     expect(f).toHaveBeenCalledWith(
       '/api/projects/p/dependencies',
       expect.objectContaining({
@@ -119,6 +143,10 @@ describe('visible dependency editing', () => {
       />,
     );
     await screen.findByRole('heading', { name: '可見前置連線' });
+    // UI4：新增表單要先按「建立相依連線」才出現；無權限時連開啟按鈕都不應存在。
+    expect(
+      screen.queryByRole('button', { name: '建立相依連線' }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByLabelText('前置任務')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /移除前置/ }),

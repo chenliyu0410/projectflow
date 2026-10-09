@@ -54,8 +54,8 @@ for (const width of [1280, 375]) {
     await login('yu');
     if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();
     await expect(page.getByRole('heading', { name: '成貓主食罐正式版', exact: true })).toBeVisible();
-    await page.getByRole('button', { name: '展開市場與配方', exact: true }).click();
-    await expect(page.getByLabel('節點樹')).toContainText('殺菌條件驗證');
+    await expect(page.getByLabel('開發階段與閘門')).toContainText('市場與配方');
+    await expect(page.getByLabel('看板')).toContainText('殺菌條件驗證');
     const projectList = await page.request.get('/api/projects');
     expect(projectList.status()).toBe(200);
     const seedProject = (await projectList.json()).items.find((item: { title: string }) => item.title === '成貓主食罐正式版');
@@ -79,7 +79,9 @@ for (const width of [1280, 375]) {
     const detail = await detailResponse.json();
     const task = detail.nodes.find((node: { title: string }) => node.title === '試作工單');
     expect(task).toBeTruthy();
-    await page.getByLabel('節點樹').getByRole('button', { name: detail.nodes.find((node: { id: string }) => node.id === task.parent_id).title, exact: true }).click();
+    const phaseTitle = detail.nodes.find((node: { id: string }) => node.id === task.parent_id).title;
+    const gatePhaseTitle = detail.nodes.find((node: { id: string }) => node.id === detail.gates[0].node_id).title;
+    await page.getByRole('button', { name: `進入階段：${phaseTitle}`, exact: true }).click();
     const statusPath = `/api/nodes/${task.id}/status`;
     expected.set(statusPath, 409);
     const blockedResponse = page.waitForResponse(response => new URL(response.url()).pathname === statusPath);
@@ -88,8 +90,13 @@ for (const width of [1280, 375]) {
     await expect(page.getByRole('alert')).toHaveText('目前狀態不允許此操作，請檢查閘門與前置任務');
     await expect(page.getByLabel('待處理').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('todo');
     await screenshot('gate-blocked');
-    await page.getByRole('button', { name: '核准閘門' }).click();
+    // The blocking gate belongs to the earlier phase; approve it on that phase page like the Demo.
+    await page.getByLabel('節點路徑').getByRole('button', { name: title, exact: true }).click();
+    await page.getByRole('button', { name: `進入階段：${gatePhaseTitle}`, exact: true }).click();
+    await page.getByLabel('階段閘門').getByRole('button', { name: '核准閘門' }).click();
     await expect(page.getByText('尚有階段閘門待核准，後續階段可能被阻擋')).toHaveCount(0);
+    await page.getByLabel('節點路徑').getByRole('button', { name: title, exact: true }).click();
+    await page.getByRole('button', { name: `進入階段：${phaseTitle}`, exact: true }).click();
     await page.getByLabel('待處理').getByRole('combobox', { name: '試作工單狀態' }).selectOption('doing');
     await expect(page.getByLabel('進行中').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('doing');
     await screenshot('gate-approved');
@@ -98,7 +105,7 @@ for (const width of [1280, 375]) {
     await login('lin');
     if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
-    await page.getByLabel('節點樹').getByRole('button', { name: detail.nodes.find((node: { id: string }) => node.id === task.parent_id).title, exact: true }).click();
+    await page.getByRole('button', { name: `進入階段：${phaseTitle}`, exact: true }).click();
     await expect(page.getByLabel('進行中')).toContainText('試作工單');
     await expect(page.getByLabel('看板').getByRole('combobox')).toHaveCount(0);
     await expect(page.getByRole('button', { name: '建立新專案' })).toHaveCount(0);

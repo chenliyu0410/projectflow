@@ -7,8 +7,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError } from './api';
 import type { NodeStatus, ProjectDetail, ProjectSummary, SessionInfo, WorkflowSummary, WorkspaceRoute } from './types';
-import WorkspaceShell from './components/WorkspaceShell';
-import NodeWorkspace from './components/NodeWorkspace';
+import WorkspaceShell, { projectColor } from './components/WorkspaceShell';
+import NodeWorkspace, { isLeafTask } from './components/NodeWorkspace';
+import type { NodeTab } from './components/NodeWorkspace';
 import NodeEditor from './components/NodeEditor';
 import WorkspaceOverview from './components/WorkspaceOverview';
 import MyTasks from './components/MyTasks';
@@ -46,7 +47,9 @@ export default function App() {
   const [workflowId, setWorkflowId] = useState('');
   const [projectTitle, setProjectTitle] = useState('');
   const [projectStart, setProjectStart] = useState('');
-  const [projectView, setProjectView] = useState<'workspace' | 'timeline' | 'dependencies'>('workspace');
+  const [projectView, setProjectView] = useState<NodeTab>('board');
+  // Like the Demo: a leaf task opens on its records, anything else on its board.
+  const defaultTab = (nodes: ProjectDetail['nodes'], nodeId: string | null): NodeTab => isLeafTask(nodes, nodes.find(node => node.id === nodeId)) ? 'records' : 'board';
   const sequence = useRef(0);
   const creationForm = useRef<HTMLFormElement>(null);
   const controller = useRef<AbortController | null>(null);
@@ -95,14 +98,16 @@ export default function App() {
       setSelectedNodeId(detail.nodes.some(node => node.id === nodeId) ? nodeId : null);
       if (nodeId && !detail.nodes.some(node => node.id === nodeId)) setMessage('找不到項目');
       setState('ready');
+      return detail;
     } catch (error) { projectFailed(error, request); }
   }
   async function selectProject(id: string, nodeId: string | null = null) {
     if (busy) return;
     const request = begin();
-    closeCreation(); setProjectView('workspace');
+    closeCreation(); setProjectView('board');
     setRoute({ page: 'project', projectId: id, nodeId }); setProject(null); setMessage(''); setState('loading');
-    await loadDetail(id, request, nodeId);
+    const detail = await loadDetail(id, request, nodeId);
+    if (detail && current(request)) setProjectView(defaultTab(detail.nodes, nodeId));
   }
   function navigate(next: WorkspaceRoute) {
     if (busy) return;
@@ -111,7 +116,7 @@ export default function App() {
   }
   function selectNode(nodeId: string | null) {
     if (busy) return;
-    begin(); closeCreation(); setMessage(''); setProjectView('workspace'); setSelectedNodeId(nodeId);
+    begin(); closeCreation(); setMessage(''); setProjectView(defaultTab(project?.nodes ?? [], nodeId)); setSelectedNodeId(nodeId);
   }
   function retry() {
     if (session && selectedId) void selectProject(selectedId, selectedNodeId);
@@ -219,9 +224,10 @@ export default function App() {
     creationForm.current?.scrollIntoView?.({ block: 'start' });
     creationForm.current?.focus();
   }, [creationOpen]);
-  async function openCreation() {
+  async function openCreation(presetWorkflow = '') {
     if (!canCreate || busy || mutating || state !== 'ready') return;
     setCreationMode('workflow'); setEditor(null); setCreationOpen(true); setMessage('');
+    if (presetWorkflow) setWorkflowId(presetWorkflow);
     if (workflows !== null) return;
     const request = begin();
     setWorkflowLoading(true);
@@ -245,7 +251,7 @@ export default function App() {
       const result = creationMode === 'blank' ? await api.createProject(projectTitle.trim(), request.controller.signal)
         : await api.createFromWorkflow({ workflow_id: workflowId, title: projectTitle.trim(), ...(projectStart ? {start_date: projectStart} : {}) }, request.controller.signal);
       if (!current(request)) return;
-      created = true; closeCreation(); setProjectView('workspace'); setProject(null); setSelectedNodeId(null); setSelectedId(result.id); setState('loading');
+      created = true; closeCreation(); setProjectView('board'); setProject(null); setSelectedNodeId(null); setSelectedId(result.id); setState('loading');
       setProjects(value => value.some(item => item.id === result.id) ? value : [...value, result]);
       const list = await api.projects(request.controller.signal);
       if (!current(request)) return;
@@ -278,7 +284,10 @@ export default function App() {
     const request = begin();
     const detail = await api.project(project.id, request.controller.signal);
     if (!current(request)) return;
-    setEditor(null); setProject(detail); setSelectedNodeId(detail.nodes.some(node => node.id === nodeId) ? nodeId : null);
+    const kept = detail.nodes.some(node => node.id === nodeId) ? nodeId : null;
+    // A newly created node opens on its default tab; saving the current node keeps the tab the user is on.
+    if (kept !== selectedNodeId) setProjectView(defaultTab(detail.nodes, kept));
+    setEditor(null); setProject(detail); setSelectedNodeId(kept);
   }
 
   async function reloadRecords(signal: AbortSignal) {
@@ -328,19 +337,26 @@ export default function App() {
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview showAssignHint={canCreate} openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
-          {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} />}
+          {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} createProject={canCreate ? id => void openCreation(id) : undefined} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'audit' && <AuditLogView openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && route.page === 'my-tasks' && <MyTasks userName={session.user.display_name} openNode={(projectId, nodeId) => navigate({ page: 'project', projectId, nodeId })} expired={expireSession} />}
-          {state === 'ready' && route.page === 'project' && project && <><h1 className="project-heading">{project.title}</h1><div className="workspace-tools"><div className="project-views" role="tablist" aria-label="專案檢視">{([['workspace','工作區'],['timeline','時程'],['dependencies','前置相依']] as const).map(([view,label]) => <button key={view} role="tab" aria-selected={projectView === view} disabled={busy || mutating} onClick={() => { if (view === projectView) return; begin(); closeCreation(); setProjectView(view); }}>{label}</button>)}</div>{projectView === 'workspace' && <div className="project-toolbar">
-            {canAddNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('create')}>新增子節點</button>}
-            {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
-          </div>}</div>{projectView === 'timeline' && !busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} select={selectNode} reload={reloadRecords} expired={expireSession} />}{projectView === 'dependencies' && !busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} select={selectNode} reload={reloadRecords} expired={expireSession} />}{projectView === 'workspace' && <>
-          {editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
-            canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} />}
-          <NodeWorkspace key={project.id} project={project} selectedNodeId={selectedNodeId} select={selectNode}
-            userId={session.user.id} reloadRecords={reloadRecords} expired={expireSession} recordVersion={recordVersion} recordsEnabled={!busy && !editor && !creationOpen}
-            readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)} /></>}</>}
+          {state === 'ready' && route.page === 'project' && project && <NodeWorkspace key={project.id} project={project} selectedNodeId={selectedNodeId} select={selectNode}
+            userId={session.user.id} userName={session.user.display_name} roleLabel={ROLE_LABELS[session.user.role] ?? session.user.role}
+            reloadRecords={reloadRecords} expired={expireSession} recordVersion={recordVersion} recordsEnabled={!busy && !editor && !creationOpen}
+            readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)}
+            color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))}
+            tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { begin(); closeCreation(); setProjectView(view); }}
+            actions={<>
+              {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
+              <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">另存為模板<span className="nav-badge">尚未提供</span></button>
+              <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">套用模板<span className="nav-badge">尚未提供</span></button>
+              {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
+            </>}
+            editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
+              canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} />}
+            timeline={!busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={selectNode} reload={reloadRecords} expired={expireSession} />}
+            graph={!busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} project={project} select={selectNode} reload={reloadRecords} expired={expireSession} />} />}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}
         </section>
         </WorkspaceShell> : <section>{state === 'checking-session' && <p role="status">確認登入狀態中</p>}{state === 'error' && <button onClick={retry}>重試</button>}</section>}

@@ -80,7 +80,11 @@ async function enter() {
   fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
   await screen.findByRole('heading', { name: summary.title });
 }
-function treeButton(name: string) { return within(screen.getByLabelText('節點樹')).getByRole('button', { name }); }
+// UI4: no main-area node tree; go down via board cards and the phase strip, up via breadcrumbs.
+function boardButton(name: string) { return within(screen.getByLabelText('看板')).getByRole('button', { name }); }
+function phaseButton(name: string) { return within(screen.getByLabelText('開發階段與閘門')).getByRole('button', { name: `進入階段：${name}` }); }
+function crumb(name: string) { return within(screen.getByLabelText('節點路徑')).getByRole('button', { name }); }
+function cardTitles() { return within(screen.getByLabelText('看板')).queryAllByRole('button').map(button => button.textContent); }
 
 describe('P2a workspace navigation', () => {
   it('loads visible overview statistics and opens a project', async () => {
@@ -91,7 +95,8 @@ describe('P2a workspace navigation', () => {
     expect(await screen.findByLabelText('可見任務完成率')).toHaveTextContent('43%');
     expect(screen.getByLabelText('進行中專案')).toHaveTextContent('1');
     fireEvent.click(within(screen.getByLabelText('總覽內容')).getByRole('button', { name: summary.title }));
-    expect(await screen.findByLabelText('節點樹')).toBeInTheDocument();
+    expect(await screen.findByLabelText('看板')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: summary.title })).toBeInTheDocument();
   });
 
   it('searches my tasks and locates the returned project and deep node', async () => {
@@ -105,28 +110,33 @@ describe('P2a workspace navigation', () => {
     fireEvent.change(screen.getByLabelText('任務狀態'), { target: { value: 'skipped' } });
     fireEvent.click(await screen.findByRole('button', { name: '子任務' }));
     expect(await screen.findByLabelText('節點詳情')).toHaveTextContent('子任務');
-    await waitFor(() => expect(treeButton('子任務')).toHaveAttribute('aria-pressed', 'true'));
+    await waitFor(() => expect(crumb('子任務')).toHaveAttribute('aria-current', 'location'));
+    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('四層專案 / 根 / 階段 / 父任務 / 子任務');
+    expect(screen.getByRole('tab', { name: '紀錄' })).toHaveAttribute('aria-selected', 'true');
     expect(fetcher.mock.calls.some(([path]) => path.includes('status=skipped'))).toBe(true);
   });
 
-  it.each(['tree', 'project breadcrumb', 'node breadcrumb', 'board card', 'skipped card'])('preserves pending logout when clicking %s', async entry => {
+  // The removed tree entry is replaced by the phase strip, the other new way into a lower level.
+  it.each(['phase strip', 'project breadcrumb', 'node breadcrumb', 'board card', 'skipped card'])('preserves pending logout when clicking %s', async entry => {
     let resolveLogout!: (value: ReturnType<typeof response>) => void;
     const fetcher = setup().mockImplementationOnce(() => new Promise(done => { resolveLogout = done; }));
     await enter();
-    fireEvent.click(treeButton('根')); fireEvent.click(treeButton('階段')); fireEvent.click(treeButton('父任務'));
-    const target = entry === 'tree' ? treeButton('子任務')
-      : entry === 'project breadcrumb' ? within(screen.getByLabelText('節點路徑')).getByRole('button', { name: summary.title })
-      : entry === 'node breadcrumb' ? within(screen.getByLabelText('節點路徑')).getByRole('button', { name: '階段' })
-      : within(screen.getByLabelText('看板')).getByRole('button', { name: entry === 'board card' ? '子任務' : '略過任務' });
+    if (entry !== 'phase strip') { fireEvent.click(phaseButton('階段')); fireEvent.click(boardButton('父任務')); }
+    const current = entry === 'phase strip' ? summary.title : '父任務';
+    const target = entry === 'phase strip' ? phaseButton('階段')
+      : entry === 'project breadcrumb' ? crumb(summary.title)
+      : entry === 'node breadcrumb' ? crumb('階段')
+      : boardButton(entry === 'board card' ? '子任務' : '略過任務');
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
     expect(screen.getByRole('button', { name: '登出' })).toBeDisabled();
     fireEvent.click(target);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(current);
     const logoutRequest = fetcher.mock.calls.find(([path]) => path === '/api/auth/logout')!;
     expect(logoutRequest[1].signal.aborted).toBe(false);
     await act(async () => { resolveLogout(response(undefined, 204)); });
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '登入' })).not.toBeDisabled();
-    expect(screen.queryByLabelText('節點樹')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('節點詳情')).not.toBeInTheDocument();
   });
 
   it('lands on overview, keeps identity and uses collapsible navigation without loading detail', async () => {
@@ -142,49 +152,70 @@ describe('P2a workspace navigation', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('expands four levels, collapses branches and shows only immediate children including skipped', async () => {
+  // Replaces the tree expand/collapse test: drill down four levels by board cards, back up by breadcrumbs.
+  it('drills down four levels by cards and breadcrumbs and shows only immediate children including skipped', async () => {
     setup(); await enter();
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('四層專案');
-    expect(within(screen.getByLabelText('看板')).getByRole('button', { name: '根' })).toBeInTheDocument();
-    fireEvent.click(treeButton('根'));
-    expect(within(screen.getByLabelText('看板')).getByRole('button', { name: '階段' })).toBeInTheDocument();
+    // Project level: the project-kind root is not a card; the phase is in the strip and its children are cards.
+    expect(cardTitles()).toEqual(['父任務']);
+    expect(within(screen.getByLabelText('待處理')).getByText('階段')).toBeInTheDocument();
+    fireEvent.click(phaseButton('階段'));
+    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('四層專案 / 根 / 階段');
+    expect(cardTitles()).toEqual(['父任務']);
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('未指派');
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('未設定');
-    fireEvent.click(treeButton('收合根'));
-    fireEvent.click(treeButton('展開根'));
-    fireEvent.click(treeButton('展開階段'));
-    fireEvent.click(treeButton('父任務'));
-    expect(treeButton('子任務')).toBeInTheDocument();
+    fireEvent.click(crumb('根'));
+    expect(screen.getByRole('heading', { level: 1, name: '根' })).toBeInTheDocument();
+    expect(cardTitles()).toEqual(['階段']);
+    fireEvent.click(boardButton('階段'));
+    fireEvent.click(boardButton('父任務'));
     expect(screen.getByLabelText('節點路徑')).toHaveTextContent('四層專案 / 根 / 階段 / 父任務');
-    const board = within(screen.getByLabelText('看板'));
-    expect(board.getByRole('button', { name: '子任務' })).toBeInTheDocument();
-    expect(board.queryByRole('button', { name: '父任務' })).not.toBeInTheDocument();
-    expect(within(screen.getByLabelText('已略過')).getByRole('button', { name: '略過任務' })).toBeInTheDocument();
-    fireEvent.click(treeButton('收合階段'));
-    expect(within(screen.getByLabelText('節點樹')).queryByRole('button', { name: '父任務' })).not.toBeInTheDocument();
-    fireEvent.click(within(screen.getByLabelText('節點路徑')).getByRole('button', { name: '階段' }));
-    expect(board.getByRole('button', { name: '父任務' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '看板' })).toHaveAttribute('aria-selected', 'true');
+    expect(boardButton('子任務')).toBeInTheDocument();
+    expect(within(screen.getByLabelText('看板')).queryByRole('button', { name: '父任務' })).not.toBeInTheDocument();
+    // Skipped work now sits in the done column with its own tag.
+    const done = within(screen.getByLabelText('完成'));
+    expect(done.getByRole('button', { name: '略過任務' })).toBeInTheDocument();
+    expect(done.getByText('已略過')).toBeInTheDocument();
+    expect(screen.queryByLabelText('已略過')).not.toBeInTheDocument();
+    fireEvent.click(boardButton('子任務'));
+    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('四層專案 / 根 / 階段 / 父任務 / 子任務');
+    expect(screen.getByRole('tab', { name: '紀錄' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(crumb('階段'));
+    expect(screen.getByLabelText('節點路徑')).not.toHaveTextContent('父任務');
+    expect(screen.getByRole('tab', { name: '看板' })).toHaveAttribute('aria-selected', 'true');
+    expect(cardTitles()).toEqual(['父任務']);
   });
 
-  it('opens a deep node from an explicit project and node selection and expands its visible ancestors', () => {
+  it('opens a deep node from an explicit project and node selection with its visible ancestors in the breadcrumb', () => {
     const select = vi.fn();
     render(<NodeWorkspace project={detail} selectedNodeId="子任務" select={select} readonly={false} canApprove={false} disabled={false} mutate={vi.fn()} />);
-    expect(treeButton('子任務')).toHaveAttribute('aria-pressed', 'true');
-    expect(treeButton('收合根')).toHaveAttribute('aria-expanded', 'true');
-    expect(treeButton('收合階段')).toHaveAttribute('aria-expanded', 'true');
-    expect(treeButton('收合父任務')).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('四層專案 / 根 / 階段 / 父任務 / 子任務');
+    expect(crumb('子任務')).toHaveAttribute('aria-current', 'location');
+    for (const ancestor of ['根', '階段', '父任務']) expect(crumb(ancestor)).not.toHaveAttribute('aria-current');
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('子任務');
-    fireEvent.click(within(screen.getByLabelText('節點路徑')).getByRole('button', { name: summary.title }));
-    expect(select).toHaveBeenCalledWith(null);
+    expect(within(screen.getByRole('tablist', { name: '節點內容' })).getAllByRole('tab')[0]).toHaveTextContent('紀錄');
+    fireEvent.click(crumb('父任務'));
+    expect(select).toHaveBeenLastCalledWith('父任務');
+    fireEvent.click(crumb(summary.title));
+    expect(select).toHaveBeenLastCalledWith(null);
   });
 
   it('bounds cyclic legacy trees and paths without losing visible nodes', () => {
     const cyclic = { ...detail, nodes: [node('循環甲', '循環乙'), node('循環乙', '循環甲'), node('自身', '自身')] };
-    render(<NodeWorkspace project={cyclic} selectedNodeId="循環乙" select={vi.fn()} readonly={true} canApprove={false} disabled={false} mutate={vi.fn()} />);
-    expect(treeButton('循環甲')).toBeInTheDocument();
-    expect(treeButton('循環乙')).toBeInTheDocument();
-    expect(treeButton('自身')).toBeInTheDocument();
-    expect(within(screen.getByLabelText('節點樹')).getAllByRole('button').filter(button => button.hasAttribute('aria-pressed'))).toHaveLength(3);
+    const props = { project: cyclic, select: vi.fn(), readonly: true, canApprove: false, disabled: false, mutate: vi.fn() };
+    const { rerender } = render(<NodeWorkspace {...props} selectedNodeId="循環乙" />);
+    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('四層專案 / 循環甲 / 循環乙');
+    expect(cardTitles()).toEqual(['循環甲']);
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    // Project level keeps an entry for each cycle; the remaining cyclic node is one card below.
+    rerender(<NodeWorkspace {...props} selectedNodeId={null} />);
+    expect(cardTitles()).toEqual(['循環甲', '自身']);
+    rerender(<NodeWorkspace {...props} selectedNodeId="循環甲" />);
+    expect(cardTitles()).toEqual(['循環乙']);
+    rerender(<NodeWorkspace {...props} selectedNodeId="自身" />);
+    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('四層專案 / 自身');
+    expect(screen.getByLabelText('看板')).toHaveTextContent('目前沒有下一層節點');
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
@@ -202,13 +233,21 @@ describe('P2a workspace navigation', () => {
 
   it('promotes visible orphans and displays safe metadata with unconverted dates', async () => {
     setup({ ...detail, nodes: [{ ...node('可見任務', '隱藏父節點'), owner_display_name: '成員', department_name: '研發', start_date: '0001-01-01', due_date: '9999-12-31' }] });
-    await enter(); fireEvent.click(treeButton('可見任務'));
+    await enter();
+    expect(cardTitles()).toEqual(['可見任務']);
+    fireEvent.click(boardButton('可見任務'));
+    expect(screen.getByRole('heading', { level: 1, name: '可見任務' })).toBeInTheDocument();
+    expect(screen.getByLabelText('節點路徑')).toHaveTextContent('四層專案 / 可見任務');
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('成員');
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('研發');
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('0001-01-01');
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('9999-12-31');
     expect(document.body).not.toHaveTextContent('隱藏父節點');
+    // A leaf task opens on its records; its board has no next level.
+    expect(screen.getByRole('tab', { name: '紀錄' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(screen.getByRole('tab', { name: '看板' }));
     expect(screen.getByLabelText('看板')).toHaveTextContent('目前沒有下一層節點');
+    expect(document.body).not.toHaveTextContent('隱藏父節點');
   });
 
   it('ignores nonabortable detail success or expiry after navigation away', async () => {
@@ -221,7 +260,7 @@ describe('P2a workspace navigation', () => {
     await act(async () => { resolve(response({}, 401)); });
     expect(screen.getByRole('heading', { name: '所有專案總覽' })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('節點樹')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('節點詳情')).not.toBeInTheDocument();
   });
 });
 describe('phase status clarification', () => {

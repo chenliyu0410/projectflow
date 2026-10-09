@@ -51,11 +51,13 @@ export default function TimelineView({
   select,
   reload,
   expired,
+  color = 'var(--teal)',
 }: {
   project: ProjectDetail;
   select: (id: string) => void;
   reload: RecordReload;
   expired: () => void;
+  color?: string;
 }) {
   const [zoom, setZoom] = useState('week');
   const [collapsed, setCollapsed] = useState(new Set<string>());
@@ -93,15 +95,26 @@ export default function TimelineView({
   );
   const width = Math.max(600, count * scale);
   const actualScale = width / count;
-  const step = Math.max(
-    zoom === 'day' ? 1 : zoom === 'week' ? 7 : 30,
-    Math.ceil(count / 80),
-  );
-  const ticks = Array.from(
-    { length: Math.ceil(count / step) },
-    (_, i) => left + i * step,
-  );
+  // Demo scale: month labels on top, then day numbers (日) or Mondays (週) underneath.
+  const months: number[] = [];
+  const subs: number[] = [];
+  for (let d = left; d <= right; d++) {
+    const date = new Date(d * dayMs);
+    if (d === left || date.getUTCDate() === 1) months.push(d);
+    if (zoom === 'day' ? actualScale >= 14 : zoom === 'week' && date.getUTCDay() === 1) subs.push(d);
+  }
+  const firstMonday = left + ((8 - new Date(left * dayMs).getUTCDay()) % 7);
+  const grid = zoom === 'month' ? undefined : {
+    backgroundImage: `repeating-linear-gradient(90deg,transparent 0,transparent ${actualScale * 7 - 1}px,#F0EDE6 ${actualScale * 7 - 1}px,#F0EDE6 ${actualScale * 7}px)`,
+    backgroundPosition: `${(firstMonday - left) * actualScale}px 0`,
+  };
+  const short = (day: number) => { const d = new Date(day * dayMs); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`; };
   const rows = timelineRows(project.nodes, collapsed);
+  const taskCount = (id: string) => {
+    const seen = new Set<string>([id]); const pending = [id]; let total = 0;
+    while (pending.length) { const current = pending.pop()!; for (const c of project.nodes) if (c.parent_id === current && !seen.has(c.id)) { seen.add(c.id); pending.push(c.id); if (c.kind === 'task') total += 1; } }
+    return total;
+  };
   function edit(n: NodeItem) {
     if (mutation.busy || mutation.saved) return;
     setDraft({ node: n, start: n.start_date ?? '', due: n.due_date ?? '' });
@@ -167,24 +180,16 @@ export default function TimelineView({
   const full = (n: NodeItem) => !!n.start_date && !!n.due_date;
   return (
     <section className="timeline-view" aria-label="專案時程">
-      <h2>{project.title} · 時程</h2>
-      <p>
-        只變更選定節點的日期，不自動順延其他任務。階段日期與子任務分開設定。
-      </p>
-      <div className="record-actions">
-        <label>
-          時程刻度
-          <select value={zoom} onChange={(e) => setZoom(e.target.value)}>
-            <option value="day">日</option>
-            <option value="week">週</option>
-            <option value="month">月</option>
-          </select>
-        </label>
+      <div className="tl-tools">
+        <span className="tag">總覽圖</span>
+        <span>點名稱進入節點；拖移任務條改期、拖右端改截止日，或按 ✎ 輸入日期，確認後才儲存。只變更選定節點的日期，不自動順延其他任務。</span>
+        <span className="seg" role="group" aria-label="時程刻度">
+          {([['day', '日'], ['week', '週'], ['month', '月']] as const).map(([value, text]) => (
+            <button key={value} type="button" aria-pressed={zoom === value} onClick={() => setZoom(value)}>{text}</button>
+          ))}
+        </span>
         <span>今天：{calendarDate(today)}</span>
       </div>
-      <p className="timeline-desktop-hint">
-        拖移任務條可改期，拖曳右端可調整截止日；確認日期後才儲存。
-      </p>
       {draft && (
         <form
           className="record-panel schedule-editor"
@@ -263,25 +268,32 @@ export default function TimelineView({
         </form>
       )}
       <div className="timeline-scroll">
-        <div className="timeline-grid" style={{ width: width + 220 }}>
+        <div className="timeline-grid" style={{ width: width + 270, ['--c' as string]: color }}>
           <div className="timeline-axis">
-            <span>節點</span>
+            <span>{`總覽圖・節點（${rows.length}）`}</span>
             <div style={{ width }}>
-              {ticks.map((t) => (
-                <span key={t} style={{ left: (t - left) * actualScale }}>
-                  {calendarDate(t)}
+              {months.map((t) => (
+                <span key={`m${t}`} className="tick-month" style={{ left: (t - left) * actualScale }}>
+                  {`${new Date(t * dayMs).getUTCFullYear() % 100}/${new Date(t * dayMs).getUTCMonth() + 1}`}
                 </span>
               ))}
+              {subs.map((t) => (
+                <span key={`s${t}`} className="tick-sub" style={{ left: (t - left) * actualScale }}>
+                  {zoom === 'day' ? new Date(t * dayMs).getUTCDate() : short(t)}
+                </span>
+              ))}
+              <b className="today-label" style={{ left: (today - left) * actualScale + 4 }}>今天 {short(today)}</b>
             </div>
           </div>
           {rows.map(({ node: n, depth, children }) => (
-            <div className="timeline-row" key={n.id}>
+            <div className={`timeline-row ${children ? 'parent' : ''}`} key={n.id}>
               <div
                 className="timeline-label"
-                style={{ paddingLeft: 8 + Math.min(depth, 8) * 10 }}
+                style={{ paddingLeft: 8 + Math.min(depth, 8) * 14 }}
               >
-                {children && (
+                {children ? (
                   <button
+                    className="tw"
                     aria-label={`${collapsed.has(n.id) ? '展開' : '收合'} ${n.title}`}
                     onClick={() =>
                       setCollapsed((old) => {
@@ -292,21 +304,35 @@ export default function TimelineView({
                       })
                     }
                   >
-                    {collapsed.has(n.id) ? '＋' : '−'}
+                    {collapsed.has(n.id) ? '▸' : '▾'}
                   </button>
+                ) : (
+                  <span className="tw-space" aria-hidden="true" />
                 )}
-                <button onClick={() => select(n.id)}>{n.title}</button>
+                <span className={`dot ${n.status}`} aria-hidden="true" />
+                <button
+                  className="nm"
+                  title={`進入「${n.title}」・${statusText[n.status]}`}
+                  onClick={() => select(n.id)}
+                >
+                  {n.title}
+                </button>
+                {n.kind === 'phase' && (
+                  <span className="cnt">{taskCount(n.id)} 件</span>
+                )}
                 {n.capabilities.edit_metadata && n.kind !== 'project' && (
                   <button
+                    className="ed"
                     aria-label={`調整日期：${n.title}`}
+                    title="調整日期"
                     disabled={mutation.busy || mutation.saved}
                     onClick={() => edit(n)}
                   >
-                    改期
+                    ✎
                   </button>
                 )}
               </div>
-              <div className="timeline-track" style={{ width }}>
+              <div className="timeline-track" style={{ width, ...grid }}>
                 <span
                   className="today-line"
                   aria-label="今天標線"
@@ -327,8 +353,9 @@ export default function TimelineView({
                       actualScale;
                     return (
                       <div
-                        className={`timeline-bar status-${n.status}`}
+                        className={`timeline-bar status-${n.status} ${children ? 'parent' : ''}`}
                         style={{ left: position, width: Math.max(length, 8) }}
+                        title={`${n.title} ${d.start_date} – ${d.due_date}・${statusText[n.status]}・負責人 ${n.owner_display_name ?? '未指派'}`}
                       >
                         <button
                           aria-label={`時程任務：${n.title}`}
@@ -348,7 +375,7 @@ export default function TimelineView({
                               select(n.id);
                           }}
                         >
-                          {n.title} · {statusText[n.status]}
+                          {length > 50 ? (n.owner_display_name ?? '') : ''}
                         </button>
                         {n.kind === 'task' && n.capabilities.edit_metadata && (
                           <button
@@ -361,9 +388,7 @@ export default function TimelineView({
                               gesture.current = null;
                               setPreview(null);
                             }}
-                          >
-                            ↔
-                          </button>
+                          />
                         )}
                       </div>
                     );
@@ -378,47 +403,6 @@ export default function TimelineView({
             </div>
           ))}
         </div>
-      </div>
-      <div className="timeline-mobile">
-        {rows.map(({ node: n, depth, children }) => (
-          <article className="record-panel" key={n.id}>
-            <div className="record-actions">
-              {children && (
-                <button
-                  aria-label={`手機${collapsed.has(n.id) ? '展開' : '收合'} ${n.title}`}
-                  onClick={() =>
-                    setCollapsed((old) => {
-                      const next = new Set(old);
-                      if (next.has(n.id)) next.delete(n.id);
-                      else next.add(n.id);
-                      return next;
-                    })
-                  }
-                >
-                  {collapsed.has(n.id) ? '展開' : '收合'}
-                </button>
-              )}
-              <button onClick={() => select(n.id)}>
-                {'› '.repeat(Math.min(depth, 5))}
-                {n.title}
-              </button>
-            </div>
-            <p>狀態：{statusText[n.status]}</p>
-            <p>
-              {full(n) ? '已排程' : '未排程'}：{n.start_date ?? '未設定'} ～{' '}
-              {n.due_date ?? '未設定'}
-            </p>
-            {n.capabilities.edit_metadata && n.kind !== 'project' && (
-              <button
-                aria-label={`手機調整日期：${n.title}`}
-                disabled={mutation.busy || mutation.saved}
-                onClick={() => edit(n)}
-              >
-                調整日期
-              </button>
-            )}
-          </article>
-        ))}
       </div>
       {project.nodes.length === 0 && <p>目前沒有可見節點</p>}
       <section className="unscheduled-list">

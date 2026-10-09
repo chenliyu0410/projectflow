@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import TimelineView, {
   calendarDay,
@@ -79,10 +85,18 @@ describe('calendar schedule', () => {
     expect(
       screen.queryByRole('button', { name: '時程任務：排程任務' }),
     ).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('時程刻度'), {
-      target: { value: 'month' },
-    });
-    expect(screen.getByLabelText('時程刻度')).toHaveValue('month');
+    const scale = screen.getByRole('group', { name: '時程刻度' });
+    const day = within(scale).getByRole('button', { name: '日' });
+    const week = within(scale).getByRole('button', { name: '週' });
+    const month = within(scale).getByRole('button', { name: '月' });
+    expect(week).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(month);
+    expect(month).toHaveAttribute('aria-pressed', 'true');
+    expect(week).toHaveAttribute('aria-pressed', 'false');
+    expect(day).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(day);
+    expect(day).toHaveAttribute('aria-pressed', 'true');
+    expect(month).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getByText(/^今天：/)).toBeInTheDocument();
   });
   it('saves only the selected dates, supports null and never repeats PATCH on read retry', async () => {

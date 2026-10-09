@@ -106,10 +106,27 @@ export default function ReviewCenter({
       }
     }
   }
+  const reports = items.filter((i) => i.type === 'report');
+  const gates = items.filter((i) => i.type === 'gate');
+  const count = (n: number) => (loading ? '' : cursor ? `（已載入 ${n}）` : `（${n}）`);
+  const empty = (kind: 'report' | 'gate') =>
+    !loading && !error && !items.some((i) => i.type === kind) && (
+      <p className="empty">
+        {cursor
+          ? '目前已載入的清單沒有此類審核'
+          : kind === 'report'
+            ? '目前沒有待審回報'
+            : '目前沒有待核准閘門'}
+      </p>
+    );
   return (
     <div className="review-center">
-      <h1>審核中心</h1>
-      <p>只列出目前可審核的回報與閘門；點選任務名稱可開啟完整紀錄。</p>
+      <div className="page-heading">
+        <h1>審核中心</h1>
+        <p className="page-description">
+          完成回報與階段閘門。只列出目前可審核的項目；點任務名稱可開啟完整紀錄。所有決定都寫入稽核紀錄。
+        </p>
+      </div>
       {loading && <p role="status">載入審核清單中</p>}
       {error && <p role="alert">{error}</p>}
       {saved ? (
@@ -124,100 +141,115 @@ export default function ReviewCenter({
           </button>
         )
       )}
-      {(['report', 'gate'] as const).map((kind) => (
-        <section
-          className="record-panel"
-          aria-label={kind === 'report' ? '回報審核' : '閘門審核'}
-          key={kind}
-        >
-          <h3>{kind === 'report' ? '待確認回報' : '待核准閘門'}</h3>
-          {items
-            .filter((i) => i.type === kind)
-            .map((item) => (
-              <article className="review-entry" key={`${item.type}:${item.id}`}>
+      <section className="review-section" aria-label="回報審核">
+        <h2>待確認的完成回報{count(reports.length)}</h2>
+        {reports.map((item) => (
+          <article className="panel review-entry" key={`${item.type}:${item.id}`}>
+            <div className="record-actions">
+              <button
+                className="review-node row-link"
+                onClick={() => openNode(item.project_id, item.node_id)}
+              >
+                {item.node_title}
+              </button>
+              <span className="record-meta">{item.project_title}</span>
+            </div>
+            <p className="record-meta">
+              {formatRecordTime(item.created_at)}
+              {` · ${item.submitted_by_display_name ?? '未設定'} · v${item.version}`}
+            </p>
+            <p className="record-body">
+              <span className="record-tag">{item.result}</span>{' '}
+              {item.summary}
+            </p>
+            <p className="small muted">實際完成日：{item.finished_on ?? '未設定'}</p>
+            {item.capabilities.review_report && (
+              <>
+                <label>
+                  審核意見（退回時必填）
+                  <textarea
+                    aria-label={`審核意見：${item.node_title}`}
+                    value={comments[item.id] ?? ''}
+                    maxLength={2000}
+                    disabled={busy || saved || loading}
+                    onChange={(e) =>
+                      setComments((old) => ({
+                        ...old,
+                        [item.id]: e.target.value,
+                      }))
+                    }
+                  />
+                </label>
                 <div className="record-actions">
                   <button
-                    className="review-node"
-                    onClick={() => openNode(item.project_id, item.node_id)}
+                    className="primary"
+                    disabled={busy || saved || loading}
+                    onClick={() => void decide(item, 'approved')}
                   >
-                    {item.node_title}
+                    確認回報
                   </button>
-                  <span className="record-meta">{item.project_title}</span>
+                  <button
+                    className="danger"
+                    disabled={
+                      busy ||
+                      saved ||
+                      loading ||
+                      !comments[item.id]?.trim()
+                    }
+                    onClick={() => void decide(item, 'rejected')}
+                  >
+                    退回回報
+                  </button>
                 </div>
-                <p className="record-meta">
-                  {formatRecordTime(item.created_at)}
-                  {item.type === 'report' &&
-                    ` · ${item.submitted_by_display_name ?? '未設定'} · v${item.version}`}
-                </p>
-                {item.type === 'report' ? (
-                  <>
-                    <p className="record-body">
-                      <span className="record-tag">{item.result}</span>{' '}
-                      {item.summary}
-                    </p>
-                    <p>實際完成日：{item.finished_on ?? '未設定'}</p>
-                    {item.capabilities.review_report && (
-                      <>
-                        <label>
-                          審核意見
-                          <textarea
-                            aria-label={`審核意見：${item.node_title}`}
-                            value={comments[item.id] ?? ''}
-                            maxLength={2000}
-                            disabled={busy || saved || loading}
-                            onChange={(e) =>
-                              setComments((old) => ({
-                                ...old,
-                                [item.id]: e.target.value,
-                              }))
-                            }
-                          />
-                        </label>
-                        <div className="record-actions">
-                          <button
-                            disabled={busy || saved || loading}
-                            onClick={() => void decide(item, 'approved')}
-                          >
-                            確認回報
-                          </button>
-                          <button
-                            disabled={
-                              busy ||
-                              saved ||
-                              loading ||
-                              !comments[item.id]?.trim()
-                            }
-                            onClick={() => void decide(item, 'rejected')}
-                          >
-                            退回回報
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  item.capabilities.approve_gate && (
-                    <button
-                      disabled={busy || saved || loading}
-                      onClick={() => void decide(item, 'approved')}
-                    >
-                      核准閘門
-                    </button>
-                  )
-                )}
-              </article>
-            ))}
-          {!loading && !error && !items.some((i) => i.type === kind) && (
-            <p>
-              {cursor
-                ? '目前已載入的清單沒有此類審核'
-                : kind === 'report'
-                  ? '目前沒有待審回報'
-                  : '目前沒有待核准閘門'}
-            </p>
-          )}
-        </section>
-      ))}
+              </>
+            )}
+          </article>
+        ))}
+        {empty('report')}
+      </section>
+      <section className="review-section" aria-label="跳過申請">
+        <h2>待審核的跳過申請</h2>
+        <p className="empty">尚未提供：跳過申請與主管核准排在任務規劃器（TP-F）。</p>
+      </section>
+      <section className="review-section" aria-label="閘門審核">
+        <h2>待核准的階段閘門{count(gates.length)}</h2>
+        {gates.length > 0 && (
+          <div className="table-wrap">
+            <table className="data-table review-gates">
+              <thead>
+                <tr><th>專案 / 階段</th><th>送出時間</th><th><span className="sr-only">操作</span></th></tr>
+              </thead>
+              <tbody>
+                {gates.map((item) => (
+                  <tr key={`${item.type}:${item.id}`}>
+                    <td>
+                      <span className="muted">{item.project_title} / </span>
+                      <button
+                        className="review-node row-link"
+                        onClick={() => openNode(item.project_id, item.node_id)}
+                      >
+                        {item.node_title}
+                      </button>
+                    </td>
+                    <td className="nowrap">{formatRecordTime(item.created_at)}</td>
+                    <td>
+                      {item.capabilities.approve_gate && (
+                        <button
+                          disabled={busy || saved || loading}
+                          onClick={() => void decide(item, 'approved')}
+                        >
+                          核准閘門
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {empty('gate')}
+      </section>
       {cursor && !saved && (
         <button disabled={loading || busy} onClick={() => void load(true)}>
           載入更多審核

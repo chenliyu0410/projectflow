@@ -39,9 +39,10 @@ for (const width of [1280, 375]) {
     };
     const openTask = async () => {
       if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
-      await page.getByLabel('節點樹').getByRole('button', { name: '送審成果任務', exact: true }).click();
+      await page.getByLabel('看板').getByRole('button', { name: '送審成果任務', exact: true }).click();
     };
     const submit = async (summary: string) => {
+      await page.getByLabel('完成回報', { exact: true }).getByRole('button', { name: /^(回報完成|重新回報)$/ }).click();
       await page.getByRole('textbox', { name: '成果說明', exact: true }).fill(summary);
       await page.getByLabel('結果', { exact: true }).selectOption('達成');
       await page.getByLabel('實際完成日', { exact: true }).fill('2026-10-08');
@@ -59,7 +60,7 @@ for (const width of [1280, 375]) {
     if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();
     await expect(page.getByRole('heading', { name: '登入專流', exact: true })).toBeVisible();
     await login('ming'); await openTask();
-    await expect(page.getByLabel('節點詳情')).toContainText('請補充驗證資料');
+    await expect(page.getByLabel('完成回報', { exact: true })).toContainText('請補充驗證資料');
     await submit('第二版補齊驗證資料');
     if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();
     await expect(page.getByRole('heading', { name: '登入專流', exact: true })).toBeVisible();

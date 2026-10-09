@@ -119,14 +119,21 @@ async function setup(
   vi.stubGlobal('fetch', fetcher);
   render(<App />);
   fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: '紀錄專案' }));
+  // UI4: the node tree is gone; tasks are entered from their project-board card.
   fireEvent.click(
-    within(await screen.findByLabelText('節點樹')).getByRole('button', {
+    within(await screen.findByLabelText('看板')).getByRole('button', {
       name: node.title,
     }),
   );
   return fetcher;
 }
+async function openPeople() {
+  // UI4: collaborator editing moved from the records tab to「成員與權限」.
+  fireEvent.click(await screen.findByRole('tab', { name: '成員與權限' }));
+}
 async function fillReport() {
+  // UI4: the report form is collapsed until「回報完成」is pressed.
+  fireEvent.click(await screen.findByRole('button', { name: '回報完成' }));
   fireEvent.change(await screen.findByLabelText('成果說明'), {
     target: { value: '完成驗證' },
   });
@@ -177,6 +184,8 @@ describe('P2b task records', () => {
   it('keeps rejected history and clearly creates a new version', async () => {
     await setup([report]);
     expect(await screen.findByText('v1 已退回')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '回報完成' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '重新回報' }));
     expect(screen.getByLabelText('成果說明')).toHaveValue('前版成果');
     expect(screen.getByText('重新送出將建立新版本')).toBeInTheDocument();
   });
@@ -195,8 +204,9 @@ describe('P2b task records', () => {
   it('offers notes and collaborator settings only through capabilities', async () => {
     await setup();
     expect(await screen.findByLabelText('新增筆記')).toBeInTheDocument();
+    await openPeople();
     expect(
-      screen.getByRole('button', { name: '協作設定' }),
+      await screen.findByRole('button', { name: '協作設定' }),
     ).toBeInTheDocument();
   });
 });
@@ -234,10 +244,13 @@ describe('records asynchronous safety', () => {
     expect(
       screen.queryByRole('button', { name: '送出回報' }),
     ).not.toBeInTheDocument();
+    for (const name of ['回報完成', '重新回報'])
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
     await act(async () =>
       pending.resolve(response({ items: [report], next_cursor: null })),
     );
     expect(await screen.findByText('v1 已退回')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '重新回報' })).toBeInTheDocument();
     expect(
       fetcher.mock.calls.filter(([p]) => p.includes('limit=50')),
     ).toHaveLength(1);
@@ -251,10 +264,17 @@ describe('records asynchronous safety', () => {
       await screen.findByRole('button', { name: '重試回報讀取' }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText('尚無回報；送出後由有權審核者確認。'),
+      screen.queryByText('需填：結果、成果說明、實際完成日・送出後由有權審核者確認。'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '回報完成' }),
     ).not.toBeInTheDocument();
     failed = false;
     fireEvent.click(screen.getByRole('button', { name: '重試回報讀取' }));
+    fireEvent.click(await screen.findByRole('button', { name: '回報完成' }));
+    expect(
+      screen.getByText('需填：結果、成果說明、實際完成日・送出後由有權審核者確認。'),
+    ).toBeInTheDocument();
     expect(
       await screen.findByRole('button', { name: '送出回報' }),
     ).toBeInTheDocument();
@@ -334,6 +354,9 @@ describe('records asynchronous safety', () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: '送出並確認' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '回報完成' }),
     ).not.toBeInTheDocument();
   });
   it('reviews another author only with an explicit decision', async () => {
@@ -416,7 +439,15 @@ describe('records asynchronous safety', () => {
     expect(
       screen.queryByRole('button', { name: '送出回報' }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '回報完成' }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByLabelText('選擇附件')).not.toBeInTheDocument();
+    await openPeople();
+    expect(await screen.findByText('尚未設定協作')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '協作設定' }),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -505,6 +536,7 @@ describe('record session and replacement races', () => {
         ? response({}, 409)
         : undefined,
     );
+    await openPeople();
     fireEvent.click(await screen.findByRole('button', { name: '協作設定' }));
     fireEvent.click(screen.getByRole('checkbox', { name: '同事' }));
     fireEvent.click(screen.getByRole('button', { name: '儲存協作' }));
@@ -517,6 +549,7 @@ describe('record session and replacement races', () => {
 });
 it('returns keyboard focus to collaboration trigger on cancel', async () => {
   await setup();
+  await openPeople();
   const trigger = await screen.findByRole('button', { name: '協作設定' });
   fireEvent.click(trigger);
   fireEvent.click(screen.getByRole('button', { name: '取消協作' }));

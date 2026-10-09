@@ -10,10 +10,10 @@ import {
 import type { RecordReload } from '../api';
 import type { NodeItem, Report } from '../types';
 import { AttachmentUpload } from './AttachmentList';
-export function ReportSummary({ report }: { report: Report }) {
+export function ReportSummary({ report, compact = false }: { report: Report; compact?: boolean }) {
   return (
-    <article className="report-history">
-      <h4>
+    <article className={compact ? 'report-history compact' : 'report-history'}>
+      <h4 className={compact ? 'sr-only' : undefined}>
         {report.legacy
           ? '歷史回報（未納入新審核流程）'
           : `v${report.version} · ${report.status === 'submitted' ? '等待確認' : report.status === 'approved' ? '已確認' : '已退回'}`}
@@ -63,6 +63,7 @@ export default function ReportPanel({
   const [comment, setComment] = useState('');
   const [action, setAction] = useState('');
   const [reason, setReason] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement | null>(null);
   async function load() {
     const request = scope.begin();
@@ -126,22 +127,13 @@ export default function ReportPanel({
     latest.status === 'submitted' &&
     node.status === 'review' &&
     latest.submitted_by !== userId;
-  const label =
-    latest && !latest.legacy && latest.status === 'submitted'
-      ? `v${latest.version} 等待確認`
-      : latest && !latest.legacy && latest.status === 'rejected'
-        ? `v${latest.version} 已退回`
-        : node.status === 'done'
-          ? '已完成'
-          : node.status === 'skipped'
-            ? '已略過'
-            : '完成回報';
-  const tone =
-    latest && !latest.legacy && latest.status === 'submitted'
-      ? 'pending'
-      : latest && !latest.legacy && latest.status === 'rejected'
-        ? 'rejected'
-        : '';
+  const pending = !!latest && !latest.legacy && latest.status === 'submitted';
+  const rejected = !!latest && !latest.legacy && latest.status === 'rejected';
+  const tone = node.status === 'skipped' ? 'skip' : pending ? 'pending' : rejected ? 'rejected' : '';
+  const title = loading ? '載入回報狀態中' : error ? '無法載入回報狀態'
+    : pending ? `v${latest?.version} 等待確認` : rejected ? `v${latest?.version} 已退回`
+      : node.status === 'done' ? '已完成' : node.status === 'skipped' ? '已略過' : '完成回報';
+  const mark = !loading && !error && !pending && !rejected ? (node.status === 'done' ? '✓ ' : node.status === 'skipped' ? '⤳ ' : '') : '';
   function submit(self: boolean) {
     if (!summary.trim() || !date || !ready) return;
     void mutation.execute((signal) =>
@@ -158,29 +150,38 @@ export default function ReportPanel({
       ),
     );
   }
+  const showForm = canSubmit && formOpen && !mutation.saved;
   return (
-    <section
-      className={`record-panel report-card ${tone}`}
-      aria-label="完成回報"
-    >
-      <h3>{loading ? '載入回報狀態中' : error ? '無法載入回報狀態' : label}</h3>
-      {loading ? (
-        <p role="status">正在確認完整回報歷史</p>
-      ) : error ? (
-        <>
-          <p role="alert">{error}</p>
-          <button onClick={() => void load()}>重試回報讀取</button>
-        </>
-      ) : (
-        <>
-          {latest && <ReportSummary report={latest} />}
-          {!latest && (
-            <p>
+    <section className={`record-panel report-card ${tone}`} aria-label="完成回報">
+      <div className="rc-row">
+        <div className="rc-main">
+          <h3>{mark && <span aria-hidden="true">{mark}</span>}{title}</h3>
+          {loading ? (
+            <p role="status">正在確認完整回報歷史</p>
+          ) : error ? (
+            <p role="alert">{error}</p>
+          ) : latest && (pending || rejected || node.status === 'done' || latest.legacy) ? (
+            <ReportSummary report={latest} compact />
+          ) : (
+            <p className="small muted">
               {node.status === 'done'
                 ? '已完成，未附回報'
-                : '尚無回報；送出後由有權審核者確認。'}
+                : node.status === 'skipped'
+                  ? '這個任務已略過；有權限的人可以恢復。'
+                  : '需填：結果、成果說明、實際完成日・送出後由有權審核者確認。'}
             </p>
           )}
+        </div>
+        <div className="rc-acts">
+          {error && !loading && <button onClick={() => void load()}>重試回報讀取</button>}
+          {!loading && !error && canSubmit && !formOpen && !mutation.saved && (
+            <button className="primary" onClick={() => setFormOpen(true)}>{rejected ? '重新回報' : '回報完成'}</button>
+          )}
+          {!loading && !error && pending && !canReview && <span className="small muted">等待有權審核者確認</span>}
+        </div>
+      </div>
+      {!loading && !error && (
+        <>
           {mutation.error && <p role="alert">{mutation.error}</p>}
           {mutation.saved ? (
             <button
@@ -191,17 +192,16 @@ export default function ReportPanel({
             </button>
           ) : (
             <>
-              {canSubmit && (
+              {showForm && (
                 <form
                   className="record-form"
+                  aria-label="回報表單"
                   onSubmit={(e) => {
                     e.preventDefault();
                     submit(false);
                   }}
                 >
-                  {latest?.status === 'rejected' && !latest.legacy && (
-                    <p>重新送出將建立新版本</p>
-                  )}
+                  {rejected && <p>重新送出將建立新版本</p>}
                   <fieldset disabled={mutation.busy}>
                     <label>
                       結果
@@ -218,8 +218,10 @@ export default function ReportPanel({
                     <label>
                       成果說明
                       <textarea
+                        autoFocus
                         required
                         maxLength={10000}
+                        placeholder="做了什麼、結果如何、有沒有需要後續處理的事"
                         value={summary}
                         onChange={(e) => setSummary(e.target.value)}
                       />
@@ -246,13 +248,14 @@ export default function ReportPanel({
                       setReady(r);
                     }}
                   />
+                  <p className="small muted">送出後任務會移到「待確認」，回報內容會鎖定；由有權審核者確認完成。</p>
                   <div className="record-actions">
                     <button
-                      disabled={
-                        mutation.busy || !ready || !summary.trim() || !date
-                      }
+                      type="button"
+                      disabled={mutation.busy}
+                      onClick={() => setFormOpen(false)}
                     >
-                      送出回報
+                      取消回報
                     </button>
                     {actions.includes('submit_and_approve') && (
                       <button
@@ -265,14 +268,22 @@ export default function ReportPanel({
                         送出並確認
                       </button>
                     )}
+                    <button
+                      disabled={
+                        mutation.busy || !ready || !summary.trim() || !date
+                      }
+                    >
+                      送出回報
+                    </button>
                   </div>
                 </form>
               )}
-              {canReview && (
+              {canReview && latest && (
                 <div className="record-form">
                   <label>
-                    審核意見
+                    審核意見（退回時必填）
                     <textarea
+                      aria-label="審核意見"
                       maxLength={2000}
                       disabled={mutation.busy}
                       value={comment}
@@ -281,6 +292,7 @@ export default function ReportPanel({
                   </label>
                   <div className="record-actions">
                     <button
+                      className="primary"
                       disabled={mutation.busy}
                       onClick={() =>
                         void mutation.execute((signal) =>
@@ -296,6 +308,7 @@ export default function ReportPanel({
                       確認回報
                     </button>
                     <button
+                      className="danger"
                       disabled={mutation.busy || !comment.trim()}
                       onClick={() =>
                         void mutation.execute((signal) =>
@@ -314,7 +327,7 @@ export default function ReportPanel({
                 </div>
               )}
               {node.capabilities?.lifecycle && (
-                <div className="record-actions">
+                <div className="record-actions lifecycle-actions">
                   {[
                     ['skip', '略過任務'],
                     [
