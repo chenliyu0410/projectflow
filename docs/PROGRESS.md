@@ -17,13 +17,13 @@
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
 | 下一個動作 | 人類試用15173的12套模板與左下五公司切換；P2d先定範圍，不自動啟動。 |
 | 分支 | `main`（UI2從BASE `467de27` ff-only交付；主checkout）。 |
-| 最新程式 commit | UI2見本階段交付commit；UI1 `b8110d7`；Demo仍W6 `0934e48`未改。 |
+| 最新程式 commit | UI2 `3441289`；UI1 `b8110d7`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | UI2：API完整351pass/1舊route清單fail/7skip→相關22pass；Vitest170pass→相關9pass；build0；E2E18pass/2舊模板排序fail→相關4pass。詳§3，不假稱首次全綠。 |
 | 資料版本 | Demo v6/key未改；migration `20261009_0004`。15173原rows/欄位/files/原env逐值保留，只增3公司/5身分/12模板/219節點/12稽核及本機展示旗標。acceptance down不-v，volume保留。 |
 | 認領中 | 無。 |
 | 阻塞／待人類 | 無工程阻塞；UI1/UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。P2d後移且需定範圍；LAN未授權。 |
-| 遠端 | UI2依D50隨main push，發布後核對ls-remote；BASE `467de27`，無force。 |
+| 遠端 | UI2程式 `3441289` 與交付紀錄依D50隨main push，發布後核對ls-remote；BASE `467de27`，無force。 |
 
 ---
 
