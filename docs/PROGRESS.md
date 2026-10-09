@@ -13,10 +13,10 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI2追加 ✅ 既有專案已套用模板，waa已移除** |
+| 目前工作項目 | **UI2展示情境 ✅ 任務進行／完成／退回重送／待審已交付** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
 | 下一個動作 | 人類重新整理15173，試用已補齊的主食罐／連接器專案；P2d先定範圍，不自動啟動。 |
-| 分支 | `main`；UI2資料補齊從BASE `7a2e2d5` ff-only交付。 |
+| 分支 | `main`，UI2展示情境從BASE `0928e1d` ff-only交付。 |
 | 最新程式 commit | UI2 `3441289`；UI1 `b8110d7`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | UI2：API完整351pass/1舊route清單fail/7skip→相關22pass；Vitest170pass→相關9pass；build0；E2E18pass/2舊模板排序fail→相關4pass。詳§3，不假稱首次全綠。 |
@@ -107,6 +107,17 @@
 ---
 
 ## 3. 工作項目明細
+
+### UI2 展示進行情境 — ✅ 資料交付
+
+人類澄清要「像DEMO有任務進行的樣子」。[短計畫](superpowers/plans/2026-10-09-ui2-live-scenarios.md)，兩現有專案資料操作，API/UI/schema不改。
+
+- 主食罐2done／1doing／1review／13todo；連接器3done／1doing／1review／9todo。活躍階段標doing，電子立案phase done與Gate approved。食品原已核准5Gate全保留。
+- 新增8份真schema回報（食品配方v1退回、v2待審）、4筆展示筆記；全部標「展示情境」。兩公司各新增一位隨機不可知密碼的member展示執行者，兩待審任務指派給他，管理者可真核准／退回且不繞過自審限制。其餘owner不改。
+- 38個上輪模板新增節點日期食品前移5日、電子10日，原有任務日期不改；新示例不是實際調查或檢驗結論。沒有刪除節點／專案／報告／附件。
+- 隔離測試初次2fail1pass（日期輸入需ISO字串、模板標題比對已修），最終3/3 exit0，補活躍phase後相关3/3 exit0。涵蓋真狀態／回報版本／前置阻擋／Gate、預覽回滾、第二公司遇未知狀態時整筆回滾、冪等／關閉模式拒絕。獨立審查Ready to apply，未重跑未改UI全量。
+- primary預覽回滾後停止API一致DB/files備份，再apply、補活躍phase；原row ID／非授權欄位、原task日期、food已核准Gate、files SHA／env／DB容器保留。8reports／4notes／2users／68audit新增，瀏覽器正常登入另生1session。重跑preview全already_applied。畫面實見完成率12%、完成2／進行1／待審1、等待前置任務；ignored `.superpowers/ui2-live/` 保存證據及備份。
+- 工作區市場與配方可展示完整狀態，配方設計→紀錄可示範退回重送／審核。人類試用未代勾；P2d未啟動，D50 main push。
 
 ### UI2追加 既有專案補齊 — ✅ 資料交付
 
