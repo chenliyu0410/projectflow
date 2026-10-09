@@ -285,7 +285,8 @@ describe('UI3 Demo home pages', () => {
     })));
     render(<WorkspaceOverview openProject={vi.fn()} expired={vi.fn()} />);
     expect(await screen.findByRole('heading', { name: '所有專案總覽' })).toBeInTheDocument();
-    expect(screen.getByText('跨專案進度、預估完成與人員負載（今天 2026/10/09）')).toBeInTheDocument();
+    // The heading renders while loading; wait for the loaded description before reading aggregates.
+    expect(await screen.findByText('跨專案進度、預估完成與人員負載（今天 2026/10/09）')).toBeInTheDocument();
     expect(screen.getByLabelText('已延遲任務')).toHaveTextContent('2');
     expect(screen.getByLabelText('未完成任務')).toHaveTextContent('5');
     const row = within(screen.getByRole('table', { name: '專案進度' })).getAllByRole('row')[1];

@@ -96,12 +96,16 @@ export default function TimelineView({
   const width = Math.max(600, count * scale);
   const actualScale = width / count;
   // Demo scale: month labels on top, then day numbers (日) or Mondays (週) underneath.
+  // Labels are thinned by pixel spacing so very long ranges (e.g. a mistyped year) stay bounded.
   const months: number[] = [];
   const subs: number[] = [];
+  const subGap = zoom === 'day' ? 14 : 28;
+  let lastMonth = -Infinity, lastSub = -Infinity;
   for (let d = left; d <= right; d++) {
     const date = new Date(d * dayMs);
-    if (d === left || date.getUTCDate() === 1) months.push(d);
-    if (zoom === 'day' ? actualScale >= 14 : zoom === 'week' && date.getUTCDay() === 1) subs.push(d);
+    const x = (d - left) * actualScale;
+    if ((d === left || date.getUTCDate() === 1) && x - lastMonth >= 40) { months.push(d); lastMonth = x; }
+    if ((zoom === 'day' ? actualScale >= 14 : zoom === 'week' && date.getUTCDay() === 1) && x - lastSub >= subGap) { subs.push(d); lastSub = x; }
   }
   const firstMonday = left + ((8 - new Date(left * dayMs).getUTCDay()) % 7);
   const grid = zoom === 'month' ? undefined : {
@@ -268,7 +272,7 @@ export default function TimelineView({
         </form>
       )}
       <div className="timeline-scroll">
-        <div className="timeline-grid" style={{ width: width + 270, ['--c' as string]: color }}>
+        <div className="timeline-grid" style={{ width: `calc(${width}px + var(--tl-label))`, ['--c' as string]: color }}>
           <div className="timeline-axis">
             <span>{`總覽圖・節點（${rows.length}）`}</span>
             <div style={{ width }}>

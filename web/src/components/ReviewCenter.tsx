@@ -108,7 +108,8 @@ export default function ReviewCenter({
   }
   const reports = items.filter((i) => i.type === 'report');
   const gates = items.filter((i) => i.type === 'gate');
-  const count = (n: number) => (loading ? '' : cursor ? `（已載入 ${n}）` : `（${n}）`);
+  const count = (n: number) =>
+    loading || (error && !items.length) ? '' : cursor ? `（已載入 ${n}）` : `（${n}）`;
   const empty = (kind: 'report' | 'gate') =>
     !loading && !error && !items.some((i) => i.type === kind) && (
       <p className="empty">

@@ -65,6 +65,7 @@ export default function ReportPanel({
   const [reason, setReason] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement | null>(null);
+  const reopen = useRef(false);
   async function load() {
     const request = scope.begin();
     setLoading(true);
@@ -175,7 +176,18 @@ export default function ReportPanel({
         <div className="rc-acts">
           {error && !loading && <button onClick={() => void load()}>重試回報讀取</button>}
           {!loading && !error && canSubmit && !formOpen && !mutation.saved && (
-            <button className="primary" onClick={() => setFormOpen(true)}>{rejected ? '重新回報' : '回報完成'}</button>
+            <button
+              className="primary"
+              ref={(el) => {
+                if (el && reopen.current) {
+                  reopen.current = false;
+                  el.focus();
+                }
+              }}
+              onClick={() => setFormOpen(true)}
+            >
+              {rejected ? '重新回報' : '回報完成'}
+            </button>
           )}
           {!loading && !error && pending && !canReview && <span className="small muted">等待有權審核者確認</span>}
         </div>
@@ -253,7 +265,13 @@ export default function ReportPanel({
                     <button
                       type="button"
                       disabled={mutation.busy}
-                      onClick={() => setFormOpen(false)}
+                      onClick={() => {
+                        // The upload list unmounts with the form, so drop its selection too.
+                        setIds([]);
+                        setReady(true);
+                        reopen.current = true;
+                        setFormOpen(false);
+                      }}
                     >
                       取消回報
                     </button>

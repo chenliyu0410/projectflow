@@ -557,7 +557,8 @@ button.danger { border-color: #E3B294; color: var(--red); }
 .timeline-scroll { border-radius: 14px; }
 .timeline-axis, .timeline-row { height: 36px; min-height: 0; border-bottom: 1px solid #F0EDE6; }
 .timeline-axis { position: sticky; top: 0; z-index: 4; height: 42px; border-bottom-color: var(--line); background: var(--surface); }
-.timeline-axis > span, .timeline-label { width: 270px; border-right: 1px solid var(--line); background: var(--surface); }
+.timeline-grid { --tl-label: 270px; }
+.timeline-axis > span, .timeline-label { width: var(--tl-label); border-right: 1px solid var(--line); background: var(--surface); }
 .timeline-axis > span { display: flex; align-items: center; padding-left: 12px; color: var(--muted); font-size: 12px; font-weight: 700; }
 .timeline-label { gap: 4px; padding: 0 6px 0 8px; overflow: hidden; font-size: 13px; white-space: nowrap; }
 .timeline-label button { min-height: 0; border: 0; background: transparent; }
@@ -619,7 +620,7 @@ button.danger { border-color: #E3B294; color: var(--red); }
   .board-scroll { overflow-x: auto; padding-bottom: 6px; }
   .kanban { grid-template-columns: repeat(4,240px); width: max-content; }
   .grid2, .workflow-list { grid-template-columns: minmax(0,1fr); }
-  .timeline-axis > span, .timeline-label { width: 150px; }
+  .timeline-grid { --tl-label: 150px; }
   .timeline-label .cnt { display: none; }
 }
 @media (max-width: 720px) { .timeline-scroll { display: block; } }

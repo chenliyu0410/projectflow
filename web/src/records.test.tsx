@@ -326,6 +326,42 @@ describe('records asynchronous safety', () => {
       'application/octet-stream',
     );
   });
+  it('drops uploaded and pending attachments when the report form is cancelled', async () => {
+    const pending = deferred<unknown>();
+    let uploads = 0;
+    const fetcher = await setup([], (p) =>
+      p.includes('/attachments?')
+        ? ++uploads === 1
+          ? response({ id: 'a' }, 201)
+          : pending.promise
+        : undefined,
+    );
+    await fillReport();
+    let input = screen.getByLabelText('回報附件');
+    await waitFor(() => expect(input).not.toBeDisabled());
+    fireEvent.change(input, { target: { files: [new File(['a'], 'a.txt')] } });
+    await waitFor(() => expect(screen.getByRole('button', { name: '送出回報' })).not.toBeDisabled());
+    fireEvent.click(screen.getByRole('button', { name: '取消回報' }));
+    expect(screen.queryByLabelText('回報表單')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '回報完成' })).toHaveFocus();
+    // An upload still in flight when cancelling must not leave submission blocked.
+    await fillReport();
+    input = screen.getByLabelText('回報附件');
+    await waitFor(() => expect(input).not.toBeDisabled());
+    fireEvent.change(input, { target: { files: [new File(['b'], 'b.txt')] } });
+    expect(screen.getByRole('button', { name: '送出回報' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: '取消回報' }));
+    await act(async () => pending.resolve(response({ id: 'b' }, 201)));
+    await fillReport();
+    expect(screen.getByRole('button', { name: '送出回報' })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: '送出回報' }));
+    await waitFor(() =>
+      expect(fetcher.mock.calls.some(([p]) => p.endsWith('/reports'))).toBe(true),
+    );
+    const posts = fetcher.mock.calls.filter(([p]) => p.endsWith('/reports'));
+    expect(posts).toHaveLength(1);
+    expect(String(posts[0][1]?.body)).toContain('"attachment_ids":[]');
+  });
   it('keeps malformed attachment errors safe and prevents report submission', async () => {
     await setup([], (p) =>
       p.includes('/attachments?')
