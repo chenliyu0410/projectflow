@@ -57,7 +57,7 @@ function drag(source: Element, target: Element) {
 
 describe('TP-A progress', () => {
   it('matches the vectors shared with the API', () => {
-    for (const vector of vectors as { name: string; nodes: ProgressNode[]; expected: Record<string, number>; project: number | null }[]) {
+    for (const vector of vectors as unknown as { name: string; nodes: ProgressNode[]; expected: Record<string, number>; project: number | null }[]) {
       const values = progressMap(vector.nodes);
       expect(Object.fromEntries([...values].map(([id, value]) => [id, percent(value)])), vector.name).toEqual(vector.expected);
       expect(projectProgress(vector.nodes), vector.name).toBe(vector.project);
@@ -93,7 +93,7 @@ describe('TP-A cards', () => {
     expect(card).toHaveTextContent('50%');
     fireEvent.click(within(card).getByRole('button', { name: '展開下一層：上層任務' }));
     const list = within(card).getByRole('list', { name: '上層任務的下一層' });
-    expect(within(list).getAllByRole('button').map(button => button.textContent)).toEqual(['子任務一（0）', '子任務二（1）']);
+    expect(within(list).getAllByRole('button').map(button => button.textContent)).toEqual(['子任務一', '子任務二（1）']);
     fireEvent.click(within(list).getByRole('button', { name: '子任務二（1）' }));
     expect(select).toHaveBeenCalledWith('a2');
     expect(within(card).getByRole('button', { name: '收合下一層：上層任務' })).toHaveAttribute('aria-expanded', 'true');
@@ -105,6 +105,15 @@ describe('TP-A cards', () => {
     expect(openReport).toHaveBeenCalledWith('b');
     expect(within(cardOf('上層任務')).queryByRole('button', { name: /回報完成/ })).not.toBeInTheDocument();
     expect(within(cardOf('待確認任務')).queryByRole('button', { name: /回報完成/ })).not.toBeInTheDocument();
+  });
+
+  it('does not offer a report for a card still waiting on predecessors', () => {
+    const waiting = nodes.map(n => n.id === 'b' ? { ...n, blocked: true } : n);
+    const { openReport, notify } = workspace({ project: { ...project, nodes: waiting } });
+    expect(within(cardOf('另一個任務')).queryByRole('button', { name: /回報完成/ })).not.toBeInTheDocument();
+    drag(cardOf('另一個任務'), column('待確認'));
+    expect(notify).toHaveBeenCalledWith('尚有未完成的前置任務，完成前置後才能回報');
+    expect(openReport).not.toHaveBeenCalled();
   });
 
   it('hides quick report and dragging for read-only users', () => {
@@ -205,6 +214,17 @@ describe('TP-A node-scoped tabs', () => {
     expect(screen.getByRole('button', { name: '時程任務：上層任務' }).parentElement).toHaveAttribute('title', expect.stringContaining('進度 50%（涵蓋所有子任務）'));
     fireEvent.click(screen.getByRole('button', { name: '↑ 上一層：試作' }));
     expect(up).toHaveBeenCalledWith('ph');
+  });
+
+  it('treats a blank project root as the project level', () => {
+    const rooted = { ...dated, nodes: [node('root', '規劃器專案', null, 'project', 'todo', 0), ...dated.nodes.map(n => n.id === 'ph' ? { ...n, parent_id: 'root' } : n)] };
+    const up = vi.fn();
+    const { unmount } = render(<TimelineView project={rooted} scopeId="ph" select={vi.fn()} up={up} reload={vi.fn()} expired={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: '↑ 上一層：規劃器專案' }));
+    expect(up).toHaveBeenCalledWith(null);
+    unmount();
+    render(<TimelineView project={rooted} scopeId="root" select={vi.fn()} reload={vi.fn()} expired={vi.fn()} />);
+    expect(screen.getByText('總覽圖・任務（9）')).toBeInTheDocument();
   });
 
   it('shows the whole project with the overview header at project level', () => {

@@ -157,7 +157,8 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
   }, [hover, deps, nodes]);
   const dragged = drag ? nodes.find(node => node.id === drag) : undefined;
   const say = (text: string) => notify?.(text);
-  const canReport = (node: NodeItem) => !readonly && node.kind === 'task' && !!node.capabilities?.submit_report
+  // A task still waiting on predecessors would be refused by the API, so the shortcut is not offered.
+  const canReport = (node: NodeItem) => !readonly && node.kind === 'task' && !!node.capabilities?.submit_report && !node.blocked
     && !!node.state_actions?.includes('submit_report') && (node.status === 'todo' || node.status === 'doing') && openChildren(nodes, node).length === 0;
   const canDrag = (node: NodeItem) => !readonly && !disabled && (!!node.capabilities?.move || (node.state_actions?.length ?? 0) > 0);
   const canMoveAny = !readonly && items.some(node => node.capabilities?.move);
@@ -180,6 +181,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       if (target === 'review' || target === 'done') {
         const open = openChildren(nodes, node);
         if (open.length) return say(childrenBlockText(open));
+        if (node.blocked) return say('尚有未完成的前置任務，完成前置後才能回報');
         if (canReport(node)) return openReport?.(node.id);
         return say('你的角色無權回報此任務');
       }
@@ -245,7 +247,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
           onClick={() => setExpanded(value => { const next = new Set(value); if (next.has(node.id)) next.delete(node.id); else next.add(node.id); return next; })}>{open ? '收合' : '展開'}</button>
       </div>}
       {open && kids.length > 0 && <ul className="sublist" aria-label={`${node.title}的下一層`}>{kids.map(kid => <li key={kid.id}>
-        <button type="button" onClick={() => select(kid.id)}><span className={`dot ${kid.status}`} aria-hidden="true" />{kid.title}<span className="muted small">（{childrenOf(nodes, kid.id).length}）</span></button>
+        <button type="button" onClick={() => select(kid.id)}><span className={`dot ${kid.status}`} aria-hidden="true" /><span>{kid.title}</span>{childrenOf(nodes, kid.id).length > 0 && <span className="muted small">（{childrenOf(nodes, kid.id).length}）</span>}</button>
       </li>)}</ul>}
       <div className="card-foot"><span className="who">{node.owner_display_name && <span className="avatar xs" aria-hidden="true">{node.owner_display_name.slice(0, 1)}</span>}
         <span className="who-name">{node.owner_display_name ?? '未指派'}{node.department_name ? `・${node.department_name}` : ''}</span></span>

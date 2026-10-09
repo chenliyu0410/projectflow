@@ -54,7 +54,7 @@ export default function DependencyPanel({
     void load();
   }, []);
   const below =
-    scopeId && project
+    scopeId && project && project.nodes.some((n) => n.id === scopeId && n.kind !== 'project')
       ? new Set(
           subtree(project.nodes, scopeId)
             .filter((n) => n.id !== scopeId)

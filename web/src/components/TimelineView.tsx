@@ -66,7 +66,8 @@ export default function TimelineView({
   expired: () => void;
   color?: string;
 }) {
-  const root = scopeId ? project.nodes.find((n) => n.id === scopeId) : undefined;
+  // A blank project's kind=project root is the project level itself.
+  const root = scopeId ? project.nodes.find((n) => n.id === scopeId && n.kind !== 'project') : undefined;
   const nodes = root ? subtree(project.nodes, root.id) : project.nodes;
   const parent = root?.parent_id ? project.nodes.find((n) => n.id === root.parent_id) : undefined;
   const values = progressMap(project.nodes);
@@ -201,7 +202,7 @@ export default function TimelineView({
     <section className="timeline-view" aria-label="專案時程">
       <div className="tl-tools">
         {root ? (
-          <button type="button" className="tl-up" onClick={() => up?.(parent?.id ?? null)}>
+          <button type="button" className="tl-up" onClick={() => up?.(parent && parent.kind !== 'project' ? parent.id : null)}>
             ↑ 上一層：{parent?.title ?? project.title}
           </button>
         ) : (
