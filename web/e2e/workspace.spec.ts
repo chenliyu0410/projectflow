@@ -65,7 +65,7 @@ for (const width of [1280, 375]) {
     expect(child.department_id).toBe(departmentId);
     expect(child.start_date).toBeNull();
     expect(child.due_date).toBe('2026-10-12');
-    await page.getByRole('button', { name: '登出', exact: true }).click();
+    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();
     await login(page, 'ming');
     await navigate('我的任務');
     await page.getByLabel('搜尋任務').fill(title);
@@ -81,10 +81,10 @@ for (const width of [1280, 375]) {
     await expect(page.getByLabel('節點詳情')).toContainText('成員更新子任務');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath(`workspace-${width}.png`), fullPage: true });
-    await page.getByRole('button', { name: '登出', exact: true }).click();
+    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();
     await login(page, 'lin');
     await navigate('專案工作區');
-    await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+    if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
     await expect(page.getByRole('button', { name: '編輯節點', exact: true })).toHaveCount(0);
     expect((await page.request.patch(`/api/nodes/${child.id}`, { data: { title: '拒絕' } })).status()).toBe(403);
     const after = await page.request.get(`/api/projects/${projectId}`);

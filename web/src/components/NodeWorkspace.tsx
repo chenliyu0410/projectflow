@@ -70,10 +70,9 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     </select></label>;
   }
   return <>
-    <h1>{project.title}</h1>
     <nav aria-label="節點路徑" className="breadcrumbs"><button onClick={() => select(null)}>{project.title}</button>{nodePath(project.nodes, selectedNodeId).map(node => <span key={node.id}> / <button aria-current={node.id === selectedNodeId ? 'location' : undefined} onClick={() => select(node.id)}>{node.title}</button></span>)}</nav>
-    <section aria-label="節點樹" className="node-tree"><h2>節點</h2>{project.nodes.length === 0 ? <p>這個專案還沒有節點</p> : tree(roots)}</section>
-    <section aria-label="節點詳情" className="node-detail"><h2>節點詳情</h2><strong>{selected?.title ?? project.title}</strong>
+    <div className="node-layout"><section aria-label="節點樹" className="node-tree"><h2>節點</h2>{project.nodes.length === 0 ? <p>這個專案還沒有節點</p> : tree(roots)}</section>
+    <div className="node-main"><section aria-label="節點詳情" className="node-detail"><h2>節點詳情</h2><strong>{selected?.title ?? project.title}</strong>
       {selected ? <>
       {selected.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`${selected.id}:${recordVersion}`} node={selected} userId={userId} reload={reloadRecords} expired={expired}/>}
       {selected.blocked && <p role="status">尚有未完成的前置任務</p>}
@@ -95,10 +94,10 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     </div>}
     <section aria-label="看板"><h2>下一層節點</h2>{children.length === 0 && <p>目前沒有下一層節點</p>}
       <div className="kanban">{statuses.map(column => <div key={column.status} aria-label={column.label} className={`kanban-column ${column.status === 'skipped' ? 'skipped-list' : ''}`}>
-        <h2>{column.label}</h2>{children.filter(node => node.status === column.status).map(node => <article key={node.id} className="task-card">
-          <button className="task-title" onClick={() => select(node.id)}>{node.title}</button>{statusControl(node)}
+        <h2>{column.label}<span className="column-count">{children.filter(node => node.status === column.status).length}</span></h2>{children.filter(node => node.status === column.status).map(node => <article key={node.id} className="task-card">
+          <span className={`status-tag status-${node.status}`}>{node.kind === 'phase' ? '階段' : node.kind === 'project' ? '專案' : '任務'}</span><button className="task-title" onClick={() => select(node.id)}>{node.title}</button><p className="task-card-meta">{node.owner_display_name ?? '未指派'} · {node.department_name ?? '未指派部門'}</p><p className="task-card-meta">{node.due_date ? `截止 ${node.due_date}` : '未設定截止日期'}</p>{node.blocked && <span className="blocked-tag">等待前置任務</span>}{statusControl(node)}
         </article>)}
       </div>)}</div>
-    </section>
+    </section></div></div>
   </>;
 }

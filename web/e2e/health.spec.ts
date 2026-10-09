@@ -44,7 +44,7 @@ for (const width of [1280, 375]) {
       await page.getByRole('button', { name: '登入', exact: true }).click();
       if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
       await page.getByRole('button', { name: '專案工作區', exact: true }).click();
-      await expect(page.getByLabel('專案清單')).toBeVisible();
+      if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await expect(page.getByLabel('專案清單')).toBeVisible();
       await expect(page.getByRole('status')).toHaveCount(0);
     };
     await page.setViewportSize({ width, height: 900 });
@@ -52,7 +52,7 @@ for (const width of [1280, 375]) {
     await expect(page.getByRole('heading', { name: '登入專流' })).toBeVisible();
     await screenshot('login');
     await login('yu');
-    await page.getByLabel('專案清單').getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();
+    if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();
     await expect(page.getByRole('heading', { name: '成貓主食罐正式版', exact: true })).toBeVisible();
     await page.getByRole('button', { name: '展開市場與配方', exact: true }).click();
     await expect(page.getByLabel('節點樹')).toContainText('殺菌條件驗證');
@@ -92,10 +92,10 @@ for (const width of [1280, 375]) {
     await page.getByLabel('待處理').getByRole('combobox', { name: '試作工單狀態' }).selectOption('doing');
     await expect(page.getByLabel('進行中').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('doing');
     await screenshot('gate-approved');
-    await page.getByRole('button', { name: '登出' }).click();
+    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出' }).click();
     await expect(page.getByRole('heading', { name: '登入專流' })).toBeVisible();
     await login('lin');
-    await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+    if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
     await page.getByLabel('節點樹').getByRole('button', { name: detail.nodes.find((node: { id: string }) => node.id === task.parent_id).title, exact: true }).click();
     await expect(page.getByLabel('進行中')).toContainText('試作工單');
@@ -103,7 +103,7 @@ for (const width of [1280, 375]) {
     await expect(page.getByRole('button', { name: '新增專案' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '核准閘門' })).toHaveCount(0);
     await screenshot('readonly');
-    expect(await page.locator('header img').evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    expect(await page.locator('.brand img').evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     expect(pageErrors).toEqual([]);
     expect(httpErrors).toEqual([
       { path: '/api/auth/me', status: 401 },

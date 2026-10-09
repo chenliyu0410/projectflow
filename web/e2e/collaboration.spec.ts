@@ -39,7 +39,7 @@ for (const width of [1280, 375]) {
     };
     const openTask = async () => {
       await navigate('專案工作區');
-      await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+      if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
       await page.getByLabel('節點樹').getByRole('button', { name: '送審成果任務', exact: true }).click();
     };
     const submit = async (summary: string) => {
@@ -51,18 +51,18 @@ for (const width of [1280, 375]) {
     };
     await login('ming'); await openTask();
     await submit('第一版成果');
-    await page.getByRole('button', { name: '登出', exact: true }).click();
+    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();
     await expect(page.getByRole('heading', { name: '登入專流', exact: true })).toBeVisible();
     await login('yu'); await openTask();
     await page.getByLabel('審核意見', { exact: true }).fill('請補充驗證資料');
     await page.getByRole('button', { name: '退回回報', exact: true }).click();
     await expect(page.getByLabel('節點詳情')).toContainText('進行中');
-    await page.getByRole('button', { name: '登出', exact: true }).click();
+    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();
     await expect(page.getByRole('heading', { name: '登入專流', exact: true })).toBeVisible();
     await login('ming'); await openTask();
     await expect(page.getByLabel('節點詳情')).toContainText('請補充驗證資料');
     await submit('第二版補齊驗證資料');
-    await page.getByRole('button', { name: '登出', exact: true }).click();
+    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();
     await expect(page.getByRole('heading', { name: '登入專流', exact: true })).toBeVisible();
     await login('yu'); await openTask();
     await page.getByRole('button', { name: '確認回報', exact: true }).click();

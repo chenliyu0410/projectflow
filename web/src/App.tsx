@@ -266,13 +266,9 @@ export default function App() {
   }
 
   return <>
-    <header>
-      <img src="/mark.svg" width="32" height="32" alt="" />
-      <strong>專流 ProjectFlow</strong>
-      {session && <div className="session"><span aria-label="目前公司">{session.organization.name}</span><span>{session.user.display_name}</span><button disabled={busy} onClick={() => void logout()}>登出</button></div>}
-    </header>
+    {!session && <header className="login-brand"><img src="/mark.svg" width="32" height="32" alt="" /><strong className="brand-name">專流 ProjectFlow</strong></header>}
     <main className={session ? 'app-shell' : 'login-shell'}>
-      {message && <p role="alert">{message}</p>}
+      {message && !session && <p role="alert">{message}</p>}
       {state === 'login' ? <form onSubmit={event => void submit(event)}>
         <h1>登入專流</h1>
         <label>公司<input value={organization} onChange={event => setOrganization(event.target.value)} required disabled={busy} autoComplete="organization" /></label>
@@ -280,9 +276,10 @@ export default function App() {
         <label>密碼<input type="password" value={password} onChange={event => setPassword(event.target.value)} required disabled={busy} autoComplete="current-password" /></label>
         <button type="submit" disabled={busy}>{busy ? '登入中' : '登入'}</button>
       </form> : <>
-        {session ? <WorkspaceShell route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate}>
+        {session ? <WorkspaceShell route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} session={<><span aria-label="目前公司">{session.organization.name}</span><div className="session-person"><span className="avatar" aria-hidden="true">{session.user.display_name.slice(0, 1)}</span><strong>{session.user.display_name}</strong></div><button disabled={busy} onClick={() => void logout()}>登出</button></>}>
+        {message && <p role="alert">{message}</p>}
         <section aria-label={route.page === 'project' ? '專案' : route.page === 'overview' ? '總覽頁面' : route.page === 'my-tasks' ? '我的任務頁面' : route.page === 'reviews' ? '審核中心頁面' : route.page === 'audit' ? '稽核紀錄頁面' : '模板庫頁面'}>
-          {session && canCreate && <div className="project-toolbar">{session.user.role === 'admin' && <button disabled={busy || mutating || state !== 'ready'} onClick={() => { begin(); closeCreation(); setCreationMode('blank'); setCreationOpen(true); setMessage(''); }}>新增空白專案</button>}<button disabled={busy || mutating || workflowLoading || state !== 'ready'} onClick={() => void openCreation()}>新增專案</button></div>}
+          {session && canCreate && <div className="project-toolbar global-actions">{session.user.role === 'admin' && <button disabled={busy || mutating || state !== 'ready'} onClick={() => { begin(); closeCreation(); setCreationMode('blank'); setCreationOpen(true); setMessage(''); }}>新增空白專案</button>}<button disabled={busy || mutating || workflowLoading || state !== 'ready'} onClick={() => void openCreation()}>新增專案</button></div>}
           {creationOpen && <form className="creation-form" onSubmit={event => void createProject(event)}>
             {creationMode === 'workflow' && <label>工作流模板<select value={workflowId} disabled={workflowLoading || mutating} onChange={event => setWorkflowId(event.target.value)}>
               <option value="">選擇模板</option>{workflows?.map(workflow => <option key={workflow.id} value={workflow.id}>{workflow.name}</option>)}
@@ -303,10 +300,10 @@ export default function App() {
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'audit' && <AuditLogView openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && route.page === 'my-tasks' && <MyTasks openNode={(projectId, nodeId) => navigate({ page: 'project', projectId, nodeId })} expired={expireSession} />}
-          {state === 'ready' && route.page === 'project' && project && <><div className="project-views" role="tablist" aria-label="專案檢視">{([['workspace','工作區'],['timeline','時程'],['dependencies','前置相依']] as const).map(([view,label]) => <button key={view} role="tab" aria-selected={projectView === view} disabled={busy || mutating} onClick={() => { if (view === projectView) return; begin(); closeCreation(); setProjectView(view); }}>{label}</button>)}</div>{projectView === 'timeline' && !busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} select={selectNode} reload={reloadRecords} expired={expireSession} />}{projectView === 'dependencies' && !busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} select={selectNode} reload={reloadRecords} expired={expireSession} />}{projectView === 'workspace' && <><div className="project-toolbar">
+          {state === 'ready' && route.page === 'project' && project && <><h1 className="project-heading">{project.title}</h1><div className="workspace-tools"><div className="project-views" role="tablist" aria-label="專案檢視">{([['workspace','工作區'],['timeline','時程'],['dependencies','前置相依']] as const).map(([view,label]) => <button key={view} role="tab" aria-selected={projectView === view} disabled={busy || mutating} onClick={() => { if (view === projectView) return; begin(); closeCreation(); setProjectView(view); }}>{label}</button>)}</div>{projectView === 'workspace' && <div className="project-toolbar">
             {canAddNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('create')}>新增子節點</button>}
             {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
-          </div>
+          </div>}</div>{projectView === 'timeline' && !busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} select={selectNode} reload={reloadRecords} expired={expireSession} />}{projectView === 'dependencies' && !busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} select={selectNode} reload={reloadRecords} expired={expireSession} />}{projectView === 'workspace' && <>
           {editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
             canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} />}
           <NodeWorkspace key={project.id} project={project} selectedNodeId={selectedNodeId} select={selectNode}

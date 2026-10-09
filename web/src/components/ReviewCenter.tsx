@@ -108,7 +108,7 @@ export default function ReviewCenter({
   }
   return (
     <div className="review-center">
-      <h2>審核中心</h2>
+      <h1>審核中心</h1>
       <p>只列出目前可審核的回報與閘門；點選任務名稱可開啟完整紀錄。</p>
       {loading && <p role="status">載入審核清單中</p>}
       {error && <p role="alert">{error}</p>}

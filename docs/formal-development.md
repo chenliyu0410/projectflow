@@ -298,3 +298,11 @@ API擴充GET／POST `/workflows`、GET／PUT `/workflows/{id}`、POST `/workflow
 完整verify保留P2bPG migration與四項真PG競態，另加入0003→0004保留資料／相依約束測試；每個PG階段建立各自全新p2b_test_*專用DB，避免已到head的DB假驗升級，不downgrade既有環境。命名沿原護欄相容，DSN僅子程序、檔案temp隔離、skip仍使驗收非零。候選版本完成一次完整verify，修正只重驗受影響部分，合併main不重複全量；附件既有故障矩陣不擴充。升級仍先備份DB＋files與env指紋、不seed、不刪volume。
 
 本輪延後：SS／FF、延遲、軟性前置／覆寫、自動順延、工作日／假日、里程碑鎖定、持久undo、關鍵路徑、時程相依連線、子樹另存／套用、拖曳改層級與自訂回報欄位；既有P2b的跳過申請／Gate覆寫及AI／ERP／LAN正式部署限制仍在。
+
+## UI1 Demo介面對齊
+
+UI1只改React介面，API契約與migration0004維持。桌面252px側欄與主區各自捲動；手機「導覽」開關切换導覽／主內容，Escape或選頁返回開關焦點。真實公司／使用者及登出放在側欄底部；沒有模擬公司／角色切換。背景#F6F4EF、側欄#EFEBE3、主色#1F5F5B，本機中文字體與serif fallback，不新增字體CDN。
+
+總覽使用原可見統計與done/(task-skipped)進度；我的任務保留查詢／狀態；節點樹、详情與下一層卡片分區，回報／筆記／附件保留完整內容及操作。時程日週月、桌面拖拉與手機日期表單、FS／Gate與真API權限不變。未提供的Demo模組不加入可操作入口。
+
+驗收使用15175 acceptance marker；`npm.cmd --prefix web run e2e -- visual-alignment.spec.ts`保存桌面／手機PNG至ignored `.superpowers/ui1/`，涵蓋主要頁面、長名稱、空／載入／錯誤重試與登入失效。完整回歸首次結構selector失敗及修正定點結果如實記在PROGRESS。發布只build/up `web --no-deps`，不重啟API/DB、不seed；部署前後核對原row、files SHA、env與API/DB容器身分。

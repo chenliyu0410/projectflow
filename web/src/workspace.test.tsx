@@ -90,7 +90,7 @@ describe('P2a workspace navigation', () => {
     vi.stubGlobal('fetch', fetcher); render(<App />);
     expect(await screen.findByLabelText('可見任務完成率')).toHaveTextContent('43%');
     expect(screen.getByLabelText('可見專案數')).toHaveTextContent('1');
-    fireEvent.click(screen.getByRole('button', { name: summary.title }));
+    fireEvent.click(within(screen.getByLabelText('總覽內容')).getByRole('button', { name: summary.title }));
     expect(await screen.findByLabelText('節點樹')).toBeInTheDocument();
   });
 

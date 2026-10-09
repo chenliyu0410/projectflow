@@ -47,7 +47,7 @@
 - 正式版P0至P1c本機MVP工程交付與自動驗收已通過，提供可重複執行的隔離驗收命令。API 80項、Vitest 56項、Playwright 6項與build通過，逐Task及整體獨立審查完成，見[試用清單](docs/mvp-trial-checklist.md)。P2a已依D56完成：API182項、Vitest96項、Playwright9項及build通過，真PostgreSQL升級保留資料與隔離重啟驗證通過；人類試用簽核仍未完成。P2b依D59–D64完成工程交付：強制PostgreSQL遷移1項及並行競態3項、API337項（另5項條件skip）、Vitest150項、Playwright13項與build通過；既有資料保留升級及附件持久化／故障恢復通過，人類試用仍待簽核；P2c時程／模板／硬性FS精簡範圍已工程交付並保留資料部署至15173，驗收首次失敗及窄修正結果如實見PROGRESS；其餘P2c延後範圍、P2d與LAN／正式部署仍未交付。
 - 本機入口：[正式版](http://127.0.0.1:15173)，P2a已部署並提供總覽／我的任務／專案工作區，其他組員照[正式版開發指南](docs/formal-development.md)啟動自己的環境。以food公司的yu／demo-yu登入，可瀏覽專案、更新狀態、核准閘門及從模板建立專案；chen／ming／lin種子帳號與角色見開發指南。HttpOnly cookie識別公司，登入後沒有前端公司切換。P2a新增管理者建節點／改派、可見執行者編輯名稱日期，以及可見任務完成率done／(task−skipped)，分母0顯示「—」；日期可空；P2c新增時程拖曳與日期表單，正式部署狀態見PROGRESS。真AI／ERP／AD／完整RAG不在本輪MVP，不能用Demo驗收代替正式版驗收。
 
-**下一階段（D67）**：先做[UI1前端介面對齊](docs/superpowers/plans/2026-10-09-ui1-demo-alignment.md)，讓主要布局／視覺接近Demo並接既有真實功能；P2d文件／營運／摘要排在其後。目前是規劃，尚未發布新版介面。
+**UI1（D67）**：[前端介面對齊](docs/superpowers/plans/2026-10-09-ui1-demo-alignment.md)已完成側欄、配色、字級間距、總覽與任務卡片、工作區及時程／管理頁；接既有真API，桌面／手機隔離驗收與獨立審查完成，發布狀態見PROGRESS。P2d文件／營運／摘要排在其後，尚未交付；人類試用待簽核。
 
 **精簡流程（2026-10-09，D65）**：後續以Demo主要展示流程為目標，每階段短規格／計畫、一次獨立審查、一次完整回歸；修正只重驗受影響部分，一般畫面不強制TDD。保留既有資料、隔離測試與基本權限，已完成功能不重做。詳見[工作流程 §14](docs/WORKFLOW.md#14-精簡流程d65)。
 

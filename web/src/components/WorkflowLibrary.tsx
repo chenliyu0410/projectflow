@@ -415,7 +415,7 @@ export default function WorkflowLibrary({
   }
   return (
     <div className="workflow-library">
-      <h2>模板庫</h2>
+      <h1>模板庫</h1>
       <p>模板修改只影響之後建立的專案。複製會建立獨立模板。</p>
       {list?.capabilities?.create && (
         <button onClick={() => edit('new')}>新增模板</button>

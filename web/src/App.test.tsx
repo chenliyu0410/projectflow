@@ -488,7 +488,7 @@ describe('P1b session UI', () => {
   it('restores a session and handles an empty project list', async () => {
     stubFetch(vi.fn().mockResolvedValueOnce(response(session)).mockResolvedValueOnce(response({ items: [] })));
     render(<App />);
-    expect(await screen.findByText('目前沒有專案')).toBeInTheDocument();
+    expect(await within(await screen.findByLabelText('專案清單')).findByText('目前沒有專案')).toBeInTheDocument();
     expect(screen.getByLabelText('目前公司')).toHaveTextContent('毛研食品');
   });
 

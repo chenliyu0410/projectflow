@@ -13,15 +13,15 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI1 📋 下一階段：前端介面對齊；P2d後移** |
+| 目前工作項目 | **UI1 🟢 介面對齊驗收完成，待保留資料發布；P2d後移** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | 依D67先執行UI1：盤點Demo對照畫面，再依精簡計畫對齊側欄、視覺、總覽、工作區與時程。P2d排後；目前尚未改產品畫面。 |
-| 分支 | `main`（P2c ff-only合併及保留資料部署完成，feature已安全刪除）。 |
+| 下一個動作 | UI1獨立審查Ready to merge；ff-only合併後只更新15173 web，核對API/DB/files/env保留並push main。P2d尚待定範圍。 |
+| 分支 | `feature/ui1-demo-alignment`（主checkout；BASE `5e1a83e`）。 |
 | 最新程式 commit | P2c整合 `5992ce6`；Demo仍W6 `0934e48`未改。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | P2c PG6pass、API344pass7skip+兩修正target通過、Vitest167/build0、E2E15pass+剩餘target通過；一次完整回歸及窄修正驗證，未假稱原verify exit0。 |
 | 資料版本 | Demo v6/key未改；正式migration `20261009_0004`。15173原有全部row/欄位值、檔案SHA與env保留；隔離acceptance/p2c-backend已down不-v，雙volume與專用DB保留。 |
-| 認領中 | —（P2c完成，無實作認領）。 |
+| 認領中 | Codex：UI1介面對齊、隔離驗收與交付。 |
 | 阻塞／待人類 | P2c無工程阻塞；P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核，UI1無產品決策阻塞，P2d後移且需定範圍；LAN未授權。 |
 | 遠端 | P2c交付`65f91cb`已push main且ls-remote核對一致；本發布紀錄隨main同步。本輪fetch無未知遠端改動，無force。 |
 
@@ -90,7 +90,7 @@
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
 | 已完成 | P2b | 回報／審核、筆記、附件與稽核介面 | ✅ 工程交付 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；八Task／G4雙審、G6隔離回歸及保留資料部署通過 | P2a |
 | 已完成 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
-| 下一階段 | UI1 | 前端介面對齊：Demo框架／配色／卡片／工作區／時程 | 📋 | [精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)，D67人類指定，既有真實功能不變 | P2a/P2b/P2c |
+| 本階段 | UI1 | 前端介面對齊：Demo框架／配色／卡片／工作區／時程 | 🟢 已驗收待發布 | [精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)，D67人類指定，既有真實功能不變 | P2a/P2b/P2c |
 | 後續 | P2d | 文件、AI副手與研發營運Demo功能移植 | ⬜ | 真AI／ERP串接另定範圍，不視為已授權 | 前三階段 |
 
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -106,9 +106,18 @@
 
 ## 3. 工作項目明細
 
-### UI1 前端介面對齊 — 📋 下一階段
+### UI1 前端介面對齊 — 🟢 已驗收待發布
 
-D67人類指定優先對齊Demo前端，P2d後移。[精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)已整理框架、色彩、總覽／我的任務、工作區／紀錄與時程管理頁差異；保留真API與權限，只改前端。此刻僅排程與文件，尚未改產品／測試／容器，不能宣稱已看見新版。以Demo/正式版1280與375對照截圖及既有操作驗收。
+D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)完成252px暖灰側欄、品牌／分組導覽／可捲專案清單／真實使用者、米白深綠視覺與本機中文字體／serif標題；主區獨立捲動，手機收合導覽與Escape／選頁焦點返回。總覽真統計／專案進度卡、我的任務篩選列表、工作區節點分區／麵包屑／操作與分頁／下一層卡片，以及紀錄、時程、模板、審核、稽核共用卡片與工具列。保留API、權限、Gate、FS、日期確認與所有既有操作。沒有新增假指標、Demo切換身分或未交付模組入口。
+
+**驗收（2026-10-09）**：一次完整Vitest為165 passed／2 failed，僅新常駐側欄造成舊全頁文字selector重複；縮小語意範圍後受影響App／workspace 78/78通過（exit0），其他89項沿完整回歸證據，非宣稱第二次全量167。build最終exit0。一次完整E2E 15 passed／3 failed（exit1）：兩項仍查header img，一項手機測試開側欄後未關就點主區新增；適配後相關health／mvp／workspace／visual 11/11 passed（exit0）。新視覺走查另補空／延遲載入／503重試／真logout後401失效，1280／375共2/2 passed（exit0）。原業務、公司權限、資料保存、回報、Gate、FS與拖拉改期斷言均保留；沒有把首輪失敗當產品RED。UI1無後端變更，未重跑PG／附件故障矩陣。
+
+**畫面證據**：獨立Demo origin `127.0.0.1:18005`，正式走查僅隔離15175；兩者1280／375的overview/workspace/timeline/tasks/records對照PNG位於ignored `.superpowers/ui1/`，另有正式templates/reviews/audit/navigation與空／載入／錯誤／登入失效。已實看，修正長名稱側欄重疊、標題操作列與手機焦點；頁面／主內容無橫向overflow，時程／相依圖保留內部捲動。管理頁截圖等待真資料載入完成。測試的console僅允許明確401及刻意503，既有業務E2E精確允許Gate/FS預期錯誤，其餘為0。
+
+**獨立審查**：唯讀`ui1_review`依WORKFLOW §14檢查diff與Demo／正式截圖，修正手機導覽focus後窄複核，結論 **Ready to merge**、無阻擋。沒有重跑另一套全量，沒有冒稱人類簽核。
+
+**限制與下一步**：對齊主要布局／色彩／資訊層級，並非Demo全部功能或逐像素一致；手機採單欄與日期表單。P2c的進階排程、自訂回報欄位與P2d文件／AI／營運仍延後。人類UI1視覺與操作試用仍待簽核。15173此筆紀錄尚待web-only更新，API/DB/files/env保留基線已建立。
+
 
 ### P2c 時程、模板與前置 — ✅ 精簡範圍工程交付
 

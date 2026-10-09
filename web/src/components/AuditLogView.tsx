@@ -201,7 +201,7 @@ export default function AuditLogView({
   }, [action, node?.id]);
   return (
     <div className="audit-view">
-      <h2>稽核紀錄</h2>
+      <h1>稽核紀錄</h1>
       <p>僅顯示目前可見的業務事件。</p>
       <div className="audit-filters">
         <label>

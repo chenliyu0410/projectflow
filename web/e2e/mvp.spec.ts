@@ -40,7 +40,8 @@ for (const width of [1280, 375]) {
       await page.getByRole('button', { name: '登入', exact: true }).click();
       if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
       await page.getByRole('button', { name: '專案工作區', exact: true }).click();
-      await expect(page.getByLabel('專案清單')).toBeVisible();
+      if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await expect(page.getByLabel('專案清單')).toBeVisible();
+      if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
       return page;
     };
     const snapshot = async (page: Page, name: string) => {
@@ -48,7 +49,7 @@ for (const width of [1280, 375]) {
       await page.screenshot({ path: testInfo.outputPath(`p1c-${width}-${name}.png`), fullPage: true });
     };
     const openSeed = async (page: Page) => {
-      await page.getByLabel('專案清單').getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();
+      if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();
       await expect(page.getByRole('heading', { name: '成貓主食罐正式版', exact: true })).toBeVisible();
     };
     let yu: Page | undefined;
@@ -129,7 +130,7 @@ for (const width of [1280, 375]) {
       await expect(yu.getByLabel('進行中').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('doing');
       await snapshot(yu, 'yu');
       const readonly = await role('lin');
-      await readonly.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+      if (!await readonly.getByLabel('專案清單').isVisible()) await readonly.getByRole('button', {name:'切換導覽'}).click();await readonly.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
       await expect(readonly.getByRole('heading', { name: title, exact: true })).toBeVisible();
       await expect(readonly.getByLabel('看板').getByRole('combobox')).toHaveCount(0);
       await expect(readonly.getByRole('button', { name: '新增專案' })).toHaveCount(0);
