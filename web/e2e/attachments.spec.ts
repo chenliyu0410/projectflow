@@ -30,7 +30,7 @@ for (const width of [1280, 375]) {
       await page.getByLabel('帳號').fill('yu');await page.getByLabel('密碼').fill('demo-yu');await page.getByRole('button',{name:'登入',exact:true}).click();
       await expect(page.getByLabel('可見任務完成率',{exact:true})).toBeVisible();
       if(width===375)await page.getByRole('button',{name:'切換導覽'}).click();
-      await page.getByRole('button',{name:'專案工作區',exact:true}).click();if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button',{name:title,exact:true}).click();
+      if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button',{name:title,exact:true}).click();
       await page.getByLabel('節點樹').getByRole('button',{name:'附件與協作任務',exact:true}).click();
       await page.getByRole('button',{name:'協作設定',exact:true}).click();await page.getByRole('checkbox',{name:member.user.display_name,exact:true}).check();await page.getByRole('button',{name:'儲存協作',exact:true}).click();
       await expect(page.getByRole('button',{name:'協作設定',exact:true})).toBeVisible();
@@ -66,7 +66,7 @@ for (const width of [1280, 375]) {
       const audit=await admin.request.get(`/api/audit-logs?node_id=${nid}`);expect(audit.status()).toBe(200);const auditText=await audit.text();
       expect(auditText).not.toMatch(/storage_key|password_hash|session_token|\/var\/lib/);expect(auditText).toContain('note.update');
       if(width===375)await page.getByRole('button',{name:'切換導覽'}).click();
-      await page.getByRole('button',{name:'稽核紀錄',exact:true}).click();
+      await page.getByRole('button',{name:'活動與稽核紀錄',exact:true}).click();
       await page.getByRole('combobox',{name:'事件類型',exact:true}).selectOption('note.update');
       const auditRow=page.getByRole('article').filter({hasText:title});
       await expect(auditRow).toContainText('管理者修訂筆記');

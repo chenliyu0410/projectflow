@@ -21,8 +21,10 @@ export interface AssignmentOptions { users: { id: string; display_name: string }
 export interface NodeMetadata { title: string; owner_user_id: string | null; department_id: string | null; start_date: string | null; due_date: string | null; }
 export interface NodeCreate extends NodeMetadata { kind: 'phase' | 'task'; parent_id: string | null; }
 export type TaskCounts = Record<NodeStatus, number>;
-export interface WorkspaceOverviewData { project_count: number; task_counts: TaskCounts; completion_percent: number | null; projects: { id: string; title: string; task_counts: TaskCounts; completion_percent: number | null }[]; }
-export interface MyTask extends NodeItem { project_title: string; relations?: ('owned' | 'collaborating')[]; }
+export interface OverviewProject { id: string; title: string; task_counts: TaskCounts; completion_percent: number | null; current_phase_title?: string | null; due_date?: string | null; overdue_count?: number; }
+export interface WorkloadPerson { user_id: string; display_name: string; department_name: string | null; open_count: number; overdue_count: number; }
+export interface WorkspaceOverviewData { project_count: number; task_counts: TaskCounts; completion_percent: number | null; projects: OverviewProject[]; today?: string; overdue_count?: number; people?: WorkloadPerson[]; departments?: { id: string; name: string; open_count: number }[]; }
+export interface MyTask extends NodeItem { project_title: string; relations?: ('owned' | 'collaborating')[]; path?: { id: string; title: string }[]; }
 
 export interface Attachment { id: string; node_id: string; original_name: string; size_bytes: number; sha256: string; uploaded_by: string; uploaded_by_display_name: string | null; created_at: string; report_id: string | null; note_id: string | null; }
 export interface Report { type: 'report'; id: string; node_id: string; node_title: string; version: number; legacy: boolean; result: string; summary: string; finished_on: string | null; status: string; submitted_by: string; submitted_by_display_name: string | null; submitted_at: string; reviewed_by_display_name: string | null; reviewed_at: string | null; review_comment: string | null; self_approved: boolean; attachments: Attachment[]; created_at: string; }

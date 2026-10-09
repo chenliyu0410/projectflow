@@ -180,7 +180,7 @@ describe('review and audit entry points', () => {
     expect(screen.queryByText('目前沒有待審回報')).not.toBeInTheDocument();
   });
   it('renders safe readable audit changes with title-based filtering', async () => {
-    const f = await setup('稽核紀錄');
+    const f = await setup('活動與稽核紀錄');
     expect(await screen.findByText('舊文字')).toBeInTheDocument();
     expect(screen.getByText('<script>安全新文字</script>')).toBeInTheDocument();
     expect(screen.queryByText('internal-note')).not.toBeInTheDocument();
@@ -204,7 +204,7 @@ describe('review and audit entry points', () => {
     await setup('審核中心', (p) =>
       p.startsWith('/api/workspace/reviews') ? pending.promise : undefined,
     );
-    fireEvent.click(screen.getByRole('button', { name: '稽核紀錄' }));
+    fireEvent.click(screen.getByRole('button', { name: '活動與稽核紀錄' }));
     await screen.findByText('舊文字');
     await act(async () => pending.resolve(response({}, 401)));
     expect(
@@ -261,7 +261,7 @@ describe('queue and audit read boundaries', () => {
     const button = await screen.findByRole('button', { name: '確認回報' });
     fireEvent.click(button);
     fireEvent.click(button);
-    fireEvent.click(screen.getByRole('button', { name: '稽核紀錄' }));
+    fireEvent.click(screen.getByRole('button', { name: '活動與稽核紀錄' }));
     await screen.findByText('舊文字');
     await act(async () => pending.resolve(response({}, 401)));
     expect(
@@ -289,7 +289,7 @@ describe('queue and audit read boundaries', () => {
   });
   it('cancels stale audit filters and does not render unknown payloads or internal ids', async () => {
     const pending = deferred();
-    await setup('稽核紀錄', (p) =>
+    await setup('活動與稽核紀錄', (p) =>
       p.startsWith('/api/audit-logs')
         ? p.includes('action=note.update')
           ? response({
@@ -322,7 +322,7 @@ describe('queue and audit read boundaries', () => {
   it.each([401, 403, 404])(
     'handles current audit %s without false empty content',
     async (status) => {
-      await setup('稽核紀錄', (p) =>
+      await setup('活動與稽核紀錄', (p) =>
         p.startsWith('/api/audit-logs')
           ? response({ detail: 'PRIVATE' }, status)
           : undefined,
@@ -342,7 +342,7 @@ describe('queue and audit read boundaries', () => {
     },
   );
   it('appends audit pages and clears filters by readable controls', async () => {
-    const f = await setup('稽核紀錄', (p) =>
+    const f = await setup('活動與稽核紀錄', (p) =>
       p.startsWith('/api/audit-logs')
         ? response(
             p.includes('cursor=')
@@ -382,7 +382,7 @@ describe('queue and audit read boundaries', () => {
 it.each(['__proto__', 'constructor', 'toString'])(
   'safely labels unknown prototype action %s',
   async (action) => {
-    await setup('稽核紀錄', (p) =>
+    await setup('活動與稽核紀錄', (p) =>
       p.startsWith('/api/audit-logs')
         ? response({
             items: [{ ...audit, action, payload: { secret: 'PRIVATE' } }],

@@ -17,7 +17,7 @@ const detail = { ...summary, nodes: [task], gates: [], capabilities: { create_no
 const overview = { project_count: 1, task_counts: { todo: 1, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: 0, projects: [] };
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
 async function openEditor() {
-  fireEvent.click(await screen.findByRole('button', { name: '專案工作區' }));
+  fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
   const tree = await screen.findByLabelText('節點樹');
   fireEvent.click(within(tree).getByRole('button', { name: '原任務' }));
   fireEvent.click(screen.getByRole('button', { name: '編輯節點' }));
@@ -91,7 +91,7 @@ describe('P2a node editor', () => {
       throw Error('unexpected path');
     });
     stubFetch( fetcher); render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: '專案工作區' }));
+    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
     fireEvent.click(await screen.findByRole('button', { name: '新增子節點' }));
     await screen.findByRole('option', { name: '成員' });
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: task.title } });
@@ -103,11 +103,11 @@ describe('P2a node editor', () => {
 
   it('hides editing and creation even if readonly receives historical editor capabilities', async () => {
     const fetcher = setup(undefined, 'readonly');
-    fireEvent.click(await screen.findByRole('button', { name: '專案工作區' }));
+    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
     fireEvent.click(within(await screen.findByLabelText('節點樹')).getByRole('button', { name: '原任務' }));
     expect(screen.queryByRole('button', { name: '編輯節點' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '新增子節點' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '新增空白專案' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '建立新專案' })).not.toBeInTheDocument();
     expect(fetcher.mock.calls.some(([path]) => path.includes('assignment-options'))).toBe(false);
   });
 
@@ -163,9 +163,9 @@ describe('P2a node editor', () => {
     const fetcher = setup(() => new Promise(resolve => { finish = resolve; })); await openEditor();
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '舊回應' } });
     fireEvent.click(screen.getByRole('button', { name: '儲存' }));
-    fireEvent.click(screen.getByRole('button', { name: '總覽' }));
+    fireEvent.click(screen.getByRole('button', { name: '所有專案總覽' }));
     await act(async () => { finish(response(task)); });
-    expect(screen.getByRole('heading', { name: '總覽' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '所有專案總覽' })).toBeInTheDocument();
     expect(fetcher.mock.calls.filter(([path]) => path === '/api/projects/p')).toHaveLength(1);
     expect(screen.queryByLabelText('節點名稱')).not.toBeInTheDocument();
   });
@@ -177,13 +177,15 @@ describe('P2a blank project creation', () => {
     const fetcher = vi.fn(async (path: string, init?: RequestInit) => {
       if (path === '/api/auth/me') return response({ ...identity, user: { ...identity.user, role: 'admin' } });
       if (path === '/api/workspace/overview') return response(overview);
+      if (path === '/api/workflows') return response({ items: [] });
       if (path === '/api/projects' && init?.method === 'POST') return response(summary, 201);
       if (path === '/api/projects') { lists++; return response({ items: lists === 1 ? [] : [summary] }); }
       if (path === '/api/projects/p') { details++; return details === 1 ? response({}, 500) : response(detail); }
       throw Error('unexpected path');
     });
     stubFetch( fetcher); render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: '新增空白專案' }));
+    fireEvent.click(await screen.findByRole('button', { name: '建立新專案' }));
+    fireEvent.click(await screen.findByRole('button', { name: '空白專案' }));
     fireEvent.change(screen.getByLabelText('新專案名稱'), { target: { value: ' 新空白專案 ' } });
     fireEvent.click(screen.getByRole('button', { name: '建立專案' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('已儲存，資料重新載入失敗');

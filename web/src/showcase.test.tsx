@@ -31,7 +31,7 @@ describe('UI2 catalog',()=>{
    return response({project_count:1,task_counts:{todo:0,doing:0,review:0,done:0,skipped:0},completion_percent:null,projects:[]});
   });vi.stubGlobal('fetch',fetcher);render(<App/>);
   const select=await screen.findByLabelText('切換公司（本機展示）');
-  fireEvent.click(screen.getByRole('button',{name:'新增空白專案'}));
+  fireEvent.click(screen.getByRole('button',{name:'建立新專案'}));
   fireEvent.change(select,{target:{value:'events'}});fireEvent.click(screen.getByRole('button',{name:'取消切換'}));
   expect(fetcher.mock.calls.some(([p])=>p==='/api/auth/showcase/switch')).toBe(false);
   fireEvent.change(select,{target:{value:'events'}});fireEvent.click(screen.getByRole('button',{name:'確認切換公司'}));

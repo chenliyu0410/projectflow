@@ -118,7 +118,7 @@ async function setup(
   });
   vi.stubGlobal('fetch', fetcher);
   render(<App />);
-  fireEvent.click(await screen.findByRole('button', { name: '專案工作區' }));
+  fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: '紀錄專案' }));
   fireEvent.click(
     within(await screen.findByLabelText('節點樹')).getByRole('button', {
       name: node.title,
@@ -430,7 +430,7 @@ describe('record session and replacement races', () => {
     });
     await fillReport();
     fireEvent.click(screen.getByRole('button', { name: '送出回報' }));
-    fireEvent.click(screen.getByRole('button', { name: '總覽' }));
+    fireEvent.click(screen.getByRole('button', { name: '所有專案總覽' }));
     await act(async () => pending.resolve(response(report, 201)));
     expect(reads).toBe(1);
     expect(screen.queryByLabelText('成果說明')).not.toBeInTheDocument();

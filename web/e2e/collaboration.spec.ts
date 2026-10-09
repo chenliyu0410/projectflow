@@ -38,7 +38,6 @@ for (const width of [1280, 375]) {
       await page.getByRole('button', { name: label, exact: true }).click();
     };
     const openTask = async () => {
-      await navigate('專案工作區');
       if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
       await page.getByLabel('節點樹').getByRole('button', { name: '送審成果任務', exact: true }).click();
     };

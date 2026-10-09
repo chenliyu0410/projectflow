@@ -28,7 +28,9 @@ for (const width of [1280, 375]) {
     page.on('pageerror', error => errors.push(String(error)));
     await login(page, 'yu');
     const title = `P2a ${width} ${randomUUID()}`;
-    await page.getByRole('button', { name: '新增空白專案', exact: true }).click();
+    if (!await page.getByRole('button', { name: '建立新專案' }).isVisible()) await page.getByRole('button', { name: '切換導覽' }).click();
+    await page.getByRole('button', { name: '建立新專案' }).click();
+    await page.getByRole('button', { name: '空白專案', exact: true }).click();
     await page.getByLabel('新專案名稱').fill(title);
     await page.getByRole('button', { name: '建立專案', exact: true }).click();
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
@@ -83,7 +85,6 @@ for (const width of [1280, 375]) {
     await page.screenshot({ path: info.outputPath(`workspace-${width}.png`), fullPage: true });
     if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();
     await login(page, 'lin');
-    await navigate('專案工作區');
     if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
     await expect(page.getByRole('button', { name: '編輯節點', exact: true })).toHaveCount(0);
     expect((await page.request.patch(`/api/nodes/${child.id}`, { data: { title: '拒絕' } })).status()).toBe(403);

@@ -43,7 +43,6 @@ for (const width of [1280, 375]) {
       await page.getByLabel('密碼').fill(`demo-${username}`);
       await page.getByRole('button', { name: '登入', exact: true }).click();
       if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
-      await page.getByRole('button', { name: '專案工作區', exact: true }).click();
       if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await expect(page.getByLabel('專案清單')).toBeVisible();
       await expect(page.getByRole('status')).toHaveCount(0);
     };
@@ -63,7 +62,8 @@ for (const width of [1280, 375]) {
     expect(seedBefore.status()).toBe(200);
     const seedNodes = (await seedBefore.json()).nodes;
     const title = `P1b E2E ${width} ${randomUUID()}`;
-    await page.getByRole('button', { name: '新增專案' }).click();
+    if (!await page.getByRole('button', { name: '建立新專案' }).isVisible()) await page.getByRole('button', { name: '切換導覽' }).click();
+    await page.getByRole('button', { name: '建立新專案' }).click();
     await page.getByLabel('工作流模板').selectOption({ label: '食品新品開發' });
     await page.getByLabel('新專案名稱').fill(title);
     await screenshot('create');
@@ -100,7 +100,7 @@ for (const width of [1280, 375]) {
     await page.getByLabel('節點樹').getByRole('button', { name: detail.nodes.find((node: { id: string }) => node.id === task.parent_id).title, exact: true }).click();
     await expect(page.getByLabel('進行中')).toContainText('試作工單');
     await expect(page.getByLabel('看板').getByRole('combobox')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: '新增專案' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '建立新專案' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '核准閘門' })).toHaveCount(0);
     await screenshot('readonly');
     expect(await page.locator('.brand img').evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);

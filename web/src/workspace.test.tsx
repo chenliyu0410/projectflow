@@ -77,7 +77,7 @@ function setup(value = detail) {
   stubFetch(fetcher); render(<App />); return fetcher;
 }
 async function enter() {
-  fireEvent.click(await screen.findByRole('button', { name: '專案工作區' }));
+  fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
   await screen.findByRole('heading', { name: summary.title });
 }
 function treeButton(name: string) { return within(screen.getByLabelText('節點樹')).getByRole('button', { name }); }
@@ -89,7 +89,7 @@ describe('P2a workspace navigation', () => {
       : path === '/api/workspace/overview' ? { project_count: 1, task_counts: counts, completion_percent: 43, projects: [{ ...summary, task_counts: counts, completion_percent: 43 }] } : detail));
     vi.stubGlobal('fetch', fetcher); render(<App />);
     expect(await screen.findByLabelText('可見任務完成率')).toHaveTextContent('43%');
-    expect(screen.getByLabelText('可見專案數')).toHaveTextContent('1');
+    expect(screen.getByLabelText('進行中專案')).toHaveTextContent('1');
     fireEvent.click(within(screen.getByLabelText('總覽內容')).getByRole('button', { name: summary.title }));
     expect(await screen.findByLabelText('節點樹')).toBeInTheDocument();
   });
@@ -131,7 +131,7 @@ describe('P2a workspace navigation', () => {
 
   it('lands on overview, keeps identity and uses collapsible navigation without loading detail', async () => {
     const fetcher = setup();
-    expect(await screen.findByRole('heading', { name: '總覽' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '所有專案總覽' })).toBeInTheDocument();
     expect(fetcher).toHaveBeenCalledTimes(2);
     expect(screen.getByLabelText('目前公司')).toHaveTextContent('公司');
     const toggle = screen.getByRole('button', { name: '切換導覽' });
@@ -192,8 +192,8 @@ describe('P2a workspace navigation', () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response(identity)).mockResolvedValueOnce(response({ items: [summary] }))
       .mockResolvedValueOnce(response({ detail: 'private-secret' }, status)).mockResolvedValueOnce(response(detail));
     stubFetch(fetcher); render(<App />);
-    await screen.findByRole('heading', { name: '總覽' });
-    fireEvent.click(screen.getByRole('button', { name: '專案工作區' }));
+    await screen.findByRole('heading', { name: '所有專案總覽' });
+    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
     expect(await screen.findByRole('alert')).toHaveTextContent(status === 403 ? '沒有操作權限' : '找不到項目');
     expect(document.body).not.toHaveTextContent('private-secret');
     fireEvent.click(screen.getByRole('button', { name: '重試' }));
@@ -215,11 +215,11 @@ describe('P2a workspace navigation', () => {
     let resolve!: (value: ReturnType<typeof response>) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response(identity)).mockResolvedValueOnce(response({ items: [summary] })).mockImplementationOnce(() => new Promise(done => { resolve = done; }));
     stubFetch(fetcher); render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: '專案工作區' }));
+    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
     await screen.findByText('載入專案中');
-    fireEvent.click(screen.getByRole('button', { name: '總覽' }));
+    fireEvent.click(screen.getByRole('button', { name: '所有專案總覽' }));
     await act(async () => { resolve(response({}, 401)); });
-    expect(screen.getByRole('heading', { name: '總覽' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '所有專案總覽' })).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('節點樹')).not.toBeInTheDocument();
   });
@@ -231,5 +231,61 @@ describe('phase status clarification', () => {
     expect(within(screen.getByLabelText('節點詳情')).getByText('階段狀態為手動設定，不代表子任務完成率。')).toBeInTheDocument();
     rerender(<NodeWorkspace {...props} selectedNodeId="父任務" />);
     expect(screen.queryByText('階段狀態為手動設定，不代表子任務完成率。')).not.toBeInTheDocument();
+  });
+});
+
+describe('UI3 Demo home pages', () => {
+  const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
+  it('renders the Demo overview table and workloads from visible aggregates', async () => {
+    const counts = { todo: 2, doing: 1, review: 2, done: 1, skipped: 0 };
+    vi.stubGlobal('fetch', vi.fn(async () => response({
+      project_count: 1, task_counts: counts, completion_percent: 17, today: '2026-10-09', overdue_count: 2,
+      projects: [{ id: 'p', title: '四層專案', task_counts: counts, completion_percent: 17, current_phase_title: '小量試作', due_date: '2026-12-31', overdue_count: 2 }],
+      people: [{ user_id: 'a', display_name: '明成員', department_name: '品保', open_count: 3, overdue_count: 1 }, { user_id: 'b', display_name: '林業務', department_name: null, open_count: 1, overdue_count: 0 }],
+      departments: [{ id: 'd', name: '品保', open_count: 3 }],
+    })));
+    render(<WorkspaceOverview openProject={vi.fn()} expired={vi.fn()} />);
+    expect(await screen.findByRole('heading', { name: '所有專案總覽' })).toBeInTheDocument();
+    expect(screen.getByText('跨專案進度、預估完成與人員負載（今天 2026/10/09）')).toBeInTheDocument();
+    expect(screen.getByLabelText('已延遲任務')).toHaveTextContent('2');
+    expect(screen.getByLabelText('未完成任務')).toHaveTextContent('5');
+    const row = within(screen.getByRole('table', { name: '專案進度' })).getAllByRole('row')[1];
+    expect(row).toHaveTextContent('小量試作'); expect(row).toHaveTextContent('2026/12/31'); expect(row).toHaveTextContent('延遲 2 項');
+    expect(within(row).getByRole('progressbar', { name: '四層專案完成率' })).toHaveAttribute('aria-valuenow', '17');
+    expect(screen.getByText('明成員').closest('.load-row')).toHaveTextContent('3 項，1 項延遲');
+    expect(screen.getByText('林業務').closest('.load-row')).toHaveTextContent('1 項');
+  });
+
+  it('groups my tasks like the Demo, listing an owned task once with its visible path', async () => {
+    const owned = { ...node('配方設計', '階段'), project_title: '四層專案', relations: ['owned', 'collaborating'], path: [{ id: '階段', title: '市場與配方' }], blocked: true, start_date: '2026-10-01', due_date: '2026-10-20' };
+    const helping = { ...node('協作任務', null), project_title: '四層專案', relations: ['collaborating'], path: [] };
+    const openNode = vi.fn();
+    vi.stubGlobal('fetch', vi.fn(async () => response({ items: [owned, helping] })));
+    render(<MyTasks openNode={openNode} expired={vi.fn()} userName="游專案" />);
+    const mine = within(await screen.findByRole('table', { name: '我負責的' }));
+    expect(mine.getAllByRole('row')).toHaveLength(2);
+    expect(mine.getByText('四層專案 / 市場與配方')).toBeInTheDocument();
+    expect(mine.getByText('🔒 等待前置')).toBeInTheDocument();
+    expect(mine.getByText('10/01–10/20')).toBeInTheDocument();
+    expect(within(screen.getByRole('table', { name: '我協作的' })).getByRole('button', { name: '協作任務' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '我負責的（1）' })).toBeInTheDocument();
+    fireEvent.click(mine.getByRole('button', { name: '配方設計' }));
+    expect(openNode).toHaveBeenCalledWith('p', '配方設計');
+  });
+
+  it('shows the copilot as a labelled preview with no active actions', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (path: string) => response(path === '/api/auth/me' ? identity : path === '/api/projects' ? { items: [] }
+      : { project_count: 0, task_counts: { todo: 0, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: null, projects: [] })));
+    render(<App />);
+    const copilot = within(await screen.findByRole('complementary', { name: 'AI 專案副手' }));
+    expect(copilot.getByText('展示預覽')).toBeInTheDocument();
+    expect(copilot.getByText(/範圍：所有可見專案/)).toBeInTheDocument();
+    for (const button of copilot.getAllByRole('button').filter(item => item.getAttribute('aria-label') !== '關閉 AI 副手')) expect(button).toBeDisabled();
+    expect(copilot.getByPlaceholderText('AI 副手尚未提供')).toBeDisabled();
+    const toggle = screen.getByRole('button', { name: '切換 AI 副手' });
+    fireEvent.click(toggle); expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(within(screen.getByRole('navigation', { name: '工作區導覽' })).getByRole('button', { name: /營運資料/ })).toBeDisabled();
   });
 });

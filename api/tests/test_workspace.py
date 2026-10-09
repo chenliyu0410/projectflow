@@ -54,12 +54,16 @@ def test_overview_visible_tasks_count_parents_and_exclude_hidden(client,engine,w
     response=client.get('/workspace/overview')
     assert response.status_code==200
     value=response.json()
-    assert set(value)=={'project_count','task_counts','completion_percent','projects'}
+    assert set(value)=={'project_count','task_counts','completion_percent','projects','today','overdue_count','people','departments'}
     assert value['project_count']==4
     assert value['task_counts']=={'todo':1,'doing':1,'review':1,'done':2,'skipped':2}
     assert value['completion_percent']==40
     projects={p['id']:p for p in value['projects']}
-    assert projects['ws-a']=={'id':'ws-a','title':'Alpha工作','task_counts':{'todo':1,'doing':1,'review':1,'done':1,'skipped':1},'completion_percent':25}
+    assert projects['ws-a']=={'id':'ws-a','title':'Alpha工作','task_counts':{'todo':1,'doing':1,'review':1,'done':1,'skipped':1},'completion_percent':25,
+                            'current_phase_title':None,'due_date':'2028-03-01','overdue_count':0}
+    # Workloads count only visible open tasks: chen's hidden head-task must not appear for a member.
+    assert value['people']==[{'user_id':workspace['member'],'display_name':'明成員','department_name':'品保','open_count':3,'overdue_count':0}]
+    assert {d['id']:d['open_count'] for d in value['departments']}[workspace['dept']]==3
     assert projects['ws-b']['completion_percent']==100
     assert projects['ws-empty']['completion_percent'] is None
     with Session(engine) as db:
@@ -202,8 +206,56 @@ def test_company_without_projects_has_empty_workspace(client,engine):
         db.add(User(organization_id=org.id,username='yu',display_name='空公司使用者',role='admin',password_hash=original.password_hash))
         db.commit()
     login(client,org='empty-workspace')
-    assert client.get('/workspace/overview').json()=={
+    empty=client.get('/workspace/overview').json()
+    assert empty.pop('today')
+    assert empty=={
         'project_count':0,'task_counts':{'todo':0,'doing':0,'review':0,'done':0,'skipped':0},
-        'completion_percent':None,'projects':[],
+        'completion_percent':None,'projects':[],'overdue_count':0,'people':[],'departments':[],
     }
     assert client.get('/workspace/my-tasks').json()=={'items':[]}
+
+
+def test_overview_phase_due_date_and_overdue_use_visible_nodes(client,engine,workspace):
+    with Session(engine) as db:
+        rows=[
+            ('p-done','phase','完成階段','done',None,None,0),
+            ('p-active','phase','第二階段','doing',None,None,1),
+            ('p-later','phase','第三階段','todo',None,None,2),
+            ('late-open','task','逾期未完成','todo','2020-01-01','p-active',0),
+            ('late-done','task','逾期已完成','done','2020-01-01','p-active',1),
+            ('late-skip','task','逾期已略過','skipped','2020-01-01','p-active',2),
+            ('future','task','未來任務','doing','2099-01-01','p-later',0),
+        ]
+        for nid,kind,title,status,due,parent,order in rows:
+            db.add(Node(id=nid,organization_id=workspace['org'],project_id='ws-empty',kind=kind,title=title,status=status,
+                        owner_user_id=workspace['member'],department_id=workspace['dept'],sort_order=order,
+                        due_date=date.fromisoformat(due) if due else None,parent_id=parent))
+        db.commit()
+    switch(client,'ming')
+    value=client.get('/workspace/overview').json()
+    project=next(p for p in value['projects'] if p['id']=='ws-empty')
+    assert project['current_phase_title']=='第二階段'
+    assert project['due_date']=='2099-01-01'
+    assert project['overdue_count']==1 and value['overdue_count']==1
+    me=next(p for p in value['people'] if p['user_id']==workspace['member'])
+    assert me['open_count']==5 and me['overdue_count']==1
+
+
+def test_overview_workload_for_broad_viewer_includes_other_owners(client,workspace):
+    switch(client,'yu')
+    value=client.get('/workspace/overview').json()
+    names={p['display_name']:p['open_count'] for p in value['people']}
+    assert names['明成員']==3 and sum(names.values())==5
+    assert {d['id']:d['open_count'] for d in value['departments']}[workspace['dept']]==5
+    assert value['departments']==sorted(value['departments'],key=lambda d:(-d['open_count'],d['name'],d['id']))
+
+
+def test_my_tasks_path_lists_only_visible_ancestors(client,workspace):
+    switch(client,'ming')
+    items={n['id']:n for n in client.get('/workspace/my-tasks').json()['items']}
+    assert items['a5']['path']==[{'id':'a1','title':'Parent TASK'}]
+    assert items['a1']['path']==[] and items['b1']['path']==[]
+    switch(client,'yu')
+    r=client.get('/workspace/my-tasks')
+    hidden=next(n for n in r.json()['items'] if n['id']=='hidden-task')
+    assert hidden['path']==[{'id':'hidden-phase','title':'Hidden phase'},{'id':'a1','title':'Parent TASK'}]

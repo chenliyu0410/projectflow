@@ -30,8 +30,8 @@ const pendingGate = { id: 'g1', project_id: 'p1', node_id: 'phase', status: 'pen
 const gateDetail = { ...detail, gates: [pendingGate] };
 const workflowList = { items: [{ id: 'w1', name: '食品新品開發' }] };
 async function openWorkspace() {
-  await screen.findByRole('heading', { name: '總覽' });
-  fireEvent.click(screen.getByRole('button', { name: '專案工作區' }));
+  await screen.findByRole('heading', { name: '所有專案總覽' });
+  fireEvent.click(projectButton());
 }
 function selectPhase() {
   const tree = within(screen.getByLabelText('節點樹'));
@@ -40,7 +40,7 @@ function selectPhase() {
 }
 async function fillCreation() {
   await screen.findByRole('heading', { name: detail.title });
-  fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
+  fireEvent.click(await screen.findByRole('button', { name: '建立新專案' }));
   await screen.findByRole('option', { name: '食品新品開發' });
   fireEvent.change(screen.getByLabelText('工作流模板'), { target: { value: 'w1' } });
   fireEvent.change(screen.getByLabelText('新專案名稱'), { target: { value: secondProject.title } });
@@ -66,7 +66,7 @@ describe('P1b workflow creation', () => {
     stubFetch(fetcher);
     render(<App />);
     await openWorkspace();
-    fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
+    fireEvent.click(await screen.findByRole('button', { name: '建立新專案' }));
     await screen.findByRole('option', { name: '食品新品開發' });
     expect(screen.getByRole('button', { name: '建立專案' })).toBeDisabled();
     fireEvent.change(screen.getByLabelText('工作流模板'), { target: { value: 'w1' } });
@@ -74,7 +74,7 @@ describe('P1b workflow creation', () => {
     expect(screen.getByRole('button', { name: '建立專案' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: '取消' }));
     expect(screen.queryByLabelText('新專案名稱')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '新增專案' }));
+    fireEvent.click(screen.getByRole('button', { name: '建立新專案' }));
     expect(screen.getByLabelText('新專案名稱')).toHaveValue('');
     expect(fetcher.mock.calls.filter(([path]) => path === '/api/workflows')).toHaveLength(1);
   });
@@ -98,7 +98,7 @@ describe('P1b workflow creation', () => {
     stubFetch(kanbanFetch().mockRejectedValueOnce(new Error('private-secret')).mockResolvedValueOnce(response(workflowList)));
     render(<App />);
     await openWorkspace();
-    fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
+    fireEvent.click(await screen.findByRole('button', { name: '建立新專案' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('無法連線，請稍後再試');
     fireEvent.click(screen.getByRole('button', { name: '重試模板' }));
     expect(await screen.findByRole('option', { name: '食品新品開發' })).toBeInTheDocument();
@@ -126,7 +126,7 @@ describe('P1b workflow creation', () => {
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
     selectPhase();
-    expect(screen.queryByRole('button', { name: '新增專案' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '建立新專案' })).not.toBeInTheDocument();
   });
 
   it.each(['templates', 'create'])('ignores old %s response after logout', async stage => {
@@ -138,7 +138,7 @@ describe('P1b workflow creation', () => {
     render(<App />);
     await openWorkspace();
     if (stage === 'create') { await fillCreation(); fireEvent.click(screen.getByRole('button', { name: '建立專案' })); }
-    else fireEvent.click(await screen.findByRole('button', { name: '新增專案' }));
+    else fireEvent.click(await screen.findByRole('button', { name: '建立新專案' }));
     fireEvent.click(screen.getByRole('button', { name: '登出' }));
     await screen.findByRole('heading', { name: '登入專流' });
     await act(async () => { resolveOld(response(stage === 'create' ? secondProject : workflowList)); });

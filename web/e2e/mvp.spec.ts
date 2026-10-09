@@ -39,9 +39,8 @@ for (const width of [1280, 375]) {
       await page.getByLabel('密碼').fill(`demo-${username}`);
       await page.getByRole('button', { name: '登入', exact: true }).click();
       if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
-      await page.getByRole('button', { name: '專案工作區', exact: true }).click();
       if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await expect(page.getByLabel('專案清單')).toBeVisible();
-      if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
+      if (width === 375) await page.keyboard.press('Escape');
       return page;
     };
     const snapshot = async (page: Page, name: string) => {
@@ -103,7 +102,8 @@ for (const width of [1280, 375]) {
       await snapshot(ming, 'ming');
 
       const title = `P1c E2E ${width} ${randomUUID()}`;
-      await yu.getByRole('button', { name: '新增專案' }).click();
+      if (!await yu.getByRole('button', { name: '建立新專案' }).isVisible()) await yu.getByRole('button', { name: '切換導覽' }).click();
+      await yu.getByRole('button', { name: '建立新專案' }).click();
       await yu.getByLabel('工作流模板').selectOption({ label: '食品新品開發' });
       await yu.getByLabel('新專案名稱').fill(title);
       const createdPromise = yu.waitForResponse(r => new URL(r.url()).pathname === '/api/projects/from-workflow' && r.request().method() === 'POST');
@@ -133,7 +133,7 @@ for (const width of [1280, 375]) {
       if (!await readonly.getByLabel('專案清單').isVisible()) await readonly.getByRole('button', {name:'切換導覽'}).click();await readonly.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
       await expect(readonly.getByRole('heading', { name: title, exact: true })).toBeVisible();
       await expect(readonly.getByLabel('看板').getByRole('combobox')).toHaveCount(0);
-      await expect(readonly.getByRole('button', { name: '新增專案' })).toHaveCount(0);
+      await expect(readonly.getByRole('button', { name: '建立新專案' })).toHaveCount(0);
       await expect(readonly.getByRole('button', { name: '核准閘門' })).toHaveCount(0);
       expect((await readonly.request.post('/api/projects', { data: { title: '唯讀' } })).status()).toBe(403);
       expect((await readonly.request.patch(`/api/nodes/${task.id}/status`, { data: { status: 'done' } })).status()).toBe(403);
