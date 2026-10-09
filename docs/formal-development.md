@@ -341,3 +341,5 @@ UI2完整回歸與定向修正見PROGRESS，七項專用PG條件測試本輪未�
 時程用日／週／月分段鈕，270px標籤欄（860以下150px）、36px列、專案色條、月份與日／週兩層刻度；刻度依像素間距抽稀。手機也用同一張圖並在框內橫捲，改期用✎。相依圖在前、HTML方塊由左到右依前置層級排列，已滿足灰實線、未滿足橘虛線；「＋ 建立相依連線」切換既有表單，連線清單收在「連線清單（N）」。模板庫卡片有「用這套工作流建立專案」（可建立專案的角色），打開側欄同一張建立表單並預選模板。審核中心分「待確認的完成回報（N）」「待審核的跳過申請」（尚未提供）「待核准的階段閘門（N）」表格。
 
 UI4只改React介面，沒有新API、欄位或migration；拖曳改狀態、節點自己的時程／相依圖、加權進度等歸TP-A至TP-G。對照截圖在ignored `.superpowers/ui4/`（baseline為Demo與改版前，round1為改版後）。
+
+TP-A新增`POST /nodes/{id}/move`（body `{parent_id}`，只限`can_manage_project`；目標要是同專案的專案根節點、階段或任務，狀態不能是待確認／完成／已略過，被移動子樹和新上層路徑之間不能有前置連線）與`GET /projects/{id}/records`（專案內所有可見節點的回報、筆記、附件，唯讀，游標綁定專案）。`PATCH /nodes/{id}`另收`weight`（0–100整數）與`progress`（0–100整數或null，只限任務）；`GET /workspace/overview`的專案多`progress_percent`（只用可見節點的加權進度）。階段改完成、送出回報（含送出並確認）、確認回報時，若有任何子節點不是完成或已略過，回409「子節點尚未全部完成」。前端只顯示這幾句固定的409文字，其他後端訊息仍不顯示。進度公式前後端各一份（`api/app/services/progress.py`、`web/src/progress.ts`），共用測試向量`web/src/progress.vectors.json`。migration `20261010_0005`的PG保留資料測試已加入`deploy/verify.py`；舊階段的migration測試改用`seed_at_revision`，先用目前ORM在暫存SQLite建資料，再只複製目標版本已有的欄位。E2E `web/e2e/planner.spec.ts`用真Chromium拖曳，對照截圖存在ignored `.superpowers/tpa/e2e/`。
