@@ -296,7 +296,7 @@ export default function TimelineView({
       <div className="timeline-scroll">
         <div className="timeline-grid" style={{ width: `calc(${width}px + var(--tl-label))`, ['--c' as string]: color }}>
           <div className="timeline-axis">
-            <span>{root ? `展開圖・子任務（${Math.max(0, rows.length - 1)}）` : `總覽圖・任務（${nodes.filter((n) => n.kind === 'task').length}）`}</span>
+            <span>{root ? `展開圖・子任務（${nodes.length - 1}）` : `總覽圖・任務（${nodes.filter((n) => n.kind === 'task').length}）`}</span>
             <div style={{ width }}>
               {months.map((t) => (
                 <span key={`m${t}`} className="tick-month" style={{ left: (t - left) * actualScale }}>

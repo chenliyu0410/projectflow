@@ -211,6 +211,10 @@ describe('TP-A node-scoped tabs', () => {
     expect(screen.getAllByRole('button', { name: /^時程任務：/ }).map(b => b.getAttribute('aria-label'))).toEqual(
       ['時程任務：上層任務', '時程任務：子任務一', '時程任務：子任務二', '時程任務：孫任務', '時程任務：曾孫任務']);
     expect(screen.getByText('展開圖・子任務（4）')).toBeInTheDocument();
+    // The count is the scope, not the rows currently expanded.
+    fireEvent.click(screen.getByRole('button', { name: '收合 上層任務' }));
+    expect(screen.getByText('展開圖・子任務（4）')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '展開 上層任務' }));
     expect(screen.getByRole('button', { name: '時程任務：上層任務' }).parentElement).toHaveAttribute('title', expect.stringContaining('進度 50%（涵蓋所有子任務）'));
     fireEvent.click(screen.getByRole('button', { name: '↑ 上一層：試作' }));
     expect(up).toHaveBeenCalledWith('ph');
