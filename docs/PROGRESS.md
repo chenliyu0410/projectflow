@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI4 🟢 專案工作區與操作對齊**（D70：UI4後先做TP-A至TP-G） |
+| 目前工作項目 | **TP-A ⬜ 任務規劃器：節點分頁、看板拖曳與卡片資訊、進度彙總、父節點完成規則**（D70；UI4 ✅已交付） |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | UI4：ff-only合併main；15173只更新web（先停API成套備份DB＋files與env，不seed），健康檢查與資料逐值比對後依D50 push main。之後TP-A寫短規格／計畫。 |
-| 分支 | `feature/ui4-workspace-ops`（從`main`開出）；`main`凍結。 |
+| 下一個動作 | TP-A：依[D70範圍](superpowers/plans/2026-10-09-demo-parity-first.md#d70任務規劃器優先)先做Demo對照與差距表，再寫精簡短規格／計畫（需要新API／欄位時列出migration與權限），commit後開`feature/tp-a-*`。UI4後續Minor見§3可併入TP-A／TP-E。 |
+| 分支 | 無`feature/*`；UI4已ff-only合併`main`並刪除分支。 |
 | 最新程式 commit | `ea9a3aa`（UI4審查修正）；`822470e`為UI4實作。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | UI4：`28e098c`上`deploy/verify.py`一次全過：PG6pass；API368pass/7skip/0fail；Vitest174pass；build0；E2E20/20（Playwright Chromium）。`ea9a3aa`月份標籤修正後Vitest175pass、build0、schedule＋visual-alignment E2E5/5。詳§3。 |
-| 資料版本 | Demo v6/key未改；migration `20261009_0004`未改（UI4只改React，沒有API／schema變更）。acceptance down不-v，volume保留；ui3cmp（15179）保留供對照。 |
-| 認領中 | Claude Code Opus 5.5，2026-10-09，UI4合併與發布。 |
-| 阻塞／待人類 | 無工程阻塞；UI3／UI1／UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。原P2d拆入UI5/F1，細節逐批定短範圍；LAN未授權。 |
-| 遠端 | UI3依D50發布main，push後核對遠端；不force。 |
+| 資料版本 | Demo v6/key未改；migration `20261009_0004`未改（UI4只改React，沒有API／schema變更）。15173只更新web後，全部rows／欄位值、附件SHA、env、DB容器逐一相同，新增0列。acceptance down不-v，volume保留；ui3cmp（15179）保留供對照。 |
+| 認領中 | 無。 |
+| 阻塞／待人類 | 無工程阻塞；UI4／UI3／UI1／UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。原P2d拆入UI5/F1，細節逐批定短範圍；LAN未授權。 |
+| 遠端 | UI4依D50發布main，push後核對遠端；不force。 |
 
 ---
 
@@ -95,7 +95,7 @@
 | 已完成 | UI2追加 | 既有專案套用模板，移除waa | ✅ | 人類直接要求；[資料操作計畫](superpowers/plans/2026-10-09-ui2-project-fill.md) | UI2 |
 | 已完成 | UI2 | 產業模板與左下展示公司切換 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-09-ui2-showcase-library.md)，D68人類指定本機一鍵切換 | UI1 |
 | 已完成 | UI3 | Demo整體框架、首頁與我的任務精準對齊 | ✅ 工程交付 | D69／D70，[短規格／計畫](superpowers/plans/2026-10-09-ui3-frame-home.md) | UI1/2 |
-| 進行中 | UI4 | 工作區／看板／回報／時程／模板操作一致 | 🟢 可合併 | D70／D72，[短規格／計畫](superpowers/plans/2026-10-09-ui4-workspace-ops.md) | UI3 |
+| 已完成 | UI4 | 工作區／看板／回報／時程／模板操作一致 | ✅ 工程交付 | D70／D72，[短規格／計畫](superpowers/plans/2026-10-09-ui4-workspace-ops.md) | UI3 |
 | 後續 | TP-A | 任務規劃器：節點分頁、看板拖曳與卡片資訊、進度彙總、父節點完成規則 | ⬜ | D70人類2026-10-09指示，[範圍](superpowers/plans/2026-10-09-demo-parity-first.md#d70任務規劃器優先) | UI4 |
 | 後續 | TP-B | 任務規劃器：刪除、升降級、拖曳改層級、複製子樹、復原上一步 | ⬜ | D70 | TP-A |
 | 後續 | TP-C | 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑） | ⬜ | D70 | TP-B |
@@ -120,9 +120,9 @@
 
 ## 3. 工作項目明細
 
-### UI4 專案工作區與操作對齊 — 🟢 可合併
+### UI4 專案工作區與操作對齊 — ✅ 工程交付
 
-**交付**：`9a47444..ea9a3aa`（計畫、實作`822470e`、審查修正`28e098c`、`ea9a3aa`），一位唯讀獨立審查（首輪Needs fixes，1項Blocking；修正後複核Ready to merge）。
+**交付**：`9a47444..3bb568c`（計畫、實作`822470e`、審查修正`28e098c`、`ea9a3aa`、文件`3bb568c`），一位唯讀獨立審查（首輪Needs fixes，1項Blocking；修正後複核Ready to merge），ff-only main，D50 push。
 
 **畫面／互動對齊**：節點頁照Demo由上而下：麵包屑、h1目前節點、meta列（負責、期間、完成率、狀態、🔒等待前置）、右側操作、任務回報卡、專案層階段條／階段層閘門列、分頁「看板・時程・相依圖・文件・資料・成員與權限・紀錄」。主區節點樹移除。看板4欄，1280每欄與Demo同為148（改版前5欄各99、卡片標題被擠成兩字一行），375為4×240在框內橫捲。時程分段鈕、270／150px標籤欄、36px列、專案色條、兩層刻度、手機同一張圖；相依圖HTML方塊由左到右、直角箭頭、灰實線／橘虛線；模板庫卡片「用這套工作流建立專案」；審核中心三區與閘門表格。對照圖在ignored `.superpowers/ui4/`（baseline為Demo與改版前，round1／e2e為改版後）。
 
@@ -135,6 +135,8 @@
 **後續Minor（未修）**：唯讀帳號也看得到停用的「另存為模板／套用模板」（不送請求）；「用這套工作流建立專案」只有負向測試，模板編輯中途按下未儲存內容直接丟失；模板卡按鈕文字為「查看內容」（計畫寫「查看與編輯」）；visual-alignment只跑1280／375，1440與188px欄寬靠截圖核對，未截階段條與閘門列；階段條按鈕aria-label蓋掉閘門狀態文字；時程條在手機從條上起手滑動無法橫捲（拖曳已忽略touch，不會誤寫）。
 
 **測試（2026-10-09）**：`822470e`首輪verify：PG6、API368/7skip、Vitest172pass1fail（UI3總覽測試：標題在載入中就出現，`findByRole`先返回後讀不到載入後文字；單獨重跑3次皆過，改為等待載入後文字）。`28e098c`完整`deploy/verify.py`一次全過：PG6pass、API368pass/7skip、Vitest174pass、build0、E2E20/20（本機Playwright Chromium，不再需要Edge）。`ea9a3aa`後Vitest175pass、build0、在重建的15175跑schedule＋visual-alignment E2E5/5，之後down不-v。
+
+**15173發布**：快照後停API，pg_dump＋files成套備份（ignored `.superpowers/ui4/primary/`），`up -d --build --no-deps web`後再啟動API；不seed、不動DB容器、API映像未重建。web／`/api/health`／`/api/health/ready` 200（database ready），前端產物含UI4新畫面；全部rows／欄位值、附件SHA、env、DB容器ID逐一相同，新增0列。以yu登入實看（320px窄窗）：專案頁h1、階段條5段、7分頁（文件／資料停用）、看板4×240在框內橫捲、頁面無水平捲動、無錯誤訊息，console只有登入前預期的`/me` 401。人類試用未代勾。
 
 ### UI3 Demo框架與首頁對齊 — ✅ 工程交付
 
@@ -998,6 +1000,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-09｜Claude Code Opus 5.5｜UI4交付
+
+- **做了什麼**：UI4完整回歸與一位獨立審查；修正Blocking（取消回報仍夾帶附件／送出鈕卡住，`28e098c`）與複核抓到的月份標籤回歸（`ea9a3aa`），文件`3bb568c`；ff-only合併main，15173只更新web。
+- **驗證**：`28e098c`上verify一次全過：PG6、API368/7skip、Vitest174、build0、E2E20/20（Playwright Chromium）；`ea9a3aa`後Vitest175、build0、時程相關E2E5/5。15173資料逐值保留、新增0列。
+- **沒做的事／偏離plan**：審查Minor未全修（見§3 UI4「後續Minor」）；1440只靠截圖核對；計畫允許清單在實作commit中補`AttachmentList.tsx`（只加附件數量）。
+- **下一步**：TP-A的Demo對照與差距表，再寫短規格／計畫。
+- **注意**：首輪verify有一次UI3總覽測試時序失敗，已改等待載入後文字；本機已有Playwright Chromium，不需再用Edge。人類試用UI4／UI3／UI1／UI2／P1c–P2c未簽核。
+
 ### 2026-10-09｜Claude Code Opus 5.5｜D70任務規劃器優先、UI3交付
 
 - **做了什麼**：人類決定D70（文件先不算、復原只做上一步），路線改為UI3→UI4→TP-A至TP-G→UI5→F1→F2（`8a54cb2`、`6863500`）。UI3對照圖與17列差距表、短計畫（`03dc854`），實作與審查修正（`52218db`、`5598134`），文件（`a0c9936`）。
@@ -1026,7 +1036,4 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - 完成側欄、視覺、總覽／任務卡片、工作區、紀錄與時程／管理頁；Demo不改。兩種尺寸對照圖與驗收log在ignored `.superpowers/ui1/`。
 - 完整回歸與窄修正結果見UI1明細；primary只換web，原row、files、env、API/DB容器完全保留，靜態產物及ready檢查通過。
 - 人類試用未代勾，P2d後移且待定範圍。隔離容器與自啟Demo server已關、資料volume保留。
-### 2026-10-09｜Codex GPT-6｜D67下一階段改為前端介面對齊
-- **順序**：UI1在P2d前；主要版面/視覺依Demo，接既有真實功能，未實作頁不放假資料。
-- **文件／盤點**：讀Demo CSS與正式版布局、整理短規格／計畫，未改產品、DB或容器；文件diff核對，無產品測試宣稱。
-- **下一步**：先隔離環境取得1280/375對照圖，實作UI1、一次獨立審查與前端回歸，再部署及D50推送；已完成P2c不重做，人類簽核維持未勾。
+
