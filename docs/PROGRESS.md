@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **TP-C 🟢 時程進階已實作並驗收，待合併部署**（D70／D75） |
+| 目前工作項目 | **TP-C ✅ 時程進階已交付；下一批 TP-D ⬜ 前置進階**（D70／D75） |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | TP-C ff-only合併，保留資料部署15173並依D50發布；完成後下一批TP-D。 |
-| 分支 | `feature/tp-c-advanced-timeline`；獨立審查 Ready to merge。 |
-| 最新程式 commit | `77b69b4`（TP-C實作）、`2e81ae8`（審查及日期完整性修正）；收尾測試與文件見本次commit。 |
+| 下一個動作 | TP-D：先讀Demo前置進階操作、建立差距表，再寫短規格／計畫（SS／FF、延遲、軟性／條件型、不含文件、拖線建立）。 |
+| 分支 | `main`；TP-C已ff-only合併，feature分支已刪除。 |
+| 最新程式 commit | `77b69b4`（TP-C實作）、`2e81ae8`（審查修正）、`3f09005`（回歸修正與文件）。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | TP-C：PG六階段全過；完整API428pass/1fail/10skip（舊audit mock位置已修正，定向2pass）；TP-C API16pass後補第17項audit rollback亦通過；Vitest233、build0；完整E2E31/32（拖曳測試座標修正後TP-C3/3）。詳§3。 |
-| 資料版本 | Demo v6/key未改；migration `20261010_0006`（`nodes.deleted_at`、`deleted_by`）。15173已升到0006：既有每列每個欄位值、附件SHA、env、DB容器逐一相同，節點只多兩個NULL欄位，新增0列。acceptance down不-v，volume保留；ui3cmp（15179）保留供對照。 |
+| 資料版本 | Demo v6/key未改；15173 migration `20261010_0007`，249個既有節點只新增兩個false欄位。所有既有列／欄位值、附件SHA、env與DB容器逐一相同，新增0列。acceptance已down不-v，volume保留；ui3cmp（15179）保留。 |
 | 認領中 | 無。 |
-| 阻塞／待人類 | TP-C D75已決定，無產品規則阻塞；TP-B／TP-A／UI4／UI3／UI1／UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。LAN未授權。 |
-| 遠端 | TP-B依D50發布main，push後核對遠端；不force。 |
+| 阻塞／待人類 | 無TP-C工程阻塞；TP-C／TP-B／TP-A／UI4／UI3／UI1／UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。LAN未授權。 |
+| 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
 
 ---
 
@@ -98,8 +98,8 @@
 | 已完成 | UI4 | 工作區／看板／回報／時程／模板操作一致 | ✅ 工程交付 | D70／D72，[短規格／計畫](superpowers/plans/2026-10-09-ui4-workspace-ops.md) | UI3 |
 | 已完成 | TP-A | 任務規劃器：節點分頁、看板拖曳與卡片資訊、進度彙總、父節點完成規則 | ✅ 工程交付 | D70／D73，[短規格／計畫](superpowers/plans/2026-10-10-tp-a-board-progress.md) | UI4 |
 | 已完成 | TP-B | 任務規劃器：刪除、升降級、拖曳改層級、複製子樹、復原上一步 | ✅ 工程交付 | D70／D74，[短規格／計畫](superpowers/plans/2026-10-10-tp-b-tree-editing.md) | TP-A |
-| 目前 | TP-C | 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑） | 🟢 驗收完成 | D70，[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md) | TP-B ✅ |
-| 後續 | TP-D | 任務規劃器：前置進階（SS／FF、延遲、軟性、條件型不含文件、拖線建立） | ⬜ | D70 | TP-C |
+| 已完成 | TP-C | 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑） | ✅ 工程交付 | D70，[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md) | TP-B ✅ |
+| 下一批 | TP-D | 任務規劃器：前置進階（SS／FF、延遲、軟性、條件型不含文件、拖線建立） | ⬜ | D70 | TP-C |
 | 後續 | TP-E | 任務規劃器：另存模板、套用到既有節點、模板版本、刪除模板 | ⬜ | D70 | TP-D |
 | 後續 | TP-F | 任務規劃器：跳過申請與覆寫、部門管理、成員權限頁、待我指派、負載、通知 | ⬜ | D70 | TP-E |
 | 後續 | TP-G | 任務規劃器：自訂回報欄位 | ⬜ | D70 | TP-F |
@@ -120,7 +120,7 @@
 
 ## 3. 工作項目明細
 
-### TP-C 時程進階 — 🟢 驗收完成，待合併部署
+### TP-C 時程進階 — ✅ 工程交付
 
 **範圍與決策**：人類「照 D75」核准[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md)。父條涵蓋可見子孫、部門篩選保留匹配路徑、每列＋與底部拖出新增、左右拉伸、單日里程碑與鎖定、延遲標示、可見FS箭頭與Demo單條關鍵鏈估算均已實作。順延預設關閉，逐項檢查可見／編輯權限；鎖定、未排程、已結束或不可編輯的受影響任務使整次改期與稽核全部回滾。鎖定／解鎖及直接改鎖定日期限系統管理員與專案負責人。日期不納入復原，新增沿用結構undo。SS／FF等留TP-D，首頁延後天數預測與完整CPM不在本階段。
 
@@ -128,7 +128,7 @@
 
 **真實驗證**：一次完整隔離回歸：PG六階段（P2b、P2c、TP-A、TP-B、TP-C migration與API races）全過；API428pass／1fail／10skip，唯一失敗為舊audit故障注入仍攔截projects模組，補攔截schedule_service後與新增cascade第二次audit失敗全回滾測試2pass。TP-C定向API先16pass，再補上述第17項通過；既有project/tree/health42pass；SQLite migration11pass/6skip（PG另實跑）。Vitest233pass、build exit0。完整E2E31pass／1fail：新拖出新增測試起點被sticky名稱欄覆蓋，改可見日期區真實滑鼠座標後TP-C3/3pass（含新增、undo、順延、鎖定回滾、角色限制）。失敗均已解決；未宣稱原全量命令exit0。證據在ignored `.superpowers/tpc/`。1280／1440／375截圖人工核對菱形、連線、關鍵鏈；頁面無水平溢出、TP-C pageerror 0。
 
-**部署／試用**：待ff-only與15173保留資料部署。人類試用清單已新增，尚未代簽。Demo基準截圖在`.superpowers/tpc/baseline/`，正式隔離截圖在`.superpowers/tpc/e2e/`。
+**部署／試用**：已ff-only合併main並刪feature。15173 API＋web更新、migration 0006→0007；部署前停API作一致DB／附件備份，部署後逐值比對15專案、249節點、344稽核及全部其他表：既有資料值不變、節點只新增兩個false欄位、新增0列，附件SHA、env、DB容器不變。沿用部署前session做1280／375唯讀瀏覽器檢查，pageerror 0、無頁面水平溢出、ready 200，檢查後再比對仍新增0列。acceptance已down（不-v），保留資料volume與既有ui3cmp。人類試用清單已新增，尚未代簽。Demo基準截圖在`.superpowers/tpc/baseline/`，正式隔離截圖在`.superpowers/tpc/e2e/`。
 
 **必要測試調整**：`api/tests/test_node_metadata.py`只更新audit mock的實際呼叫位置；不改產品規則。未引入新依賴、未改Demo、未開LAN。
 
@@ -1068,6 +1068,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-10｜Codex GPT-6｜TP-C交付
+
+- **做了什麼**：D75核准後實作進階時程、里程碑鎖定、原子順延、可見箭頭／關鍵鏈；`77b69b4`、`2e81ae8`、`3f09005`；獨立審查與定向複核Ready to merge，ff-only main並更新15173。
+- **驗證**：PG六階段全過；全API428pass/1fail/10skip，修audit mock後相關2pass；TP-C17項分批通過；Vitest233/build0；完整E2E31/32，修拖曳座標後TP-C3/3。詳§3，原失敗不冒稱全量exit0。15173每個既有資料值與附件保留、新增0列；桌面／手機健康檢查通過。
+- **沒做的事／偏離plan**：必要調整舊audit測試mock位置；SS／FF等留TP-D，日期不undo、不是完整CPM，無新依賴。
+- **下一步**：TP-D Demo對照、差距表、短計畫。
+- **注意**：API故障注入要攔截實際schedule_service.log_audit；E2E拖曳須避開sticky名稱欄。primary備份與證據在ignored `.superpowers/tpc/primary/`，勿提交秘密。acceptance已down不-v；既有Demo18005及ui3cmp15179未關。人類試用未代簽。
+
 ### 2026-10-10｜Claude Code Opus 5.5｜TP-B交付
 
 - **做了什麼**：人類「開始做下一批 TP-B」。Demo對照與11列差距表、短規格／計畫（`f4b59c1`），人類回答D74（權限照Demo放寬、復原只限結構操作、上層擋下並說明、其他照計畫，`ca50ed7`）；API `2980fd9`、前端 `5f36c25`、E2E `543b6b9`／`4c8cd02`；一位獨立審查With fixes（1 Important），修正`d5b999b`後複核Ready to merge: Yes；文件`f2d483c`；ff-only合併main，15173更新API＋web並跑migration 0006。
@@ -1099,10 +1107,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **沒做的事／偏離plan**：本機沒有Playwright內建Chromium，E2E改用系統Edge（暫時設定未提交）；比對環境另建乾淨的`projectflow-ui3cmp`，因15175有214個舊E2E專案。
 - **下一步**：UI4對照圖與差距表，再寫短計畫。
 - **注意**：`projectflow-ui3cmp`（15179）volume保留可重用；人類試用UI3／UI1／UI2／P1c–P2c未簽核；D10未決，F1前需決定。
-
-### 2026-10-09｜Codex GPT-6｜D69 Demo畫面與操作優先重排
-
-- 人類要求重新規劃：先以Demo畫面及操作一致為優先，功能逐步补齊；UI3→UI4→UI5→F1→F2，P2d改為範圍索引。
-- 已讀Demo導覽／節點分頁／副手布局及正式版側欄，新增規劃並同步路線圖、README、看板；以同尺寸對照圖驗收，正式／展示預覽分清。
-- 本次只改文件，未改API/UI/DB/容器，沒有產品測試通過宣稱；文件獨立審查與diff檢查後D50 push。
-- 下一步UI3對照與差距表、短實作計畫；人類試用仍未代勾。
