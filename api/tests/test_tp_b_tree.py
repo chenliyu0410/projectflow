@@ -99,6 +99,7 @@ def test_delete_hides_subtree_everywhere_and_keeps_records(client, engine, tree)
     switch(client, 'owner')
     assert visible(client)['b']['blocked'] is True
     assert any(item['node_id'] == 'a2' for item in client.get('/workspace/reviews').json()['items'])
+    counted = sum(client.get('/workspace/overview').json()['task_counts'].values())
     response = client.delete('/nodes/a')
     assert response.status_code == 200
     body = response.json()
@@ -111,8 +112,12 @@ def test_delete_hides_subtree_everywhere_and_keeps_records(client, engine, tree)
     assert '孫任務筆記' not in client.get('/projects/tp/records').text
     for method, url, kwargs in [('get', '/nodes/a1/records', {}), ('patch', '/nodes/a1', {'json': {'title': '改名'}}),
                                 ('patch', '/nodes/a1/status', {'json': {'status': 'doing'}}), ('post', '/nodes/a1/move', {'json': {'parent_id': 'ph'}}),
-                                ('post', '/nodes/a1/copy', {}), ('delete', '/nodes/a1', {}), ('post', '/nodes/a1/notes', {'json': {'body': 'x'}})]:
+                                ('post', '/nodes/a1/copy', {}), ('delete', '/nodes/a1', {}), ('post', '/nodes/a1/notes', {'json': {'body': 'x'}}),
+                                ('post', '/nodes/a1/lifecycle', {'json': {'action': 'skip', 'reason': '不做'}}), ('get', '/nodes/a1/collaborators', {}),
+                                ('put', '/nodes/a1/collaborators', {'json': {'user_ids': [], 'department_ids': [], 'expected_revision': 0}}),
+                                ('post', '/nodes/a2/reports', {'json': REPORT})]:
         assert getattr(client, method)(url, **kwargs).status_code == 404, url
+    assert sum(client.get('/workspace/overview').json()['task_counts'].values()) == counted - 4
     switch(client, 'ming')
     assert not {'a', 'a1', 'a1x', 'a2'} & {item['id'] for item in client.get('/workspace/my-tasks').json()['items']}
     assert client.get('/workspace/overview').status_code == 200
@@ -387,3 +392,31 @@ def test_closed_parent_refuses_new_or_reopened_children(client, engine, tree):
     assert client.post('/nodes/done1/lifecycle', json={'action': 'reopen', 'reason': '要補做'}).status_code == 200
     assert client.post('/nodes/d1/lifecycle', json={'action': 'reopen', 'reason': '要補做'}).status_code == 200
     assert client.post('/projects/tp/nodes', json={'title': '新任務', 'kind': 'task', 'parent_id': 'done1'}).status_code == 201
+
+
+def test_finished_subtree_can_return_under_a_finished_parent(client, engine, tree):
+    # Review: deleting or moving a done child of a done parent must stay undoable (D74 only forbids open children).
+    switch(client, 'owner')
+    deleted = client.delete('/nodes/d1')
+    assert deleted.status_code == 200
+    assert undo(client, deleted).status_code == 200
+    assert visible(client)['d1']['parent_id'] == 'done1'
+    moved = client.post('/nodes/d1/move', json={'parent_id': 'b'})
+    assert moved.status_code == 200
+    assert undo(client, moved).status_code == 200
+    assert visible(client)['d1']['parent_id'] == 'done1'
+
+
+def test_task_owner_cannot_move_children_they_cannot_see(client, engine, tree):
+    with Session(engine) as db:
+        b = db.get(Node, 'b')
+        db.add(Node(id='bh', organization_id=b.organization_id, project_id='tp', kind='task', title='別人的子任務', status='todo',
+                    owner_user_id=tree['yu'], parent_id='b', sort_order=41))
+        db.commit()
+    switch(client, 'ming')
+    before = snapshot(engine)
+    response = client.post('/nodes/b/move', json={'parent_id': 'a'})
+    assert response.status_code == 409 and response.json()['detail'] == '此節點底下有你看不到的子任務，無法移動'
+    assert snapshot(engine) == before
+    switch(client, 'owner')
+    assert client.post('/nodes/b/move', json={'parent_id': 'a'}).status_code == 200

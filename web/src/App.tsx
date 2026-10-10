@@ -323,7 +323,14 @@ export default function App() {
       const active = document.activeElement as HTMLElement | null;
       if (active && (/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName) || active.isContentEditable)) return;
       if (route.page !== 'project' || editor || creationOpen) return;
-      event.preventDefault(); void undoLast();
+      event.preventDefault();
+      // Undo reloads the project and remounts record forms, so an open draft would be lost.
+      const content = document.querySelector('.workspace-content');
+      if (content && (content.querySelector('.schedule-editor, form[aria-label="回報表單"]')
+        || [...content.querySelectorAll('textarea')].some(area => area.value.trim() !== ''))) {
+        setNotice(null); setMessage('請先送出或取消開著的表單，再按 Ctrl+Z 復原'); return;
+      }
+      void undoLast();
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

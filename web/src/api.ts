@@ -44,6 +44,7 @@ export const KNOWN_CONFLICTS = new Set([
   '之後已有其他變更，無法復原',
   '原本的上層已無法放回，無法復原',
   '相關任務已有變更，無法復原',
+  '此節點底下有你看不到的子任務，無法移動',
 ]);
 
 export async function requestJson<T>(
@@ -98,7 +99,9 @@ export async function requestJson<T>(
                         path.includes('/from-workflow') ||
                         path.includes('/dependencies')
                         ? '請檢查名稱、模板階層、日期與前置設定是否符合規則'
-                        : path.includes('/workspace/reviews') ||
+                        : /^\/nodes\/[^/]+\/copy$/.test(path)
+                          ? '子樹超過 300 個節點，無法複製'
+                          : path.includes('/workspace/reviews') ||
                             path.includes('/audit-logs')
                           ? '篩選或分頁參數已失效，請清除篩選或重新載入'
                           : path.includes('/attachments')

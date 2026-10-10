@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.audit import log_audit
-from app.services.dependency_service import require_dependencies
+from app.services.dependency_service import lock_project, require_dependencies
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.models import Department, Gate, Node, Project, User
@@ -87,7 +87,8 @@ def get_project(project_id: str, current: CurrentUser = Depends(require_session)
 
 @router.post("/projects/{project_id}/nodes", status_code=status.HTTP_201_CREATED)
 def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
-    project = get_project_or_404(db, current, project_id)
+    # Serialized with delete/undo (TP-B) so a parent cannot be soft-deleted while a child is added under it.
+    project = lock_project(db, current, project_id)
     context = load_policy_context(db, current)
     if not can_manage_project(current, project):
         raise HTTPException(status_code=403, detail="沒有新增節點權限")

@@ -15,6 +15,7 @@ from app.services.record_policy import load_policy_context
 from app.services.report_service import lock_node
 
 CLOSED_PARENT = {"review", "done", "skipped"}
+FINISHED = {"done", "skipped"}
 UNDOABLE = ("node.create", "node.delete", "node.move", "node.copy")
 COPY_LIMIT = 300
 COPY_SUFFIX = "（複本）"
@@ -66,8 +67,11 @@ def project_root(nodes: dict[str, Node]) -> Node | None:
 
 
 def check_placement(db: Session, current: CurrentUser, project, node: Node, target: Node | None, nodes: dict[str, Node],
-                    *, closed_detail=MOVE_CLOSED, cycle_detail=MOVE_CYCLE):
-    """Shared move rules: no cycle through the stored chain, no closed parent, no edge between subtree and new ancestors."""
+                    *, closed_detail=MOVE_CLOSED, cycle_detail=MOVE_CYCLE, closed_ok=False):
+    """Shared move rules: no cycle through the stored chain, no closed parent, no edge between subtree and new ancestors.
+
+    `closed_ok` lets an undo put a finished subtree back under a finished parent (D74 only forbids open children there).
+    """
     chain, cursor = [], target
     while cursor is not None:
         if cursor.id == node.id:
@@ -76,7 +80,7 @@ def check_placement(db: Session, current: CurrentUser, project, node: Node, targ
             raise HTTPException(status_code=409, detail="節點階層異常，無法移動")
         chain.append(cursor.id)
         cursor = nodes.get(cursor.parent_id) if cursor.parent_id is not None else None
-    if target is not None and target.status in CLOSED_PARENT:
+    if target is not None and target.status in CLOSED_PARENT and not closed_ok:
         raise HTTPException(status_code=409, detail=closed_detail)
     if not chain:
         return
@@ -98,6 +102,9 @@ def move_node(db: Session, current: CurrentUser, node_id: str, parent_id: str | 
     if not can_move(db, current, project, node, context):
         raise HTTPException(status_code=403, detail="沒有移動節點的權限")
     nodes = project_nodes(db, current, project.id)
+    if not can_manage_project(current, project):
+        # A task owner moves only what they can see; managers see the whole tree anyway.
+        require_all_visible(current, nodes, family_of(nodes, node.id), context, "此節點底下有你看不到的子任務，無法移動")
     root = project_root(nodes)
     if parent_id is None:
         # A blank project keeps a kind=project root: its children are the project's top level.
@@ -276,7 +283,9 @@ def undo_delete(db, current, entry, project, nodes, context):
     parent_id = entry.payload.get("parent_id")
     if parent_id is not None:
         parent = nodes.get(parent_id)
-        if parent is None or parent.deleted_at is not None or parent.status in CLOSED_PARENT:
+        # A finished subtree may return under a finished parent; an open one may not (D74).
+        if (parent is None or parent.deleted_at is not None
+                or (parent.status in CLOSED_PARENT and any(nodes[i].status not in FINISHED for i in ids))):
             raise HTTPException(status_code=409, detail=UNDO_PARENT)
     restored = set(ids)
     live = {i for i, n in nodes.items() if n.deleted_at is None} | restored
@@ -311,7 +320,8 @@ def undo_move(db, current, entry, project, nodes, context):
     if target_id is not None and (target is None or target.deleted_at is not None):
         raise HTTPException(status_code=409, detail=UNDO_PARENT)
     live = {i: n for i, n in nodes.items() if n.deleted_at is None}
-    check_placement(db, current, project, node, target, live, closed_detail=UNDO_PARENT, cycle_detail=UNDO_PARENT)
+    finished = all(live[i].status in FINISHED for i in family_of(live, node.id))
+    check_placement(db, current, project, node, target, live, closed_detail=UNDO_PARENT, cycle_detail=UNDO_PARENT, closed_ok=finished)
     node.parent_id = target_id
     order = entry.payload.get("from_sort_order")
     node.sort_order = order if type(order) is int else max(n.sort_order for n in live.values()) + 10
