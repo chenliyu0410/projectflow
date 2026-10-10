@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **TP-B 📋 任務規劃器：刪除節點、升降級、移動、複製子樹、復原上一步**（D70；TP-A ✅已交付） |
+| 目前工作項目 | **TP-C ⬜ 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑）**（D70；TP-B ✅已交付） |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | TP-B：D74已決定（2026-10-10），照[短規格／計畫](superpowers/plans/2026-10-10-tp-b-tree-editing.md)在`feature/tp-b-tree-editing`實作步驟1–7，之後一次完整回歸與一位獨立審查。 |
-| 分支 | 無`feature/*`；TP-A已ff-only合併`main`並刪除分支。 |
-| 最新程式 commit | `e77c6dc`（TP-A審查修正）；`9e8daf8`為TP-A實作，`8a6bbac`、`fc7c1fd`為修正與E2E。 |
+| 下一個動作 | TP-C：依[D70範圍](superpowers/plans/2026-10-09-demo-parity-first.md#d70任務規劃器優先)先做Demo對照與差距表，再寫精簡短規格／計畫（新API／欄位列出migration與權限），commit後開`feature/tp-c-*`。TP-B後續Minor見§3。 |
+| 分支 | 無`feature/*`；TP-B已ff-only合併`main`並刪除分支。 |
+| 最新程式 commit | `d5b999b`（TP-B審查修正）；`2980fd9` API、`5f36c25`前端、`543b6b9`／`4c8cd02` E2E。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | TP-A：`8a6bbac`上`deploy/verify.py`：PG4階段全過（含TP-A migration）；API393pass/8skip/0fail；Vitest206；build0；E2E23/25，2個失敗為MVP測試按鈕名稱比對，`fc7c1fd`修正後mvp2/2。`e77c6dc`後Vitest206、build0、planner＋schedule E2E8/8。詳§3。 |
-| 資料版本 | Demo v6/key未改；migration `20261010_0005`（`nodes.weight`、`nodes.progress`）。15173已升到0005：既有每列每個欄位值、附件SHA、env、DB容器逐一相同，節點只多`weight=1`／`progress=NULL`，新增0列。acceptance down不-v，volume保留；ui3cmp（15179）保留供對照。 |
+| 測試基準 | TP-B：`deploy/verify.py`：PG5階段全過（含TP-B migration）；API412pass/9skip；Vitest222；build0；E2E28/29（P2a測試比對建立回應多了`undo_id`，調整後7/7）。審查修正`d5b999b`後API414pass/9skip、Vitest222、build0、tree／workspace／planner／mvp E2E14/14。詳§3。 |
+| 資料版本 | Demo v6/key未改；migration `20261010_0006`（`nodes.deleted_at`、`deleted_by`）。15173已升到0006：既有每列每個欄位值、附件SHA、env、DB容器逐一相同，節點只多兩個NULL欄位，新增0列。acceptance down不-v，volume保留；ui3cmp（15179）保留供對照。 |
 | 認領中 | 無。 |
-| 阻塞／待人類 | 無工程阻塞；TP-A／UI4／UI3／UI1／UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。原P2d拆入UI5/F1，細節逐批定短範圍；LAN未授權。 |
-| 遠端 | TP-A依D50發布main，push後核對遠端；不force。 |
+| 阻塞／待人類 | 無工程阻塞；TP-B／TP-A／UI4／UI3／UI1／UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。原P2d拆入UI5/F1，細節逐批定短範圍；LAN未授權。 |
+| 遠端 | TP-B依D50發布main，push後核對遠端；不force。 |
 
 ---
 
@@ -98,7 +98,7 @@
 | 已完成 | UI4 | 工作區／看板／回報／時程／模板操作一致 | ✅ 工程交付 | D70／D72，[短規格／計畫](superpowers/plans/2026-10-09-ui4-workspace-ops.md) | UI3 |
 | 已完成 | TP-A | 任務規劃器：節點分頁、看板拖曳與卡片資訊、進度彙總、父節點完成規則 | ✅ 工程交付 | D70／D73，[短規格／計畫](superpowers/plans/2026-10-10-tp-a-board-progress.md) | UI4 |
 | 已完成 | TP-B | 任務規劃器：刪除、升降級、拖曳改層級、複製子樹、復原上一步 | ✅ 工程交付 | D70／D74，[短規格／計畫](superpowers/plans/2026-10-10-tp-b-tree-editing.md) | TP-A |
-| 下一個 | TP-C | 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑） | ⬜ | D70 | TP-B |
+| 下一個 | TP-C | 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑） | ⬜ | D70 | TP-B ✅ |
 | 後續 | TP-D | 任務規劃器：前置進階（SS／FF、延遲、軟性、條件型不含文件、拖線建立） | ⬜ | D70 | TP-C |
 | 後續 | TP-E | 任務規劃器：另存模板、套用到既有節點、模板版本、刪除模板 | ⬜ | D70 | TP-D |
 | 後續 | TP-F | 任務規劃器：跳過申請與覆寫、部門管理、成員權限頁、待我指派、負載、通知 | ⬜ | D70 | TP-E |
@@ -141,6 +141,8 @@
 2. 「新增子節點」因上層已結束而停用時，說明只在`title`，手機看不到。
 3. 非管理者「復原移動」時不再檢查子樹可見性（只是回到原位）；Ctrl+Z沒有保護協作設定未儲存的勾選。
 4. 成員的「升級」沒有E2E（成員看不到上層階段時升級停用，Vitest已涵蓋說明文字）；「此節點底下有你看不到的子任務」只揭露存在，同TP-A Minor 2。
+
+**合併與15173發布**：ff-only合併main（`f2d483c`）並刪除分支。15173這次更新API、web並跑migration：先記錄全部rows／欄位值、附件SHA、env與DB容器ID（`.superpowers/tpb/preserve.py`，ignored `.superpowers/tpb/primary/`），先建新映像，停API後pg_dump＋files成套備份，用新映像`run --rm --no-deps api alembic upgrade head`（0005→0006）後才啟動新API與web；不seed、不動DB容器。health／ready／web 200，acceptance標記404；比對結果：既有每列每個欄位值、附件SHA、env、DB容器ID逐一相同，249個節點只多`deleted_at`／`deleted_by`為NULL，新增0列。以yu既有登入在內建瀏覽器實看（1280）：【展示】食品新品開發「小量試作」的「試作工單」編輯表單出現層級操作與刪除、降級停用並說明「上方沒有同層任務可以放入」、頁面無水平捲動、console無錯誤；只按「取消」，沒有在15173做任何移動、複製或刪除，瀏覽後再比對仍新增0列。人類試用未代勾。
 
 **測試（2026-10-10）**：API新增`test_tp_b_tree.py`20項（軟刪除各入口、資料保留、刪除與復原、複製欄位／協作／相依、上限與截短、最上層移動、D74權限矩陣、復原只一步與只限原操作者、之後有變更擋下、上層規則）、0006 SQLite與PG保留資料測試；Vitest新增`tree.test.tsx`16項；E2E新增`tree.spec.ts`4項（真Chromium）。`deploy/verify.py`一次：PG5階段（P2b、P2c、TP-A、TP-B migration、API races）全過；API412pass/9skip；Vitest222；build0；E2E28/29（P2a測試直接比對建立回應，多了`undo_id`，調整後workspace＋tree重跑7/7）。審查修正後API414pass/9skip、Vitest222、build0、tree／workspace／planner／mvp E2E14/14。人類試用未代勾。
 
@@ -1053,6 +1055,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 格式見 [WORKFLOW.md 附錄 A](WORKFLOW.md#附錄-a交接紀錄格式)。
 
+### 2026-10-10｜Claude Code Opus 5.5｜TP-B交付
+
+- **做了什麼**：人類「開始做下一批 TP-B」。Demo對照與11列差距表、短規格／計畫（`f4b59c1`），人類回答D74（權限照Demo放寬、復原只限結構操作、上層擋下並說明、其他照計畫，`ca50ed7`）；API `2980fd9`、前端 `5f36c25`、E2E `543b6b9`／`4c8cd02`；一位獨立審查With fixes（1 Important），修正`d5b999b`後複核Ready to merge: Yes；文件`f2d483c`；ff-only合併main，15173更新API＋web並跑migration 0006。
+- **驗證**：verify：PG5、API412/9skip、Vitest222、build0、E2E28/29（P2a測試比對建立回應，調整後7/7）；修正後API414/9skip、Vitest222、build0、E2E14/14。15173逐值保留、新增0列。
+- **沒做的事／偏離plan**：審查Minor未全修（§3 TP-B「後續Minor」）；計畫外動到`permissions.py`、`workspace.spec.ts`；「移動到…」多一個「移動」鈕、新增節點也可復原、Ctrl+Z遇到開著的表單改提示（§3執行注意）。
+- **下一步**：TP-C的Demo對照與差距表，再寫短計畫。
+- **注意**：已刪除節點靠ORM全域條件排除，新寫的Core層級查詢要自己過濾`deleted_at`；新增寫入API若會讓節點有新子節點，記得檢查上層規則。18005上的Demo伺服器不是本session啟動的，沒有關。人類試用TP-B／TP-A／UI4／UI3／UI1／UI2／P1c–P2c未簽核。
+
 ### 2026-10-10｜Claude Code Opus 5.5｜TP-A交付
 
 - **做了什麼**：Demo對照與16列差距表、短規格／計畫（`cff3a29`），人類「照 D73 做」（`7dd3f82`）；實作`9e8daf8`、修正與E2E`8a6bbac`、`fc7c1fd`，一位獨立審查Ready to merge: Yes，審查修正`e77c6dc`，文件`b68aabe`；ff-only合併main，15173更新API＋web並跑migration 0005。
@@ -1083,11 +1093,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - 已讀Demo導覽／節點分頁／副手布局及正式版側欄，新增規劃並同步路線圖、README、看板；以同尺寸對照圖驗收，正式／展示預覽分清。
 - 本次只改文件，未改API/UI/DB/容器，沒有產品測試通過宣稱；文件獨立審查與diff檢查後D50 push。
 - 下一步UI3對照與差距表、短實作計畫；人類試用仍未代勾。
-
-### 2026-10-09｜Codex GPT-6｜UI2 產業模板與本機展示交付
-
-- 完成12套五產業模板卡片／預覽／真實匯入，左下五公司一鍵展示session切換，有表單可取消；D68與D65。
-- 一位獨立唯讀審查Ready to merge；全量回歸失敗如實保留，修正定向全部通過，詳細§3及ignored `.superpowers/ui2/`。
-- 15173 API/web已更新，原rows/files/env保留，只加展示公司身分模板與旗標；DB未重建，health及實際前端產物驗證完成。隔離容器已down、volume保留。
-- ff-only main與D50 push；人類試用未代勾，P2d需先定範圍。無工程阻擋。
-
