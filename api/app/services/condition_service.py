@@ -51,10 +51,12 @@ def mutate_condition(db, current, condition_id, action, payload=None):
         item.confirmed_at = now_utc()
     elif action == 'update':
         # Editing the meaning invalidates earlier confirmation evidence.
-        if item.label != payload.label:
+        values = payload.model_dump(exclude_unset=True)
+        if 'label' in values and item.label != values['label']:
             item.is_met = False
             item.confirmed_by = item.confirmed_at = item.reason = None
-        item.label, item.enforcement = payload.label, payload.enforcement
+        for key, value in values.items():
+            setattr(item, key, value)
     elif action == 'delete':
         db.delete(item)
     after = condition_out(item)

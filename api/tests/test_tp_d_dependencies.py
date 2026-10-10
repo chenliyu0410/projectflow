@@ -179,3 +179,14 @@ def test_soft_schedule_does_not_cascade_or_restrict_dates(client,engine):
     r=client.post(f'/nodes/{a}/schedule',json={'start_date':'2026-10-05','due_date':'2026-10-07','cascade':True})
     assert r.status_code==200 and r.json()['shifted_count']==0
     assert client.patch(f'/nodes/{b}',json={'start_date':'2026-09-01','due_date':'2026-09-02'}).status_code==200
+
+
+def test_condition_partial_edit_retains_strength_and_requires_reconfirmation(client,engine):
+    _,b,pid,_=pair(client,engine)
+    cid=client.post(f'/projects/{pid}/conditions',json={'node_id':b,'label':'到貨','enforcement':'soft'}).json()['id']
+    assert client.post(f'/conditions/{cid}/confirmation',json={'is_met':True,'reason':'確認到貨'}).status_code==200
+    r=client.patch('/conditions/'+cid,json={'label':'到貨驗收'}); assert r.status_code==200
+    assert not r.json()['is_met'] and r.json()['reason'] is None and r.json()['enforcement']=='soft'
+    r=client.patch('/conditions/'+cid,json={'enforcement':'hard'});assert r.status_code==200
+    assert r.json()['label']=='到貨驗收'
+    assert client.patch('/conditions/'+cid,json={'label':None}).status_code==422

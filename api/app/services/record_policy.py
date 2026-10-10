@@ -42,13 +42,19 @@ def load_policy_context(db: Session, current: CurrentUser) -> PolicyContext:
     nodes = {n.id: n for n in db.scalars(select(Node).where(Node.organization_id == org))}
     edges = list(db.scalars(select(NodeDependency).where(NodeDependency.organization_id == org)))
     conditions = list(db.scalars(select(NodeCondition).where(NodeCondition.organization_id == org)))
+    by_project_edges = {}
+    by_project_conditions = {}
+    for edge in edges:
+        by_project_edges.setdefault(edge.project_id, []).append(edge)
+    for condition in conditions:
+        by_project_conditions.setdefault(condition.project_id, []).append(condition)
     blocked = set()
     soft = set()
     for n in nodes.values():
         try:
-            if any(e.enforcement == 'hard' for e in unmet_dependencies(nodes, edges, conditions, n, phase='start')):
+            if any(e.enforcement == 'hard' for e in unmet_dependencies(nodes, by_project_edges.get(n.project_id, []), by_project_conditions.get(n.project_id, []), n, phase='start')):
                 blocked.add(n.id)
-            if any(e.enforcement == 'soft' for e in unmet_dependencies(nodes, edges, conditions, n, phase='finish')):
+            if any(e.enforcement == 'soft' for e in unmet_dependencies(nodes, by_project_edges.get(n.project_id, []), by_project_conditions.get(n.project_id, []), n, phase='finish')):
                 soft.add(n.id)
         except Exception as exc:
             from fastapi import HTTPException

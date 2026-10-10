@@ -189,8 +189,8 @@ def test_workspace_query_count_is_constant_as_projects_and_tasks_grow(client,eng
             db.commit()
         queries.clear()
         assert len(client.get('/workspace/my-tasks').json()['items'])==37
-        # P2c adds one batched dependency lookup, independent of task count.
-        assert len(queries)==count and count<=8
+        # TP-D adds batched node ancestry and manual conditions; still independent of task/project count.
+        assert len(queries)==count and count<=10
         assert sum('FROM node_dependencies' in query for query in queries)==1
         queries.clear()
         assert client.get('/workspace/overview').status_code==200

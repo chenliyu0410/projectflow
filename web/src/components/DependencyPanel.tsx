@@ -130,6 +130,7 @@ export default function DependencyPanel({
                   <select
                     required
                     disabled={mutation.busy || !!editing}
+                    aria-label="前置任務"
                     value={pre}
                     onChange={(e) => setPre(e.target.value)}
                   >
@@ -146,6 +147,7 @@ export default function DependencyPanel({
                   <select
                     required
                     disabled={mutation.busy || !!editing}
+                    aria-label="後續任務"
                     value={post}
                     onChange={(e) => setPost(e.target.value)}
                   >
@@ -159,9 +161,9 @@ export default function DependencyPanel({
                       ))}
                   </select>
                 </label>
-                <label>關係類型<select value={settings.relation_type} disabled={mutation.busy} onChange={e => setSettings({...settings, relation_type: e.target.value as 'FS' | 'SS' | 'FF'})}><option value="FS">FS 完成→開始</option><option value="SS">SS 開始→開始</option><option value="FF">FF 完成→完成</option></select></label>
+                <label>關係類型<select aria-label="關係類型" value={settings.relation_type} disabled={mutation.busy} onChange={e => setSettings({...settings, relation_type: e.target.value as 'FS' | 'SS' | 'FF'})}><option value="FS">FS 完成→開始</option><option value="SS">SS 開始→開始</option><option value="FF">FF 完成→完成</option></select></label>
                 <label>延遲天數<input type="number" min={-365} max={365} step={1} required value={settings.lag_days} disabled={mutation.busy} onChange={e => setSettings({...settings, lag_days: Number(e.target.value)})}/></label>
-                <label>強度<select value={settings.enforcement} disabled={mutation.busy} onChange={e => setSettings({...settings, enforcement: e.target.value as 'hard' | 'soft'})}><option value="hard">硬性</option><option value="soft">軟性</option></select></label>
+                <label>強度<select aria-label="強度" value={settings.enforcement} disabled={mutation.busy} onChange={e => setSettings({...settings, enforcement: e.target.value as 'hard' | 'soft'})}><option value="hard">硬性</option><option value="soft">軟性</option></select></label>
                 <button
                   disabled={
                     mutation.busy ||
@@ -232,9 +234,9 @@ export default function DependencyPanel({
             {data.capabilities.manage && !mutation.saved && <>
               {confirming && <form className="record-panel" onSubmit={e => {e.preventDefault(); if(reason.trim()) void mutation.execute(signal => api.confirmCondition(confirming.id, {is_met: !confirming.is_met, reason}, signal));}}><p>{confirming.is_met ? '撤回' : '確認'}：{confirming.label}</p><label>確認或撤回理由<input required maxLength={1000} value={reason} disabled={mutation.busy} onChange={e => setReason(e.target.value)}/></label><button disabled={mutation.busy || !reason.trim()}>儲存確認結果</button><button type="button" disabled={mutation.busy} onClick={() => setConfirming(null)}>取消確認</button></form>}
               <form className="record-panel dependency-form" onSubmit={e => {e.preventDefault(); if(conditionNode && conditionLabel.trim()) void mutation.execute(signal => conditionEdit ? api.updateCondition(conditionEdit.id, {label: conditionLabel, enforcement: conditionStrength}, signal) : api.addCondition(projectId, {node_id: conditionNode, label: conditionLabel, enforcement: conditionStrength}, signal));}}>
-                <label>條件目標任務<select required disabled={mutation.busy || !!conditionEdit} value={conditionNode} onChange={e => setConditionNode(e.target.value)}><option value="">選擇任務</option>{data.nodes.map(n => <option key={n.id} value={n.id}>{n.title}</option>)}</select></label>
+                <label>條件目標任務<select aria-label="條件目標任務" required disabled={mutation.busy || !!conditionEdit} value={conditionNode} onChange={e => setConditionNode(e.target.value)}><option value="">選擇任務</option>{data.nodes.map(n => <option key={n.id} value={n.id}>{n.title}</option>)}</select></label>
                 <label>條件名稱<input required maxLength={200} disabled={mutation.busy} value={conditionLabel} onChange={e => setConditionLabel(e.target.value)}/></label>
-                <label>條件強度<select disabled={mutation.busy} value={conditionStrength} onChange={e => setConditionStrength(e.target.value as 'hard' | 'soft')}><option value="hard">硬性</option><option value="soft">軟性</option></select></label>
+                <label>條件強度<select aria-label="條件強度" disabled={mutation.busy} value={conditionStrength} onChange={e => setConditionStrength(e.target.value as 'hard' | 'soft')}><option value="hard">硬性</option><option value="soft">軟性</option></select></label>
                 <button disabled={mutation.busy || !conditionNode || !conditionLabel.trim()}>{conditionEdit ? '儲存條件' : '新增人工條件'}</button>
                 {conditionEdit && <button type="button" disabled={mutation.busy} onClick={() => {setConditionEdit(null); setConditionLabel('');}}>取消編輯條件</button>}
               </form>

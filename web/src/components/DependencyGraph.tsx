@@ -1,5 +1,5 @@
 import { dependencyMet, dependencyLabel } from '../dependencies';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { DependencyData, NodeItem } from '../types';
 // Demo layout: 200×58 boxes, left-to-right by predecessor depth, orthogonal arrows that only move right.
 const GW = 200, GH = 58, GCOL = 260, GROW = 80;
@@ -31,6 +31,15 @@ export default function DependencyGraph({
   const drag = useRef<string | null>(null);
   const [pointer, setPointer] = useState<{x:number;y:number} | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
+  useEffect(() => {
+    if (!dragging) return;
+    const cancel = () => {drag.current = null; setDragging(null);};
+    const escape = (e: KeyboardEvent) => {if(e.key === 'Escape') cancel();};
+    window.addEventListener('pointerup', cancel);
+    window.addEventListener('pointercancel', cancel);
+    window.addEventListener('keydown', escape);
+    return () => {window.removeEventListener('pointerup', cancel); window.removeEventListener('pointercancel', cancel); window.removeEventListener('keydown', escape);};
+  }, [dragging]);
   const marker = useId().replaceAll(':', '');
   const ids = new Set(data.nodes.map((n) => n.id));
   const edges = data.items.filter(
@@ -86,7 +95,7 @@ export default function DependencyGraph({
         <p className="empty">沒有可顯示的任務。</p>
       ) : (
         <div className="dependency-graph">
-          <div className="graph-canvas" style={{ width, height }} onPointerMove={e => {if(drag.current) {const r=e.currentTarget.getBoundingClientRect(); setPointer({x:e.clientX-r.left,y:e.clientY-r.top});}}} onPointerUp={() => {drag.current = null; setDragging(null);}} onPointerCancel={() => {drag.current = null; setDragging(null);}} onPointerLeave={() => {drag.current = null; setDragging(null);}}>
+          <div className="graph-canvas" style={{ width, height }} onPointerMove={e => {if(drag.current) {const r=e.currentTarget.getBoundingClientRect(); setPointer({x:e.clientX-r.left,y:e.clientY-r.top});}}} onPointerUp={() => {drag.current = null; setDragging(null);}} onPointerCancel={() => {drag.current = null; setDragging(null);}}>
             {dragging && <span role="status">拖到後續任務方塊以設定前置</span>}
             <svg
               role="img"

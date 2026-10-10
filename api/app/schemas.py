@@ -307,8 +307,14 @@ class ConditionCreate(BaseModel):
 
 class ConditionEdit(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
-    label: str = Field(min_length=1, max_length=200)
-    enforcement: Literal['hard', 'soft'] = 'hard'
+    label: str | None = Field(default=None, min_length=1, max_length=200)
+    enforcement: Literal['hard', 'soft'] | None = None
+
+    @model_validator(mode='after')
+    def reject_explicit_null(self):
+        if any(getattr(self, key) is None for key in self.model_fields_set):
+            raise ValueError('條件設定不可為空值')
+        return self
 
 
 class ConditionConfirm(BaseModel):

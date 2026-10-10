@@ -37,7 +37,7 @@
 
 1. API：models.py、schemas.py、routes/dependencies.py、routes/projects.py、routes/reports.py、routes/workspace.py（審核中心警示投影）、routes/audit_logs.py；services/dependency_service.py、schedule_service.py、record_policy.py、node_policy.py、report_service.py、tree_service.py、workflow_service.py；新增services/condition_service.py及routes/conditions.py、main.py註冊；migration 0008。
 2. 前端：types.ts、api.ts、timeline.ts；components/DependencyPanel.tsx、DependencyGraph.tsx、TimelineView.tsx、NodeEditor.tsx、NodeWorkspace.tsx、AuditLogView.tsx、ReportPanel.tsx、ReviewCenter.tsx；styles.css。新增web/src/dependencies.ts共用判斷／標籤工具。指標拖線取消、錯誤保留草稿、鍵盤／手機用等效表單。
-3. 測試：新增api/tests/test_tp_d_dependencies.py、web/src/dependencies-advanced.test.tsx、web/e2e/dependencies-advanced.spec.ts；test_migrations.py與既有dependency、schedule、report、tree測試，deploy/verify.py加入PG 0008保留資料階段。既有測試允許test_tp_c_schedule.py、test_tree_editing.py、test_dependencies.py、test_reports.py、test_health.py及web/src/timeline-advanced.test.tsx、timeline.test.tsx、dependencies.test.tsx（僅調整本批新增欄位與語意斷言）。
+3. 測試：新增api/tests/test_tp_d_dependencies.py、web/src/dependencies-advanced.test.tsx、web/e2e/dependencies-advanced.spec.ts；test_migrations.py與既有dependency、schedule、report、tree測試，deploy/verify.py加入PG 0008保留資料階段。既有測試允許test_tp_c_schedule.py、test_tree_editing.py、test_dependencies.py、test_reports.py、test_health.py、test_record_permissions.py、test_workspace.py（批次查詢由8增至10，保留任務／專案成長查詢量不變斷言）及web/src/timeline-advanced.test.tsx、timeline.test.tsx、dependencies.test.tsx（僅調整本批新增欄位與語意斷言）。
 4. 文件：本計畫、README、PROGRESS、formal-development、mvp-trial-checklist。commit主旨TP-D，實際工具／模型trailer。
 
 ## 驗收與交付

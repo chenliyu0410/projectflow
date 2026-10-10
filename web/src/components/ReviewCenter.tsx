@@ -84,7 +84,7 @@ export default function ReviewCenter({
           comments[item.id]?.trim() ?? '',
           r.controller.signal,
         );
-        if (scope.current(r)) setNotice(result?.dependency_warnings?.join('；') ?? '');
+        if (scope.current(r)) setNotice(result?.dependency_warnings?.length ? `${decision === 'approved' ? '已核准' : '已退回'}。${result.dependency_warnings.join('；')}` : '');
       } else await api.approveGate(item.id, r.controller.signal);
       if (!scope.current(r)) return;
       committed = true;
@@ -132,7 +132,7 @@ export default function ReviewCenter({
       </div>
       {loading && <p role="status">載入審核清單中</p>}
       {error && <p role="alert">{error}</p>}
-      {notice && <p role="status" className="note warn">已核准。{notice}</p>}
+      {notice && <p role="status" className="note warn">{notice}</p>}
       {saved ? (
         <button disabled={busy || loading} onClick={() => void load()}>
           重試審核載入

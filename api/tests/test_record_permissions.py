@@ -166,8 +166,8 @@ def test_collaboration_queries_remain_constant_and_overview_updates(client,engin
             db.commit()
         queries.clear()
         assert len(client.get('/workspace/my-tasks').json()['items'])==21
-        # P2c adds one batched dependency lookup, independent of task count.
-        assert len(queries)==count and count<=8
+        # TP-D adds batched node ancestry and manual conditions; still independent of task/project count.
+        assert len(queries)==count and count<=10
         assert sum('FROM node_dependencies' in query for query in queries)==1
     finally:
         event.remove(engine,'before_cursor_execute',record)
