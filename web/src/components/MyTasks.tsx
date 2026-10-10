@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../api';
 import type { MyTask } from '../types';
+import Notifications from './Notifications';
 import { statuses } from './NodeWorkspace';
 
 const monthDay = (value: string | null) => value ? value.slice(5).replace('-', '/') : '';
@@ -45,6 +46,7 @@ export default function MyTasks({ openNode, expired, userName }: { openNode: (pr
     </div>
     {loading ? <p role="status">載入我的任務中</p> : error ? <><p role="alert">{error}</p><button onClick={() => void load()}>重試我的任務</button></>
       : items.length === 0 ? <p>{filtered ? '沒有符合篩選的任務' : '目前沒有指派給你的可見任務'}</p>
-        : <>{group('我負責的', owned)}{group('我協作的', collaborating)}</>}
+        : <>{group('待我指派', items.filter(item => item.relations?.includes('awaiting_assignment')))}{group('我負責的', owned)}{group('我協作的', collaborating)}</>}
+    <Notifications openNode={openNode} expired={expired}/>
   </section>;
 }

@@ -11,7 +11,7 @@ export interface NodeItem {
   milestone?: boolean; schedule_locked?: boolean;
   weight?: number; progress?: number | null;
   owner_display_name: string | null; department_name: string | null;
-  capabilities: { edit_schedule?: boolean; lock_schedule?: boolean; edit_metadata: boolean; assign: boolean; create_child: boolean; write_record?: boolean; submit_report?: boolean; review_report?: boolean; manage_collaborators?: boolean; lifecycle?: boolean; move?: boolean; copy?: boolean; delete?: boolean };
+  capabilities: { request_exception?: boolean; direct_exception?: boolean; manage_department?: boolean; edit_schedule?: boolean; lock_schedule?: boolean; edit_metadata: boolean; assign: boolean; create_child: boolean; write_record?: boolean; submit_report?: boolean; review_report?: boolean; manage_collaborators?: boolean; lifecycle?: boolean; move?: boolean; copy?: boolean; delete?: boolean };
   state_actions?: string[];
   blocked?: boolean;
   dependency_warnings?: string[];
@@ -22,7 +22,7 @@ export interface CopyResult extends NodeItem { undo_id: string; copied_count: nu
 export interface DeleteResult { undo_id: string; project_id: string; parent_id: string | null; deleted_count: number; }
 export interface UndoResult { action: 'node.create' | 'node.delete' | 'node.move' | 'node.copy' | 'template.apply'; project_id: string; node_id: string; parent_id: string | null; }
 export interface GateItem { id: string; project_id: string; node_id: string; status: 'pending' | 'approved'; }
-export interface ProjectDetail extends ProjectSummary { nodes: NodeItem[]; gates: GateItem[]; capabilities: { create_node: boolean }; }
+export interface ProjectDetail extends ProjectSummary { owner_display_name?:string|null; collaborators?:{user_id:string|null;department_id:string|null;display_name:string}[]; nodes: NodeItem[]; gates: GateItem[]; capabilities: { create_node: boolean }; }
 export type WorkspaceRoute = { page: 'overview' | 'my-tasks' | 'reviews' | 'audit' | 'workflows' } | { page: 'project'; projectId: string | null; nodeId: string | null };
 export interface WorkflowSummary { kind?: "workflow" | "task"; version?: number; phase_count?: number; task_count?: number; phase_titles?: string[]; id: string; name: string; requires_start_date?: boolean; capabilities?: { edit: boolean; copy: boolean; delete?: boolean }; }
 export interface AssignmentOptions { users: { id: string; display_name: string }[]; departments: { id: string; name: string }[]; }
@@ -32,8 +32,8 @@ export type NodeUpdate = Partial<NodeMetadata> & { milestone?: boolean; schedule
 export type TaskCounts = Record<NodeStatus, number>;
 export interface OverviewProject { id: string; title: string; task_counts: TaskCounts; completion_percent: number | null; progress_percent?: number | null; current_phase_title?: string | null; due_date?: string | null; overdue_count?: number; }
 export interface WorkloadPerson { user_id: string; display_name: string; department_name: string | null; open_count: number; overdue_count: number; }
-export interface WorkspaceOverviewData { project_count: number; task_counts: TaskCounts; completion_percent: number | null; projects: OverviewProject[]; today?: string; overdue_count?: number; people?: WorkloadPerson[]; departments?: { id: string; name: string; open_count: number }[]; }
-export interface MyTask extends NodeItem { project_title: string; relations?: ('owned' | 'collaborating')[]; path?: { id: string; title: string }[]; }
+export interface WorkspaceOverviewData { unassigned_count?: number; workload_tasks?: {id:string;title:string;project_id:string;owner_user_id:string|null;department_id:string|null}[]; project_count: number; task_counts: TaskCounts; completion_percent: number | null; projects: OverviewProject[]; today?: string; overdue_count?: number; people?: WorkloadPerson[]; departments?: { id: string; name: string; open_count: number }[]; }
+export interface MyTask extends NodeItem { project_title: string; relations?: ('owned' | 'collaborating' | 'awaiting_assignment')[]; path?: { id: string; title: string }[]; }
 
 export interface Attachment { id: string; node_id: string; original_name: string; size_bytes: number; sha256: string; uploaded_by: string; uploaded_by_display_name: string | null; created_at: string; report_id: string | null; note_id: string | null; }
 export interface Report { dependency_warnings?: string[]; type: 'report'; id: string; node_id: string; node_title: string; version: number; legacy: boolean; result: string; summary: string; finished_on: string | null; status: string; submitted_by: string; submitted_by_display_name: string | null; submitted_at: string; reviewed_by_display_name: string | null; reviewed_at: string | null; review_comment: string | null; self_approved: boolean; attachments: Attachment[]; created_at: string; }
@@ -61,3 +61,8 @@ export interface CatalogEntry extends WorkflowWrite { key: string; industry: str
 export interface TemplateVersion { version: number; created_at: string; author: string; }
 export interface TemplateApplyResult { project_id: string; node_ids: string[]; created_count: number; undo_id: string; }
 export interface TemplateApplyInput { template_id: string; version: number; start_date?: string; structure: boolean; dependencies: boolean; owners: boolean; dates: boolean; variables: Record<string,string>; }
+
+export interface CollaborationRequest { report?: {summary:string;result:string;finished_on:string}|null; id: string; node_id: string; node_title: string; project_id: string; kind: string; reason: string; status: string; can_review: boolean; comment: string | null; }
+export interface DepartmentItem { id: string; name: string; head_user_id: string | null; member_ids: string[]; }
+export interface DepartmentData { items: DepartmentItem[]; capabilities: {manage: boolean}; users: {id: string; display_name: string; role: string}[]; }
+export interface NotificationPage { items: {id: string; message: string; node_title: string; node_id: string; project_id: string; created_at: string; read: boolean}[]; unread_count: number; next_offset: number | null; }

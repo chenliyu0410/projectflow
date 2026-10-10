@@ -1,3 +1,5 @@
+import CollaborationActions from './CollaborationDialogs';
+import MemberPermissions from './MemberPermissions';
 import { useEffect, useMemo, useState } from 'react';
 import type { DragEvent, FocusEvent, ReactNode } from 'react';
 import ReportPanel from './ReportPanel';
@@ -282,6 +284,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         {actions}
       </div>
     </section>
+    {selected && reloadRecords && expired && <CollaborationActions key={`collaboration:${selected.id}:${recordVersion}`} node={selected} reload={reloadRecords} expired={expired}/>}
     {selected?.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`report:${selected.id}:${recordVersion}`} node={selected} userId={userId} reload={reloadRecords} expired={expired}
       autoOpen={reportIntent === selected.id} openChildren={openChildren(nodes, selected)}
       parentClosed={['review', 'done', 'skipped'].includes(nodes.find(node => node.id === selected.parent_id)?.status ?? '')} />}
@@ -325,7 +328,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         <section className="panel" aria-label="此節點的成員"><h3>此節點的成員</h3>
           <dl className="kv"><dt>負責人</dt><dd>{owner ? <><span className="avatar xs" aria-hidden="true">{owner.slice(0, 1)}</span>{owner}</> : '未指派'}</dd>
             <dt>部門</dt><dd>{selected.department_name ?? '未指派'}</dd></dl>
-          <p className="small muted">協作人員與部門在下方設定。角色權限表與部門管理排在任務規劃器（TP-F）。</p>
+          <p className="small muted">協作人員與部門在下方設定。實際可操作範圍依你的任務角色決定。</p>
         </section>
         <section className="panel" aria-label="我在此節點的權限"><h3>你（{userName}{roleLabel ? `・${roleLabel}` : ''}）在此節點可以</h3>
           <ul className="cap-list">{([
@@ -340,7 +343,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       </div>
       {recordsEnabled && reloadRecords && expired && <CollaboratorEditor key={`people:${selected.id}:${recordVersion}`} nodeId={selected.id} projectId={selected.project_id} manage={!!selected.capabilities?.manage_collaborators} reload={reloadRecords} expired={expired} />}
     </div>}
-    {active === 'people' && !selected && <p className="empty">專案層的成員與權限頁排在任務規劃器（TP-F）；進入階段或任務可查看該節點的成員與你的權限。</p>}
+    {active === 'people' && expired && <MemberPermissions project={project} expired={expired}/>}
     {active === 'records' && recordsEnabled && reloadRecords && expired && <RecordTimeline key={`records:${selected?.id ?? project.id}:${recordVersion}`} node={selected ?? null} projectId={project.id}
       leaf={leaf} descendantTasks={descendantTasks} userId={userId} reload={reloadRecords} expired={expired} select={select} />}
   </>;

@@ -8,6 +8,7 @@ export const slashDate = (value: string | null | undefined) => value ? value.spl
 
 export default function WorkspaceOverview({ openProject, expired, showAssignHint = false }: { openProject: (id: string) => void; expired: () => void; showAssignHint?: boolean }) {
   const [data, setData] = useState<WorkspaceOverviewData | null>(null);
+  const [filter,setFilter]=useState<{kind:'person'|'department';id:string|null}|null>(null);
   const [error, setError] = useState(''); const [loading, setLoading] = useState(true);
   const sequence = useRef(0); const controller = useRef<AbortController | null>(null);
   async function load() {
@@ -43,10 +44,13 @@ export default function WorkspaceOverview({ openProject, expired, showAssignHint
           <td>{project.task_counts.review || ''}</td>
         </tr>)}</tbody>
       </table></div>}
+      <button onClick={()=>setFilter({kind:'person',id:null})}>未指派任務（{data.unassigned_count??0}）</button>
+      <label>部門負載明細<select value={filter?.kind==='department'?filter.id??'':''} onChange={e=>setFilter(e.target.value?{kind:'department',id:e.target.value}:null)}><option value="">選擇部門</option>{data.departments?.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
+      {filter && <section className="panel" aria-label="負載任務明細"><h3>負載任務明細</h3><button onClick={()=>setFilter(null)}>關閉明細</button>{data.workload_tasks?.filter(n=>(filter.kind==='person'?n.owner_user_id:n.department_id)===filter.id).map(n=><p key={n.id}><button className="row-link" onClick={()=>openProject(n.project_id)}>{n.title}</button></p>)}</section>}
       <div className="overview-panels">
         <div className="panel"><h3>人員負載（未完成任務數）</h3>
           {people.length === 0 ? <p className="muted">目前沒有指派給人員的未完成任務。</p> : people.map(person => <div className="load-row" key={person.user_id}>
-            <div className="load-head"><span className="load-name"><span className="avatar small" aria-hidden="true">{person.display_name.slice(0, 1)}</span>{person.display_name}{person.department_name && <span className="muted">{person.department_name}</span>}</span>
+            <div className="load-head"><span className="load-name"><span className="avatar small" aria-hidden="true">{person.display_name.slice(0, 1)}</span><button className="row-link" onClick={()=>setFilter({kind:'person',id:person.user_id})}>{person.display_name}</button>{person.department_name && <span className="muted">{person.department_name}</span>}</span>
               <span>{person.open_count} 項{person.overdue_count > 0 && <span className="late">，{person.overdue_count} 項延遲</span>}</span></div>
             <span className="bar-track" aria-hidden="true"><span className={person.open_count === heaviest ? 'hot' : ''} style={{ width: `${person.open_count / heaviest * 100}%` }}/></span>
           </div>)}

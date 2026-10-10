@@ -667,3 +667,77 @@ def test_tp_e_postgresql_migration_preserves_templates(monkeypatch):
         assert db.get(Workflow,wid).version==2
         assert sorted(db.scalars(select(WorkflowVersion.version).where(WorkflowVersion.workflow_id==wid)))==[1,2]
     engine.dispose()
+
+
+def check_tp_f_migration(url,monkeypatch):
+    import pytest
+    from sqlalchemy import create_engine, MetaData, select, text
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy.orm import Session
+    from app.seed import seed_demo_data
+    from app.models import Notification, User, Node
+    monkeypatch.setenv('DATABASE_URL',url)
+    config=Config('api/alembic.ini')
+    command.upgrade(config,'20261010_0009')
+    engine=create_engine(sqlalchemy_url(url))
+    with Session(engine) as db:
+        seed_demo_data(db);db.commit()
+    meta=MetaData();meta.reflect(engine)
+    def snapshot():
+        with engine.connect() as db:
+            return {t.name:sorted([dict(r) for r in db.execute(select(t)).mappings()],key=lambda r:str(r.get('id'))) for t in meta.sorted_tables if t.name!='alembic_version'}
+    before=snapshot();command.upgrade(config,'head');assert snapshot()==before
+    command.downgrade(config,'20261010_0009');assert snapshot()==before
+    command.upgrade(config,'head')
+    with Session(engine) as db:
+        u=db.scalar(select(User).where(User.username=='yu'));n=db.scalar(select(Node).where(Node.organization_id==u.organization_id))
+        db.add(Notification(organization_id=u.organization_id,recipient_id=u.id,node_id=n.id,event_key='preserve',message='保留'));db.commit()
+    with pytest.raises(RuntimeError): command.downgrade(config,'20261010_0009')
+    engine.dispose()
+
+
+def test_tp_f_migration_preserves_data(tmp_path,monkeypatch):
+    check_tp_f_migration(f"sqlite:///{tmp_path/'tp-f.db'}",monkeypatch)
+
+
+def test_tp_f_postgresql_migration_preserves_data(monkeypatch):
+    import os, pytest
+    from sqlalchemy.engine import make_url
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url: pytest.skip('Dedicated PostgreSQL required')
+    assert make_url(url).database.startswith('p2b_test_') and os.environ.get('PF_ACCEPTANCE_MODE')=='true'
+    check_tp_f_migration(url,monkeypatch)
+
+    # Two reviewers compete for the same pending request against real PostgreSQL locks.
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+    from sqlalchemy import create_engine, select
+    from sqlalchemy.orm import Session
+    from app.models import User, Organization, Project, Node, CollaborationRequest, AuditLog
+    from app.auth import CurrentUser
+    from app.routes.collaboration import RequestWrite, Decision
+    from app.services import collaboration_service
+    from fastapi import HTTPException
+    engine=create_engine(sqlalchemy_url(url))
+    with Session(engine) as db:
+        admin=db.scalar(select(User).where(User.username=='yu'));member=db.scalar(select(User).where(User.username=='ming'))
+        org=db.get(Organization,admin.organization_id)
+        project=Project(organization_id=org.id,title='TP-F race',owner_user_id=admin.id);db.add(project);db.flush()
+        node=Node(organization_id=org.id,project_id=project.id,title='Race task',kind='task',owner_user_id=member.id);db.add(node);db.commit()
+        uid,oid,nid=admin.id,org.id,node.id
+        result=collaboration_service.create(db,CurrentUser(member,org,''),nid,RequestWrite(kind='skip',reason='test'))
+        rid=result['id']
+    barrier=Barrier(2)
+    def approve(_):
+        with Session(engine) as db:
+            current=CurrentUser(db.get(User,uid),db.get(Organization,oid),'')
+            barrier.wait(timeout=10)
+            try: collaboration_service.decide(db,current,rid,Decision(decision='approved'));return 200
+            except HTTPException as e: db.rollback();return e.status_code
+    with ThreadPoolExecutor(max_workers=2) as pool: results=list(pool.map(approve,range(2)))
+    assert sorted(results)==[200,409]
+    with Session(engine) as db:
+        assert db.get(Node,nid).status=='skipped'
+        assert len(list(db.scalars(select(AuditLog).where(AuditLog.node_id==nid,AuditLog.action=='node.skip'))))==1
+    engine.dispose()

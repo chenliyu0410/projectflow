@@ -6,8 +6,8 @@ from app.audit import log_audit
 from app.services.dependency_service import lock_project, require_dependencies
 from app.auth import CurrentUser, require_session
 from app.database import get_session
-from app.models import Department, Gate, Node, Project, User
-from app.permissions import can_view_node, can_view_project, can_work_node, can_manage_project, can_edit_node
+from app.models import Department, Gate, Node, Project, User, NodeCollaborator
+from app.permissions import can_view_node, can_view_project, can_work_node, can_manage_project, can_edit_node, can_assign_node
 from app.schemas import NodeCreate, NodeMove, NodeUpdate, NodeStatusUpdate, ProjectCreate, UndoRequest, ScheduleUpdate
 from app.services import tree_service, schedule_service
 from app.services.node_policy import (node_out, json_value, validate_assignments, validate_dates, blocked_by_pending_gate,
@@ -80,6 +80,10 @@ def get_project(project_id: str, current: CurrentUser = Depends(require_session)
     visible_ids = {node.id for node in visible_nodes}
     return {
         **project_out(current, project),
+        "owner_display_name": context.users[project.owner_user_id].display_name if project.owner_user_id in context.users else None,
+        "collaborators": [{"user_id":c.user_id,"department_id":c.department_id,
+                           "display_name":context.users[c.user_id].display_name if c.user_id in context.users else context.departments[c.department_id].name if c.department_id in context.departments else '未設定'}
+                          for c in db.scalars(select(NodeCollaborator).where(NodeCollaborator.organization_id == current.organization.id,NodeCollaborator.node_id.in_(visible_ids)))],
         "nodes": [node_out(db, current, project, node, context=context) for node in visible_nodes],
         "gates": [gate_out(gate) for gate in gates if gate.node_id in visible_ids],
     }
@@ -147,6 +151,8 @@ def update_node_status(node_id: str, payload: NodeStatusUpdate, current: Current
     node, project, context = lock_node(db, current, node_id, require_visible=False)
     if not can_work_node(db, current, node):
         raise HTTPException(status_code=403, detail="沒有操作此節點的權限")
+    from app.services.collaboration_service import require_open_ancestors
+    if payload.status in {'doing','review','done'}: require_open_ancestors(db,current,node)
     # Every status mutation validates ancestry; Gates only block starting work.
     blocked = blocked_by_pending_gate(db, current, node)
     if payload.status in {"doing", "review", "done", "skipped"} and blocked:
@@ -169,7 +175,7 @@ def update_node_status(node_id: str, payload: NodeStatusUpdate, current: Current
 def assignment_options(project_id: str, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     project = get_project_or_404(db, current, project_id)
     context = load_policy_context(db, current)
-    if not can_manage_project(current, project):
+    if current.user.role == "readonly" or not (can_manage_project(current, project) or any(d.head_user_id == current.user.id for d in context.departments.values())):
         raise HTTPException(status_code=403, detail="沒有指派權限")
     users = db.scalars(select(User).where(User.organization_id == current.organization.id, User.role != "readonly").order_by(User.display_name, User.id))
     departments = db.scalars(select(Department).where(Department.organization_id == current.organization.id).order_by(Department.name, Department.id))
@@ -185,7 +191,9 @@ def update_node(node_id: str, payload: NodeUpdate, current: CurrentUser = Depend
     if not can_edit_node(db, current, project, node, context=context, departments=context.departments):
         raise HTTPException(status_code=403, detail="沒有編輯此節點的權限")
     fields = payload.model_dump(exclude_unset=True)
-    if {"owner_user_id", "department_id"} & fields.keys() and not can_manage_project(current, project):
+    if "department_id" in fields and not can_manage_project(current, project):
+        raise HTTPException(status_code=403, detail="沒有變更部門權限")
+    if "owner_user_id" in fields and not can_assign_node(db, current, project, node, context=context):
         raise HTTPException(status_code=403, detail="沒有指派權限")
     if "progress" in fields and node.kind != "task":
         raise HTTPException(status_code=422, detail="只有任務可以填寫進度")

@@ -82,7 +82,7 @@ def test_patch_whitelist(client,engine,payload):
     ('owner','yu','ming','chen',True,False,False),
     ('ming','yu','ming','chen',True,True,False),
     ('chen','yu','ming','chen',True,True,False),
-    ('ming','yu','yu','ming',False,False,False),
+    ('ming','yu','yu','ming',True,True,False),
     ('lin','lin','lin','lin',True,False,False),
     ('lin','yu','ming','chen',True,False,False),
 ])
@@ -95,23 +95,24 @@ def test_metadata_permission_matrix(client,engine,actor,project_owner,node_owner
         db.commit()
     client.post('/auth/logout');login(client,username=actor)
     detail=client.get(f'/projects/{pid}').json()
+    assign=manage or (actor==head and actor!='lin')
     assert detail['capabilities']['create_node']==manage
     nodes={n['id']:n for n in detail['nodes']}
     assert (nid in nodes)==visible
     if visible:
-        assert {k: nodes[nid]['capabilities'][k] for k in ('edit_metadata','assign','create_child')}=={'edit_metadata':edit,'assign':manage,'create_child':manage}
+        assert {k: nodes[nid]['capabilities'][k] for k in ('edit_metadata','assign','create_child')}=={'edit_metadata':edit,'assign':assign,'create_child':manage}
     before=snapshot(engine)
     r=client.patch(f'/nodes/{nid}',json={'title':'changed'})
     assert r.status_code==(200 if edit else 403 if visible else 404)
     if not edit: assert snapshot(engine)==before
     before=snapshot(engine)
     r=client.patch(f'/nodes/{nid}',json={'owner_user_id':users['yu']})
-    assert r.status_code==(200 if manage and visible else 403 if visible else 404)
-    if not manage: assert snapshot(engine)==before
+    assert r.status_code==(200 if assign and visible else 403 if visible else 404)
+    if not assign: assert snapshot(engine)==before
     before=snapshot(engine)
     assert client.post(f'/projects/{pid}/nodes',json={'title':'new','kind':'task'}).status_code==(201 if manage else 403)
     if not manage: assert snapshot(engine)==before
-    assert client.get(f'/projects/{pid}/assignment-options').status_code==(200 if manage else 403)
+    assert client.get(f'/projects/{pid}/assignment-options').status_code==(200 if assign else 403)
 
 
 def test_assignment_scope_and_options(client,engine):

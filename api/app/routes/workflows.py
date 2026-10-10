@@ -6,7 +6,7 @@ from app.audit import log_audit
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.models import Gate, Node, Project, Workflow, WorkflowNode
-from app.permissions import can_work_node, can_work_project
+from app.permissions import can_work_node, can_work_project, can_view_node
 from app.schemas import GateStatusUpdate, ProjectFromWorkflowCreate, WorkflowWrite, WorkflowCopy
 from app.services import workflow_service as service
 
@@ -55,13 +55,14 @@ def update_gate(gate_id: str, payload: GateStatusUpdate, current: CurrentUser = 
     gate = db.execute(select(Gate).where(Gate.organization_id == current.organization.id, Gate.id == gate_id)).scalar_one_or_none()
     if gate is None:
         raise HTTPException(status_code=404, detail="找不到閘門")
-    project = db.execute(
-        select(Project).where(Project.organization_id == current.organization.id, Project.id == gate.project_id)
-    ).scalar_one()
+    from app.services.dependency_service import lock_project
+    project = lock_project(db,current,gate.project_id)
+    db.refresh(gate,with_for_update=True)
     node = db.execute(select(Node).where(Node.organization_id == current.organization.id, Node.id == gate.node_id)).scalar_one_or_none()
-    if node is None:raise HTTPException(status_code=404,detail="找不到閘門")
+    from app.services.record_policy import load_policy_context
+    if node is None or not can_view_node(current,node,context=load_policy_context(db,current)):raise HTTPException(status_code=404,detail="找不到閘門")
     scoped_reviewer = current.user.role == "reviewer" and can_work_node(db, current, node)
-    if not can_work_project(current, project) and not scoped_reviewer:
+    if current.user.role == "readonly" or (not can_work_project(current, project) and not scoped_reviewer):
         raise HTTPException(status_code=403, detail="沒有核准閘門權限")
     gate.status = payload.status
     log_audit(db, current, "gate.approve", node_id=gate.node_id, payload={"gate_id": gate.id, "status": payload.status})

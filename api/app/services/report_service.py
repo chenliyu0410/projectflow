@@ -56,7 +56,13 @@ def report_out(report, node, context, attachments=()):
     }
 
 
-def submit_report(db, current, node_id, payload):
+def submit_report(db, current, node_id, payload, *, commit=True):
+    if payload.request_override:
+        if not payload.override_reason or not payload.override_reason.strip(): raise HTTPException(422,'覆寫理由必填')
+        from app.routes.collaboration import RequestWrite
+        from app.services.collaboration_service import create
+        return create(db,current,node_id,RequestWrite(kind='report_submit',reason=payload.override_reason,report=payload.model_dump(mode='json')))
+
     node, project, context = lock_node(db, current, node_id)
     if not can_submit_report(db, current, project, node, context=context):
         raise HTTPException(status_code=403, detail="沒有回報此節點的權限")
@@ -65,8 +71,11 @@ def submit_report(db, current, node_id, payload):
     if node.status not in {'todo', 'doing', 'review'} or node.id in context.pending_reports:
         conflict()
     require_gate(db, current, node)
-    require_dependencies(db, current, node, 'finish' if payload.self_approve else 'start')
-    require_children_finished(db, current, node)
+    from app.services.collaboration_service import check_report_override, require_open_ancestors
+    require_open_ancestors(db,current,node)
+    if not check_report_override(db,current,project,node,payload.override_reason,'self' if payload.self_approve else 'submit'):
+        require_dependencies(db, current, node, 'finish' if payload.self_approve else 'start')
+        require_children_finished(db, current, node)
     report = TaskReport(organization_id=current.organization.id, node_id=node.id,
         result=payload.result, summary=payload.summary, finished_on=payload.finished_on,
         submitted_by=current.user.id, workflow_version=2, version=context.latest_versions.get(node.id, 0) + 1,
@@ -81,7 +90,8 @@ def submit_report(db, current, node_id, payload):
         log_audit(db, current, 'report.submit', node_id=node.id, payload={'report_id':report.id,'version':report.version,'result':report.result})
         if payload.self_approve:
             log_audit(db, current, 'report.approve', node_id=node.id, payload={'report_id':report.id,'version':report.version,'self_approved':True})
-        db.commit()
+        if commit: db.commit()
+        else: db.flush()
     except IntegrityError:
         db.rollback()
         conflict()
@@ -101,9 +111,12 @@ def review_report(db, current, report_id, payload):
     if not can_review_report(db, current, project, node, report, context=context):
         conflict()
     if payload.decision == 'approved':
-        require_dependencies(db, current, node, 'finish')
         require_gate(db, current, node)
-        require_children_finished(db, current, node)
+        from app.services.collaboration_service import check_report_override, require_open_ancestors
+        require_open_ancestors(db,current,node)
+        if not check_report_override(db,current,project,node,payload.override_reason,'approve'):
+            require_dependencies(db, current, node, 'finish')
+            require_children_finished(db, current, node)
     else:
         containing_phase(db, current, node)
     report.status = payload.decision
@@ -119,6 +132,15 @@ def review_report(db, current, report_id, payload):
 
 
 def lifecycle(db, current, node_id, payload):
+    from app.services import collaboration_service
+    if payload.action == 'skip':
+        from types import SimpleNamespace
+        collaboration_service.create(db,current,node_id,SimpleNamespace(kind='skip',reason=payload.reason,direct=True))
+        node,project,context=lock_node(db,current,node_id)
+        return node_out(db,current,project,node,context=context)
+    if payload.action == 'restore':
+        restored=collaboration_service.restore(db,current,node_id,payload.reason)
+        if restored is not None: return restored
     node, project, context = lock_node(db, current, node_id)
     if not can_manage_project(current, project):
         raise HTTPException(status_code=403, detail="沒有管理此任務的權限")

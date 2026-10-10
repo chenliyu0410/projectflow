@@ -54,7 +54,7 @@ def test_overview_visible_tasks_count_parents_and_exclude_hidden(client,engine,w
     response=client.get('/workspace/overview')
     assert response.status_code==200
     value=response.json()
-    assert set(value)=={'project_count','task_counts','completion_percent','projects','today','overdue_count','people','departments'}
+    assert set(value)=={'project_count','task_counts','completion_percent','projects','today','overdue_count','people','departments','workload_tasks','unassigned_count'}
     assert value['project_count']==4
     assert value['task_counts']=={'todo':1,'doing':1,'review':1,'done':2,'skipped':2}
     assert value['completion_percent']==40
@@ -213,7 +213,7 @@ def test_company_without_projects_has_empty_workspace(client,engine):
     assert empty.pop('today')
     assert empty=={
         'project_count':0,'task_counts':{'todo':0,'doing':0,'review':0,'done':0,'skipped':0},
-        'completion_percent':None,'projects':[],'overdue_count':0,'people':[],'departments':[],
+        'completion_percent':None,'projects':[],'overdue_count':0,'people':[],'departments':[],'workload_tasks':[],'unassigned_count':0,
     }
     assert client.get('/workspace/my-tasks').json()=={'items':[]}
 

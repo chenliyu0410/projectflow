@@ -147,6 +147,8 @@ class GateStatusUpdate(BaseModel):
 
 
 class ReportCreate(BaseModel):
+    request_override: bool = False
+    override_reason: str | None = Field(default=None, min_length=1, max_length=2000)
     model_config = ConfigDict(extra="forbid")
     result: Literal["達成", "部分達成", "未達成"]
     summary: str
@@ -176,6 +178,7 @@ class ReportCreate(BaseModel):
 
 
 class ReportReview(BaseModel):
+    override_reason: str | None = Field(default=None, min_length=1, max_length=2000)
     model_config = ConfigDict(extra="forbid")
     decision: Literal["approved", "rejected"]
     comment: str = ""

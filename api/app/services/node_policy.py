@@ -1,3 +1,4 @@
+from app.permissions import can_assign_node, can_work_node
 """Shared metadata validation and permission-scoped node projection."""
 from datetime import date
 
@@ -49,7 +50,10 @@ def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *,
             'edit_metadata': can_edit_node(db, current, project, node, departments=departments, context=context),
             'lock_schedule': manage and node.kind == 'task',
             'edit_schedule': can_edit_node(db, current, project, node, departments=departments, context=context) and (not node.schedule_locked or manage),
-            'assign': manage and node.kind in {'phase','task'},
+            'assign': visible and can_assign_node(db, current, project, node, context=context) and node.kind in {'phase','task'},
+            'manage_department': manage,
+            'request_exception': node.kind in {'task','phase'} and visible and current.user.role != 'readonly' and (manage or can_work_node(db, current, node, departments=departments)),
+            'direct_exception': manage,
             'create_child': manage and node.kind in {'project','phase','task'},
             'write_record': can_write_record(db, current, project, node, context=context),
             'submit_report': can_submit_report(db, current, project, node, context=context),

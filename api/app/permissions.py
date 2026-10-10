@@ -20,7 +20,8 @@ def can_view_node(current: CurrentUser, node: Node, *, context=None) -> bool:
         return False
     return current.user.role in {"admin", "project_owner", "reviewer", "readonly"} or node.owner_user_id == current.user.id or (
         context is not None and context.organization_id == current.organization.id
-        and context.user_id == current.user.id and node.id in context.collaborator_node_ids
+        and context.user_id == current.user.id and (node.id in context.collaborator_node_ids
+            or (node.department_id in context.departments and context.departments[node.department_id].head_user_id == current.user.id))
     )
 
 
@@ -63,3 +64,9 @@ def can_edit_node(db: Session, current: CurrentUser, project: Project, node: Nod
         and can_view_node(current, node, context=context)
         and (can_manage_project(current, project) or can_work_node(db, current, node, departments=departments))
     )
+
+
+def can_assign_node(db, current, project, node, *, context):
+    department = context.departments.get(node.department_id)
+    return (current.user.role != 'readonly' and can_view_node(current, node, context=context)
+            and (can_manage_project(current, project) or (department is not None and department.head_user_id == current.user.id)))

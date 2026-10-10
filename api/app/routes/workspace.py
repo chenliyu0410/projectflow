@@ -101,6 +101,8 @@ def overview(current: CurrentUser = Depends(require_session), db: Session = Depe
         "task_counts": counts,
         "completion_percent": completion_percent(counts),
         "today": today.isoformat(),
+        "workload_tasks": [{'id':n.id,'title':n.title,'project_id':n.project_id,'owner_user_id':n.owner_user_id,'department_id':n.department_id} for n in nodes if n.kind == 'task' and n.status in OPEN_STATUSES],
+        "unassigned_count": sum(n.kind == 'task' and n.status in OPEN_STATUSES and n.owner_user_id is None for n in nodes),
         "overdue_count": sum(overdue.values()),
         "projects": [
             {"id": project.id, "title": project.title, "task_counts": per_project[project.id],
@@ -133,7 +135,7 @@ def my_tasks(
     query = q.strip().casefold()
     tasks = [
         node for node in nodes
-        if node.kind == "task" and (node.owner_user_id == current.user.id or is_collaborator(current, node, context=context))
+        if node.kind == "task" and (node.owner_user_id == current.user.id or is_collaborator(current, node, context=context) or (node.owner_user_id is None and node.status in OPEN_STATUSES and node.department_id in context.departments and context.departments[node.department_id].head_user_id == current.user.id and current.user.role != 'readonly'))
         and (not status or node.status == status)
         and (not query or query in node.title.casefold() or query in projects[node.project_id].title.casefold())
     ]
@@ -144,7 +146,8 @@ def my_tasks(
          "project_title": projects[node.project_id].title,
          "path": visible_path(node, by_id),
          "relations": (["owned"] if node.owner_user_id == current.user.id else [])
-                      + (["collaborating"] if is_collaborator(current, node, context=context) else [])}
+                      + (["collaborating"] if is_collaborator(current, node, context=context) else [])
+                      + (['awaiting_assignment'] if node.owner_user_id is None and node.status in OPEN_STATUSES and node.department_id in context.departments and context.departments[node.department_id].head_user_id == current.user.id and current.user.role != 'readonly' else [])}
         for node in tasks
     ]}
 

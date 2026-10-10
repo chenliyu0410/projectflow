@@ -400,3 +400,46 @@ class NodeCondition(Base):
     reason: Mapped[str | None] = mapped_column(String(1000))
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class CollaborationRequest(Base):
+    __tablename__ = 'collaboration_requests'
+    __table_args__ = (
+        ForeignKeyConstraint(['organization_id', 'project_id', 'node_id'], ['nodes.organization_id', 'nodes.project_id', 'nodes.id']),
+        ForeignKeyConstraint(['organization_id', 'requested_by'], ['users.organization_id', 'users.id']),
+        ForeignKeyConstraint(['organization_id', 'decided_by'], ['users.organization_id', 'users.id']),
+        CheckConstraint("status IN ('pending','approved','rejected','expired')", name='ck_collaboration_status'),
+        Index('uq_collaboration_pending', 'organization_id', 'node_id', 'kind', unique=True, postgresql_where=text("status = 'pending'"), sqlite_where=text("status = 'pending'")),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
+    organization_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    project_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    node_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    requested_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default='pending')
+    evidence: Mapped[dict] = mapped_column(JsonType, nullable=False, default=dict)
+    snapshot: Mapped[dict] = mapped_column(JsonType, nullable=False, default=dict)
+    decided_by: Mapped[str | None] = mapped_column(String(36))
+    comment: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    restored_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class Notification(Base):
+    __tablename__ = 'notifications'
+    __table_args__ = (
+        ForeignKeyConstraint(['organization_id', 'recipient_id'], ['users.organization_id', 'users.id']),
+        ForeignKeyConstraint(['organization_id', 'node_id'], ['nodes.organization_id', 'nodes.id']),
+        UniqueConstraint('organization_id', 'recipient_id', 'event_key', name='uq_notification_event'),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
+    organization_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    recipient_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    node_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    event_key: Mapped[str] = mapped_column(String(160), nullable=False)
+    message: Mapped[str] = mapped_column(String(200), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

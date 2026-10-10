@@ -65,6 +65,7 @@ export default function ReportPanel({
   const [error, setError] = useState('');
   const [latest, setLatest] = useState<Report | null>(null);
   const [summary, setSummary] = useState('');
+  const [overrideReason, setOverrideReason] = useState('');
   const [result, setResult] = useState('達成');
   const [date, setDate] = useState('');
   const [ids, setIds] = useState<string[]>([]);
@@ -133,7 +134,7 @@ export default function ReportPanel({
   const canSubmit =
     !!node.capabilities?.submit_report &&
     actions.includes('submit_report') &&
-    !childrenOpen;
+    (!childrenOpen || !!overrideReason.trim());
   const canReview =
     !!node.capabilities?.review_report &&
     latest &&
@@ -159,6 +160,7 @@ export default function ReportPanel({
           finished_on: date,
           attachment_ids: ids,
           self_approve: self,
+          ...(overrideReason.trim() ? {override_reason: overrideReason.trim(), request_override: !node.capabilities?.direct_exception} : {}),
         },
         signal,
       ),
@@ -168,6 +170,7 @@ export default function ReportPanel({
   return (
     <section className={`record-panel report-card ${tone}`} aria-label="完成回報">
       {node.dependency_warnings?.map(w => <p className="note warn" key={w}>{w}</p>)}
+      {(node.capabilities?.submit_report || node.capabilities?.review_report) && <label>當次覆寫理由（選填；非管理者送出後等待核准）<input maxLength={2000} value={overrideReason} onChange={e=>setOverrideReason(e.target.value)}/></label>}
       <div className="rc-row">
         <div className="rc-main">
           <h3>{mark && <span aria-hidden="true">{mark}</span>}{title}</h3>
@@ -326,7 +329,7 @@ export default function ReportPanel({
                   <div className="record-actions">
                     <button
                       className="primary"
-                      disabled={mutation.busy || childrenOpen}
+                      disabled={mutation.busy || (childrenOpen && !overrideReason.trim())}
                       onClick={() =>
                         void mutation.execute((signal) =>
                           api.reviewReport(
@@ -334,6 +337,7 @@ export default function ReportPanel({
                             'approved',
                             comment.trim(),
                             signal,
+                            overrideReason.trim() || undefined,
                           ),
                         )
                       }

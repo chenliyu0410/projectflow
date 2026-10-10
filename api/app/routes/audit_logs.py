@@ -47,6 +47,8 @@ def project_payload(action, raw, node, context, projects, references):
     if not isinstance(raw, dict):
         return {}
     node_id = node.id if node else None
+    if action.startswith('collaboration.') and node is not None:
+        return {k:v for k in ('kind','reason','comment') if (v:=text_value(raw.get(k),2000)) is not None}
     if action in {'condition.create', 'condition.update', 'condition.confirm', 'condition.delete'} and node is not None:
         def evidence(value):
             if not isinstance(value, dict) or value.get('node_id') != node.id:
@@ -205,7 +207,7 @@ def project_payload(action, raw, node, context, projects, references):
     return {}
 
 
-SUMMARIES = {'template.apply':'套用模板','workflow.create':'新增模板','workflow.update':'建立模板新版','workflow.copy':'複製模板','workflow.delete':'刪除模板','dependency.create': '新增前置', 'dependency.update': '修改前置', 'dependency.delete': '移除前置',
+SUMMARIES = {'collaboration.request':'跳過／覆寫申請','collaboration.approve':'核准跳過／覆寫','collaboration.reject':'退回申請','collaboration.expire':'申請失效結案','collaboration.override':'附理由覆寫', 'template.apply':'套用模板','workflow.create':'新增模板','workflow.update':'建立模板新版','workflow.copy':'複製模板','workflow.delete':'刪除模板','dependency.create': '新增前置', 'dependency.update': '修改前置', 'dependency.delete': '移除前置',
              'condition.create': '新增人工條件', 'condition.update': '修改人工條件', 'condition.confirm': '人工條件確認／撤回', 'condition.delete': '移除人工條件', 'project.create': '建立專案', 'workflow.instantiate': '套用工作流', 'node.create': '新增節點',
              'node.update': '更新節點資料', 'node.status': '更新節點狀態', 'node.move': '移動節點', 'node.reopen': '恢復工作',
              'node.delete': '刪除節點', 'node.copy': '複製子樹', 'node.undo': '復原',

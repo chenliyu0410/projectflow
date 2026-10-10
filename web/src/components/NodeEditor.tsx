@@ -203,7 +203,7 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, l
           <option value="">未指派</option>{initial.owner_user_id && !options?.users.some(user => user.id === initial.owner_user_id) && <option disabled value={initial.owner_user_id}>{node?.owner_display_name ?? '既有負責人'}（既有指派）</option>}
           {options?.users.map(user => <option key={user.id} value={user.id}>{user.display_name}</option>)}
         </select></label>
-        <label>部門<select aria-label="部門" value={department} disabled={loading || saving || !options} onChange={event => setDepartment(event.target.value)}>
+        <label>部門<select aria-label="部門" value={department} disabled={loading || saving || !options || (mode === 'edit' && node?.capabilities.manage_department === false)} onChange={event => setDepartment(event.target.value)}>
           <option value="">未指派</option>{initial.department_id && !options?.departments.some(item => item.id === initial.department_id) && <option disabled value={initial.department_id}>{node?.department_name ?? '既有部門'}（既有指派）</option>}
           {options?.departments.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
         </select></label>

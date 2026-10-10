@@ -21,6 +21,11 @@ const actions: Record<string, string> = {
   'node.copy': '複製子樹',
   'node.undo': '復原',
   'node.reopen': '恢復工作',
+  'collaboration.request': '跳過／覆寫申請',
+  'collaboration.approve': '核准跳過／覆寫',
+  'collaboration.reject': '退回申請',
+  'collaboration.expire': '申請失效結案',
+  'collaboration.override': '附理由覆寫',
   'node.skip': '略過任務',
   'node.restore': '恢復略過任務',
   'gate.approve': '核准閘門',
@@ -99,8 +104,8 @@ function AuditChanges({ item }: { item: AuditItem }) {
   }
   if (item.action === 'node.status' && typeof p.status === 'string')
     add('狀態', statuses[p.status] ?? '未設定');
-  if (['node.reopen', 'node.skip', 'node.restore'].includes(item.action))
-    add('理由', p.reason);
+  if (item.action.startsWith('collaboration.') || ['node.reopen', 'node.skip', 'node.restore'].includes(item.action))
+    add('理由', p.reason ?? p.comment);
   if (
     ['project.create', 'workflow.instantiate', 'node.create'].includes(
       item.action,

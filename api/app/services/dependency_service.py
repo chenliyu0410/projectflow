@@ -12,6 +12,8 @@ def lock_project(db,current,project_id):
     project=db.scalar(select(Project).where(Project.organization_id==current.organization.id,Project.id==project_id)
                       .with_for_update().execution_options(populate_existing=True))
     if project is None or not can_view_project(current,project):raise HTTPException(status_code=404,detail='找不到專案')
+    from app.services.notification_service import watch
+    watch(db, current, project.id)
     return project
 
 

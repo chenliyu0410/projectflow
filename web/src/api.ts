@@ -32,6 +32,8 @@ export class ApiError extends Error {
 
 // Fixed TP-A/TP-B conflict texts may be shown as-is; any other backend detail stays hidden.
 export const KNOWN_CONFLICTS = new Set([
+  '申請已失效結案，請重新申請', '跳過後已有修改，無法整組恢復', '已有待審核申請', '申請已處理，請重新整理', '部門仍有資料引用，請先移轉', '已有同名部門', '部門資料已變更，請重新整理',
+
   '後續任務有無法調整的項目，請由專案負責人確認',
   '里程碑不能有子任務，請先取消里程碑',
   '日期早於自己或上層的前置任務，請先調整排程',
@@ -132,6 +134,15 @@ export async function requestJson<T>(
 }
 
 export const api = {
+  departments: (signal?: AbortSignal) => requestJson<import('./types').DepartmentData>('/departments', {signal}),
+  saveDepartment: (id: string | null, payload: Omit<import('./types').DepartmentItem, 'id'>) => requestJson(id ? `/departments/${id}` : '/departments', {method:id ? 'PATCH' : 'POST',body:JSON.stringify(payload)}),
+  deleteDepartment: (id: string) => requestJson(`/departments/${id}`, {method:'DELETE'}),
+  collaborationRequests: (signal?: AbortSignal) => requestJson<{items: import('./types').CollaborationRequest[]}>('/workspace/requests', {signal}),
+  requestException: (id: string, kind: string, reason: string, direct: boolean, signal?: AbortSignal) => requestJson(`/nodes/${id}/requests`, {method:'POST',body:JSON.stringify({kind,reason,direct}),signal}),
+  decideException: (id: string, decision: string, comment: string, signal?: AbortSignal) => requestJson(`/requests/${id}/decision`, {method:'POST',body:JSON.stringify({decision,comment}),signal}),
+  notifications: (offset=0, signal?: AbortSignal) => requestJson<import('./types').NotificationPage>(`/notifications?offset=${offset}`, {signal}),
+  readNotification: (id: string) => requestJson(`/notifications/${id}/read`, {method:'POST'}),
+
   workflow: (id: string, signal?: AbortSignal) =>
     requestJson<WorkflowDetail>(`/workflows/${id}`, { signal }),
   templateVersions: (id: string, signal?: AbortSignal) => requestJson<{items: TemplateVersion[]}>(`/workflows/${id}/versions`, {signal}),
@@ -217,7 +228,7 @@ export const api = {
       summary: string;
       finished_on: string;
       attachment_ids: string[];
-      self_approve: boolean;
+      self_approve: boolean; override_reason?: string; request_override?: boolean;
     },
     signal?: AbortSignal,
   ) =>
@@ -231,10 +242,11 @@ export const api = {
     decision: string,
     comment: string,
     signal?: AbortSignal,
+    override_reason?: string,
   ) =>
     requestJson<Report>(`/reports/${id}/review`, {
       method: 'POST',
-      body: JSON.stringify({ decision, comment }),
+      body: JSON.stringify({ decision, comment, ...(override_reason ? {override_reason} : {}) }),
       signal,
     }),
   lifecycle: (

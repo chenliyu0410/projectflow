@@ -6,6 +6,7 @@ import psycopg
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+from app.routes import collaboration, notifications
 from app.routes import audit_logs, auth, departments, projects, reports, workflows, workspace, records, collaborators, attachments, dependencies, conditions
 
 
@@ -32,6 +33,8 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
 
     application = FastAPI(title="ProjectFlow API", lifespan=lifespan)
     probe = checker if checker is not None else database_ready
+    application.include_router(collaboration.router)
+    application.include_router(notifications.router)
     application.include_router(auth.router)
     application.include_router(departments.router)
     application.include_router(projects.router)

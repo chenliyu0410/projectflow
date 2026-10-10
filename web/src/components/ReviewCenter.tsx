@@ -1,3 +1,4 @@
+import { RequestReviews } from './CollaborationDialogs';
 import { useEffect, useRef, useState } from 'react';
 import {
   api,
@@ -213,8 +214,7 @@ export default function ReviewCenter({
         {empty('report')}
       </section>
       <section className="review-section" aria-label="跳過申請">
-        <h2>待審核的跳過申請</h2>
-        <p className="empty">尚未提供：跳過申請與主管核准排在任務規劃器（TP-F）。</p>
+        <RequestReviews expired={expired}/>
       </section>
       <section className="review-section" aria-label="閘門審核">
         <h2>待核准的階段閘門{count(gates.length)}</h2>

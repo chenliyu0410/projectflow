@@ -1,3 +1,10 @@
+import { beforeEach as beforeTpF } from 'vitest';
+import { api as tpFApi } from './api';
+beforeTpF(()=>{
+ vi.spyOn(tpFApi,'notifications').mockResolvedValue({items:[],unread_count:0,next_offset:null});
+ vi.spyOn(tpFApi,'departments').mockResolvedValue({items:[],users:[],capabilities:{manage:false}});
+ vi.spyOn(tpFApi,'collaborationRequests').mockResolvedValue({items:[]});
+});
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import DependencyPanel from './components/DependencyPanel';
