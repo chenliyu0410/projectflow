@@ -45,7 +45,7 @@ def evidence(db, current, node, kind):
     unmet = dependency_state(db,current,node,'finish' if kind in {'report_approve','report_self'} else 'start')
     blockers = sorted([type(e).__name__,e.id,str(getattr(e,'relation_type','condition')),str(getattr(e,'lag_days','')),str(getattr(e,'predecessor_id','')),str(getattr(e,'label','')),str(getattr(db.get(Node,e.predecessor_id), 'status', 'missing')) if hasattr(e,'predecessor_id') else str(e.is_met)] for e in unmet if e.enforcement == 'hard')
     children = sorted([n.id,n.status] for n in db.scalars(select(Node).where(Node.organization_id == current.organization.id, Node.parent_id == node.id, Node.status.not_in(['done','skipped'])))) if kind.startswith('report') or kind == 'phase_complete' else []
-    return {'status':node.status,'blockers':blockers,'children':children}
+    return {'status':node.status,'blockers':blockers,'children':children, **({'fields_version':node.report_fields_version} if kind == 'report_submit' else {})}
 
 
 def perform(db,current,project,node,request,context):
@@ -95,7 +95,7 @@ def perform(db,current,project,node,request,context):
 
 
 def request_out(r, node, can_review=False):
-    return {'id':r.id,'node_id':r.node_id,'node_title':node.title,'project_id':r.project_id,'kind':r.kind,'reason':r.reason,'status':r.status,'created_at':r.created_at.isoformat(),'can_review':can_review,'comment':r.comment,'report':r.snapshot.get('report') if r.kind == 'report_submit' else None}
+    return {'id':r.id,'node_id':r.node_id,'node_title':node.title,'project_id':r.project_id,'kind':r.kind,'reason':r.reason,'status':r.status,'created_at':r.created_at.isoformat(),'can_review':can_review,'comment':r.comment,'fields':r.snapshot.get('fields',[]), 'report':r.snapshot.get('report') if r.kind == 'report_submit' else None}
 
 
 def create(db,current,node_id,payload):
@@ -115,8 +115,10 @@ def create(db,current,node_id,payload):
         if node.id in context.pending_reports or node.status not in {'todo','doing'}: raise HTTPException(409,'目前狀態不允許此操作，請重新整理')
         from app.schemas import ReportCreate
         report=payload.report
+        from app.services.report_field_service import snapshot
+        fields = snapshot(db,node,report)
         if report.self_approve: raise HTTPException(422,'申請覆寫仍須由他人確認完成回報')
-        r.snapshot={'report':report.model_dump(mode='json')}
+        r.snapshot={'report':report.model_dump(mode='json'), 'fields':fields}
     db.add(r);db.flush()
     log_audit(db,current,'collaboration.request',node_id=node.id,payload={'request_id':r.id,'kind':r.kind,'reason':r.reason})
     if payload.direct:

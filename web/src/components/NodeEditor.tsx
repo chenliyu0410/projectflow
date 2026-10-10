@@ -1,3 +1,4 @@
+import ReportFieldEditor from './ReportFieldEditor';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError } from '../api';
@@ -221,6 +222,7 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, l
       {invalidWeight && <p role="alert">權重需為 0–100 的整數</p>}
       {showProgress && <label>進度 %<input type="number" inputMode="numeric" min={0} max={100} step={1} placeholder="50" value={progress} disabled={saving} onChange={event => setProgress(event.target.value)} /><small>留空時依狀態計算（進行中 50%）</small></label>}
       {invalidProgress && <p role="alert">進度需為 0–100 的整數</p>}
+      {mode === "edit" && node?.kind === "task" && <ReportFieldEditor key={node.id} nodeId={node.id} expired={expired} disabled={saving} />}
       {treeNode && tree && (treeNode.capabilities?.move || treeNode.capabilities?.copy) && <TreeOperations nodes={nodes} node={treeNode} dirty={dirty} tree={tree} />}
       <div className="form-actions">
         {treeNode && treeNode.capabilities?.delete && <button type="button" className="danger form-left" disabled={saving} onClick={() => setConfirmDelete(true)}>刪除</button>}

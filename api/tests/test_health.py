@@ -81,6 +81,7 @@ def test_only_health_routes_exist():
         "/health/ready",
         "/nodes/{node_id}",
         "/nodes/{node_id}/reports",
+        "/nodes/{node_id}/report-fields",
         "/nodes/{node_id}/attachments",
         "/nodes/{node_id}/attachment-quota",
         "/attachments/{attachment_id}",

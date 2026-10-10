@@ -168,7 +168,7 @@ def reviews(kind: Literal['report', 'gate', 'all'] = 'all', limit: int = Query(5
             item = {'type': 'report', 'id': report.id, 'node_id': node.id, 'node_title': node.title,
                     'project_id': node.project_id, 'project_title': projects[node.project_id].title,
                     'created_at': report.submitted_at.isoformat(), 'status': report.status, 'version': report.version,
-                    'result': report.result, 'summary': report.summary,
+                    'result': report.result, 'summary': report.summary, 'fields': report.fields,
                     'finished_on': report.finished_on.isoformat() if report.finished_on else None,
                     'submitted_by': report.submitted_by, 'submitted_by_display_name': author.display_name if author else None,
                     'dependency_warnings': ['軟性前置尚未滿足，仍可繼續'] if node.id in context.soft_warning_ids else [],

@@ -1,3 +1,5 @@
+import { ReportFieldInputs } from './ReportFieldEditor';
+import type { ReportFieldSet } from '../types';
 import { useEffect, useRef, useState } from 'react';
 import {
   api,
@@ -21,6 +23,7 @@ export function ReportSummary({ report, compact = false }: { report: Report; com
       <p className="record-body">
         <span className="record-tag">{report.result}</span> {report.summary}
       </p>
+      {!!report.fields?.length && <dl className="report-field-values">{report.fields.map(f => <div key={f.id}><dt>{f.label}</dt><dd>{f.value === null ? "—" : String(f.value)}{f.unit && ` ${f.unit}`}</dd></div>)}</dl>}
       <p className="record-meta">
         實際完成日：{report.finished_on ?? '未設定'} ·{' '}
         {report.submitted_by_display_name ?? '未設定'} 送出 ·{' '}
@@ -64,6 +67,17 @@ export default function ReportPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [latest, setLatest] = useState<Report | null>(null);
+  const [fieldSet, setFieldSet] = useState<ReportFieldSet | null>(null);
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [fieldError, setFieldError] = useState('');
+  const fieldRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => fieldRequest.current?.abort(), []);
+  async function loadFields() {
+    fieldRequest.current?.abort(); const request = new AbortController(); fieldRequest.current = request;
+    setFieldError('正在載入回報欄位');
+    try { const data = await api.reportFields(node.id, request.signal); if (request.signal.aborted) return; setFieldSet(data); setFieldError(''); setFieldValues(old => Object.fromEntries(data.fields.map(f => [f.id!, old[f.id!] ?? String(latest?.fields?.find(v => v.id === f.id)?.value ?? '')]))); }
+    catch (e) { if (request.signal.aborted) return; if (e instanceof ApiError && e.status === 401) expired(); else setFieldError('無法載入回報欄位，請重試'); }
+  }
   const [summary, setSummary] = useState('');
   const [overrideReason, setOverrideReason] = useState('');
   const [result, setResult] = useState('達成');
@@ -150,12 +164,12 @@ export default function ReportPanel({
       : node.status === 'done' ? '已完成' : node.status === 'skipped' ? '已略過' : '完成回報';
   const mark = !loading && !error && !pending && !rejected ? (node.status === 'done' ? '✓ ' : node.status === 'skipped' ? '⤳ ' : '') : '';
   function submit(self: boolean) {
-    if (!summary.trim() || !date || !ready) return;
+    if (!summary.trim() || !date || !ready || !fieldSet || fieldError) return;
     void mutation.execute((signal) =>
       api.report(
         node.id,
         {
-          result,
+          result, fields_version: fieldSet.version, field_values: fieldValues,
           summary: summary.trim(),
           finished_on: date,
           attachment_ids: ids,
@@ -167,6 +181,7 @@ export default function ReportPanel({
     );
   }
   const showForm = canSubmit && formOpen && !mutation.saved;
+  useEffect(() => { if (showForm && !loading) void loadFields(); }, [showForm, loading]);
   return (
     <section className={`record-panel report-card ${tone}`} aria-label="完成回報">
       {node.dependency_warnings?.map(w => <p className="note warn" key={w}>{w}</p>)}
@@ -232,7 +247,10 @@ export default function ReportPanel({
                   }}
                 >
                   {rejected && <p>重新送出將建立新版本</p>}
+                  {fieldError && <p role="alert">{fieldError}</p>}
+                  <button type="button" disabled={mutation.busy} onClick={() => void loadFields()}>重新載入回報欄位（保留相同欄位輸入）</button>
                   <fieldset disabled={mutation.busy}>
+                    {fieldSet && <ReportFieldInputs fields={fieldSet.fields} values={fieldValues} changed={setFieldValues} />}
                     <label>
                       結果
                       <select
@@ -297,7 +315,7 @@ export default function ReportPanel({
                       <button
                         type="button"
                         disabled={
-                          mutation.busy || !ready || !summary.trim() || !date
+                          mutation.busy || !ready || !summary.trim() || !date || !fieldSet || !!fieldError
                         }
                         onClick={() => submit(true)}
                       >
@@ -306,7 +324,7 @@ export default function ReportPanel({
                     )}
                     <button
                       disabled={
-                        mutation.busy || !ready || !summary.trim() || !date
+                        mutation.busy || !ready || !summary.trim() || !date || !fieldSet || !!fieldError
                       }
                     >
                       送出回報

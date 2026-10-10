@@ -32,6 +32,7 @@ export class ApiError extends Error {
 
 // Fixed TP-A/TP-B conflict texts may be shown as-is; any other backend detail stays hidden.
 export const KNOWN_CONFLICTS = new Set([
+  '回報欄位已變更，請重新載入', '回報欄位已變更，請重新載入並確認輸入', '只有未關閉且沒有待確認回報的葉任務可設定欄位',
   '申請已失效結案，請重新申請', '跳過後已有修改，無法整組恢復', '已有待審核申請', '申請已處理，請重新整理', '部門仍有資料引用，請先移轉', '已有同名部門', '部門資料已變更，請重新整理',
 
   '後續任務有無法調整的項目，請由專案負責人確認',
@@ -221,6 +222,8 @@ export const api = {
       `/projects/${id}/records?${new URLSearchParams({ limit: String(limit), ...(cursor ? { cursor } : {}) })}`,
       { signal },
     ),
+  reportFields: (id: string, signal?: AbortSignal) => requestJson<import('./types').ReportFieldSet>(`/nodes/${id}/report-fields`, {signal}),
+  saveReportFields: (id: string, expected_version: number, fields: import('./types').ReportField[], signal?: AbortSignal) => requestJson<import('./types').ReportFieldSet>(`/nodes/${id}/report-fields`, {method: 'PUT', body: JSON.stringify({expected_version, fields}), signal}),
   report: (
     id: string,
     payload: {
@@ -228,6 +231,7 @@ export const api = {
       summary: string;
       finished_on: string;
       attachment_ids: string[];
+      fields_version?: number; field_values?: Record<string, string>;
       self_approve: boolean; override_reason?: string; request_override?: boolean;
     },
     signal?: AbortSignal,

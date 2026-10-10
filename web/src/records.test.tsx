@@ -1,6 +1,7 @@
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
+ vi.spyOn(tpFApi,'reportFields').mockResolvedValue({fields:[],version:0,active:true,can_edit:true});
  vi.spyOn(tpFApi,'notifications').mockResolvedValue({items:[],unread_count:0,next_offset:null});
  vi.spyOn(tpFApi,'departments').mockResolvedValue({items:[],users:[],capabilities:{manage:false}});
  vi.spyOn(tpFApi,'collaborationRequests').mockResolvedValue({items:[]});
@@ -178,7 +179,7 @@ describe('P2b task records', () => {
         '/api/nodes/n/reports',
         expect.objectContaining({
           body: JSON.stringify({
-            result: '達成',
+            result: '達成', fields_version: 0, field_values: {},
             summary: '完成驗證',
             finished_on: '2026-10-08',
             attachment_ids: [],

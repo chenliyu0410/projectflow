@@ -57,6 +57,9 @@ def validate_graph(payload):
     if payload.kind == 'task' and (not nodes or sum(n.parent_id is None for n in nodes.values()) != 1 or any(n.kind != 'task' for n in nodes.values())):
         invalid('任務模板必須有一個根任務')
     for node in nodes.values():
+        if node.kind != 'task' and node.report_fields: invalid('只有任務可設定回報欄位')
+        field_ids=[f.id for f in node.report_fields if f.id is not None]
+        if len(set(field_ids)) != len(field_ids): invalid('回報欄位識別碼不可重複')
         if node.milestone and (node.kind != 'task' or node.start_offset is None or node.start_offset != node.due_offset or any(n.parent_id == node.id for n in nodes.values())):
             invalid('里程碑必須是單日葉任務')
         ancestors=set(); parent=node.parent_id
@@ -103,9 +106,16 @@ def detail(db,current,workflow):
             'capabilities':{'edit':can_edit(current),'copy':can_edit(current),'delete':can_edit(current)}}
 
 
-def save(db,current,payload,workflow=None,*,copy_source=None):
+def save(db,current,payload,workflow=None,*,copy_source=None,source_snapshot=False):
     if not can_edit(current):raise HTTPException(status_code=403,detail='沒有管理工作流權限')
     ordered=validate_graph(payload)
+    if not source_snapshot and copy_source is None:
+        previous={n.id:n for n in read_payload(db,workflow).nodes} if workflow else {}
+        for n in payload.nodes:
+            if n.report_fields and any(c.parent_id==n.id for c in payload.nodes):
+                old=previous.get(n.id)
+                if old is None or n.report_fields != old.report_fields:
+                    invalid('只有模板葉任務可新增回報欄位')
     from app.services.template_service import validate_references
     validate_references(db,current,payload,owners=True)
     if workflow is not None:

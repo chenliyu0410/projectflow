@@ -1,3 +1,6 @@
+import { beforeEach as beforeTpG } from 'vitest';
+import { api as tpGApi } from './api';
+beforeTpG(() => { vi.spyOn(tpGApi, 'reportFields').mockResolvedValue({fields:[],version:0,active:true,can_edit:true}); });
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';

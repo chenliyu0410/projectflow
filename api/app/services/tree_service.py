@@ -169,6 +169,9 @@ def copy_node(db: Session, current: CurrentUser, node_id: str) -> dict:
                     status="todo", owner_user_id=source.owner_user_id, department_id=source.department_id,
                     start_date=source.start_date, due_date=source.due_date, sort_order=source.sort_order,
                     weight=source.weight, progress=None, milestone=source.milestone, schedule_locked=source.schedule_locked)
+        from app.services.report_field_service import clone_fields
+        copy.report_fields = clone_fields(source.report_fields)
+        copy.report_fields_version = 1 if copy.report_fields else 0
         db.add(copy)
         db.flush()
         mapping[source_id] = copy.id

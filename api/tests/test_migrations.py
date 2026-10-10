@@ -679,10 +679,8 @@ def check_tp_f_migration(url,monkeypatch):
     from app.models import Notification, User, Node
     monkeypatch.setenv('DATABASE_URL',url)
     config=Config('api/alembic.ini')
-    command.upgrade(config,'20261010_0009')
+    seed_at_revision(url,'20261010_0009',seed_demo_data)
     engine=create_engine(sqlalchemy_url(url))
-    with Session(engine) as db:
-        seed_demo_data(db);db.commit()
     meta=MetaData();meta.reflect(engine)
     def snapshot():
         with engine.connect() as db:
@@ -740,4 +738,79 @@ def test_tp_f_postgresql_migration_preserves_data(monkeypatch):
     with Session(engine) as db:
         assert db.get(Node,nid).status=='skipped'
         assert len(list(db.scalars(select(AuditLog).where(AuditLog.node_id==nid,AuditLog.action=='node.skip'))))==1
+    engine.dispose()
+
+
+def check_tp_g_migration(url, monkeypatch):
+    import pytest
+    from sqlalchemy import create_engine, MetaData, select
+    from sqlalchemy.orm import Session
+    from alembic import command
+    from alembic.config import Config
+    from app.seed import seed_demo_data
+    from app.models import Node
+    monkeypatch.setenv('DATABASE_URL', url)
+    seed_at_revision(url, '20261010_0010', seed_demo_data)
+    config = Config('api/alembic.ini')
+    engine = create_engine(sqlalchemy_url(url))
+    meta = MetaData(); meta.reflect(engine)
+    def snapshot():
+        with engine.connect() as db:
+            return {t.name: sorted([dict(r) for r in db.execute(select(t)).mappings()], key=lambda r: str(r.get('id'))) for t in meta.sorted_tables if t.name != 'alembic_version'}
+    before = snapshot()
+    command.upgrade(config, 'head'); assert snapshot() == before
+    command.downgrade(config, '20261010_0010'); assert snapshot() == before
+    command.upgrade(config, 'head')
+    with Session(engine) as db:
+        node = db.scalars(select(Node)).first()
+        assert node.report_fields == [] and node.report_fields_version == 0
+        node.report_fields_version = 1
+        db.commit()
+    with pytest.raises(RuntimeError): command.downgrade(config, '20261010_0010')
+    engine.dispose()
+
+
+def test_tp_g_migration_preserves_data(tmp_path, monkeypatch):
+    check_tp_g_migration(f"sqlite:///{tmp_path/'tp-g.db'}", monkeypatch)
+
+
+def test_tp_g_postgresql_migration_and_field_submit_race(monkeypatch):
+    import os, pytest
+    from sqlalchemy import create_engine, select
+    from sqlalchemy.orm import Session
+    from sqlalchemy.engine import make_url
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+    from fastapi import HTTPException
+    from app.models import User, Organization, Project, Node, TaskReport
+    from app.auth import CurrentUser
+    from app.schemas import ReportCreate, ReportFieldsUpdate
+    from app.services.report_field_service import update
+    from app.services.report_service import submit_report
+    url = os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url: pytest.skip('Dedicated PostgreSQL required')
+    assert make_url(url).database.startswith('p2b_test_') and os.environ.get('PF_ACCEPTANCE_MODE') == 'true'
+    check_tp_g_migration(url, monkeypatch)
+    engine = create_engine(sqlalchemy_url(url))
+    with Session(engine) as db:
+        user = db.scalar(select(User).where(User.username == 'yu')); org = db.get(Organization, user.organization_id)
+        project = Project(organization_id=org.id, title='TP-G race', owner_user_id=user.id); db.add(project); db.flush()
+        node = Node(organization_id=org.id, project_id=project.id, kind='task', title='Race', owner_user_id=user.id)
+        db.add(node); db.commit(); uid, oid, nid = user.id, org.id, node.id
+    barrier = Barrier(2)
+    def run(operation):
+        with Session(engine) as db:
+            current = CurrentUser(db.get(User, uid), db.get(Organization, oid), '')
+            barrier.wait(timeout=10)
+            try:
+                if operation == 'edit': update(db, current, nid, ReportFieldsUpdate(expected_version=0, fields=[{'label':'Required','type':'text','required':True}]))
+                else: submit_report(db, current, nid, ReportCreate(result='達成', summary='Race', finished_on='2026-10-10', fields_version=0))
+                return 200
+            except HTTPException as error: db.rollback(); return error.status_code
+    with ThreadPoolExecutor(max_workers=2) as pool: results = list(pool.map(run, ['edit', 'submit']))
+    assert sorted(results) == [200, 409]
+    with Session(engine) as db:
+        node = db.get(Node, nid)
+        reports = list(db.scalars(select(TaskReport).where(TaskReport.node_id == nid)))
+        assert (node.report_fields_version == 1 and reports == []) or (node.report_fields_version == 0 and len(reports) == 1 and reports[0].fields == [])
     engine.dispose()

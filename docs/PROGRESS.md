@@ -122,7 +122,11 @@
 
 ### TP-G 自訂回報欄位 — 🔨 實作中
 
-人類指定TP-G，已完成Demo與正式版原始碼對照及[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md)。D79列出四種欄位、適用與修改權限、送出版本驗證、歷史快照及模板／複製規則。尚未修改產品、資料庫或部署；未跑產品測試。確認後建立feature/tp-g-report-fields。
+人類「照此計畫實作」核准D79。[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md)已實作四種類型、必填／單位／選項／排序、版本驗證、歷史快照、模板／複製及TP-F例外審核。父任務保留但停用葉任務定義，退回重報保留相同欄位的值。獨立唯讀審查發現兩項P2（autoOpen歷史載入與過期申請），修正與定向測試後複核Ready to merge。
+
+**真實驗收**：完整API初跑502pass／1fail／14skip（exit1），失敗為健康路由清單需納入新端點，修正後13pass；TP-G定向18pass，加模板父任務規則1pass。真PG十階段13pass（exit0），含0011保留資料與修改定義／送出回報併發200／409；可選舊P2a PG測試未另跑。完整Vitest240pass／9fail、2runtime errors（exit1），新增請求mock與契約修正後受影響五檔97pass、新欄位UI5pass（exit0）。最終build exit0。完整E2E34pass／3fail（exit1），測試選取器與等待修正後TP-G桌面／375px兩項通過；workspace定向結果另補。保留初跑失敗，不冒稱全套一次全綠。
+
+Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機必填勾選樣式已修正。測試與審查證據在忽略目錄`.superpowers/tpg/`。待ff-only合併及15173備份／部署／逐欄值核對，未代簽人類試用。下一批UI5，LAN限制維持。
 
 ### TP-F 權限與協作 — ✅ 已交付（人類試用未代簽）
 

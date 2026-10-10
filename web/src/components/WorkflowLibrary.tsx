@@ -1,3 +1,4 @@
+import { FieldDefinitions } from './ReportFieldEditor';
 import { VersionPicker } from './TemplateDialogs';
 import WorkflowCatalog from './WorkflowCatalog';
 import { useEffect, useRef, useState } from 'react';
@@ -249,6 +250,7 @@ function Editor({
                         }
                       />
                     </label>
+                    {node.kind === 'task' && <FieldDefinitions fields={node.report_fields ?? []} changed={fields => update(node.id, {report_fields: fields})} disabled={nodes.some(n => n.parent_id === node.id)} />}
                     {node.kind === 'phase' && (
                       <label className="check-label">
                         <input
@@ -502,7 +504,7 @@ export default function WorkflowLibrary({
             <ol>
               {detail.nodes.map((n) => (
                 <li key={n.id}>
-                  <strong>{n.title}</strong> ·{' '}
+                  <strong>{n.title}</strong>{!!n.report_fields?.length && <span> · 回報欄位：{n.report_fields.map(f => `${f.label}${f.required ? "（必填）" : ""}`).join("、")}</span>} ·{' '}
                   {n.kind === 'phase' ? '階段' : '任務'}
                   {n.parent_id &&
                     ` · 父節點：${detail.nodes.find((p) => p.id === n.parent_id)?.title ?? '未設定'}`}{' '}

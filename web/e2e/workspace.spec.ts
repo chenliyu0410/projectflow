@@ -70,8 +70,13 @@ for (const width of [1280, 375]) {
     if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();await expect(page.getByRole('button',{name:'登入',exact:true})).toBeVisible();
     await login(page, 'ming');
     await navigate('我的任務');
-    await page.getByLabel('搜尋任務').fill(title);
-    await page.getByRole('button', { name: '子任務更新', exact: true }).click();
+    await Promise.all([
+      page.waitForResponse(response => new URL(response.url()).pathname === '/api/workspace/my-tasks' && new URL(response.url()).searchParams.get('q') === title && response.ok()),
+      page.getByLabel('搜尋任務').fill(title),
+    ]);
+    const assignedTask = page.getByRole('table', { name: '我負責的', exact: true }).getByRole('button', { name: '子任務更新', exact: true });
+    await expect(assignedTask).toHaveCount(1);
+    await assignedTask.click();
     await expect(page.getByLabel('節點詳情')).toContainText('2026-10-12');
     await expect(page.getByRole('button', { name: '新增子節點', exact: true })).toHaveCount(0);
     await page.getByRole('button', { name: '編輯節點', exact: true }).click();

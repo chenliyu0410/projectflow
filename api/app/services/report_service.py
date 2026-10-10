@@ -44,7 +44,7 @@ def report_out(report, node, context, attachments=()):
     reviewer = context.users.get(report.reviewed_by)
     return {
         'id': report.id, 'node_id': report.node_id, 'result': report.result, 'summary': report.summary,
-        'status': report.status, 'version': report.version, 'legacy': report.workflow_version != 2,
+        'fields': report.fields, 'status': report.status, 'version': report.version, 'legacy': report.workflow_version != 2,
         'finished_on': report.finished_on.isoformat() if report.finished_on else None,
         'submitted_by': report.submitted_by, 'submitted_by_display_name': author.display_name if author else None,
         'submitted_at': report.submitted_at.isoformat(),
@@ -76,7 +76,9 @@ def submit_report(db, current, node_id, payload, *, commit=True):
     if not check_report_override(db,current,project,node,payload.override_reason,'self' if payload.self_approve else 'submit'):
         require_dependencies(db, current, node, 'finish' if payload.self_approve else 'start')
         require_children_finished(db, current, node)
-    report = TaskReport(organization_id=current.organization.id, node_id=node.id,
+    from app.services.report_field_service import snapshot
+    fields = snapshot(db, node, payload)
+    report = TaskReport(fields=fields, organization_id=current.organization.id, node_id=node.id,
         result=payload.result, summary=payload.summary, finished_on=payload.finished_on,
         submitted_by=current.user.id, workflow_version=2, version=context.latest_versions.get(node.id, 0) + 1,
         status='approved' if payload.self_approve else 'submitted', self_approved=payload.self_approve,

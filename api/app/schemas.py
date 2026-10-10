@@ -146,7 +146,36 @@ class GateStatusUpdate(BaseModel):
     status: Literal["approved"]
 
 
+class ReportFieldDefinition(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    id: str | None = Field(default=None, min_length=1, max_length=36)
+    label: str = Field(min_length=1, max_length=100)
+    type: Literal['text', 'number', 'date', 'select']
+    unit: str = Field(default='', max_length=30)
+    required: bool = Field(default=False, strict=True)
+    options: list[str] = Field(default_factory=list, max_length=50)
+
+    @model_validator(mode='after')
+    def valid_field(self):
+        if self.type != 'number' and self.unit:
+            raise ValueError('只有數字欄位可設定單位')
+        if self.type == 'select':
+            if not 2 <= len(self.options) <= 50 or len(set(self.options)) != len(self.options) or any(not x or len(x) > 100 for x in self.options):
+                raise ValueError('請設定2至50個不重複選項，每項1至100字')
+        elif self.options:
+            raise ValueError('只有單選欄位可設定選項')
+        return self
+
+
+class ReportFieldsUpdate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    expected_version: int = Field(ge=0, strict=True)
+    fields: list[ReportFieldDefinition] = Field(max_length=30)
+
+
 class ReportCreate(BaseModel):
+    fields_version: int | None = Field(default=None, ge=0, strict=True)
+    field_values: dict[str, str | int | float | bool | None] = Field(default_factory=dict, max_length=30)
     request_override: bool = False
     override_reason: str | None = Field(default=None, min_length=1, max_length=2000)
     model_config = ConfigDict(extra="forbid")
@@ -276,6 +305,7 @@ class WorkflowNodeInput(BaseModel):
     gate_after: bool = False
     owner_user_id: str | None = Field(default=None, max_length=36)
     department_id: str | None = Field(default=None, max_length=36)
+    report_fields: list[ReportFieldDefinition] = Field(default_factory=list, max_length=30)
     collaborators: list[TemplateCollaborator] = Field(default_factory=list, max_length=100)
     weight: int = Field(default=1, ge=0, le=100, strict=True)
     milestone: bool = False

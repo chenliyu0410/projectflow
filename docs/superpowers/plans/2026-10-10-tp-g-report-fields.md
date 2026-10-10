@@ -31,3 +31,11 @@ Demo的fieldDefs、addReportField、moveReportField、validateReport、buildRepo
 5. 桌面／手機走新增四種類型→排序／刪除→必填錯誤→成功回報→退回重報→審核→歷史→另存／套用模板。驗證鍵盤、長名稱、取消及網路失敗保留輸入。
 6. 一位唯讀獨立審查者；一次隔離完整API／Vitest／build／E2E與適用PG驗收，修正後只驗受影響部分，記錄真實摘要及exit code。
 7. ff-only合併、更新交付文件；15173部署前成套備份DB／附件／env，不seed升版，比對原值與附件SHA並檢查健康；依D50 push main核對SHA，不代簽人類試用、不開LAN。
+
+## 實作補記
+
+D79核准後採nodes新增JSON欄位report_fields及整數report_fields_version、task_reports新增JSON快照fields；公司及節點邊界沿既有複合外鍵。定義獨立PUT以版本避免覆蓋，NodeEditor內另按「儲存回報欄位」，取消欄位變更不改其他節點輸入。父任務原定義保留但不啟用，模板父任務僅允許保留既有定義；新實體重建識別碼。TP-F申請另外保存欄位快照供審閱，版本過期走既有expired結案，可重送。
+
+新增請求契約的相關planner／timeline-advanced測試補上reportFields唯讀mock；這是NodeEditor／ReportPanel直接受影響的既有測試。獨立審查發現的autoOpen歷史載入與過期申請問題已修正並補回歸，複核Ready to merge；最終驗收與部署結果以PROGRESS為準。
+
+驗收修訂：web/e2e/workspace.spec.ts等待本次搜尋q的真實API回應，並限定「我負責的」表格選任務，避免選到站內通知中的同名按鈕；不刪除舊測試資料。此為本階段NodeEditor回歸直接暴露的既有測試修正，納入允許清單。

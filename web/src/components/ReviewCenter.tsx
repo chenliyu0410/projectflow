@@ -1,3 +1,4 @@
+import { ReportFieldValues } from './ReportFieldEditor';
 import { RequestReviews } from './CollaborationDialogs';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -167,7 +168,7 @@ export default function ReviewCenter({
               <span className="record-tag">{item.result}</span>{' '}
               {item.summary}
             </p>
-            <p className="small muted">實際完成日：{item.finished_on ?? '未設定'}</p>
+            <ReportFieldValues fields={item.fields} /><p className="small muted">實際完成日：{item.finished_on ?? '未設定'}</p>
             {item.dependency_warnings?.map(w => <p className="note warn" key={w}>{w}</p>)}
             {item.capabilities.review_report && (
               <>

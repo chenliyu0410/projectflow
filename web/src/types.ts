@@ -36,17 +36,17 @@ export interface WorkspaceOverviewData { unassigned_count?: number; workload_tas
 export interface MyTask extends NodeItem { project_title: string; relations?: ('owned' | 'collaborating' | 'awaiting_assignment')[]; path?: { id: string; title: string }[]; }
 
 export interface Attachment { id: string; node_id: string; original_name: string; size_bytes: number; sha256: string; uploaded_by: string; uploaded_by_display_name: string | null; created_at: string; report_id: string | null; note_id: string | null; }
-export interface Report { dependency_warnings?: string[]; type: 'report'; id: string; node_id: string; node_title: string; version: number; legacy: boolean; result: string; summary: string; finished_on: string | null; status: string; submitted_by: string; submitted_by_display_name: string | null; submitted_at: string; reviewed_by_display_name: string | null; reviewed_at: string | null; review_comment: string | null; self_approved: boolean; attachments: Attachment[]; created_at: string; }
+export interface Report { fields?: (ReportField & {order: number; value: string | number | null})[]; dependency_warnings?: string[]; type: 'report'; id: string; node_id: string; node_title: string; version: number; legacy: boolean; result: string; summary: string; finished_on: string | null; status: string; submitted_by: string; submitted_by_display_name: string | null; submitted_at: string; reviewed_by_display_name: string | null; reviewed_at: string | null; review_comment: string | null; self_approved: boolean; attachments: Attachment[]; created_at: string; }
 export interface Note { type: 'note'; id: string; node_id: string; node_title: string; body: string; author_id: string; author_display_name: string | null; revision: number; created_at: string; edited_at: string | null; attachments: Attachment[]; }
 export type RecordItem = Report | Note | (Attachment & { type: 'attachment'; node_title: string });
 export interface RecordPage { items: RecordItem[]; next_cursor: string | null; }
 export interface Collaborators extends AssignmentOptions { revision: number; }
 export interface Quota { limit_bytes: number; charged_bytes: number; remaining_bytes: number; }
-export interface ReviewItem { dependency_warnings?: string[]; type: 'report' | 'gate'; id: string; node_id: string; node_title: string; project_id: string; project_title: string; created_at: string; status: string; version?: number; result?: string; summary?: string; finished_on?: string | null; submitted_by?: string; submitted_by_display_name?: string | null; capabilities: { review_report?: boolean; approve_gate?: boolean }; }
+export interface ReviewItem { fields?: Report['fields']; dependency_warnings?: string[]; type: 'report' | 'gate'; id: string; node_id: string; node_title: string; project_id: string; project_title: string; created_at: string; status: string; version?: number; result?: string; summary?: string; finished_on?: string | null; submitted_by?: string; submitted_by_display_name?: string | null; capabilities: { review_report?: boolean; approve_gate?: boolean }; }
 export interface ReviewPage { items: ReviewItem[]; next_cursor: string | null; }
 export interface AuditItem { id: string; action: string; summary: string; node_id: string | null; node_title: string | null; node_deleted?: boolean; project_id: string | null; project_title: string | null; actor_display_name: string | null; created_at: string; payload: Record<string, unknown>; }
 export interface AuditPage { items: AuditItem[]; next_cursor: string | null; }
-export interface WorkflowNode { owner_user_id?: string | null; department_id?: string | null; weight?: number; milestone?: boolean; collaborators?: {user_id: string | null; department_id: string | null}[]; id: string; parent_id: string | null; kind: 'phase' | 'task'; title: string; sort_order: number; gate_after: boolean; start_offset: number | null; due_offset: number | null; }
+export interface WorkflowNode { report_fields?: ReportField[]; owner_user_id?: string | null; department_id?: string | null; weight?: number; milestone?: boolean; collaborators?: {user_id: string | null; department_id: string | null}[]; id: string; parent_id: string | null; kind: 'phase' | 'task'; title: string; sort_order: number; gate_after: boolean; start_offset: number | null; due_offset: number | null; }
 export interface DependencySettings { relation_type?: 'FS' | 'SS' | 'FF'; lag_days?: number; enforcement?: 'hard' | 'soft'; }
 export interface DependencyInput extends DependencySettings { predecessor_id: string; successor_id: string; }
 export interface WorkflowWrite { kind?: "workflow" | "task"; expected_version?: number; conditions?: {node_id: string; label: string; enforcement: "hard" | "soft"}[]; name: string; nodes: WorkflowNode[]; dependencies: DependencyInput[]; }
@@ -62,7 +62,10 @@ export interface TemplateVersion { version: number; created_at: string; author: 
 export interface TemplateApplyResult { project_id: string; node_ids: string[]; created_count: number; undo_id: string; }
 export interface TemplateApplyInput { template_id: string; version: number; start_date?: string; structure: boolean; dependencies: boolean; owners: boolean; dates: boolean; variables: Record<string,string>; }
 
-export interface CollaborationRequest { report?: {summary:string;result:string;finished_on:string}|null; id: string; node_id: string; node_title: string; project_id: string; kind: string; reason: string; status: string; can_review: boolean; comment: string | null; }
+export interface CollaborationRequest { fields?: Report['fields']; report?: {summary:string;result:string;finished_on:string}|null; id: string; node_id: string; node_title: string; project_id: string; kind: string; reason: string; status: string; can_review: boolean; comment: string | null; }
 export interface DepartmentItem { id: string; name: string; head_user_id: string | null; member_ids: string[]; }
 export interface DepartmentData { items: DepartmentItem[]; capabilities: {manage: boolean}; users: {id: string; display_name: string; role: string}[]; }
 export interface NotificationPage { items: {id: string; message: string; node_title: string; node_id: string; project_id: string; created_at: string; read: boolean}[]; unread_count: number; next_offset: number | null; }
+
+export interface ReportField { id: string | null; label: string; type: "text" | "number" | "date" | "select"; unit: string; required: boolean; options: string[]; }
+export interface ReportFieldSet { fields: ReportField[]; version: number; active: boolean; can_edit: boolean; }

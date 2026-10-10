@@ -68,7 +68,7 @@ def save_source(db,current,request,*,project_id=None,node_id=None):
         n=nodes[i];kind=n.kind if whole else 'task'
         content.append(dict(id=keys[i],parent_id=keys.get(n.parent_id),kind=kind,title=n.title,sort_order=n.sort_order,
             gate_after=whole and i in gates,owner_user_id=n.owner_user_id,department_id=n.department_id,
-            collaborators=collaborators[i],weight=n.weight,milestone=n.milestone,
+            report_fields=n.report_fields,collaborators=collaborators[i],weight=n.weight,milestone=n.milestone,
             start_offset=(n.start_date-base).days if n.start_date else None,due_offset=(n.due_date-base).days if n.due_date else None))
     edges=[]
     for e in db.scalars(select(NodeDependency).where(NodeDependency.organization_id==current.organization.id,NodeDependency.project_id==project.id)):
@@ -80,7 +80,7 @@ def save_source(db,current,request,*,project_id=None,node_id=None):
         expected_version=request.expected_version)
     target=workflows.get_workflow(db,current,request.template_id,lock=True) if request.template_id else None
     if target and request.expected_version is None:workflows.invalid('建立新版需提供目前版號')
-    return workflows.save(db,current,payload,target)
+    return workflows.save(db,current,payload,target,source_snapshot=True)
 
 
 def check_target(target,nodes):
@@ -121,6 +121,9 @@ def expand(db,current,project,target,payload,options,*,legacy_owner=None):
         node=Node(organization_id=current.organization.id,project_id=project.id,parent_id=mapping.get(n.parent_id,target.id if target else None),
             kind=n.kind,title=title,sort_order=offset+n.sort_order,owner_user_id=n.owner_user_id if options.owners else legacy_owner,
             department_id=n.department_id,weight=n.weight,milestone=n.milestone,start_date=start,due_date=due,status='todo',schedule_locked=False)
+        from app.services.report_field_service import clone_fields
+        node.report_fields=clone_fields([f.model_dump() for f in n.report_fields])
+        node.report_fields_version=1 if node.report_fields else 0
         db.add(node);db.flush();mapping[n.id]=node.id
         if n.gate_after:db.add(Gate(organization_id=current.organization.id,project_id=project.id,node_id=node.id))
         if options.owners:

@@ -706,3 +706,13 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .template-options label { margin:0; gap:8px; line-height:1.5; }
 .template-options input[type=checkbox] { width:16px; height:16px; min-height:16px; padding:0; margin:0; flex:0 0 16px; }
 .template-dialog summary { overflow-wrap:anywhere; }
+
+.report-field-editor { min-width: 0; margin-block: 12px; }
+.report-field-editor li, .report-field-values { overflow-wrap: anywhere; }
+.report-field-editor input, .report-field-editor select { max-width: 100%; box-sizing: border-box; }
+.report-field-values div { display: flex; flex-wrap: wrap; gap: 8px; }
+.report-field-values dt { font-weight: 600; }
+.report-field-values dd { margin: 0; white-space: pre-wrap; }
+
+.report-field-editor .report-field-required { display: flex; align-items: center; gap: 8px; margin-block: 8px; }
+.report-field-editor .report-field-required input { width: 18px; height: 18px; min-height: 18px; margin: 0; }
