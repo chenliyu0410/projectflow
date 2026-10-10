@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth import CurrentUser
-from app.models import Department, Gate, Node, Project, User
-from app.permissions import can_edit_node, can_manage_project, can_view_node, can_view_project
+from app.models import INCLUDE_DELETED, Department, Gate, Node, Project, User
+from app.permissions import can_edit_node, can_manage_project, can_move_node, can_view_node, can_view_project
 from app.services.record_policy import load_policy_context, can_submit_report, can_review_report, can_write_record, state_actions
 
 
@@ -54,7 +54,9 @@ def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *,
             'review_report': can_review_report(db, current, project, node, context=context),
             'manage_collaborators': manage,
             'lifecycle': manage and node.kind == 'task',
-            'move': manage and node.kind == 'task',
+            'move': visible and can_move_node(db, current, project, node, departments=departments),
+            'copy': manage and node.kind == 'task',
+            'delete': manage and node.kind == 'task',
         },
         'blocked': node.kind == 'task' and node.id in context.blocked_node_ids,
         'state_actions': state_actions(db, current, project, node, context=context),
@@ -127,8 +129,11 @@ def blocked_by_pending_gate(db: Session, current: CurrentUser, node: Node) -> bo
     return node.status == "todo" and pending
 
 
-def visible_workspace_nodes(db: Session, current: CurrentUser, *, context=None) -> tuple[dict[str, Project], list[Node]]:
-    """Authorize the complete company-scoped collection before aggregation/filtering."""
+def visible_workspace_nodes(db: Session, current: CurrentUser, *, context=None, include_deleted=False) -> tuple[dict[str, Project], list[Node]]:
+    """Authorize the complete company-scoped collection before aggregation/filtering.
+
+    Only the audit history asks for soft-deleted nodes; every other view treats them as gone.
+    """
     context = context or load_policy_context(db, current)
     projects = {
         project.id: project
@@ -138,7 +143,8 @@ def visible_workspace_nodes(db: Session, current: CurrentUser, *, context=None) 
         if can_view_project(current, project)
     }
     nodes = [
-        node for node in db.scalars(select(Node).where(Node.organization_id == current.organization.id))
+        node for node in db.scalars(select(Node).where(Node.organization_id == current.organization.id)
+                                    .execution_options(**{INCLUDE_DELETED: include_deleted}))
         if node.project_id in projects and can_view_node(current, node, context=context)
     ]
     return projects, nodes

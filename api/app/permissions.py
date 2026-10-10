@@ -49,6 +49,11 @@ def can_manage_project(current: CurrentUser, project: Project) -> bool:
     return current.user.role != "readonly" and can_work_project(current, project)
 
 
+def can_move_node(db: Session, current: CurrentUser, project: Project, node: Node, *, departments=None) -> bool:
+    """D74: managers, or whoever can work on the task (its owner or its department head), like the Demo's canWork."""
+    return node.kind == "task" and (can_manage_project(current, project) or can_work_node(db, current, node, departments=departments))
+
+
 def can_edit_node(db: Session, current: CurrentUser, project: Project, node: Node, *, departments=None, context=None) -> bool:
     return (
         node.kind in {"phase", "task"}

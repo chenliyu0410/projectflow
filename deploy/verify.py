@@ -53,6 +53,7 @@ try:
         stages = [('P2b migration', 'test_migrations.py::test_p2b_postgresql_migration_constraints_and_parallel_pending'),
                   ('P2c migration', 'test_migrations.py::test_p2c_postgresql_migration_and_dependency_constraints'),
                   ('TP-A migration', 'test_migrations.py::test_tp_a_postgresql_migration_preserves_nodes'),
+                  ('TP-B migration', 'test_migrations.py::test_tp_b_postgresql_migration_preserves_nodes'),
                   ('API races', 'test_collaboration_postgresql.py')]
         for label, target in stages:
             # Each migration starts on a new database, never an already-upgraded stack.

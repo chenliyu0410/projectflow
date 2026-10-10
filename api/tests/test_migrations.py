@@ -416,3 +416,71 @@ def test_tp_a_postgresql_migration_preserves_nodes(monkeypatch):
     assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
     assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
     check_tp_a_migration_preserves_nodes(url,monkeypatch)
+
+
+def check_tp_b_migration_preserves_nodes(url,monkeypatch):
+    from datetime import date,datetime,timezone
+    import pytest
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine,text,select
+    from sqlalchemy.exc import IntegrityError
+    from app.seed import seed_demo_data
+    from app.models import Node,NodeDependency,TaskNote,TaskReport,User
+    monkeypatch.setenv('DATABASE_URL',url)
+    config=Config('api/alembic.ini')
+    def prepare(db):
+        seed_demo_data(db);db.commit()
+        user=db.scalars(select(User).where(User.username=='yu')).one()
+        first=db.scalars(select(Node).where(Node.organization_id==user.organization_id,Node.kind=='task').order_by(Node.sort_order)).first()
+        first.status='done';first.weight=3;first.start_date=date(2026,10,1);first.due_date=date(2026,10,9)
+        second=Node(organization_id=user.organization_id,project_id=first.project_id,parent_id=first.parent_id,kind='task',title='後續',status='doing',progress=40,sort_order=999)
+        db.add(second);db.flush()
+        db.add(NodeDependency(organization_id=user.organization_id,project_id=first.project_id,predecessor_id=first.id,successor_id=second.id,created_by=user.id))
+        db.add(TaskReport(organization_id=user.organization_id,node_id=first.id,submitted_by=user.id,result='達成',summary='kept',workflow_version=2,version=1,status='approved',finished_on=date(2026,10,9),reviewed_by=user.id,reviewed_at=datetime(2026,10,9,tzinfo=timezone.utc),self_approved=True))
+        db.add(TaskNote(organization_id=user.organization_id,node_id=second.id,body='筆記保留',author_id=user.id))
+    seed_at_revision(url,'20261010_0005',prepare)
+    engine=create_engine(sqlalchemy_url(url))
+    tables=['organizations','users','departments','department_members','projects','nodes','workflows','workflow_nodes','gates','task_reports','task_notes','attachments','audit_logs','attachment_quotas','node_collaborators','node_dependencies']
+    def snapshot():
+        with engine.connect() as db:return {table:[tuple(row) for row in db.execute(text('SELECT * FROM '+table+' ORDER BY '+('organization_id' if table=='attachment_quotas' else 'id')))] for table in tables}
+    before=snapshot()
+    assert before['nodes'] and before['node_dependencies'] and before['task_reports'] and before['task_notes']
+    command.upgrade(config,'20261010_0006')
+    after=snapshot()
+    # Every existing value is unchanged; each node only gains two empty soft-delete markers.
+    assert after['nodes']==[row+(None,None) for row in before['nodes']]
+    assert {table:rows for table,rows in after.items() if table!='nodes'}=={table:rows for table,rows in before.items() if table!='nodes'}
+    node_id=before['nodes'][0][0]
+    with engine.connect() as db:
+        org=db.execute(text('SELECT organization_id FROM nodes WHERE id=:id'),{'id':node_id}).scalar_one()
+        own=db.execute(text('SELECT id FROM users WHERE organization_id=:org ORDER BY id'),{'org':org}).scalars().first()
+        other=db.execute(text('SELECT id FROM users WHERE organization_id!=:org ORDER BY id'),{'org':org}).scalars().first()
+    if engine.dialect.name=='postgresql':
+        # deleted_by must be a user of the same company.
+        with pytest.raises(IntegrityError):
+            with engine.begin() as db:db.execute(text('UPDATE nodes SET deleted_at=now(),deleted_by=:user WHERE id=:id'),{'user':other,'id':node_id})
+    with engine.begin() as db:db.execute(text('UPDATE nodes SET deleted_at=:at,deleted_by=:user WHERE id=:id'),{'at':datetime(2026,10,10,tzinfo=timezone.utc),'user':own,'id':node_id})
+    # A deleted row would reappear without the markers, so downgrade refuses.
+    with pytest.raises(Exception):
+        command.downgrade(config,'20261010_0005')
+    with engine.begin() as db:db.execute(text('UPDATE nodes SET deleted_at=NULL,deleted_by=NULL WHERE id=:id'),{'id':node_id})
+    command.downgrade(config,'20261010_0005')
+    assert snapshot()==before
+    command.upgrade(config,'head')
+    engine.dispose()
+
+
+def test_tp_b_migration_preserves_nodes(tmp_path,monkeypatch):
+    check_tp_b_migration_preserves_nodes(f"sqlite:///{tmp_path/'tp-b-migration.db'}",monkeypatch)
+
+
+def test_tp_b_postgresql_migration_preserves_nodes(monkeypatch):
+    import os,pytest
+    from sqlalchemy.engine import make_url
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url:pytest.skip('Fresh dedicated p2b_test PostgreSQL URL required for TP-B migration')
+    parsed=make_url(url)
+    assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
+    assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
+    check_tp_b_migration_preserves_nodes(url,monkeypatch)

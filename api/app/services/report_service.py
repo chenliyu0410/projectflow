@@ -124,6 +124,11 @@ def lifecycle(db, current, node_id, payload):
     if node.kind != 'task' or node.status not in valid_sources[payload.action] or node.id in context.pending_reports:
         conflict()
     require_gate(db, current, node)
+    if payload.action in {'reopen', 'restore'} and node.parent_id is not None:
+        # D74: a closed parent cannot regain an open child; reopen the parent first.
+        parent = db.scalar(select(Node).where(Node.organization_id == current.organization.id, Node.id == node.parent_id))
+        if parent is not None and parent.status in {'review', 'done', 'skipped'}:
+            raise HTTPException(status_code=409, detail="上層已完成、待確認或已略過，請先重新開啟上層")
     node.status = 'skipped' if payload.action == 'skip' else 'doing'
     log_audit(db, current, f'node.{payload.action}', node_id=node.id, payload={'reason':payload.reason})
     db.commit()

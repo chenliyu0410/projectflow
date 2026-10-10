@@ -1,9 +1,9 @@
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, Index, text, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, Index, event, text, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, Session, mapped_column, relationship, with_loader_criteria
 
 from app.database import Base
 
@@ -115,6 +115,7 @@ class Node(Base):
         ForeignKeyConstraint(["organization_id", "parent_id"], ["nodes.organization_id", "nodes.id"]),
         ForeignKeyConstraint(["organization_id", "department_id"], ["departments.organization_id", "departments.id"]),
         ForeignKeyConstraint(["organization_id", "owner_user_id"], ["users.organization_id", "users.id"]),
+        ForeignKeyConstraint(["organization_id", "deleted_by"], ["users.organization_id", "users.id"], name="fk_nodes_deleted_by"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
@@ -135,6 +136,24 @@ class Node(Base):
     progress: Mapped[int | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    # TP-B soft delete: records, notes, attachments and audit rows keep pointing at a deleted node.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+
+INCLUDE_DELETED = "include_deleted"
+
+
+@event.listens_for(Session, "do_orm_execute")
+def _hide_deleted_nodes(state):
+    """Every ORM read skips soft-deleted nodes unless the statement opts in with INCLUDE_DELETED.
+
+    Refreshes of already loaded objects are left alone so a just-deleted node can still be read back.
+    """
+    if (state.is_select and not state.is_column_load and not state.is_relationship_load
+            and not state.execution_options.get(INCLUDE_DELETED, False)):
+        state.statement = state.statement.options(
+            with_loader_criteria(Node, lambda cls: cls.deleted_at.is_(None), include_aliases=True))
 
 
 class Workflow(Base):

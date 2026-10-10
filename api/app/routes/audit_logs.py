@@ -110,6 +110,24 @@ def project_payload(action, raw, node, context, projects, references):
     if action in {'node.reopen', 'node.skip', 'node.restore'}:
         reason = text_value(raw.get('reason'), 2000)
         return {'reason': reason} if reason is not None else {}
+    if action == 'node.delete':
+        result = {'title': text_value(raw.get('title'), 200)}
+        if isinstance(raw.get('node_ids'), list):
+            result['count'] = len(raw['node_ids'])
+        parent = safe_id(raw.get('parent_id'), references['nodes'])
+        if parent and references['nodes'][parent].project_id == node.project_id:
+            result.update({'parent_id': parent, 'parent_title': references['nodes'][parent].title})
+        return result
+    if action == 'node.copy':
+        result = {}
+        if isinstance(raw.get('node_ids'), list):
+            result['count'] = len(raw['node_ids'])
+        source = safe_id(raw.get('source_id'), references['nodes'])
+        if source and references['nodes'][source].project_id == node.project_id:
+            result.update({'source_id': source, 'source_title': references['nodes'][source].title})
+        return result
+    if action == 'node.undo':
+        return {'action': raw['action']} if raw.get('action') in {'node.create', 'node.delete', 'node.move', 'node.copy'} else {}
     if action == 'node.move':
         result = {}
         for key in ['from_parent_id', 'to_parent_id']:
@@ -165,6 +183,7 @@ def project_payload(action, raw, node, context, projects, references):
 
 SUMMARIES = {'project.create': '建立專案', 'workflow.instantiate': '套用工作流', 'node.create': '新增節點',
              'node.update': '更新節點資料', 'node.status': '更新節點狀態', 'node.move': '移動節點', 'node.reopen': '恢復工作',
+             'node.delete': '刪除節點', 'node.copy': '複製子樹', 'node.undo': '復原',
              'node.skip': '略過任務', 'node.restore': '恢復略過任務', 'gate.approve': '核准閘門',
              'report.submit': '送出回報', 'report.approve': '確認回報', 'report.reject': '退回回報',
              'note.create': '新增筆記', 'note.update': '修訂筆記', 'collaborators.update': '更新協作設定',
@@ -176,7 +195,8 @@ def list_audit_logs(node_id: str | None = None, action: str = Query('', max_leng
                     cursor: str | None = None, limit: int = Query(50, ge=1, le=100),
                     current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     context = load_policy_context(db, current)
-    projects, visible_nodes = visible_workspace_nodes(db, current, context=context)
+    # Deleted nodes keep their history in the audit view (TP-B soft delete).
+    projects, visible_nodes = visible_workspace_nodes(db, current, context=context, include_deleted=True)
     nodes = {node.id: node for node in visible_nodes}
     org = current.organization.id
     references = {'nodes': nodes}
@@ -195,6 +215,7 @@ def list_audit_logs(node_id: str | None = None, action: str = Query('', max_leng
         item = {'id': log.id, 'organization_key': current.organization.key, 'action': log.action,
                 'summary': SUMMARIES.get(log.action, '其他業務事件'), 'node_id': log.node_id,
                 'node_title': node.title if node else None, 'project_id': node.project_id if node else None,
+                'node_deleted': node is not None and node.deleted_at is not None,
                 'project_title': projects[node.project_id].title if node else None,
                 'actor_user_id': actor.id if actor else None, 'actor_display_name': actor.display_name if actor else None,
                 'payload': project_payload(log.action, log.payload, node, context, projects, references),

@@ -95,7 +95,14 @@ class NodeUpdate(NodeMetadata):
 class NodeMove(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    parent_id: str = Field(min_length=1, max_length=36)
+    # None moves the task to the project's top level (under the project root when one exists).
+    parent_id: str | None = Field(min_length=1, max_length=36)
+
+
+class UndoRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    audit_id: str = Field(min_length=1, max_length=36)
 
 
 class ProjectFromWorkflowCreate(BaseModel):

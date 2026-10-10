@@ -82,9 +82,13 @@ def test_node_out_exposes_weight_progress_and_move_capability(client, tree):
     nodes = nodes_of(client)
     assert nodes['a1']['weight'] == 1 and nodes['a1']['progress'] is None
     assert nodes['a1']['capabilities']['move'] is True and nodes['ph']['capabilities']['move'] is False
-    for actor in ['ming', 'chen', 'lin']:
+    # D74: the task owner (ming) and the department head (chen) may move tasks too; readonly never.
+    for actor in ['ming', 'chen']:
         switch(client, actor)
-        assert not any(n['capabilities']['move'] for n in nodes_of(client).values()), actor
+        assert {nid for nid, n in nodes_of(client).items() if n['capabilities']['move']} == {
+            nid for nid, n in nodes_of(client).items() if n['kind'] == 'task'}, actor
+    switch(client, 'lin')
+    assert not any(n['capabilities']['move'] for n in nodes_of(client).values())
 
 
 def test_weight_and_progress_update_with_validation_and_audit(client, engine, tree):
@@ -174,7 +178,7 @@ def test_owner_moves_task_under_another_task_with_audit(client, engine, tree):
     assert client.post('/nodes/b/move', json={'parent_id': 'ph'}).json()['parent_id'] == 'ph'
 
 
-@pytest.mark.parametrize('actor,org,expected', [('ming', 'food', 403), ('chen', 'food', 403), ('lin', 'food', 403),
+@pytest.mark.parametrize('actor,org,expected', [('ming', 'food', 200), ('chen', 'food', 200), ('lin', 'food', 403),
                                                 ('kai', 'electronics', 404), ('yu', 'food', 200)])
 def test_move_permission_matrix(client, engine, tree, actor, org, expected):
     switch(client, actor, org)
@@ -224,7 +228,8 @@ def test_move_refuses_dependency_between_subtree_and_new_ancestors(client, engin
 
 def test_move_rejects_bad_body(client, tree):
     switch(client, 'owner')
-    for body in [{}, {'parent_id': ''}, {'parent_id': 'a', 'extra': 1}, {'parent_id': None}]:
+    # TP-B: parent_id may be null (project top level) but must be present.
+    for body in [{}, {'parent_id': ''}, {'parent_id': 'a', 'extra': 1}]:
         assert client.post('/nodes/b/move', json=body).status_code == 422, body
 
 

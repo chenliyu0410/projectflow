@@ -97,6 +97,8 @@ def test_only_health_routes_exist():
         "/projects/{project_id}/dependencies",
         "/projects/{project_id}/records",
         "/nodes/{node_id}/move",
+        "/nodes/{node_id}/copy",
+        "/undo",
         "/dependencies/{dependency_id}",
         "/workspace/overview",
         "/workspace/my-tasks",
