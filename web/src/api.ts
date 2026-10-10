@@ -32,6 +32,11 @@ export class ApiError extends Error {
 
 // Fixed TP-A/TP-B conflict texts may be shown as-is; any other backend detail stays hidden.
 export const KNOWN_CONFLICTS = new Set([
+  '後續任務有無法調整的項目，請由專案負責人確認',
+  '里程碑不能有子任務，請先取消里程碑',
+  '日期早於自己或上層的前置任務，請先調整排程',
+  '時程相依或階層無法計算，請先檢查連線',
+  '順延日期超出允許範圍',
   '子節點尚未全部完成',
   '不能移到自己的子任務底下',
   '不能移到已完成、待確認或已略過的任務底下',
@@ -339,6 +344,8 @@ export const api = {
       body: JSON.stringify(payload),
       signal,
     }),
+  updateSchedule: (id: string, payload: { start_date: string | null; due_date: string | null; cascade: boolean }, signal?: AbortSignal) =>
+    requestJson<{ node: NodeItem; shifted_count: number }>(`/nodes/${id}/schedule`, { method: 'POST', body: JSON.stringify(payload), signal }),
   updateNode: (id: string, payload: NodeUpdate, signal?: AbortSignal) =>
     requestJson<NodeItem>(`/nodes/${id}`, {
       method: 'PATCH',

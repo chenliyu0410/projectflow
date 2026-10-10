@@ -8,9 +8,10 @@ export interface NodeItem {
   id: string; project_id: string; parent_id: string | null; kind: 'project' | 'phase' | 'task' | string;
   title: string; status: NodeStatus; owner_user_id: string | null; department_id: string | null; sort_order: number;
   start_date: string | null; due_date: string | null;
+  milestone?: boolean; schedule_locked?: boolean;
   weight?: number; progress?: number | null;
   owner_display_name: string | null; department_name: string | null;
-  capabilities: { edit_metadata: boolean; assign: boolean; create_child: boolean; write_record?: boolean; submit_report?: boolean; review_report?: boolean; manage_collaborators?: boolean; lifecycle?: boolean; move?: boolean; copy?: boolean; delete?: boolean };
+  capabilities: { edit_schedule?: boolean; lock_schedule?: boolean; edit_metadata: boolean; assign: boolean; create_child: boolean; write_record?: boolean; submit_report?: boolean; review_report?: boolean; manage_collaborators?: boolean; lifecycle?: boolean; move?: boolean; copy?: boolean; delete?: boolean };
   state_actions?: string[];
   blocked?: boolean;
 }
@@ -25,8 +26,8 @@ export type WorkspaceRoute = { page: 'overview' | 'my-tasks' | 'reviews' | 'audi
 export interface WorkflowSummary { phase_count?: number; task_count?: number; phase_titles?: string[]; id: string; name: string; requires_start_date?: boolean; capabilities?: { edit: boolean; copy: boolean }; }
 export interface AssignmentOptions { users: { id: string; display_name: string }[]; departments: { id: string; name: string }[]; }
 export interface NodeMetadata { title: string; owner_user_id: string | null; department_id: string | null; start_date: string | null; due_date: string | null; }
-export interface NodeCreate extends NodeMetadata { kind: 'phase' | 'task'; parent_id: string | null; }
-export type NodeUpdate = Partial<NodeMetadata> & { weight?: number; progress?: number | null };
+export interface NodeCreate extends NodeMetadata { milestone?: boolean; schedule_locked?: boolean; kind: 'phase' | 'task'; parent_id: string | null; }
+export type NodeUpdate = Partial<NodeMetadata> & { milestone?: boolean; schedule_locked?: boolean; weight?: number; progress?: number | null };
 export type TaskCounts = Record<NodeStatus, number>;
 export interface OverviewProject { id: string; title: string; task_counts: TaskCounts; completion_percent: number | null; progress_percent?: number | null; current_phase_title?: string | null; due_date?: string | null; overdue_count?: number; }
 export interface WorkloadPerson { user_id: string; display_name: string; department_name: string | null; open_count: number; overdue_count: number; }

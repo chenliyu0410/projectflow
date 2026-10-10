@@ -397,7 +397,7 @@ export default function App() {
   const copilotScope = `${route.page === 'project' ? project?.title ?? '專案' : PAGE_SCOPES[route.page]}（只讀取你有權限的節點）`;
   const canAddNode = session?.user.role !== 'readonly' && (selectedNode ? selectedNode.capabilities?.create_child : project?.capabilities?.create_node);
   // D74: a review/done/skipped node cannot gain new children.
-  const closedParent = !!selectedNode && ['review', 'done', 'skipped'].includes(selectedNode.status);
+  const closedParent = !!selectedNode && (selectedNode.milestone || ['review', 'done', 'skipped'].includes(selectedNode.status));
   const canEditNode = session?.user.role !== 'readonly' && selectedNode?.kind !== 'project' && selectedNode?.capabilities?.edit_metadata;
   function openNodeEditor(mode: 'create' | 'edit') {
     if (busy || mutating || creationOpen) return;
@@ -481,12 +481,12 @@ export default function App() {
                 <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">另存為模板<span className="nav-badge">尚未提供</span></button>
                 <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">套用模板<span className="nav-badge">尚未提供</span></button>
               </>}
-              {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen || closedParent} title={closedParent ? '不能在已完成、待確認或已略過的節點底下新增' : undefined} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
+              {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen || closedParent} title={selectedNode?.milestone ? '里程碑不能有子任務，請先取消里程碑' : closedParent ? '不能在已完成、待確認或已略過的節點底下新增' : undefined} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
             </>}
             editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
               canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession}
               nodes={project.nodes} created={nodeCreated} tree={selectedNode ? { move: parentId => void moveNode(selectedNode.id, parentId), copy: () => void structure('copy', selectedNode.id), remove: () => void structure('delete', selectedNode.id) } : undefined} />}
-            timeline={!busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} scopeId={selectedNodeId} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession}
+            timeline={!busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} scopeId={selectedNodeId} created={nodeCreated} notice={setMessage} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession}
               undo={session.user.role === 'readonly' ? undefined : { label: lastUndo?.label ?? null, disabled: busy || mutating, run: () => void undoLast() }} />}
             graph={!busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} project={project} scopeId={selectedNodeId} select={id => selectNode(id, 'graph')} reload={reloadRecords} expired={expireSession} />} />}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}

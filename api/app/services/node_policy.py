@@ -42,11 +42,13 @@ def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *,
     return {
         **{key: json_value(getattr(node, key)) for key in (
             'id', 'project_id', 'parent_id', 'kind', 'title', 'status', 'owner_user_id',
-            'department_id', 'sort_order', 'start_date', 'due_date', 'weight', 'progress')},
+            'department_id', 'sort_order', 'start_date', 'due_date', 'weight', 'progress', 'milestone', 'schedule_locked')},
         'owner_display_name': owner.display_name if owner is not None and owner.organization_id == current.organization.id else None,
         'department_name': department.name if department is not None and department.organization_id == current.organization.id else None,
         'capabilities': {
             'edit_metadata': can_edit_node(db, current, project, node, departments=departments, context=context),
+            'lock_schedule': manage and node.kind == 'task',
+            'edit_schedule': can_edit_node(db, current, project, node, departments=departments, context=context) and (not node.schedule_locked or manage),
             'assign': manage and node.kind in {'phase','task'},
             'create_child': manage and node.kind in {'project','phase','task'},
             'write_record': can_write_record(db, current, project, node, context=context),

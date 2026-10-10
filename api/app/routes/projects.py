@@ -8,8 +8,8 @@ from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.models import Department, Gate, Node, Project, User
 from app.permissions import can_view_node, can_view_project, can_work_node, can_manage_project, can_edit_node
-from app.schemas import NodeCreate, NodeMove, NodeUpdate, NodeStatusUpdate, ProjectCreate, UndoRequest
-from app.services import tree_service
+from app.schemas import NodeCreate, NodeMove, NodeUpdate, NodeStatusUpdate, ProjectCreate, UndoRequest, ScheduleUpdate
+from app.services import tree_service, schedule_service
 from app.services.node_policy import (node_out, json_value, validate_assignments, validate_dates, blocked_by_pending_gate,
                                       require_children_finished)
 
@@ -106,6 +106,8 @@ def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Dep
         raise HTTPException(status_code=400, detail="無法在此父節點新增此種類")
     if parent is not None and parent.status in tree_service.CLOSED_PARENT:
         raise HTTPException(status_code=409, detail="不能在已完成、待確認或已略過的節點底下新增")
+    if parent is not None and parent.milestone:
+        schedule_service.fail(schedule_service.MILESTONE_PARENT)
     validate_assignments(db, current, payload.model_dump())
     next_order = db.execute(
         select(Node.sort_order).where(Node.organization_id == current.organization.id, Node.project_id == project.id).order_by(Node.sort_order.desc())
@@ -120,8 +122,18 @@ def create_node(project_id: str, payload: NodeCreate, current: CurrentUser = Dep
         department_id=payload.department_id,
         start_date=payload.start_date,
         due_date=payload.due_date,
+        milestone=payload.milestone,
+        schedule_locked=payload.schedule_locked,
         sort_order=(next_order or 0) + 10,
     )
+    from uuid import uuid4
+    node.id = str(uuid4())
+    initial = {"start_date": payload.start_date, "due_date": payload.due_date, "milestone": payload.milestone, "schedule_locked": payload.schedule_locked}
+    node.start_date = node.due_date = None
+    node.milestone = node.schedule_locked = False
+    schedule_service.prepare(db, current, project, node, initial, context)
+    for key, value in initial.items():
+        setattr(node, key, value)
     db.add(node)
     db.flush()
     entry = log_audit(db, current, "node.create", node_id=node.id, payload={"project_id": project.id, **payload.model_dump(mode="json")})
@@ -169,11 +181,7 @@ def assignment_options(project_id: str, current: CurrentUser = Depends(require_s
 
 @router.patch("/nodes/{node_id}")
 def update_node(node_id: str, payload: NodeUpdate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
-    context = load_policy_context(db, current)
-    node = db.scalar(select(Node).where(Node.organization_id == current.organization.id, Node.id == node_id))
-    if node is None or not can_view_node(current, node, context=context):
-        raise HTTPException(status_code=404, detail="找不到節點")
-    project = get_project_or_404(db, current, node.project_id)
+    node, project, context = lock_node(db, current, node_id)
     if not can_edit_node(db, current, project, node, context=context, departments=context.departments):
         raise HTTPException(status_code=403, detail="沒有編輯此節點的權限")
     fields = payload.model_dump(exclude_unset=True)
@@ -183,14 +191,9 @@ def update_node(node_id: str, payload: NodeUpdate, current: CurrentUser = Depend
         raise HTTPException(status_code=422, detail="只有任務可以填寫進度")
     validate_dates(fields.get("start_date", node.start_date), fields.get("due_date", node.due_date))
     validate_assignments(db, current, fields)
-    changes = {key: {"before": json_value(getattr(node, key)), "after": json_value(value)}
-               for key, value in fields.items() if getattr(node, key) != value}
-    if changes:
-        for key in changes:
-            setattr(node, key, fields[key])
-        log_audit(db, current, "node.update", node_id=node.id, payload=changes)
-        db.commit()
-        db.refresh(node)
+    schedule_service.apply(db, current, project, node, fields, context)
+    db.commit()
+    db.refresh(node)
     return node_out(db, current, project, node, context=context)
 
 
@@ -213,3 +216,14 @@ def delete_node(node_id: str, current: CurrentUser = Depends(require_session), d
 @router.post("/undo")
 def undo(payload: UndoRequest, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     return tree_service.undo(db, current, payload.audit_id)
+
+
+@router.post("/nodes/{node_id}/schedule")
+def update_schedule(node_id: str, payload: ScheduleUpdate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    node, project, context = lock_node(db, current, node_id)
+    if not can_edit_node(db, current, project, node, context=context, departments=context.departments):
+        raise HTTPException(status_code=403, detail="沒有編輯此節點的權限")
+    count = schedule_service.apply(db, current, project, node, {"start_date": payload.start_date, "due_date": payload.due_date}, context, payload.cascade)
+    db.commit()
+    db.refresh(node)
+    return {"node": node_out(db, current, project, node, context=context), "shifted_count": count}

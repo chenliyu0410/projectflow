@@ -44,7 +44,7 @@ function object(v: unknown): Record<string, unknown> {
     : {};
 }
 function text(v: unknown) {
-  return typeof v === 'string' || typeof v === 'number' ? String(v) : '未設定';
+  return typeof v === 'boolean' ? (v ? '是' : '否') : typeof v === 'string' || typeof v === 'number' ? String(v) : '未設定';
 }
 function names(v: unknown, key: string) {
   return Array.isArray(v)
@@ -131,6 +131,8 @@ function AuditChanges({ item }: { item: AuditItem }) {
       ['title', '名稱'],
       ['start_date', '開始日期'],
       ['due_date', '截止日期'],
+      ['milestone', '里程碑'],
+      ['schedule_locked', '鎖定時程'],
       ['weight', '權重'],
       ['progress', '進度 %'],
     ]) {

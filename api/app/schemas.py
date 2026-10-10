@@ -73,12 +73,16 @@ class NodeMetadata(BaseModel):
 
 
 class NodeCreate(NodeMetadata):
+    milestone: bool = Field(default=False, strict=True)
+    schedule_locked: bool = Field(default=False, strict=True)
     title: str
     kind: Literal["phase", "task"]
     parent_id: str | None = None
 
 
 class NodeUpdate(NodeMetadata):
+    milestone: bool = Field(default=False, strict=True)
+    schedule_locked: bool = Field(default=False, strict=True)
     title: str | None = None
     weight: int | None = Field(default=None, ge=0, le=100, strict=True)
     progress: int | None = Field(default=None, ge=0, le=100, strict=True)
@@ -90,6 +94,18 @@ class NodeUpdate(NodeMetadata):
         if "weight" in self.model_fields_set and self.weight is None:
             raise ValueError("權重需為 0–100 的整數")
         return self
+
+
+class ScheduleUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    start_date: date | None
+    due_date: date | None
+    cascade: bool = Field(default=False, strict=True)
+
+    @field_validator("start_date", "due_date", mode="before")
+    @classmethod
+    def calendar_date(cls, value):
+        return NodeMetadata.calendar_date(value)
 
 
 class NodeMove(BaseModel):

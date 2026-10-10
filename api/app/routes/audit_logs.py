@@ -139,6 +139,8 @@ def project_payload(action, raw, node, context, projects, references):
     if action in {'node.create', 'node.update'}:
         fields = {'title': lambda value: text_value(value, 200),
                   'start_date': date_value, 'due_date': date_value,
+                  'milestone': lambda value: value if type(value) is bool else None,
+                  'schedule_locked': lambda value: value if type(value) is bool else None,
                   'weight': lambda value: value if type(value) is int and 0 <= value <= 100 else None,
                   'progress': lambda value: value if type(value) is int and 0 <= value <= 100 else None,
                   'owner_user_id': lambda value: safe_id(value, context.users),
@@ -213,7 +215,7 @@ def list_audit_logs(node_id: str | None = None, action: str = Query('', max_leng
             continue
         actor = context.users.get(log.actor_user_id)
         item = {'id': log.id, 'organization_key': current.organization.key, 'action': log.action,
-                'summary': SUMMARIES.get(log.action, '其他業務事件'), 'node_id': log.node_id,
+                'summary': ('自動順延' if log.payload['schedule'].get('cascade') else '調整時程') if log.action == 'node.update' and isinstance(log.payload, dict) and isinstance(log.payload.get('schedule'), dict) else SUMMARIES.get(log.action, '其他業務事件'), 'node_id': log.node_id,
                 'node_title': node.title if node else None, 'project_id': node.project_id if node else None,
                 'node_deleted': node is not None and node.deleted_at is not None,
                 'project_title': projects[node.project_id].title if node else None,

@@ -109,6 +109,8 @@ class Node(Base):
         UniqueConstraint("organization_id", "id"),
         UniqueConstraint("organization_id", "project_id", "id", name="uq_nodes_project_id"),
         CheckConstraint("start_date IS NULL OR due_date IS NULL OR start_date <= due_date", name="ck_nodes_date_order"),
+        CheckConstraint("NOT milestone OR (kind = 'task' AND start_date IS NOT NULL AND due_date IS NOT NULL AND start_date = due_date)", name="ck_nodes_milestone"),
+        CheckConstraint("NOT schedule_locked OR milestone", name="ck_nodes_schedule_locked"),
         CheckConstraint("weight >= 0 AND weight <= 100", name="ck_nodes_weight_range"),
         CheckConstraint("progress IS NULL OR (progress >= 0 AND progress <= 100)", name="ck_nodes_progress_range"),
         ForeignKeyConstraint(["organization_id", "project_id"], ["projects.organization_id", "projects.id"]),
@@ -127,6 +129,8 @@ class Node(Base):
     status: Mapped[str] = mapped_column(String(40), default="todo", nullable=False)
     owner_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     department_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    milestone: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"), nullable=False)
+    schedule_locked: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"), nullable=False)
     collaborators_revision: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     due_date: Mapped[date | None] = mapped_column(Date, nullable=True)

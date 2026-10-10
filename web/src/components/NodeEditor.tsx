@@ -20,6 +20,7 @@ export function promoteTarget(nodes: NodeItem[], node: NodeItem): Target {
   if (!parent.parent_id) return { target: null };
   const grand = byId.get(parent.parent_id);
   if (!grand) return { reason: '看不到上上層節點，無法升級' };
+  if (grand.milestone) return { reason: '里程碑不能有子任務，請先取消里程碑' };
   return CLOSED.includes(grand.status) ? { reason: CLOSED_TARGET } : { target: grand.id };
 }
 /** Demo 降級: into the sibling shown just above it. */
@@ -27,6 +28,7 @@ export function demoteTarget(nodes: NodeItem[], node: NodeItem): Target {
   const siblings = nodes.filter(item => item.parent_id === node.parent_id && item.kind !== 'project').sort((a, b) => a.sort_order - b.sort_order);
   const above = siblings[siblings.findIndex(item => item.id === node.id) - 1];
   if (!above) return { reason: '上方沒有同層任務可以放入' };
+  if (above.milestone) return { reason: '里程碑不能有子任務，請先取消里程碑' };
   return CLOSED.includes(above.status) ? { reason: CLOSED_TARGET } : { target: above.id };
 }
 /** Demo 移動到…: every visible node in tree order, minus the node, its subtree and its current parent. */
@@ -37,9 +39,9 @@ export function moveOptions(nodes: NodeItem[], node: NodeItem) {
   const walk = (item: NodeItem) => {
     if (family.has(item.id)) return;
     if (item.kind !== 'project' && item.id !== node.parent_id) {
-      const closed = CLOSED.includes(item.status);
+      const closed = CLOSED.includes(item.status) || !!item.milestone;
       // Demo indentation: the project is level 0, so a phase gets one full-width space.
-      out.push({ value: item.id, label: `${'　'.repeat(levelOf(nodes, item.id))}${item.title}${closed ? '（已完成或待確認）' : ''}`, disabled: closed });
+      out.push({ value: item.id, label: `${'　'.repeat(levelOf(nodes, item.id))}${item.title}${item.milestone ? '（里程碑）' : closed ? '（已完成或待確認）' : ''}`, disabled: closed });
     }
     childrenOf(nodes, item.id).forEach(walk);
   };
@@ -108,12 +110,13 @@ function DeleteConfirm({ projectId, nodes, node, cancel, confirm, expired }: {
   </section>;
 }
 
-export default function NodeEditor({ projectId, mode, node, parent, canAssign, leaf = false, nodes = [], tree, created, reload, close, expired }: {
+export default function NodeEditor({ projectId, mode, node, parent, canAssign, leaf = false, nodes = [], tree, created, reload, close, expired, initialDates }: {
   projectId: string; mode: 'create' | 'edit'; node: NodeItem | null; parent: NodeItem | null; canAssign: boolean; leaf?: boolean;
+  initialDates?: { start_date?: string; due_date?: string };
   nodes?: NodeItem[]; tree?: TreeActions; created?: (title: string, undoId: string | null) => void;
   reload: (nodeId: string) => Promise<void>; close: () => void; expired: () => void;
 }) {
-  const initial: NodeMetadata = { title: node?.title ?? '', start_date: node?.start_date ?? null, due_date: node?.due_date ?? null,
+  const initial: NodeMetadata = { title: node?.title ?? '', start_date: node?.start_date ?? initialDates?.start_date ?? null, due_date: node?.due_date ?? initialDates?.due_date ?? null,
     owner_user_id: node?.owner_user_id ?? null, department_id: node?.department_id ?? null };
   const [title, setTitle] = useState(initial.title); const [start, setStart] = useState(initial.start_date ?? ''); const [due, setDue] = useState(initial.due_date ?? '');
   const [owner, setOwner] = useState(initial.owner_user_id ?? ''); const [department, setDepartment] = useState(initial.department_id ?? '');
@@ -121,7 +124,9 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, l
   const initialWeight = String(node?.weight ?? 1); const initialProgress = node?.progress == null ? '' : String(node.progress);
   const [weight, setWeight] = useState(initialWeight); const [progress, setProgress] = useState(initialProgress);
   const showProgress = mode === 'edit' && node?.kind === 'task' && node.status === 'doing' && leaf;
-  const allowPhase = !parent || parent.kind === 'project'; const [kind, setKind] = useState<'phase' | 'task'>(allowPhase ? 'phase' : 'task');
+  const allowPhase = !parent || parent.kind === 'project'; const [kind, setKind] = useState<'phase' | 'task'>(allowPhase && !initialDates ? 'phase' : 'task');
+  const [milestone, setMilestone] = useState(!!node?.milestone); const [locked, setLocked] = useState(!!node?.schedule_locked);
+  const scheduleDisabled = !!node?.schedule_locked && !node.capabilities.lock_schedule;
   const [options, setOptions] = useState<AssignmentOptions | null>(null); const [optionsError, setOptionsError] = useState('');
   const [loading, setLoading] = useState(canAssign); const [saving, setSaving] = useState(false); const [error, setError] = useState('');
   const [savedNodeId, setSavedNodeId] = useState<string | null>(null);
@@ -146,6 +151,9 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, l
   const invalidProgress = showProgress && progress !== '' && !percentField(progress);
   if (mode === 'edit' && !invalidWeight && weight !== initialWeight) changes.weight = Number(weight);
   if (showProgress && !invalidProgress && progress !== initialProgress) changes.progress = progress === '' ? null : Number(progress);
+  if (milestone !== !!node?.milestone) changes.milestone = milestone;
+  if (locked !== !!node?.schedule_locked) changes.schedule_locked = locked;
+  const invalidMilestone = milestone && (!start || start !== due || (mode === 'create' ? kind !== 'task' : !leaf));
   const invalidDates = !!start && !!due && start > due;
   // Unsaved edits would be lost by a structure action, so those wait until the form is saved or cancelled.
   const dirty = Object.keys(changes).length > 0 || weight !== initialWeight || progress !== initialProgress;
@@ -155,12 +163,12 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, l
   }
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (savingRef.current || loading || optionsError || savedNodeId || !payload.title || payload.title.length > 200 || invalidDates || invalidWeight || invalidProgress || (mode === 'edit' && !Object.keys(changes).length)) return;
+    if (savingRef.current || loading || optionsError || savedNodeId || !payload.title || payload.title.length > 200 || invalidDates || invalidMilestone || invalidWeight || invalidProgress || (mode === 'edit' && !Object.keys(changes).length)) return;
     const request = begin(); savingRef.current = true; setSaving(true); setError('');
     try {
       let result: NodeItem;
       if (mode === 'create') {
-        const made = await api.createNode(projectId, { ...payload, kind, parent_id: parent?.id ?? null }, request.signal);
+        const made = await api.createNode(projectId, { ...payload, kind, parent_id: parent?.id ?? null, ...(milestone ? { milestone, schedule_locked: locked } : {}) }, request.signal);
         if (!current(request)) return;
         created?.(made.title, made.undo_id);
         result = made;
@@ -200,8 +208,14 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, l
           {options?.departments.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
         </select></label>
       </>}
-      <label>開始日期<input type="date" min="0001-01-01" max="9999-12-31" value={start} disabled={saving} onChange={event => setStart(event.target.value)} /></label>
-      <label>截止日期<input type="date" min="0001-01-01" max="9999-12-31" value={due} disabled={saving} onChange={event => setDue(event.target.value)} /></label>
+      <label>開始日期<input type="date" min="0001-01-01" max="9999-12-31" value={start} disabled={saving || scheduleDisabled} onChange={event => { setStart(event.target.value); if (milestone) setDue(event.target.value); }} /></label>
+      <label>截止日期<input type="date" min="0001-01-01" max="9999-12-31" value={due} disabled={saving || scheduleDisabled || milestone} onChange={event => setDue(event.target.value)} /></label>
+      {(mode === 'create' ? kind === 'task' : node?.kind === 'task') && <div className="milestone-options">
+        <label><input type="checkbox" checked={milestone} disabled={saving || scheduleDisabled || (mode === 'edit' && !leaf)} onChange={e => { setMilestone(e.target.checked); if (e.target.checked) setDue(start); else setLocked(false); }} />里程碑（單日）</label>
+        {(mode === 'create' || node?.capabilities.lock_schedule) && <label><input type="checkbox" checked={locked} disabled={saving || !milestone} onChange={e => setLocked(e.target.checked)} />鎖定時程</label>}
+        {scheduleDisabled && <p>已鎖定，請由專案負責人或系統管理員調整日期。</p>}
+        {invalidMilestone && <p role="alert">里程碑必須是有完整單日日期的葉任務</p>}
+      </div>}
       {invalidDates && <p role="alert">開始日期不得晚於截止日期</p>}
       {mode === 'edit' && <label>權重（彙總進度用）<input type="number" inputMode="numeric" min={0} max={100} step={1} value={weight} disabled={saving} onChange={event => setWeight(event.target.value)} /></label>}
       {invalidWeight && <p role="alert">權重需為 0–100 的整數</p>}
@@ -210,7 +224,7 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, l
       {treeNode && tree && (treeNode.capabilities?.move || treeNode.capabilities?.copy) && <TreeOperations nodes={nodes} node={treeNode} dirty={dirty} tree={tree} />}
       <div className="form-actions">
         {treeNode && treeNode.capabilities?.delete && <button type="button" className="danger form-left" disabled={saving} onClick={() => setConfirmDelete(true)}>刪除</button>}
-        <button type="submit" disabled={saving || loading || !!optionsError || !payload.title || invalidDates || invalidWeight || invalidProgress || (mode === 'edit' && !Object.keys(changes).length)}>儲存</button><button type="button" disabled={saving} onClick={close}>取消</button></div>
+        <button type="submit" disabled={saving || loading || !!optionsError || !payload.title || invalidDates || invalidMilestone || invalidWeight || invalidProgress || (mode === 'edit' && !Object.keys(changes).length)}>儲存</button><button type="button" disabled={saving} onClick={close}>取消</button></div>
     </>}
   </form>;
 }

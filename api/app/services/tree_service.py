@@ -80,6 +80,8 @@ def check_placement(db: Session, current: CurrentUser, project, node: Node, targ
             raise HTTPException(status_code=409, detail="節點階層異常，無法移動")
         chain.append(cursor.id)
         cursor = nodes.get(cursor.parent_id) if cursor.parent_id is not None else None
+    if target is not None and target.milestone:
+        raise HTTPException(status_code=409, detail="里程碑不能有子任務，請先取消里程碑")
     if target is not None and target.status in CLOSED_PARENT and not closed_ok:
         raise HTTPException(status_code=409, detail=closed_detail)
     if not chain:
@@ -149,6 +151,8 @@ def copy_node(db: Session, current: CurrentUser, node_id: str) -> dict:
         raise HTTPException(status_code=403, detail="沒有複製此任務的權限")
     nodes = project_nodes(db, current, project.id)
     parent = nodes.get(node.parent_id) if node.parent_id else None
+    if parent is not None and parent.milestone:
+        raise HTTPException(status_code=409, detail="里程碑不能有子任務，請先取消里程碑")
     if parent is not None and parent.status in CLOSED_PARENT:
         raise HTTPException(status_code=409, detail="不能在已完成、待確認或已略過的節點底下新增")
     family = family_of(nodes, node.id)
@@ -164,7 +168,7 @@ def copy_node(db: Session, current: CurrentUser, node_id: str) -> dict:
                     kind=source.kind, title=copy_title(source.title) if source_id == node.id else source.title,
                     status="todo", owner_user_id=source.owner_user_id, department_id=source.department_id,
                     start_date=source.start_date, due_date=source.due_date, sort_order=source.sort_order,
-                    weight=source.weight, progress=None)
+                    weight=source.weight, progress=None, milestone=source.milestone, schedule_locked=source.schedule_locked)
         db.add(copy)
         db.flush()
         mapping[source_id] = copy.id
@@ -285,6 +289,7 @@ def undo_delete(db, current, entry, project, nodes, context):
         parent = nodes.get(parent_id)
         # A finished subtree may return under a finished parent; an open one may not (D74).
         if (parent is None or parent.deleted_at is not None
+                or parent.milestone
                 or (parent.status in CLOSED_PARENT and any(nodes[i].status not in FINISHED for i in ids))):
             raise HTTPException(status_code=409, detail=UNDO_PARENT)
     restored = set(ids)

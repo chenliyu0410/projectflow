@@ -484,3 +484,53 @@ def test_tp_b_postgresql_migration_preserves_nodes(monkeypatch):
     assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
     assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
     check_tp_b_migration_preserves_nodes(url,monkeypatch)
+
+
+def check_tp_c_migration_preserves_nodes(url, monkeypatch):
+    import pytest
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text, inspect
+    from sqlalchemy.exc import IntegrityError
+    from app.seed import seed_demo_data
+    monkeypatch.setenv('DATABASE_URL', url)
+    seed_at_revision(url, '20261010_0006', seed_demo_data)
+    engine = create_engine(sqlalchemy_url(url))
+    config = Config('api/alembic.ini')
+    tables = [t for t in inspect(engine).get_table_names() if t != 'alembic_version']
+    def snapshot():
+        with engine.connect() as db:
+            return {t: sorted([dict(r._mapping) for r in db.execute(text('SELECT * FROM ' + t))], key=lambda r: str(r.get('id', r.get('organization_id')))) for t in tables}
+    before = snapshot()
+    command.upgrade(config, '20261010_0007')
+    after = snapshot()
+    assert before['nodes']
+    assert after['nodes'] == [dict(n, milestone=False, schedule_locked=False) for n in before['nodes']]
+    assert {t: v for t, v in after.items() if t != 'nodes'} == {t: v for t, v in before.items() if t != 'nodes'}
+    nid = next(n['id'] for n in before['nodes'] if n['kind'] == 'task')
+    for sql in ['schedule_locked=true', "milestone=true,start_date=NULL,due_date=NULL", "milestone=true,start_date='2026-10-01',due_date='2026-10-02'"]:
+        with pytest.raises(IntegrityError):
+            with engine.begin() as db: db.execute(text('UPDATE nodes SET ' + sql + ' WHERE id=:id'), {'id': nid})
+    with engine.begin() as db: db.execute(text("UPDATE nodes SET milestone=true,schedule_locked=true,start_date='2026-10-10',due_date='2026-10-10' WHERE id=:id"), {'id': nid})
+    with pytest.raises(RuntimeError): command.downgrade(config, '20261010_0006')
+    with engine.begin() as db: db.execute(text('UPDATE nodes SET milestone=false,schedule_locked=false WHERE id=:id'), {'id': nid})
+    command.downgrade(config, '20261010_0006')
+    assert set(inspect(engine).get_columns('nodes')[0])
+    assert not {'milestone', 'schedule_locked'} & {c['name'] for c in inspect(engine).get_columns('nodes')}
+    command.upgrade(config, 'head')
+    engine.dispose()
+
+
+def test_tp_c_migration_preserves_nodes(tmp_path, monkeypatch):
+    check_tp_c_migration_preserves_nodes(f"sqlite:///{tmp_path/'tp-c.db'}", monkeypatch)
+
+
+def test_tp_c_postgresql_migration_preserves_nodes(monkeypatch):
+    import os, pytest
+    from sqlalchemy.engine import make_url
+    url = os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url: pytest.skip('Fresh dedicated p2b_test PostgreSQL URL required for TP-C migration')
+    parsed = make_url(url)
+    assert parsed.get_backend_name() == 'postgresql' and parsed.database.startswith('p2b_test_')
+    assert os.environ.get('PF_ACCEPTANCE_MODE') == 'true'
+    check_tp_c_migration_preserves_nodes(url, monkeypatch)

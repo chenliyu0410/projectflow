@@ -118,7 +118,7 @@ describe('calendar schedule', () => {
     expect(month).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getByText(/^今天：/)).toBeInTheDocument();
   });
-  it('saves only the selected dates, supports null and never repeats PATCH on read retry', async () => {
+  it('saves only the selected dates, supports null and never repeats POST on read retry', async () => {
     const f = vi.fn().mockResolvedValue(response(node));
     vi.stubGlobal('fetch', f);
     const reload = vi.fn().mockRejectedValue(new Error('read'));
@@ -141,10 +141,10 @@ describe('calendar schedule', () => {
     await waitFor(() => expect(reload).toHaveBeenCalledTimes(2));
     expect(f).toHaveBeenCalledTimes(1);
     expect(f).toHaveBeenCalledWith(
-      '/api/nodes/n',
+      '/api/nodes/n/schedule',
       expect.objectContaining({
-        method: 'PATCH',
-        body: JSON.stringify({ start_date: null, due_date: '2026-03-10' }),
+        method: 'POST',
+        body: JSON.stringify({ start_date: null, due_date: '2026-03-10', cascade: false }),
       }),
     );
   });
