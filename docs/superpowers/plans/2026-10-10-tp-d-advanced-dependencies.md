@@ -1,6 +1,6 @@
-# TP-D 前置進階：短規格與計畫草案
+# TP-D 前置進階：短規格與計畫
 
-日期：2026-10-10。依D70／D65；人類已同意TP-C並指定下一批TP-D。本文件供D76確認，尚未授權其中新增的條件資料模型；不表示已實作。
+日期：2026-10-10。依D70／D65；人類已同意TP-C並指定下一批TP-D。D76已核准：人類簡要確認人工條件與其餘TP-D照計畫後回覆「好」。不表示已實作。
 
 ## 目標與差距
 
@@ -17,7 +17,7 @@
 | 阻擋 | FS／SS及条件開始檢查含上層，FF在自身完成檢查 | 開始與送回報共用FS檢查，核准尚未重檢前置 | 分離開始／完成檢查；所有完成入口重檢FF；維持既有Gate與權限 |
 | 連動 | 時程、箭頭及預測識別類型 | TP-C只識別FS | 三種端點與lag共用計算、標籤及日期衝突；保留D75原子回滾 |
 
-## D76待確認的產品規則
+## D76已核准的產品規則
 
 1. **建議條件採人工確認**：先做「到貨已確認」等有名稱的獨立條件，由系統管理員／該專案負責人確認或撤回，記錄理由、操作者、時間與稽核。介面明示「人工確認」，不假稱ERP同步。條件附屬同公司同專案的目標任務，不用虛構前置任務；可選硬性／軟性，僅限制開始。這是與Demo的刻意差異，需要人類確認。替代方案為本批延後條件型，等UI5／F1有正式資料來源再做；不自動擴大本批為營運模組。
 2. **狀態與日期分開**：FS等待done／skipped；SS等待doing／review／done／skipped；FF只擋完成，不擋開始或送待確認回報，但自我確認與審核核准均重檢。保留既有FS／SS在送回報時重檢，避免既有保護消失；開始檢查包含自身及上層FS／SS／條件，FF只針對自身。略過仍沿既有管理者權限，不新增覆寫／申請（TP-F）。已開始任務不因條件撤回自動退回狀態。
@@ -35,9 +35,9 @@
 
 核准後於主checkout開唯一feature/tp-d-advanced-dependencies，無新外部依賴、不改Demo。
 
-1. API：models.py、schemas.py、routes/dependencies.py、routes/projects.py、routes/reports.py；services/dependency_service.py、schedule_service.py、node_policy.py、report_service.py、tree_service.py、workflow_service.py；新增services/condition_service.py及routes/conditions.py（採人工條件時）、main.py註冊；migration 0008。
-2. 前端：types.ts、api.ts、timeline.ts；components/DependencyPanel.tsx、DependencyGraph.tsx、TimelineView.tsx、NodeEditor.tsx、NodeWorkspace.tsx、AuditLogView.tsx、回報及審核元件（實作前列明實際檔名）；styles.css。新增共用dependency判斷／標籤工具。指標拖線取消、錯誤保留草稿、鍵盤／手機用等效表單。
-3. 測試：新增api/tests/test_tp_d_dependencies.py、web/src/dependencies-advanced.test.tsx、web/e2e/dependencies-advanced.spec.ts；test_migrations.py與既有dependency、schedule、report、tree測試，deploy/verify.py加入PG 0008保留資料階段。實作前補齊必要既有測試／元件精確檔名。
+1. API：models.py、schemas.py、routes/dependencies.py、routes/projects.py、routes/reports.py、routes/audit_logs.py；services/dependency_service.py、schedule_service.py、record_policy.py、node_policy.py、report_service.py、tree_service.py、workflow_service.py；新增services/condition_service.py及routes/conditions.py（採人工條件時）、main.py註冊；migration 0008。
+2. 前端：types.ts、api.ts、timeline.ts；components/DependencyPanel.tsx、DependencyGraph.tsx、TimelineView.tsx、NodeEditor.tsx、NodeWorkspace.tsx、AuditLogView.tsx、ReportPanel.tsx、ReviewCenter.tsx；styles.css。新增web/src/dependencies.ts共用判斷／標籤工具。指標拖線取消、錯誤保留草稿、鍵盤／手機用等效表單。
+3. 測試：新增api/tests/test_tp_d_dependencies.py、web/src/dependencies-advanced.test.tsx、web/e2e/dependencies-advanced.spec.ts；test_migrations.py與既有dependency、schedule、report、tree測試，deploy/verify.py加入PG 0008保留資料階段。既有測試允許test_tp_c_schedule.py、test_tree_editing.py、test_dependencies.py、test_reports.py、test_health.py及web/src/timeline-advanced.test.tsx、timeline.test.tsx、dependencies.test.tsx（僅調整本批新增欄位與語意斷言）。
 4. 文件：本計畫、README、PROGRESS、formal-development、mvp-trial-checklist。commit主旨TP-D，實際工具／模型trailer。
 
 ## 驗收與交付
