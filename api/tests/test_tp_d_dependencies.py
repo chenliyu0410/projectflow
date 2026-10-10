@@ -103,3 +103,79 @@ def test_condition_visibility_soft_and_company_scope(client,engine):
     assert client.patch(f'/nodes/{b}/status',json={'status':'doing'}).status_code==200
     switch(client,'lin')
     assert client.delete('/conditions/'+soft['id']).status_code==403
+
+
+def test_partial_patch_preserves_settings_and_soft_ff_review_warning(client,engine):
+    a,b,pid,_=pair(client,engine)
+    e=edge(client,pid,a,b,relation_type='FF',lag_days=5,enforcement='soft')
+    assert client.patch('/dependencies/'+e['id'],json={'lag_days':2}).json()['enforcement']=='soft'
+    result=client.patch('/dependencies/'+e['id'],json={}).json()
+    assert (result['relation_type'],result['lag_days'],result['enforcement'])==('FF',2,'soft')
+    switch(client,'ming')
+    r=client.post(f'/nodes/{b}/reports',json=PAYLOAD);assert r.status_code==201
+    switch(client,'yu')
+    item=next(i for i in client.get('/workspace/reviews').json()['items'] if i['id']==r.json()['id'])
+    assert item['dependency_warnings']==['軟性前置尚未滿足，仍可繼續']
+    approved=client.post(f"/reports/{r.json()['id']}/review",json={'decision':'approved'})
+    assert approved.status_code==200
+    assert approved.json()['dependency_warnings']==['軟性前置尚未滿足，仍可繼續']
+
+
+def test_ancestor_ss_and_condition_apply_to_child(client,engine):
+    a,b,pid,users=pair(client,engine)
+    with Session(engine) as db:
+        source=db.get(Node,b)
+        parent=Node(organization_id=source.organization_id,project_id=pid,kind='task',title='parent',owner_user_id=users['yu'])
+        db.add(parent);db.flush();parent_id=parent.id;source.parent_id=parent.id;db.commit()
+    edge(client,pid,a,parent_id,relation_type='SS')
+    assert client.patch(f'/nodes/{b}/status',json={'status':'doing'}).status_code==409
+    with Session(engine) as db:db.get(Node,a).status='doing';db.commit()
+    cid=client.post(f'/projects/{pid}/conditions',json={'node_id':parent_id,'label':'上層確認'}).json()['id']
+    assert client.patch(f'/nodes/{b}/status',json={'status':'doing'}).status_code==409
+    assert client.post(f'/conditions/{cid}/confirmation',json={'is_met':True,'reason':'確認'}).status_code==200
+    assert client.patch(f'/nodes/{b}/status',json={'status':'doing'}).status_code==200
+
+
+def test_edge_settings_preserved_copy_and_undo(client,engine):
+    a,b,pid,users=pair(client,engine)
+    with Session(engine) as db:
+        source=db.get(Node,b)
+        parent=Node(organization_id=source.organization_id,project_id=pid,kind='task',title='parent',owner_user_id=users['yu'])
+        db.add(parent);db.flush();parent_id=parent.id
+        db.get(Node,a).parent_id=parent_id;db.get(Node,b).parent_id=parent_id;db.commit()
+    edge(client,pid,a,b,relation_type='FF',lag_days=-3,enforcement='soft')
+    copy=client.post(f'/nodes/{parent_id}/copy');assert copy.status_code==201,copy.text
+    result=client.delete(f'/nodes/{parent_id}');assert result.status_code==200
+    assert client.post('/undo',json={'audit_id':result.json()['undo_id']}).status_code==200
+    with Session(engine) as db:
+        rows=list(db.scalars(select(NodeDependency).where(NodeDependency.project_id==pid)))
+        assert len(rows)==2
+        assert all((r.relation_type,r.lag_days,r.enforcement)==('FF',-3,'soft') for r in rows)
+
+
+def test_condition_company_isolation_and_atomic_audit_failure(client,engine,monkeypatch):
+    from test_projects_nodes import login
+    from app.services import condition_service
+    a,b,pid,_=pair(client,engine)
+    cid=client.post(f'/projects/{pid}/conditions',json={'node_id':b,'label':'確認'}).json()['id']
+    before=snapshot(engine)
+    def fail(*args,**kwargs):raise RuntimeError('audit failure')
+    with monkeypatch.context() as m:
+        m.setattr(condition_service,'log_audit',fail)
+        with pytest.raises(RuntimeError):client.post(f'/conditions/{cid}/confirmation',json={'is_met':True,'reason':'驗收'})
+    assert snapshot(engine)==before
+    with Session(engine) as db:assert not db.get(NodeCondition,cid).is_met
+    client.post('/auth/logout');login(client,username='elaine',org='electronics')
+    assert client.post(f'/conditions/{cid}/confirmation',json={'is_met':True,'reason':'跨公司'}).status_code==404
+
+
+def test_soft_schedule_does_not_cascade_or_restrict_dates(client,engine):
+    a,b,pid,_=pair(client,engine)
+    edge(client,pid,a,b,relation_type='FF',lag_days=365,enforcement='soft')
+    with Session(engine) as db:
+        for nid in (a,b):
+            n=db.get(Node,nid);n.start_date=date(2026,10,1);n.due_date=date(2026,10,3)
+        db.commit()
+    r=client.post(f'/nodes/{a}/schedule',json={'start_date':'2026-10-05','due_date':'2026-10-07','cascade':True})
+    assert r.status_code==200 and r.json()['shifted_count']==0
+    assert client.patch(f'/nodes/{b}',json={'start_date':'2026-09-01','due_date':'2026-09-02'}).status_code==200

@@ -168,6 +168,7 @@ def reviews(kind: Literal['report', 'gate', 'all'] = 'all', limit: int = Query(5
                     'result': report.result, 'summary': report.summary,
                     'finished_on': report.finished_on.isoformat() if report.finished_on else None,
                     'submitted_by': report.submitted_by, 'submitted_by_display_name': author.display_name if author else None,
+                    'dependency_warnings': ['軟性前置尚未滿足，仍可繼續'] if node.id in context.soft_warning_ids else [],
                     'capabilities': {'review_report': True}}
             entries.append(((page_timestamp(report.submitted_at), report.id, 'report'), item))
     if kind in {'all', 'gate'}:

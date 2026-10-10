@@ -120,7 +120,7 @@ def update_edge(db, current, edge_id, payload):
     if len(nodes) != 2 or any(not can_view_node(current, n, context=context) for n in nodes):
         raise HTTPException(status_code=404, detail='找不到前置連線')
     before = edge_out(edge)
-    for key, value in payload.model_dump().items():
+    for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(edge, key, value)
     log_audit(db, current, 'dependency.update', node_id=edge.successor_id, payload={'before': before, 'after': edge_out(edge)})
     db.commit()

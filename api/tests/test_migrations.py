@@ -565,7 +565,7 @@ def check_tp_d_migration(url, monkeypatch):
     assert after['node_dependencies'] == [dict(e, relation_type='FS', lag_days=0, enforcement='hard') for e in before['node_dependencies']]
     assert {k:v for k,v in after.items() if k!='node_dependencies'} == {k:v for k,v in before.items() if k!='node_dependencies'}
     eid = after['node_dependencies'][0]['id']
-    for sql in ["relation_type='SF'", 'lag_days=366', "enforcement='override'"]:
+    for sql in ["relation_type='SF'", 'lag_days=366', "enforcement='bad'"]:
         with pytest.raises(IntegrityError):
             with engine.begin() as db: db.execute(text('UPDATE node_dependencies SET '+sql+' WHERE id=:id'), {'id':eid})
     with engine.begin() as db: db.execute(text("UPDATE node_dependencies SET relation_type='SS' WHERE id=:id"),{'id':eid})

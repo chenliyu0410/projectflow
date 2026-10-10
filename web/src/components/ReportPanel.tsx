@@ -167,6 +167,7 @@ export default function ReportPanel({
   const showForm = canSubmit && formOpen && !mutation.saved;
   return (
     <section className={`record-panel report-card ${tone}`} aria-label="完成回報">
+      {node.dependency_warnings?.map(w => <p className="note warn" key={w}>{w}</p>)}
       <div className="rc-row">
         <div className="rc-main">
           <h3>{mark && <span aria-hidden="true">{mark}</span>}{title}</h3>

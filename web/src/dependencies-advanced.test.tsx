@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import DependencyPanel from './components/DependencyPanel';
 import DependencyGraph from './components/DependencyGraph';
+import ReviewCenter from './components/ReviewCenter';
 import { dependencyShift, dependencyMet } from './dependencies';
 import { criticalChain } from './timeline';
 import type { DependencyData, NodeItem } from './types';
@@ -42,4 +43,16 @@ it('advanced fields submit and failed writes preserve draft',async()=>{
 it('readonly graph has no drag handles or manual mutations',()=>{
   render(<DependencyGraph data={{...data,capabilities:{manage:false}}} select={vi.fn()}/>);
   expect(screen.queryByRole('button',{name:/拖線/})).toBeNull();
+});
+
+it('review center shows soft warning before and after successful approval',async()=>{
+  const warning='軟性前置尚未滿足，仍可繼續';
+  const item={type:'report',id:'r',node_id:'b',node_title:'B',project_id:'p',project_title:'P',created_at:'2026-10-10T00:00:00Z',status:'submitted',capabilities:{review_report:true},dependency_warnings:[warning]};
+  const fetch=vi.fn().mockResolvedValueOnce(response({items:[item],next_cursor:null})).mockResolvedValueOnce(response({dependency_warnings:[warning]})).mockResolvedValueOnce(response({items:[],next_cursor:null}));
+  vi.stubGlobal('fetch',fetch);
+  render(<ReviewCenter openNode={vi.fn()} expired={vi.fn()}/>);
+  await screen.findByText(warning);
+  fireEvent.click(screen.getByRole('button',{name:'確認回報'}));
+  await screen.findByText('已核准。'+warning);
+  expect(fetch.mock.calls.filter(c=>c[1]?.method==='POST')).toHaveLength(1);
 });

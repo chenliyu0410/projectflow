@@ -92,7 +92,7 @@ describe('visible dependency editing', () => {
     expect(f).toHaveBeenCalledWith(
       '/api/projects/p/dependencies',
       expect.objectContaining({
-        body: JSON.stringify({ predecessor_id: 'b', successor_id: 'a' }),
+        body: JSON.stringify({ predecessor_id: 'b', successor_id: 'a', relation_type: 'FS', lag_days: 0, enforcement: 'hard' }),
       }),
     );
   });

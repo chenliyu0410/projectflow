@@ -8,6 +8,8 @@ import {
 } from '../api';
 import type { AuditItem } from '../types';
 const actions: Record<string, string> = {
+  'dependency.create': '新增前置', 'dependency.update': '修改前置', 'dependency.delete': '移除前置',
+  'condition.create': '新增人工條件', 'condition.update': '修改人工條件', 'condition.confirm': '人工條件確認／撤回', 'condition.delete': '移除人工條件',
   'project.create': '建立專案',
   'workflow.instantiate': '套用工作流',
   'node.create': '新增節點',
@@ -68,6 +70,12 @@ function AuditChanges({ item }: { item: AuditItem }) {
     add('審核意見', p.comment);
     if (typeof p.self_approved === 'boolean')
       add('確認方式', p.self_approved ? '自行確認' : '由審核者確認');
+  }
+  if (item.action.startsWith('condition.') || item.action.startsWith('dependency.')) {
+    for (const [label, value] of (p.before || p.after ? [['修改前', object(p.before)], ['修改後', object(p.after)]] : [['', p]]) as [string, Record<string, unknown>][]) {
+      for (const [key, title] of [['label','條件'],['reason','理由'],['confirmed_by_display_name','確認人'],['confirmed_at','時間'],['is_met','已確認'],['relation_type','關係類型'],['lag_days','延遲天數']]) add(label + title, value[key]);
+      if(value.enforcement) add(label + '強度', value.enforcement === 'soft' ? '軟性' : '硬性');
+    }
   }
   if (item.action === 'note.create') {
     add('筆記', p.body);

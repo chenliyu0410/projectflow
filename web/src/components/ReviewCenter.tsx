@@ -20,6 +20,7 @@ export default function ReviewCenter({
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [comments, setComments] = useState<Record<string, string>>({});
@@ -76,14 +77,15 @@ export default function ReviewCenter({
     setError('');
     let committed = false;
     try {
-      if (item.type === 'report')
-        await api.reviewReport(
+      if (item.type === 'report') {
+        const result = await api.reviewReport(
           item.id,
           decision,
           comments[item.id]?.trim() ?? '',
           r.controller.signal,
         );
-      else await api.approveGate(item.id, r.controller.signal);
+        if (scope.current(r)) setNotice(result?.dependency_warnings?.join('；') ?? '');
+      } else await api.approveGate(item.id, r.controller.signal);
       if (!scope.current(r)) return;
       committed = true;
       setSaved(true);
@@ -130,6 +132,7 @@ export default function ReviewCenter({
       </div>
       {loading && <p role="status">載入審核清單中</p>}
       {error && <p role="alert">{error}</p>}
+      {notice && <p role="status" className="note warn">已核准。{notice}</p>}
       {saved ? (
         <button disabled={busy || loading} onClick={() => void load()}>
           重試審核載入
@@ -164,6 +167,7 @@ export default function ReviewCenter({
               {item.summary}
             </p>
             <p className="small muted">實際完成日：{item.finished_on ?? '未設定'}</p>
+            {item.dependency_warnings?.map(w => <p className="note warn" key={w}>{w}</p>)}
             {item.capabilities.review_report && (
               <>
                 <label>

@@ -29,6 +29,7 @@ export default function DependencyGraph({
 }) {
   const suppressClick = useRef(false);
   const drag = useRef<string | null>(null);
+  const [pointer, setPointer] = useState<{x:number;y:number} | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
   const marker = useId().replaceAll(':', '');
   const ids = new Set(data.nodes.map((n) => n.id));
@@ -85,7 +86,7 @@ export default function DependencyGraph({
         <p className="empty">沒有可顯示的任務。</p>
       ) : (
         <div className="dependency-graph">
-          <div className="graph-canvas" style={{ width, height }} onPointerUp={() => {drag.current = null; setDragging(null);}} onPointerCancel={() => {drag.current = null; setDragging(null);}} onPointerLeave={() => {drag.current = null; setDragging(null);}}>
+          <div className="graph-canvas" style={{ width, height }} onPointerMove={e => {if(drag.current) {const r=e.currentTarget.getBoundingClientRect(); setPointer({x:e.clientX-r.left,y:e.clientY-r.top});}}} onPointerUp={() => {drag.current = null; setDragging(null);}} onPointerCancel={() => {drag.current = null; setDragging(null);}} onPointerLeave={() => {drag.current = null; setDragging(null);}}>
             {dragging && <span role="status">拖到後續任務方塊以設定前置</span>}
             <svg
               role="img"
@@ -98,6 +99,7 @@ export default function DependencyGraph({
                 <marker id={`${marker}-ok`} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#9A958B" /></marker>
                 <marker id={`${marker}-wait`} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#D9824F" /></marker>
               </defs>
+              {dragging && pointer && positions.has(dragging) && <line x1={positions.get(dragging)!.x+GW} y1={positions.get(dragging)!.y+GH/2} x2={pointer.x} y2={pointer.y} stroke="#1F5F5B" strokeDasharray="4 3"/>}
               {edges.map((e) => {
                 const a = positions.get(e.predecessor_id)!, b = positions.get(e.successor_id)!;
                 const x1 = a.x + (e.relation_type === 'SS' ? 0 : GW), y1 = a.y + GH / 2, x2 = b.x + (e.relation_type === 'FF' ? GW : 0), y2 = b.y + GH / 2;
@@ -141,7 +143,7 @@ export default function DependencyGraph({
                   </span>
                   <b>{n.title}</b>
                 </button>
-                {connect && <button type="button" className="dependency-handle" style={{left: p.x + GW - 10, top: p.y + GH / 2 - 10}} aria-label={`拖線建立前置：${n.title}`} onPointerDown={e => { if(e.button !== 0) return; e.preventDefault(); drag.current = n.id; setDragging(n.id); }} onKeyDown={e => {if(e.key === 'Escape') {drag.current = null; setDragging(null);}}}>＋</button>}
+                {connect && <button type="button" className="dependency-handle" style={{left: p.x + GW - 10, top: p.y + GH / 2 - 10}} aria-label={`拖線建立前置：${n.title}`} onPointerDown={e => { if(e.button !== 0) return; e.preventDefault(); drag.current = n.id; setPointer({x:p.x+GW,y:p.y+GH/2}); setDragging(n.id); }} onKeyDown={e => {if(e.key === 'Escape') {drag.current = null; setDragging(null);}}}>＋</button>}
                 </div>
               );
             })}

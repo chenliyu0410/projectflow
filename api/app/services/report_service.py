@@ -51,6 +51,7 @@ def report_out(report, node, context, attachments=()):
         'reviewed_by': report.reviewed_by, 'reviewed_by_display_name': reviewer.display_name if reviewer else None,
         'reviewed_at': report.reviewed_at.isoformat() if report.reviewed_at else None,
         'review_comment': report.review_comment, 'self_approved': report.self_approved,
+        'dependency_warnings': ['軟性前置尚未滿足，仍可繼續'] if node.id in context.soft_warning_ids else [],
         'node_status': node.status, 'attachments': [attachment_out(a, context.users) for a in attachments if a.report_id == report.id],
     }
 
