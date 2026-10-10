@@ -24,7 +24,7 @@ describe('TP-C calculations', () => {
     expect(timelineSpans([n('p', null, { start_date: null, due_date: null }), n('c', 'p')]).get('p')?.due).toBe(calendarDay('2026-10-03'));
   });
   it('filters responsible departments and retains only visible paths', () => {
-    expect(departmentNodes(nodes, 'qa').map(n => n.id)).toEqual(['parent', 'b']);
+    expect(departmentNodes([...nodes, n('unrelated', null, { kind: 'phase' })], 'qa').map(n => n.id)).toEqual(['parent', 'b']);
     expect(departmentNodes([n('orphan', 'hidden', { department_id: null })], 'none').map(n => n.id)).toEqual(['orphan']);
     expect(visibleEndpoint('b', nodes, new Set(['parent']))).toBe('parent');
     expect(visibleEndpoint('hidden', nodes, new Set(['parent']))).toBeNull();
@@ -63,6 +63,14 @@ describe('TP-C interactions', () => {
     fireEvent.click(screen.getByRole('button', { name: '品保 1' }));
     expect(screen.queryByRole('button', { name: '時程任務：a' })).not.toBeInTheDocument();
     expect(container.querySelector('[data-edge-id="a-b"]')).not.toBeInTheDocument();
+  });
+  it('loads project edges even when first mounted at one leaf and then moving up', async () => {
+    const fetcher = vi.fn().mockResolvedValue(response({ items: [edge('a', 'b')] })); vi.stubGlobal('fetch', fetcher);
+    const props = { project, select: vi.fn(), reload: vi.fn(), expired: vi.fn() };
+    const { rerender, container } = render(<TimelineView {...props} scopeId="a" />);
+    await waitFor(() => expect(fetcher).toHaveBeenCalledOnce());
+    rerender(<TimelineView {...props} scopeId={null} />);
+    await waitFor(() => expect(container.querySelector('[data-edge-id="a-b"]')).toBeInTheDocument());
   });
   it('keeps a failed cascade draft and sends the explicit cascade choice', async () => {
     const fetcher = vi.fn().mockResolvedValue(response({ detail: '後續任務有無法調整的項目，請由專案負責人確認' }, 409));

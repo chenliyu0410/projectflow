@@ -56,7 +56,7 @@ def spans(dates, children, order):
     for nid in reversed(order):
         start, due = dates[nid]
         starts = [start] if start is not None else []
-        ends = [due if due is not None else start] if due is not None or start is not None else []
+        ends = [due] if due is not None else []
         for child in children[nid]:
             a, b = result[child]
             if a is not None: starts.append(a)

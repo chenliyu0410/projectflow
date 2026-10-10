@@ -11,7 +11,7 @@ export function timelineSpans(nodes: NodeItem[]): Map<string, Span> {
   const children = new Map<string, string[]>();
   const ids = new Set(nodes.map(n => n.id));
   for (const n of nodes) {
-    result.set(n.id, { start: n.start_date ? calendarDay(n.start_date) : null, due: n.due_date ? calendarDay(n.due_date) : n.start_date ? calendarDay(n.start_date) : null });
+    result.set(n.id, { start: n.start_date ? calendarDay(n.start_date) : null, due: n.due_date ? calendarDay(n.due_date) : null });
     if (n.parent_id && ids.has(n.parent_id)) children.set(n.parent_id, [...(children.get(n.parent_id) ?? []), n.id]);
   }
   const order = nodes.filter(n => !n.parent_id || !ids.has(n.parent_id)).map(n => n.id);
@@ -35,7 +35,6 @@ export function departmentNodes(nodes: NodeItem[], department: string) {
   if (department === 'all') return nodes;
   const byId = new Map(nodes.map(n => [n.id, n])); const keep = new Set<string>();
   for (const n of nodes) {
-    if (n.kind !== 'task') keep.add(n.id);
     if (n.kind !== 'task' || (n.department_id ?? 'none') !== department) continue;
     let cursor: NodeItem | undefined = n; const seen = new Set<string>();
     while (cursor && !seen.has(cursor.id)) { seen.add(cursor.id); keep.add(cursor.id); cursor = byId.get(cursor.parent_id ?? ''); }

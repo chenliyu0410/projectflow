@@ -156,3 +156,26 @@ def test_company_readonly_deleted_and_null_dates(client, engine, schedule):
     assert update(client, start=None, due=None, cascade=False).status_code == 200
     assert client.delete('/nodes/a').status_code == 200
     assert update(client).status_code == 404
+
+
+def test_incomplete_predecessor_does_not_invent_a_finish_date(client, engine, schedule):
+    change(engine, 'a', due_date=None)
+    assert update(client, 'b', '2026-09-28', '2026-09-30', False).status_code == 200
+
+
+def test_more_than_thirty_successors_are_all_shifted(client, engine, schedule):
+    with Session(engine) as db:
+        parent = db.get(Node, 'c')
+        for i in range(35):
+            nid = f'long-{i}'
+            db.add(Node(id=nid, organization_id=parent.organization_id, project_id='sc', kind='task', title=nid,
+                        owner_user_id=schedule['ming'], start_date=date(2026, 10, 9), due_date=date(2026, 10, 9)))
+            db.flush()
+            db.add(NodeDependency(organization_id=parent.organization_id, project_id='sc', predecessor_id=parent.id,
+                                  successor_id=nid, created_by=schedule['yu']))
+            parent = db.get(Node, nid)
+        db.commit()
+    r = update(client)
+    assert r.status_code == 200, r.text
+    assert r.json()['shifted_count'] == 37
+    with Session(engine) as db: assert db.get(Node, 'long-34').due_date == date(2026, 11, 15)

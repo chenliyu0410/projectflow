@@ -97,7 +97,7 @@ export default function TimelineView({
   const addParent = root ?? project.nodes.find(n => n.kind === 'project' && !n.parent_id) ?? null;
   const canAdd = addParent ? addParent.capabilities.create_child : project.capabilities.create_node;
   useEffect(() => {
-    if (nodes.filter(n => n.kind === 'task').length < 2) return;
+    if (project.nodes.filter(n => n.kind === 'task').length < 2) return;
     const controller = new AbortController();
     setEdgeError('');
     api.dependencies(project.id, controller.signal).then(data => { if (!controller.signal.aborted) setEdges(data?.items ?? []); }, error => {
