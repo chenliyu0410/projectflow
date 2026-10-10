@@ -282,7 +282,8 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       </div>
     </section>
     {selected?.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`report:${selected.id}:${recordVersion}`} node={selected} userId={userId} reload={reloadRecords} expired={expired}
-      autoOpen={reportIntent === selected.id} openChildren={openChildren(nodes, selected)} />}
+      autoOpen={reportIntent === selected.id} openChildren={openChildren(nodes, selected)}
+      parentClosed={['review', 'done', 'skipped'].includes(nodes.find(node => node.id === selected.parent_id)?.status ?? '')} />}
     {!selected && phases.length > 0 && <section className="phases" aria-label="開發階段與閘門">{phases.map(phase => {
       const phaseGate = project.gates.find(item => item.node_id === phase.id);
       const value = nodePercent(phase);
@@ -328,7 +329,8 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         <section className="panel" aria-label="我在此節點的權限"><h3>你（{userName}{roleLabel ? `・${roleLabel}` : ''}）在此節點可以</h3>
           <ul className="cap-list">{([
             ['檢視', true], ['編輯節點資料', selected.capabilities?.edit_metadata], ['指派負責人與部門', selected.capabilities?.assign],
-            ['新增子節點', selected.capabilities?.create_child], ['移動到其他任務底下', selected.capabilities?.move], ['寫筆記與上傳附件', selected.capabilities?.write_record],
+            ['新增子節點', selected.capabilities?.create_child], ['移動到其他任務底下', selected.capabilities?.move],
+            ['複製子樹', selected.capabilities?.copy], ['刪除任務', selected.capabilities?.delete], ['寫筆記與上傳附件', selected.capabilities?.write_record],
             ['送出完成回報', selected.capabilities?.submit_report], ['確認或退回回報', selected.capabilities?.review_report],
             ['管理協作人員', selected.capabilities?.manage_collaborators], ['略過、重新開啟與恢復', selected.capabilities?.lifecycle],
             ...(selected.kind === 'phase' ? [['核准階段閘門', canApprove]] as const : []),

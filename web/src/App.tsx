@@ -34,6 +34,9 @@ export default function App() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  // TP-B: the user's latest structure change (kept in memory like the Demo) and the notice that offers 復原／開啟.
+  const [lastUndo, setLastUndo] = useState<{ id: string; label: string } | null>(null);
+  const [notice, setNotice] = useState<{ text: string; undo: boolean; open?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [mutating, setMutating] = useState(false);
   const mutationId = useRef<number | null>(null);
@@ -67,7 +70,7 @@ export default function App() {
     return request.id === sequence.current && !request.controller.signal.aborted;
   }
   function clearSession() {
-    closeCreation(); setWorkflows(null); setSwitchTarget('');
+    closeCreation(); setWorkflows(null); setSwitchTarget(''); setLastUndo(null); setNotice(null);
     setSession(null); setProjects([]); setRoute({ page: 'overview' }); setProject(null); setPassword(''); setState('login');
   }
   function failed(error: unknown, request: ReturnType<typeof begin>, loginFailure = false) {
@@ -78,6 +81,7 @@ export default function App() {
   }
   async function loadProjects(request: ReturnType<typeof begin>, value: SessionInfo) {
     if (!current(request)) return;
+    setLastUndo(null); setNotice(null);
     setSession(value); setState('loading');
     setProject(null); setRoute({ page: 'overview' });
     try {
@@ -222,31 +226,108 @@ export default function App() {
       if (current(request)) { mutationId.current = null; setMutating(false); }
     }
   }
-  async function moveNode(id: string, parentId: string) {
+  function announce(text: string, undo: boolean, open?: string) { setMessage(text); setNotice({ text, undo, open }); }
+  /** TP-B structure changes: move (drag, 升級, 降級, 移動到…), copy and delete; each can be undone once. */
+  async function structure(kind: 'move' | 'copy' | 'delete', id: string, parentId: string | null = null) {
     if (!project || !session || busy || mutationId.current !== null || session.user.role === 'readonly') return;
     const projectId = project.id;
-    const moved = project.nodes.find(node => node.id === id)?.title;
-    const target = project.nodes.find(node => node.id === parentId)?.title;
+    const title = project.nodes.find(node => node.id === id)?.title ?? '';
+    const target = parentId ? project.nodes.find(node => node.id === parentId) : undefined;
     const request = begin();
-    mutationId.current = request.id; setMutating(true); setMessage('');
+    setEditor(null); mutationId.current = request.id; setMutating(true); setMessage('');
     let saved = false;
     try {
-      await api.moveNode(id, parentId, request.controller.signal);
+      const signal = request.controller.signal;
+      let text = ''; let open: string | undefined; let undoId: string | null; let parentAfter: string | null = null;
+      if (kind === 'move') {
+        undoId = (await api.moveNode(id, parentId, signal)).undo_id;
+        if (undoId) setLastUndo({ id: undoId, label: `移動「${title}」` });
+      } else if (kind === 'copy') {
+        const result = await api.copyNode(id, signal);
+        undoId = result.undo_id; open = result.id; text = `已複製子樹「${result.title}」`;
+        setLastUndo({ id: undoId, label: `複製「${title}」` });
+      } else {
+        const result = await api.deleteNode(id, signal);
+        undoId = result.undo_id; parentAfter = result.parent_id; text = `已刪除「${title}」`;
+        setLastUndo({ id: undoId, label: `刪除「${title}」` });
+      }
       saved = true;
       if (!current(request)) return;
-      const detail = await api.project(projectId, request.controller.signal);
+      const detail = await api.project(projectId, signal);
       if (!current(request)) return;
       setProject(detail); setRecordVersion(value => value + 1);
-      setMessage(`已將「${moved}」移到「${target}」底下${levelOf(detail.nodes, id) >= 5 ? '；層數超過 5 層，建議考慮拆成獨立專案' : ''}`);
+      if (kind === 'delete' && selectedNodeId && !detail.nodes.some(node => node.id === selectedNodeId)) {
+        // Like the Demo, leaving a deleted node goes back to its parent.
+        const keep = parentAfter && detail.nodes.some(node => node.id === parentAfter) ? parentAfter : null;
+        setProjectView(defaultTab(detail.nodes, keep)); setSelectedNodeId(keep);
+      }
+      if (kind === 'move') {
+        const where = !target || target.kind === 'project' ? '專案最上層' : `「${target.title}」底下`;
+        text = `已將「${title}」移到${where}${levelOf(detail.nodes, id) >= 5 ? '；層數超過 5 層，建議考慮拆成獨立專案' : ''}`;
+      }
+      announce(text, !!undoId, open);
     } catch (error) {
       if (!current(request)) return;
+      const verb = kind === 'move' ? '移動' : kind === 'copy' ? '複製' : '刪除';
       if (error instanceof ApiError && error.status === 401) { clearSession(); setMessage(error.message); }
-      else if (saved) setMessage('已移動，資料重新載入失敗，請重新整理');
-      else setMessage(error instanceof ApiError && error.status === 403 ? '你的角色無權移動此任務'
-        : error instanceof ApiError && error.status === 0 ? '連線中斷，請重新整理確認移動結果；不會自動重送'
+      else if (saved) setMessage(`已${verb}，資料重新載入失敗，請重新整理`);
+      else setMessage(error instanceof ApiError && error.status === 403 ? `你的角色無權${verb}此任務`
+        : error instanceof ApiError && error.status === 0 ? `連線中斷，請重新整理確認${verb}結果；不會自動重送`
           : error instanceof ApiError ? error.message : '操作失敗，請稍後再試');
     } finally { if (current(request)) { mutationId.current = null; setMutating(false); } }
   }
+  const moveNode = (id: string, parentId: string | null) => structure('move', id, parentId);
+  async function undoLast() {
+    if (!session || busy || mutationId.current !== null || session.user.role === 'readonly') return;
+    if (!lastUndo) { setNotice(null); setMessage('沒有可以復原的操作'); return; }
+    const step = lastUndo; const projectId = project?.id;
+    const request = begin();
+    setEditor(null); mutationId.current = request.id; setMutating(true); setMessage('');
+    let saved = false;
+    try {
+      const result = await api.undo(step.id, request.controller.signal);
+      saved = true; setLastUndo(null);
+      if (!current(request)) return;
+      if (projectId) {
+        const detail = await api.project(projectId, request.controller.signal);
+        if (!current(request)) return;
+        setProject(detail); setRecordVersion(value => value + 1);
+        if (selectedNodeId && !detail.nodes.some(node => node.id === selectedNodeId)) {
+          const keep = result.parent_id && detail.nodes.some(node => node.id === result.parent_id) ? result.parent_id : null;
+          setProjectView(defaultTab(detail.nodes, keep)); setSelectedNodeId(keep);
+        }
+      }
+      setMessage(`已復原：${step.label}`);
+    } catch (error) {
+      if (!current(request)) return;
+      if (error instanceof ApiError && error.status === 401) { clearSession(); setMessage(error.message); }
+      else if (saved) setMessage('已復原，資料重新載入失敗，請重新整理');
+      else {
+        // A step that is no longer the latest (or is gone) can never be undone; other refusals may clear up later.
+        if (error instanceof ApiError && (error.status === 404 || error.message === '只能復原最近一次的結構操作')) setLastUndo(null);
+        setMessage(error instanceof ApiError && error.status === 0 ? '連線中斷，請重新整理確認復原結果；不會自動重送'
+          : error instanceof ApiError && error.status === 404 ? '沒有可以復原的操作'
+            : error instanceof ApiError ? error.message : '操作失敗，請稍後再試');
+      }
+    } finally { if (current(request)) { mutationId.current = null; setMutating(false); } }
+  }
+  function nodeCreated(title: string, undoId: string | null) {
+    if (!undoId) return;
+    setLastUndo({ id: undoId, label: `新增「${title}」` });
+    announce(`已新增「${title}」`, true);
+  }
+  // Demo: Ctrl+Z / ⌘Z undoes the last step when focus is not in a field and no form is open.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== 'z') return;
+      const active = document.activeElement as HTMLElement | null;
+      if (active && (/^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName) || active.isContentEditable)) return;
+      if (route.page !== 'project' || editor || creationOpen) return;
+      event.preventDefault(); void undoLast();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
   const canApprove = session && project && session.user.role !== 'readonly' && (
     session.user.role === 'admin' || session.user.id === project.owner_user_id || session.user.role === 'reviewer'
   );
@@ -308,6 +389,8 @@ export default function App() {
   const selectedNode = project?.nodes.find(node => node.id === selectedNodeId) ?? null;
   const copilotScope = `${route.page === 'project' ? project?.title ?? '專案' : PAGE_SCOPES[route.page]}（只讀取你有權限的節點）`;
   const canAddNode = session?.user.role !== 'readonly' && (selectedNode ? selectedNode.capabilities?.create_child : project?.capabilities?.create_node);
+  // D74: a review/done/skipped node cannot gain new children.
+  const closedParent = !!selectedNode && ['review', 'done', 'skipped'].includes(selectedNode.status);
   const canEditNode = session?.user.role !== 'readonly' && selectedNode?.kind !== 'project' && selectedNode?.capabilities?.edit_metadata;
   function openNodeEditor(mode: 'create' | 'edit') {
     if (busy || mutating || creationOpen) return;
@@ -352,7 +435,9 @@ export default function App() {
       </form> : <>
         {session ? <WorkspaceShell key={session.organization.id} route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} copilotScope={copilotScope}
           createAction={canCreate && <button className="new-project" disabled={busy || mutating || workflowLoading || state !== 'ready'} onClick={() => { if (creationOpen) { creationForm.current?.scrollIntoView?.({ block: 'start' }); creationForm.current?.focus(); } else void openCreation(); }}><NavIcon name="plus" size={16} />建立新專案</button>} session={<><span aria-label="目前公司">{session.organization.name}</span>{session.showcase && <><label>切換公司（本機展示）<select aria-label="切換公司（本機展示）" value={switchTarget || session.organization.key} disabled={busy || mutating} onChange={e=>{const key=e.target.value;if(key===session.organization.key){setSwitchTarget('');return;}if(document.querySelector('.workspace-content form')) setSwitchTarget(key);else void switchCompany(key);}}>{session.showcase.companies.map(company=><option key={company.key} value={company.key}>{company.name}｜{company.industry}</option>)}</select></label><span className="showcase-badge">{session.showcase.active ? '展示身分 · 管理者' : '本機展示模式'}</span>{switchTarget && <div className="company-switch-confirm" role="group" aria-label="確認切換公司"><p>將以展示管理者進入所選公司。未儲存的表單內容將離開。</p><button disabled={busy} onClick={()=>void switchCompany()}>確認切換公司</button><button disabled={busy} onClick={()=>setSwitchTarget('')}>取消切換</button></div>}</>}<div className="session-person"><span className="avatar" aria-hidden="true">{session.user.display_name.slice(0, 1)}</span><div><strong>{session.user.display_name}</strong><small>{ROLE_LABELS[session.user.role] ?? session.user.role}</small></div></div><button disabled={busy} onClick={() => void logout()}>登出</button></>}>
-        {message && <p role="alert">{message}</p>}
+        {message && <p role="alert" className={notice?.text === message ? 'notice' : undefined}>{message}
+          {notice?.text === message && notice.open && <button type="button" disabled={busy || mutating} onClick={() => { const id = notice.open!; selectNode(id); }}>開啟</button>}
+          {notice?.text === message && notice.undo && lastUndo && <button type="button" disabled={busy || mutating} onClick={() => void undoLast()}>復原</button>}</p>}
         <section aria-label={route.page === 'project' ? '專案' : route.page === 'overview' ? '總覽頁面' : route.page === 'my-tasks' ? '我的任務頁面' : route.page === 'reviews' ? '審核中心頁面' : route.page === 'audit' ? '稽核紀錄頁面' : '模板庫頁面'}>
           {creationOpen && <form ref={creationForm} tabIndex={-1} className="creation-form" aria-label="建立新專案" onSubmit={event => void createProject(event)}>
             <h2>建立新專案</h2>
@@ -389,11 +474,13 @@ export default function App() {
                 <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">另存為模板<span className="nav-badge">尚未提供</span></button>
                 <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">套用模板<span className="nav-badge">尚未提供</span></button>
               </>}
-              {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
+              {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen || closedParent} title={closedParent ? '不能在已完成、待確認或已略過的節點底下新增' : undefined} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
             </>}
             editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
-              canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} />}
-            timeline={!busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} scopeId={selectedNodeId} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession} />}
+              canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession}
+              nodes={project.nodes} created={nodeCreated} tree={selectedNode ? { move: parentId => void moveNode(selectedNode.id, parentId), copy: () => void structure('copy', selectedNode.id), remove: () => void structure('delete', selectedNode.id) } : undefined} />}
+            timeline={!busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} scopeId={selectedNodeId} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession}
+              undo={session.user.role === 'readonly' ? undefined : { label: lastUndo?.label ?? null, disabled: busy || mutating, run: () => void undoLast() }} />}
             graph={!busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} project={project} scopeId={selectedNodeId} select={id => selectNode(id, 'graph')} reload={reloadRecords} expired={expireSession} />} />}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}
         </section>

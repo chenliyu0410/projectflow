@@ -56,6 +56,7 @@ export default function TimelineView({
   reload,
   expired,
   color = 'var(--teal)',
+  undo,
 }: {
   project: ProjectDetail;
   /** Like the Demo, a node's timeline shows only that node and its descendants. */
@@ -65,6 +66,8 @@ export default function TimelineView({
   reload: RecordReload;
   expired: () => void;
   color?: string;
+  /** Demo toolbar 「↶ 復原」: undoes the user's last structure change (TP-B). */
+  undo?: { label: string | null; disabled: boolean; run: () => void };
 }) {
   // A blank project's kind=project root is the project level itself.
   const root = scopeId ? project.nodes.find((n) => n.id === scopeId && n.kind !== 'project') : undefined;
@@ -215,6 +218,11 @@ export default function TimelineView({
           ))}
         </span>
         <span>今天：{calendarDate(today)}</span>
+        {undo && (
+          <button type="button" disabled={undo.disabled || !undo.label} title={undo.label ? `復原：${undo.label}` : '沒有可以復原的操作'} onClick={undo.run}>
+            ↶ 復原
+          </button>
+        )}
       </div>
       {draft && (
         <form

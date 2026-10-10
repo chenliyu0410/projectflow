@@ -46,6 +46,7 @@ export default function ReportPanel({
   expired,
   autoOpen = false,
   openChildren = [],
+  parentClosed = false,
 }: {
   node: NodeItem;
   userId: string;
@@ -55,6 +56,8 @@ export default function ReportPanel({
   autoOpen?: boolean;
   /** Visible children that are not done or skipped; the API also refuses hidden ones. */
   openChildren?: NodeItem[];
+  /** D74: a review/done/skipped parent cannot regain an open child. */
+  parentClosed?: boolean;
 }) {
   const scope = useRequestScope();
   const mutation = useRecordMutation(reload, expired);
@@ -369,7 +372,15 @@ export default function ReportPanel({
                     .map(([key, text]) => (
                       <button
                         key={key}
-                        disabled={mutation.busy}
+                        disabled={
+                          mutation.busy ||
+                          (parentClosed && key !== 'skip')
+                        }
+                        aria-describedby={
+                          parentClosed && key !== 'skip'
+                            ? `parent-closed-${node.id}`
+                            : undefined
+                        }
                         onClick={(e) => {
                           trigger.current = e.currentTarget;
                           setAction(key);
@@ -379,6 +390,13 @@ export default function ReportPanel({
                         {text}
                       </button>
                     ))}
+                  {parentClosed &&
+                    (actions.includes('reopen') ||
+                      actions.includes('restore')) && (
+                      <p className="small muted" id={`parent-closed-${node.id}`}>
+                        上層已完成、待確認或已略過，請先重新開啟上層
+                      </p>
+                    )}
                 </div>
               )}
               {action && (

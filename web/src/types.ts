@@ -10,10 +10,15 @@ export interface NodeItem {
   start_date: string | null; due_date: string | null;
   weight?: number; progress?: number | null;
   owner_display_name: string | null; department_name: string | null;
-  capabilities: { edit_metadata: boolean; assign: boolean; create_child: boolean; write_record?: boolean; submit_report?: boolean; review_report?: boolean; manage_collaborators?: boolean; lifecycle?: boolean; move?: boolean };
+  capabilities: { edit_metadata: boolean; assign: boolean; create_child: boolean; write_record?: boolean; submit_report?: boolean; review_report?: boolean; manage_collaborators?: boolean; lifecycle?: boolean; move?: boolean; copy?: boolean; delete?: boolean };
   state_actions?: string[];
   blocked?: boolean;
 }
+/** TP-B structure changes answer with the audit id that `POST /undo` accepts (null when nothing changed). */
+export type Undoable<T> = T & { undo_id: string | null };
+export interface CopyResult extends NodeItem { undo_id: string; copied_count: number; }
+export interface DeleteResult { undo_id: string; project_id: string; parent_id: string | null; deleted_count: number; }
+export interface UndoResult { action: 'node.create' | 'node.delete' | 'node.move' | 'node.copy'; project_id: string; node_id: string; parent_id: string | null; }
 export interface GateItem { id: string; project_id: string; node_id: string; status: 'pending' | 'approved'; }
 export interface ProjectDetail extends ProjectSummary { nodes: NodeItem[]; gates: GateItem[]; capabilities: { create_node: boolean }; }
 export type WorkspaceRoute = { page: 'overview' | 'my-tasks' | 'reviews' | 'audit' | 'workflows' } | { page: 'project'; projectId: string | null; nodeId: string | null };
@@ -37,7 +42,7 @@ export interface Collaborators extends AssignmentOptions { revision: number; }
 export interface Quota { limit_bytes: number; charged_bytes: number; remaining_bytes: number; }
 export interface ReviewItem { type: 'report' | 'gate'; id: string; node_id: string; node_title: string; project_id: string; project_title: string; created_at: string; status: string; version?: number; result?: string; summary?: string; finished_on?: string | null; submitted_by?: string; submitted_by_display_name?: string | null; capabilities: { review_report?: boolean; approve_gate?: boolean }; }
 export interface ReviewPage { items: ReviewItem[]; next_cursor: string | null; }
-export interface AuditItem { id: string; action: string; summary: string; node_id: string | null; node_title: string | null; project_id: string | null; project_title: string | null; actor_display_name: string | null; created_at: string; payload: Record<string, unknown>; }
+export interface AuditItem { id: string; action: string; summary: string; node_id: string | null; node_title: string | null; node_deleted?: boolean; project_id: string | null; project_title: string | null; actor_display_name: string | null; created_at: string; payload: Record<string, unknown>; }
 export interface AuditPage { items: AuditItem[]; next_cursor: string | null; }
 export interface WorkflowNode { id: string; parent_id: string | null; kind: 'phase' | 'task'; title: string; sort_order: number; gate_after: boolean; start_offset: number | null; due_offset: number | null; }
 export interface DependencyInput { predecessor_id: string; successor_id: string; }

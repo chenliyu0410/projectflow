@@ -1,12 +1,4 @@
-import type {
-  CatalogEntry,
-  WorkflowDetail,
-  WorkflowWrite,
-  WorkflowList,
-  DependencyData,
-  DependencyInput,
-  Dependency,
-} from './types';
+import type { CatalogEntry, WorkflowDetail, WorkflowWrite, WorkflowList, DependencyData, DependencyInput, Dependency, Undoable, CopyResult, DeleteResult, UndoResult } from './types';
 import type { ReviewPage, AuditPage } from './types';
 import { useEffect, useRef, useState } from 'react';
 import type {
@@ -38,12 +30,20 @@ export class ApiError extends Error {
   }
 }
 
-// Fixed TP-A conflict texts may be shown as-is; any other backend detail stays hidden.
+// Fixed TP-A/TP-B conflict texts may be shown as-is; any other backend detail stays hidden.
 export const KNOWN_CONFLICTS = new Set([
   '子節點尚未全部完成',
   '不能移到自己的子任務底下',
   '不能移到已完成、待確認或已略過的任務底下',
   '移動後會和前置相依衝突，請先移除相依連線',
+  '不能在已完成、待確認或已略過的節點底下新增',
+  '上層已完成、待確認或已略過，請先重新開啟上層',
+  '此節點底下有你看不到的子任務，無法刪除',
+  '此節點底下有你看不到的子任務，無法複製',
+  '只能復原最近一次的結構操作',
+  '之後已有其他變更，無法復原',
+  '原本的上層已無法放回，無法復原',
+  '相關任務已有變更，無法復原',
 ]);
 
 export async function requestJson<T>(
@@ -331,7 +331,7 @@ export const api = {
       signal,
     }),
   createNode: (id: string, payload: NodeCreate, signal?: AbortSignal) =>
-    requestJson<NodeItem>(`/projects/${id}/nodes`, {
+    requestJson<Undoable<NodeItem>>(`/projects/${id}/nodes`, {
       method: 'POST',
       body: JSON.stringify(payload),
       signal,
@@ -342,10 +342,21 @@ export const api = {
       body: JSON.stringify(payload),
       signal,
     }),
-  moveNode: (id: string, parentId: string, signal?: AbortSignal) =>
-    requestJson<NodeItem>(`/nodes/${id}/move`, {
+  /** `parentId` null moves the task to the project's top level. */
+  moveNode: (id: string, parentId: string | null, signal?: AbortSignal) =>
+    requestJson<Undoable<NodeItem>>(`/nodes/${id}/move`, {
       method: 'POST',
       body: JSON.stringify({ parent_id: parentId }),
+      signal,
+    }),
+  copyNode: (id: string, signal?: AbortSignal) =>
+    requestJson<CopyResult>(`/nodes/${id}/copy`, { method: 'POST', signal }),
+  deleteNode: (id: string, signal?: AbortSignal) =>
+    requestJson<DeleteResult>(`/nodes/${id}`, { method: 'DELETE', signal }),
+  undo: (auditId: string, signal?: AbortSignal) =>
+    requestJson<UndoResult>('/undo', {
+      method: 'POST',
+      body: JSON.stringify({ audit_id: auditId }),
       signal,
     }),
   overview: (signal?: AbortSignal) =>

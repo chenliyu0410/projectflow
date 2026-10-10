@@ -650,3 +650,20 @@ button.danger { border-color: #E3B294; color: var(--red); }
 .tl-up { border-radius: 8px; padding: 4px 10px; font-size: 13px; }
 .timeline-bar.parent .pf { position: absolute; left: 0; top: 0; bottom: 0; background: var(--c, var(--teal)); opacity: .3; pointer-events: none; }
 .timeline-bar.parent > button { position: relative; }
+
+/* TP-B tree editing: 層級操作, delete confirmation and the undo notice */
+.tree-ops { margin: 4px 0 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.tree-ops legend { padding: 0 4px; font-size: 13px; font-weight: 600; color: var(--ink2); }
+.tree-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tree-row select { max-width: 220px; min-width: 0; height: 34px; }
+.tree-ops p { margin: 8px 0 0; overflow-wrap: anywhere; }
+.form-actions .form-left { margin-right: auto; }
+.delete-confirm { display: grid; gap: 10px; min-width: 0; overflow-wrap: anywhere; }
+.delete-confirm h3 { margin: 0; }
+.delete-confirm p { margin: 0; }
+.delete-confirm .note.warn { padding: 10px 12px; background: var(--red-soft); border: 1px solid #EBCBBB; border-radius: 10px; color: #8A2E0F; }
+button.danger:not(:disabled):hover { background: var(--red-soft); }
+.delete-confirm .form-actions button.danger { background: var(--red); border-color: var(--red); color: white; }
+[role=alert].notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; background: var(--teal-soft); border-color: #C5DCDA; color: var(--ink); }
+[role=alert].notice button { min-height: 30px; padding: 2px 12px; }
+.deleted-node { color: var(--muted); }

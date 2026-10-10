@@ -14,6 +14,9 @@ const actions: Record<string, string> = {
   'node.update': '更新節點資料',
   'node.status': '更新節點狀態',
   'node.move': '移動節點',
+  'node.delete': '刪除節點',
+  'node.copy': '複製子樹',
+  'node.undo': '復原',
   'node.reopen': '恢復工作',
   'node.skip': '略過任務',
   'node.restore': '恢復略過任務',
@@ -112,6 +115,17 @@ function AuditChanges({ item }: { item: AuditItem }) {
     add('原上層', p.from_parent_title);
     add('新上層', p.to_parent_title);
   }
+  if (item.action === 'node.delete') {
+    add('名稱', p.title);
+    add('刪除節點數', p.count);
+    add('原上層', p.parent_title);
+  }
+  if (item.action === 'node.copy') {
+    add('來源', p.source_title);
+    add('複製節點數', p.count);
+  }
+  if (item.action === 'node.undo' && typeof p.action === 'string')
+    add('復原的操作', actions[p.action] ?? '未設定');
   if (item.action === 'node.update') {
     for (const [key, label] of [
       ['title', '名稱'],
@@ -262,11 +276,18 @@ export default function AuditLogView({
             </p>
             {item.node_id && item.project_id && (
               <div className="record-actions">
-                <button
-                  onClick={() => openNode(item.project_id!, item.node_id!)}
-                >
-                  {item.node_title ?? '開啟任務'}
-                </button>
+                {item.node_deleted ? (
+                  // A deleted node keeps its history but has no page to open.
+                  <span className="deleted-node">
+                    {item.node_title ?? '任務'}（已刪除）
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => openNode(item.project_id!, item.node_id!)}
+                  >
+                    {item.node_title ?? '開啟任務'}
+                  </button>
+                )}
                 <span>{item.project_title}</span>
                 <button
                   aria-label={`只看此任務：${item.node_title ?? '任務'}`}
