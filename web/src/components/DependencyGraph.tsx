@@ -1,4 +1,5 @@
-import { useId } from 'react';
+import { dependencyMet, dependencyLabel } from '../dependencies';
+import { useId, useRef, useState } from 'react';
 import type { DependencyData, NodeItem } from '../types';
 // Demo layout: 200×58 boxes, left-to-right by predecessor depth, orthogonal arrows that only move right.
 const GW = 200, GH = 58, GCOL = 260, GROW = 80;
@@ -19,11 +20,16 @@ export default function DependencyGraph({
   data,
   select,
   nodes = [],
+  connect,
 }: {
   data: DependencyData;
   select: (id: string) => void;
   nodes?: NodeItem[];
+  connect?: (from: string, to: string) => void;
 }) {
+  const suppressClick = useRef(false);
+  const drag = useRef<string | null>(null);
+  const [dragging, setDragging] = useState<string | null>(null);
   const marker = useId().replaceAll(':', '');
   const ids = new Set(data.nodes.map((n) => n.id));
   const edges = data.items.filter(
@@ -79,7 +85,8 @@ export default function DependencyGraph({
         <p className="empty">沒有可顯示的任務。</p>
       ) : (
         <div className="dependency-graph">
-          <div className="graph-canvas" style={{ width, height }}>
+          <div className="graph-canvas" style={{ width, height }} onPointerUp={() => {drag.current = null; setDragging(null);}} onPointerCancel={() => {drag.current = null; setDragging(null);}} onPointerLeave={() => {drag.current = null; setDragging(null);}}>
+            {dragging && <span role="status">拖到後續任務方塊以設定前置</span>}
             <svg
               role="img"
               aria-label="任務前置連線圖"
@@ -93,12 +100,12 @@ export default function DependencyGraph({
               </defs>
               {edges.map((e) => {
                 const a = positions.get(e.predecessor_id)!, b = positions.get(e.successor_id)!;
-                const x1 = a.x + GW, y1 = a.y + GH / 2, x2 = b.x, y2 = b.y + GH / 2;
+                const x1 = a.x + (e.relation_type === 'SS' ? 0 : GW), y1 = a.y + GH / 2, x2 = b.x + (e.relation_type === 'FF' ? GW : 0), y2 = b.y + GH / 2;
                 const g1 = x1 + (GCOL - GW) / 2, g2 = x2 - (GCOL - GW) / 2;
                 const points = b.c - a.c <= 1
                   ? y1 === y2 ? [[x1, y1], [x2, y2]] : [[x1, y1], [g1, y1], [g1, y2], [x2, y2]]
                   : [[x1, y1], [g1, y1], [g1, b.y - (GROW - GH) / 2], [g2, b.y - (GROW - GH) / 2], [g2, y2], [x2, y2]];
-                const met = closed(status.get(e.predecessor_id));
+                const met = dependencyMet(e, status.get(e.predecessor_id));
                 return (
                   <path
                     key={e.id}
@@ -108,7 +115,7 @@ export default function DependencyGraph({
                     strokeWidth="1.6"
                     strokeDasharray={met ? undefined : '5 4'}
                     markerEnd={`url(#${marker}-${met ? 'ok' : 'wait'})`}
-                  />
+                  ><title>{dependencyLabel(e)}：{met ? '已滿足' : '未滿足'}</title></path>
                 );
               })}
             </svg>
@@ -117,13 +124,14 @@ export default function DependencyGraph({
               const item = byId.get(n.id);
               const trail = path(n.id);
               return (
+                <div key={n.id}>
                 <button
-                  key={n.id}
                   className={`gnode ${closed(n.status) ? 'done' : ''}`}
                   style={{ left: p.x, top: p.y }}
                   aria-label={`開啟任務：${n.title}`}
                   title={`${trail ? `${trail} › ` : ''}${n.title}${n.blocked ? '：尚有未完成的前置任務' : ''}`}
-                  onClick={() => select(n.id)}
+                  onPointerUp={e => { if(drag.current && connect) {e.preventDefault(); e.stopPropagation(); suppressClick.current = true; const from = drag.current; drag.current = null; setDragging(null); if(from !== n.id) connect(from, n.id); } }}
+                  onClick={() => {if(suppressClick.current) {suppressClick.current = false; return;} if(!dragging) select(n.id);}}
                 >
                   <span className="gmeta">
                     <span className={`dot ${n.status}`} aria-hidden="true" />
@@ -133,12 +141,14 @@ export default function DependencyGraph({
                   </span>
                   <b>{n.title}</b>
                 </button>
+                {connect && <button type="button" className="dependency-handle" style={{left: p.x + GW - 10, top: p.y + GH / 2 - 10}} aria-label={`拖線建立前置：${n.title}`} onPointerDown={e => { if(e.button !== 0) return; e.preventDefault(); drag.current = n.id; setDragging(n.id); }} onKeyDown={e => {if(e.key === 'Escape') {drag.current = null; setDragging(null);}}}>＋</button>}
+                </div>
               );
             })}
           </div>
         </div>
       )}
-      <p className="small muted">由左到右依前後順序排列，箭頭只往右推進。灰色實線＝前置已完成或略過；橘色虛線＝前置未完成，後續任務尚不能開始。點方塊進入任務。</p>
+      <p className="small muted">由左到右依前後順序排列，箭頭只往右推進。灰色實線＝前置已滿足；橘色虛線＝尚未滿足（軟性僅警示、FF限制完成）。管理者可從＋拖到任務方塊，或用上方表單建立連線。點方塊進入任務。</p>
     </section>
   );
 }

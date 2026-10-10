@@ -19,6 +19,7 @@ class PolicyContext:
     pending_reports: dict[str, TaskReport]
     latest_versions: dict[str, int]
     blocked_node_ids: set[str]
+    soft_warning_ids: set[str]
 
 
 def load_policy_context(db: Session, current: CurrentUser) -> PolicyContext:
@@ -36,12 +37,25 @@ def load_policy_context(db: Session, current: CurrentUser) -> PolicyContext:
         versions[report.node_id] = max(versions.get(report.node_id, 0), report.version)
         if report.status == 'submitted':
             pending[report.node_id] = report
-    predecessor = Node.__table__.alias('predecessor')
-    blocked = set(db.scalars(select(NodeDependency.successor_id).outerjoin(predecessor,
-        (predecessor.c.id == NodeDependency.predecessor_id) & (predecessor.c.organization_id == NodeDependency.organization_id)
-        & (predecessor.c.project_id == NodeDependency.project_id)).where(NodeDependency.organization_id == org,
-        predecessor.c.id.is_(None) | predecessor.c.status.not_in(['done', 'skipped']))))
-    return PolicyContext(org, current.user.id, users, departments, collaboration, pending, versions, blocked)
+    from app.models import NodeCondition
+    from app.services.dependency_service import unmet_dependencies
+    nodes = {n.id: n for n in db.scalars(select(Node).where(Node.organization_id == org))}
+    edges = list(db.scalars(select(NodeDependency).where(NodeDependency.organization_id == org)))
+    conditions = list(db.scalars(select(NodeCondition).where(NodeCondition.organization_id == org)))
+    blocked = set()
+    soft = set()
+    for n in nodes.values():
+        try:
+            if any(e.enforcement == 'hard' for e in unmet_dependencies(nodes, edges, conditions, n, phase='start')):
+                blocked.add(n.id)
+            if any(e.enforcement == 'soft' for e in unmet_dependencies(nodes, edges, conditions, n, phase='finish')):
+                soft.add(n.id)
+        except Exception as exc:
+            from fastapi import HTTPException
+            if not isinstance(exc, HTTPException):
+                raise
+            blocked.add(n.id)
+    return PolicyContext(org, current.user.id, users, departments, collaboration, pending, versions, blocked, soft)
 
 
 def is_collaborator(current: CurrentUser, node: Node, *, context: PolicyContext) -> bool:

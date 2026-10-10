@@ -1,3 +1,4 @@
+import { dependencyLabel, dependencyMet, dependencyShift } from '../dependencies';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { api, ApiError, useRecordMutation } from '../api';
@@ -260,7 +261,7 @@ export default function TimelineView({
         )}
       </div>
       {edgeError && <p role="alert">{edgeError} <button type="button" onClick={() => setEdgeAttempt(n => n + 1)}>重試前置連線</button></p>}
-      {critical && <p className="scope-note">{chain.invalid ? '時程相依有循環，無法估算關鍵路徑。' : '依目前可見任務與FS前置估算最晚結束的一條路徑；非完整CPM／浮時分析。'}</p>}
+      {critical && <p className="scope-note">{chain.invalid ? '時程相依有循環，無法估算關鍵路徑。' : '依目前可見任務與硬性FS／SS／FF前置估算最晚結束的一條路徑；非完整CPM／浮時分析。'}</p>}
       <div className="tl-departments" role="group" aria-label="依負責部門篩選工作">
         {[['all', '全部'], ...Array.from(new Map(nodes.filter(n => n.kind === 'task').map(n => [n.department_id ?? 'none', n.department_name ?? '未指派'])))].map(([id, label]) => <button key={id} type="button" aria-pressed={department === id} onClick={() => setDepartment(id)}>{label} {nodes.filter(n => n.kind === 'task' && (id === 'all' || (n.department_id ?? 'none') === id)).length}</button>)}
       </div>
@@ -506,11 +507,11 @@ export default function TimelineView({
               if (!from || !to || from === to || drawn.has(`${from}:${to}`)) return null;
               const a = ranges.get(from), b = ranges.get(to); if (a?.due == null || b?.start == null) return null;
               drawn.add(`${from}:${to}`);
-              const x1 = (a.due - left + 1) * actualScale, x2 = (b.start - left) * actualScale;
+              const x1 = ((edge.relation_type === 'SS' ? a.start ?? a.due : a.due + 1) - left) * actualScale, x2 = ((edge.relation_type === 'FF' ? (b.due ?? b.start) + 1 : b.start) - left) * actualScale;
               const y1 = rows.findIndex(r => r.node.id === from) * 36 + 18, y2 = rows.findIndex(r => r.node.id === to) * 36 + 18;
-              const satisfied = ['done', 'skipped'].includes(nodes.find(n => n.id === edge.predecessor_id)!.status);
+              const satisfied = dependencyMet(edge, nodes.find(n => n.id === edge.predecessor_id)!.status);
               const crit = critical && chain.edges.has(edge.id);
-              return <path key={edge.id} data-edge-id={edge.id} className={crit ? 'critical' : ''} d={`M${x1},${y1} H${x1 + 8} V${y2 - 13} H${x2 - 8} V${y2} H${x2}`} fill="none" stroke={crit ? '#9b4314' : satisfied ? '#8a8780' : '#c77835'} strokeWidth={crit ? 3 : 1.5} strokeDasharray={satisfied ? undefined : '5 3'} markerEnd={`url(#${marker})`}><title>{`${nodes.find(n => n.id === edge.predecessor_id)!.title} → ${nodes.find(n => n.id === edge.successor_id)!.title}：${satisfied ? '前置已滿足' : '等待前置'}${b.start <= a.due ? '；日期衝突' : ''}`}</title></path>;
+              return <path key={edge.id} data-edge-id={edge.id} className={crit ? 'critical' : ''} d={`M${x1},${y1} H${x1 + 8} V${y2 - 13} H${x2 - 8} V${y2} H${x2}`} fill="none" stroke={crit ? '#9b4314' : satisfied ? '#8a8780' : '#c77835'} strokeWidth={crit ? 3 : 1.5} strokeDasharray={satisfied ? undefined : '5 3'} markerEnd={`url(#${marker})`}><title>{`${nodes.find(n => n.id === edge.predecessor_id)!.title} → ${nodes.find(n => n.id === edge.successor_id)!.title}：${satisfied ? '前置已滿足' : '等待前置'}；${dependencyLabel(edge)}${a.start != null && b.due != null && dependencyShift(edge, {start: a.start, due: a.due}, {start: b.start, due: b.due}) > 0 ? '；日期衝突' : ''}`}</title></path>;
             }); })()}
           </svg>
         </div>

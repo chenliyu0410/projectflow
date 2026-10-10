@@ -158,6 +158,11 @@ export const api = {
       body: JSON.stringify(payload),
       signal,
     }),
+  updateDependency: (id: string, payload: import('./types').DependencySettings, signal?: AbortSignal) => requestJson<import('./types').Dependency>(`/dependencies/${id}`, { method: 'PATCH', body: JSON.stringify(payload), signal }),
+  addCondition: (id: string, payload: {node_id: string; label: string; enforcement: 'hard' | 'soft'}, signal?: AbortSignal) => requestJson<import('./types').ManualCondition>(`/projects/${id}/conditions`, {method: 'POST', body: JSON.stringify(payload), signal}),
+  updateCondition: (id: string, payload: {label: string; enforcement: 'hard' | 'soft'}, signal?: AbortSignal) => requestJson<import('./types').ManualCondition>(`/conditions/${id}`, {method: 'PATCH', body: JSON.stringify(payload), signal}),
+  confirmCondition: (id: string, payload: {is_met: boolean; reason: string}, signal?: AbortSignal) => requestJson<import('./types').ManualCondition>(`/conditions/${id}/confirmation`, {method: 'POST', body: JSON.stringify(payload), signal}),
+  removeCondition: (id: string, signal?: AbortSignal) => requestJson(`/conditions/${id}`, {method: 'DELETE', signal}),
   removeDependency: (id: string, signal?: AbortSignal) =>
     requestJson<{ deleted: boolean }>(`/dependencies/${id}`, {
       method: 'DELETE',

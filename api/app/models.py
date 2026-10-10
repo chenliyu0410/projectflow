@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, Index, event, text, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
+from sqlalchemy import Integer, false, BigInteger, Boolean, CheckConstraint, Date, DateTime, Index, event, text, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship, with_loader_criteria
 
@@ -339,6 +339,9 @@ class NodeDependency(Base):
     __tablename__ = "node_dependencies"
     __table_args__ = (
         UniqueConstraint("organization_id", "project_id", "predecessor_id", "successor_id", name="uq_dependencies_edge"),
+        CheckConstraint("relation_type IN ('FS', 'SS', 'FF')", name="ck_dependency_type"),
+        CheckConstraint("lag_days BETWEEN -365 AND 365", name="ck_dependency_lag"),
+        CheckConstraint("enforcement IN ('hard', 'soft')", name="ck_dependency_enforcement"),
         CheckConstraint("predecessor_id != successor_id", name="ck_dependencies_not_self"),
         ForeignKeyConstraint(["organization_id", "project_id"], ["projects.organization_id", "projects.id"]),
         ForeignKeyConstraint(["organization_id", "project_id", "predecessor_id"], ["nodes.organization_id", "nodes.project_id", "nodes.id"]),
@@ -350,5 +353,30 @@ class NodeDependency(Base):
     project_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     predecessor_id: Mapped[str] = mapped_column(String(36), nullable=False)
     successor_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    relation_type: Mapped[str] = mapped_column(String(2), nullable=False, default="FS", server_default="FS")
+    lag_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    enforcement: Mapped[str] = mapped_column(String(4), nullable=False, default="hard", server_default="hard")
+    created_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class NodeCondition(Base):
+    __tablename__ = "node_conditions"
+    __table_args__ = (
+        ForeignKeyConstraint(["organization_id", "project_id", "node_id"], ["nodes.organization_id", "nodes.project_id", "nodes.id"]),
+        ForeignKeyConstraint(["organization_id", "created_by"], ["users.organization_id", "users.id"]),
+        ForeignKeyConstraint(["organization_id", "confirmed_by"], ["users.organization_id", "users.id"]),
+        CheckConstraint("enforcement IN ('hard', 'soft')", name="ck_condition_enforcement"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
+    organization_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    project_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    node_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    label: Mapped[str] = mapped_column(String(200), nullable=False)
+    enforcement: Mapped[str] = mapped_column(String(4), nullable=False, default="hard", server_default="hard")
+    is_met: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    confirmed_by: Mapped[str | None] = mapped_column(String(36))
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reason: Mapped[str | None] = mapped_column(String(1000))
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)

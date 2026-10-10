@@ -263,7 +263,7 @@ class WorkflowNodeInput(BaseModel):
         return self
 
 
-class DependencyCreate(BaseModel):
+class WorkflowDependencyInput(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     predecessor_id: str = Field(min_length=1, max_length=36)
     successor_id: str = Field(min_length=1, max_length=36)
@@ -273,7 +273,7 @@ class WorkflowWrite(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     name: str = Field(min_length=1, max_length=160)
     nodes: list[WorkflowNodeInput]
-    dependencies: list[DependencyCreate] = Field(default_factory=list)
+    dependencies: list[WorkflowDependencyInput] = Field(default_factory=list)
 
 
 class WorkflowCopy(BaseModel):
@@ -284,3 +284,34 @@ class WorkflowCopy(BaseModel):
 class ShowcaseSwitch(BaseModel):
     model_config = ConfigDict(extra="forbid")
     organization_key: str
+
+
+class DependencySettings(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    relation_type: Literal['FS', 'SS', 'FF'] = 'FS'
+    lag_days: int = Field(default=0, ge=-365, le=365, strict=True)
+    enforcement: Literal['hard', 'soft'] = 'hard'
+
+
+class DependencyCreate(DependencySettings):
+    predecessor_id: str = Field(min_length=1, max_length=36)
+    successor_id: str = Field(min_length=1, max_length=36)
+
+
+class ConditionCreate(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    node_id: str = Field(min_length=1, max_length=36)
+    label: str = Field(min_length=1, max_length=200)
+    enforcement: Literal['hard', 'soft'] = 'hard'
+
+
+class ConditionEdit(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    label: str = Field(min_length=1, max_length=200)
+    enforcement: Literal['hard', 'soft'] = 'hard'
+
+
+class ConditionConfirm(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    is_met: bool = Field(strict=True)
+    reason: str = Field(min_length=1, max_length=1000)

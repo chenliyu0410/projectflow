@@ -534,3 +534,57 @@ def test_tp_c_postgresql_migration_preserves_nodes(monkeypatch):
     assert parsed.get_backend_name() == 'postgresql' and parsed.database.startswith('p2b_test_')
     assert os.environ.get('PF_ACCEPTANCE_MODE') == 'true'
     check_tp_c_migration_preserves_nodes(url, monkeypatch)
+
+
+def check_tp_d_migration(url, monkeypatch):
+    import pytest
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text, inspect, select
+    from sqlalchemy.exc import IntegrityError
+    from app.seed import seed_demo_data
+    from app.models import Node, User, NodeDependency
+    monkeypatch.setenv('DATABASE_URL', url)
+    def seed(db):
+        seed_demo_data(db)
+        db.flush()
+        tasks = list(db.scalars(select(Node).where(Node.kind == 'task')))
+        a = tasks[0]
+        b = Node(organization_id=a.organization_id, project_id=a.project_id, kind='task', title='migration successor')
+        db.add(b); db.flush()
+        user = db.scalar(select(User).where(User.organization_id == a.organization_id))
+        db.add(NodeDependency(organization_id=a.organization_id, project_id=a.project_id, predecessor_id=a.id, successor_id=b.id, created_by=user.id))
+        db.flush()
+    seed_at_revision(url, '20261010_0007', seed)
+    engine = create_engine(sqlalchemy_url(url)); config = Config('api/alembic.ini')
+    tables = [t for t in inspect(engine).get_table_names() if t != 'alembic_version']
+    def snapshot():
+        with engine.connect() as db:
+            return {t: sorted([dict(r._mapping) for r in db.execute(text('SELECT * FROM ' + t))], key=lambda r: str(r.get('id',r.get('organization_id')))) for t in tables}
+    before = snapshot(); command.upgrade(config, '20261010_0008'); after = snapshot()
+    assert after['node_dependencies'] == [dict(e, relation_type='FS', lag_days=0, enforcement='hard') for e in before['node_dependencies']]
+    assert {k:v for k,v in after.items() if k!='node_dependencies'} == {k:v for k,v in before.items() if k!='node_dependencies'}
+    eid = after['node_dependencies'][0]['id']
+    for sql in ["relation_type='SF'", 'lag_days=366', "enforcement='override'"]:
+        with pytest.raises(IntegrityError):
+            with engine.begin() as db: db.execute(text('UPDATE node_dependencies SET '+sql+' WHERE id=:id'), {'id':eid})
+    with engine.begin() as db: db.execute(text("UPDATE node_dependencies SET relation_type='SS' WHERE id=:id"),{'id':eid})
+    with pytest.raises(RuntimeError): command.downgrade(config,'20261010_0007')
+    with engine.begin() as db: db.execute(text("UPDATE node_dependencies SET relation_type='FS' WHERE id=:id"),{'id':eid})
+    command.downgrade(config,'20261010_0007'); assert snapshot()==before
+    command.upgrade(config,'head'); engine.dispose()
+
+
+def test_tp_d_migration_preserves_data(tmp_path,monkeypatch):
+    check_tp_d_migration(f"sqlite:///{tmp_path/'tp-d.db'}",monkeypatch)
+
+
+def test_tp_d_postgresql_migration_preserves_data(monkeypatch):
+    import os, pytest
+    from sqlalchemy.engine import make_url
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url: pytest.skip('Fresh dedicated p2b_test PostgreSQL required for TP-D')
+    parsed=make_url(url)
+    assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
+    assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
+    check_tp_d_migration(url,monkeypatch)

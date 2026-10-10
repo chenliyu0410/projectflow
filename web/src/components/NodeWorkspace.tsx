@@ -271,6 +271,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
           <Progress value={headPercent} color={color} />
           {selected && (statusControl(selected) || <span className="tag gray">{label(selected.status)}</span>)}
           {selected && isLate(selected, today) && <span className="tag warn">延遲</span>}
+          {selected?.dependency_warnings?.map(w => <p className="note warn" key={w}>{w}</p>)}
           {selected?.blocked && <span className="tag warn">🔒 尚有未完成的前置任務</span>}
           {level >= 5 && <span className="tag warn">層數較深，可考慮拆成獨立專案</span>}
         </div>

@@ -95,7 +95,7 @@ def prepare(db, current, project, node, fields, context, cascade=False):
         return {node.id: fields}, 0
     children, order = tree_index(nodes)
     edges = list(db.scalars(select(NodeDependency).where(
-        NodeDependency.organization_id == current.organization.id, NodeDependency.project_id == project.id)))
+        NodeDependency.organization_id == current.organization.id, NodeDependency.project_id == project.id, NodeDependency.enforcement == 'hard')))
     if any(e.predecessor_id not in nodes or e.successor_id not in nodes for e in edges):
         fail(INVALID_GRAPH)
     original = {nid: (n.start_date.toordinal() if n.start_date else None,
@@ -121,7 +121,7 @@ def prepare(db, current, project, node, fields, context, cascade=False):
                     continue
                 if None in dates[succ]:
                     fail()
-                need = ranges[pred][1] + 1 - ranges[succ][0]
+                need = required_shift(edge, ranges[pred], ranges[succ])
                 if need <= 0:
                     continue
                 family = [succ]
@@ -152,9 +152,9 @@ def prepare(db, current, project, node, fields, context, cascade=False):
             for edge in edges:
                 if edge.successor_id != target:
                     continue
-                ps, pe = ranges[edge.predecessor_id]
-                start, _ = ranges[target]
-                if ps is not None and pe is not None and start is not None and start <= pe:
+                if edge.relation_type == 'FF' and target != nid:
+                    continue
+                if None not in ranges[edge.predecessor_id] and None not in ranges[target] and required_shift(edge, ranges[edge.predecessor_id], ranges[target]) > 0:
                     fail(DATE_CONFLICT)
     updates = {node.id: dict(fields)}
     for nid in changed:
@@ -179,3 +179,11 @@ def apply(db, current, project, node, fields, context, cascade=False):
             changes['schedule'] = {'operation_id': operation, 'source_node_id': node.id, 'cascade': nid != node.id}
         log_audit(db, current, 'node.update', node_id=nid, payload=changes)
     return count
+
+
+def required_shift(edge, predecessor, successor):
+    if edge.relation_type == 'SS':
+        return predecessor[0] + edge.lag_days - successor[0]
+    if edge.relation_type == 'FF':
+        return predecessor[1] + edge.lag_days - successor[1]
+    return predecessor[1] + 1 + edge.lag_days - successor[0]

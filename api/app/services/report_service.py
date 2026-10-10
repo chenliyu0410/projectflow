@@ -64,7 +64,7 @@ def submit_report(db, current, node_id, payload):
     if node.status not in {'todo', 'doing', 'review'} or node.id in context.pending_reports:
         conflict()
     require_gate(db, current, node)
-    require_dependencies(db, current, node)
+    require_dependencies(db, current, node, 'finish' if payload.self_approve else 'start')
     require_children_finished(db, current, node)
     report = TaskReport(organization_id=current.organization.id, node_id=node.id,
         result=payload.result, summary=payload.summary, finished_on=payload.finished_on,
@@ -100,6 +100,7 @@ def review_report(db, current, report_id, payload):
     if not can_review_report(db, current, project, node, report, context=context):
         conflict()
     if payload.decision == 'approved':
+        require_dependencies(db, current, node, 'finish')
         require_gate(db, current, node)
         require_children_finished(db, current, node)
     else:

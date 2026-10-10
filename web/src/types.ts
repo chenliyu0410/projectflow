@@ -14,6 +14,7 @@ export interface NodeItem {
   capabilities: { edit_schedule?: boolean; lock_schedule?: boolean; edit_metadata: boolean; assign: boolean; create_child: boolean; write_record?: boolean; submit_report?: boolean; review_report?: boolean; manage_collaborators?: boolean; lifecycle?: boolean; move?: boolean; copy?: boolean; delete?: boolean };
   state_actions?: string[];
   blocked?: boolean;
+  dependency_warnings?: string[];
 }
 /** TP-B structure changes answer with the audit id that `POST /undo` accepts (null when nothing changed). */
 export type Undoable<T> = T & { undo_id: string | null };
@@ -46,11 +47,13 @@ export interface ReviewPage { items: ReviewItem[]; next_cursor: string | null; }
 export interface AuditItem { id: string; action: string; summary: string; node_id: string | null; node_title: string | null; node_deleted?: boolean; project_id: string | null; project_title: string | null; actor_display_name: string | null; created_at: string; payload: Record<string, unknown>; }
 export interface AuditPage { items: AuditItem[]; next_cursor: string | null; }
 export interface WorkflowNode { id: string; parent_id: string | null; kind: 'phase' | 'task'; title: string; sort_order: number; gate_after: boolean; start_offset: number | null; due_offset: number | null; }
-export interface DependencyInput { predecessor_id: string; successor_id: string; }
+export interface DependencySettings { relation_type?: 'FS' | 'SS' | 'FF'; lag_days?: number; enforcement?: 'hard' | 'soft'; }
+export interface DependencyInput extends DependencySettings { predecessor_id: string; successor_id: string; }
 export interface WorkflowWrite { name: string; nodes: WorkflowNode[]; dependencies: DependencyInput[]; }
 export interface WorkflowDetail extends WorkflowWrite { id: string; requires_start_date: boolean; capabilities: { edit: boolean; copy: boolean }; }
 export interface WorkflowList { items: WorkflowSummary[]; capabilities?: { create: boolean }; }
 export interface Dependency extends DependencyInput { id: string; project_id: string; }
-export interface DependencyData { items: Dependency[]; nodes: { id: string; title: string; status: NodeStatus; blocked: boolean }[]; capabilities: { manage: boolean }; }
+export interface ManualCondition { id: string; node_id: string; label: string; enforcement: 'hard' | 'soft'; is_met: boolean; reason: string | null; confirmed_by: string | null; confirmed_at: string | null; }
+export interface DependencyData { conditions?: ManualCondition[]; items: Dependency[]; nodes: { id: string; title: string; status: NodeStatus; blocked: boolean }[]; capabilities: { manage: boolean }; }
 
 export interface CatalogEntry extends WorkflowWrite { key: string; industry: string; description: string; source: string; }

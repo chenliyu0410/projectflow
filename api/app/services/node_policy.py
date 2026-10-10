@@ -60,6 +60,7 @@ def node_out(db: Session, current: CurrentUser, project: Project, node: Node, *,
             'copy': manage and node.kind == 'task',
             'delete': manage and node.kind == 'task',
         },
+        'dependency_warnings': (['軟性前置尚未滿足，仍可繼續'] if node.id in context.soft_warning_ids else []),
         'blocked': node.kind == 'task' and node.id in context.blocked_node_ids,
         'state_actions': state_actions(db, current, project, node, context=context),
     }

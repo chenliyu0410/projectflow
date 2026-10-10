@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.audit import log_audit
 from app.auth import CurrentUser
-from app.models import INCLUDE_DELETED, AuditLog, Node, NodeCollaborator, NodeDependency, now_utc
+from app.models import INCLUDE_DELETED, AuditLog, Node, NodeCollaborator, NodeDependency, NodeCondition, now_utc
 from app.permissions import can_manage_project, can_move_node, can_view_node
 from app.services.dependency_service import lock_project
 from app.services.node_policy import node_out
@@ -181,9 +181,12 @@ def copy_node(db: Session, current: CurrentUser, node_id: str) -> dict:
         if edge.predecessor_id in mapping and edge.successor_id in mapping:
             copied = NodeDependency(organization_id=current.organization.id, project_id=project.id,
                                     predecessor_id=mapping[edge.predecessor_id], successor_id=mapping[edge.successor_id],
-                                    created_by=current.user.id)
+                                    created_by=current.user.id, relation_type=edge.relation_type, lag_days=edge.lag_days, enforcement=edge.enforcement)
             db.add(copied)
             edges.append(copied)
+    for condition in db.scalars(select(NodeCondition).where(NodeCondition.organization_id == current.organization.id, NodeCondition.project_id == project.id, NodeCondition.node_id.in_(family))):
+        db.add(NodeCondition(organization_id=current.organization.id, project_id=project.id, node_id=mapping[condition.node_id],
+                             label=condition.label, enforcement=condition.enforcement, is_met=False, created_by=current.user.id))
     db.flush()
     entry = log_audit(db, current, "node.copy", node_id=mapping[node.id], payload={
         "source_id": node.id, "node_ids": [mapping[i] for i in family], "dependency_ids": [edge.id for edge in edges]})
@@ -205,7 +208,7 @@ def delete_node(db: Session, current: CurrentUser, node_id: str) -> dict:
     edges = edges_touching(db, current, project.id, family)
     payload = {"parent_id": node.parent_id, "title": node.title, "node_ids": family, "dependencies": [
         {"predecessor_id": e.predecessor_id, "successor_id": e.successor_id, "created_by": e.created_by,
-         "created_at": e.created_at.isoformat()} for e in edges]}
+         "created_at": e.created_at.isoformat(), "relation_type": e.relation_type, "lag_days": e.lag_days, "enforcement": e.enforcement} for e in edges]}
     when = now_utc()
     for item_id in family:
         nodes[item_id].deleted_at = when
@@ -312,7 +315,8 @@ def undo_delete(db, current, entry, project, nodes, context):
         except (TypeError, ValueError):
             created_at = now_utc()
         db.add(NodeDependency(organization_id=current.organization.id, project_id=project.id, predecessor_id=pair[0],
-                              successor_id=pair[1], created_by=created_by, created_at=created_at))
+                              successor_id=pair[1], created_by=created_by, created_at=created_at,
+                              relation_type=record.get("relation_type", "FS"), lag_days=record.get("lag_days", 0), enforcement=record.get("enforcement", "hard")))
         existing.add(pair)
 
 

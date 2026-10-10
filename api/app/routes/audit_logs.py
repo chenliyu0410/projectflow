@@ -47,6 +47,25 @@ def project_payload(action, raw, node, context, projects, references):
     if not isinstance(raw, dict):
         return {}
     node_id = node.id if node else None
+    if action in {'condition.create', 'condition.update', 'condition.confirm', 'condition.delete'} and node is not None:
+        def evidence(value):
+            if not isinstance(value, dict) or value.get('node_id') != node.id:
+                return {}
+            result = {key: text_value(value.get(key), maximum) for key, maximum in [('label', 200), ('reason', 1000), ('confirmed_at', 50)]}
+            if value.get('enforcement') in {'hard', 'soft'}:
+                result['enforcement'] = value['enforcement']
+            if type(value.get('is_met')) is bool:
+                result['is_met'] = value['is_met']
+            actor = context.users.get(value.get('confirmed_by'))
+            if actor is not None:
+                result['confirmed_by_display_name'] = actor.display_name
+            return {k: v for k, v in result.items() if v is not None}
+        return evidence(raw) if action == 'condition.create' else {k: evidence(raw.get(k)) for k in ('before', 'after')}
+    if action in {'dependency.create', 'dependency.update', 'dependency.delete'} and node is not None:
+        def settings(value):
+            if not isinstance(value, dict): return {}
+            return {k: value[k] for k in ('relation_type', 'lag_days', 'enforcement') if k in value and isinstance(value[k], (str, int))}
+        return {k: settings(raw.get(k)) for k in ('before', 'after')} if action == 'dependency.update' else settings(raw)
     if action.startswith('report.') and action in {'report.submit', 'report.approve', 'report.reject'}:
         rid = reference(raw, 'report_id', references['reports'], node_id)
         if rid is None:
@@ -183,7 +202,8 @@ def project_payload(action, raw, node, context, projects, references):
     return {}
 
 
-SUMMARIES = {'project.create': '建立專案', 'workflow.instantiate': '套用工作流', 'node.create': '新增節點',
+SUMMARIES = {'dependency.create': '新增前置', 'dependency.update': '修改前置', 'dependency.delete': '移除前置',
+             'condition.create': '新增人工條件', 'condition.update': '修改人工條件', 'condition.confirm': '人工條件確認／撤回', 'condition.delete': '移除人工條件', 'project.create': '建立專案', 'workflow.instantiate': '套用工作流', 'node.create': '新增節點',
              'node.update': '更新節點資料', 'node.status': '更新節點狀態', 'node.move': '移動節點', 'node.reopen': '恢復工作',
              'node.delete': '刪除節點', 'node.copy': '複製子樹', 'node.undo': '復原',
              'node.skip': '略過任務', 'node.restore': '恢復略過任務', 'gate.approve': '核准閘門',

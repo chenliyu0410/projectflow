@@ -1,3 +1,4 @@
+import { dependencyShift } from './dependencies';
 import type { Dependency, NodeItem } from './types';
 
 export const dayMs = 86400000;
@@ -58,24 +59,26 @@ export function criticalChain(nodes: NodeItem[], edges: Dependency[]) {
     }
     return candidates.sort((a, b) => (first ? ranges.get(a)!.start! - ranges.get(b)!.start! : ranges.get(b)!.due! - ranges.get(a)!.due!) || a.localeCompare(b))[0];
   }
-  const links = edges.flatMap(edge => {
+  const links = edges.filter(e => e.enforcement !== 'soft').flatMap(edge => {
     if (!byId.has(edge.predecessor_id) || !byId.has(edge.successor_id)) return [];
-    const from = boundary(edge.predecessor_id, false), to = boundary(edge.successor_id, true);
+    const from = boundary(edge.predecessor_id, edge.relation_type === 'SS'), to = boundary(edge.successor_id, edge.relation_type !== 'FF');
     return from && to ? [{ from, to, edge }] : [];
   });
   const indegree = new Map(leaves.map(n => [n.id, 0]));
   for (const e of links) indegree.set(e.to, indegree.get(e.to)! + 1);
   const queue = leaves.filter(n => !indegree.get(n.id)).map(n => n.id).sort();
   const end = new Map(leaves.map(n => [n.id, ranges.get(n.id)!.due!]));
+  const limiting = new Map<string, number>();
   const previous = new Map<string, (typeof links)[number]>();
   for (let i = 0; i < queue.length; i++) {
     const id = queue[i];
     for (const link of links.filter(e => e.from === id).sort((a, b) => a.edge.id.localeCompare(b.edge.id))) {
       const r = ranges.get(link.to)!;
-      const predicted = end.get(id)! + 1 + r.due! - r.start!;
+      const pr = ranges.get(id)!;
+      const predicted = r.due! + dependencyShift(link.edge, {start: end.get(id)! - (pr.due! - pr.start!), due: end.get(id)!}, {start: r.start!, due: r.due!});
       // Keep a predecessor even across planned slack, matching the Demo's limiting-chain display.
       const prev = previous.get(link.to);
-      if (!prev || end.get(id)! > end.get(prev.from)!) previous.set(link.to, link);
+      if (!prev || predicted > limiting.get(link.to)!) { previous.set(link.to, link); limiting.set(link.to, predicted); }
       end.set(link.to, Math.max(end.get(link.to)!, predicted));
       indegree.set(link.to, indegree.get(link.to)! - 1);
       if (indegree.get(link.to) === 0) queue.push(link.to);

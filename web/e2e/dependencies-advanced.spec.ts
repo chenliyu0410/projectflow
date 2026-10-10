@@ -1,0 +1,39 @@
+import {test,expect} from '@playwright/test';
+import {randomUUID} from 'node:crypto';
+import {mkdir} from 'node:fs/promises';
+test('TP-D drag draft, advanced settings, manual confirmation and mobile form',async({page})=>{
+  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.setViewportSize({width:1280,height:900});
+  await page.goto('/');await page.getByLabel('帳號').fill('yu');await page.getByLabel('密碼').fill('demo-yu');await page.getByRole('button',{name:'登入',exact:true}).click();
+  await expect(page.getByLabel('可見任務完成率',{exact:true})).toBeVisible();
+  const title=`TP-D ${randomUUID()}`;
+  const made=await page.request.post('/api/projects',{data:{title}});expect(made.status()).toBe(201);const pid=(await made.json()).id;
+  const root=(await(await page.request.get(`/api/projects/${pid}`)).json()).nodes[0].id;
+  const ids:Record<string,string>={};
+  for(const name of ['A','B','C']) {const r=await page.request.post(`/api/projects/${pid}/nodes`,{data:{title:name,kind:'task',parent_id:root}});expect(r.status()).toBe(201);ids[name]=(await r.json()).id;}
+  await page.reload();await page.getByLabel('專案清單').getByRole('button',{name:title,exact:true}).click();await page.getByRole('tab',{name:'相依圖',exact:true}).click();
+  const from=page.getByRole('button',{name:'拖線建立前置：A'}),to=page.getByRole('button',{name:'開啟任務：B'});
+  const a=(await from.boundingBox())!,b=(await to.boundingBox())!;
+  await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:8});await page.mouse.up();
+  await expect(page.getByLabel('前置任務',{exact:true})).toHaveValue(ids.A);await expect(page.getByLabel('後續任務',{exact:true})).toHaveValue(ids.B);
+  expect((await(await page.request.get(`/api/projects/${pid}/dependencies`)).json()).items).toHaveLength(0);
+  await page.getByRole('button',{name:'取消',exact:true}).click();
+  await page.getByRole('button',{name:'建立相依連線',exact:true}).click();await page.getByLabel('前置任務',{exact:true}).selectOption(ids.A);await page.getByLabel('後續任務',{exact:true}).selectOption(ids.B);
+  await page.getByLabel('關係類型').selectOption('SS');await page.getByLabel('延遲天數').fill('-2');await page.getByLabel('強度',{exact:true}).selectOption('soft');await page.getByRole('button',{name:'新增前置',exact:true}).click();
+  await expect(page.getByLabel('前置任務',{exact:true})).toHaveCount(0);
+  let state=await(await page.request.get(`/api/projects/${pid}/dependencies`)).json();expect(state.items[0]).toMatchObject({relation_type:'SS',lag_days:-2,enforcement:'soft'});
+  const condition=page.getByRole('region',{name:'人工確認條件',exact:true});
+  await condition.getByLabel('條件目標任務').selectOption(ids.C);await condition.getByLabel('條件名稱').fill('到貨已確認');await condition.getByRole('button',{name:'新增人工條件'}).click();
+  await expect(condition.getByRole('button',{name:'確認條件',exact:true})).toBeVisible();
+  expect((await page.request.patch(`/api/nodes/${ids.C}/status`,{data:{status:'doing'}})).status()).toBe(409);
+  await condition.getByRole('button',{name:'確認條件',exact:true}).click();await condition.getByLabel('確認或撤回理由').fill('實物驗收完成');await condition.getByRole('button',{name:'儲存確認結果'}).click();
+  await expect(condition.getByRole('button',{name:'撤回確認',exact:true})).toBeVisible();
+  expect((await page.request.patch(`/api/nodes/${ids.C}/status`,{data:{status:'doing'}})).status()).toBe(200);
+  state=await(await page.request.get(`/api/projects/${pid}/dependencies`)).json();expect(state.conditions[0]).toMatchObject({is_met:true,reason:'實物驗收完成'});
+  await mkdir('../.superpowers/tpd/e2e',{recursive:true});
+  for(const width of [1280,1440,375]) {await page.setViewportSize({width,height:900});await page.screenshot({path:`../.superpowers/tpd/e2e/dependencies-${width}.png`,fullPage:true});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+  await page.getByRole('button',{name:'建立相依連線',exact:true}).click();await page.getByLabel('前置任務',{exact:true}).selectOption(ids.A);await page.getByLabel('後續任務',{exact:true}).selectOption(ids.C);await page.getByLabel('關係類型').selectOption('FF');await page.getByRole('button',{name:'新增前置',exact:true}).click();
+  await expect(page.getByLabel('前置任務',{exact:true})).toHaveCount(0);
+  expect((await page.request.post(`/api/nodes/${ids.C}/reports`,{data:{result:'達成',summary:'FF驗證',finished_on:'2026-10-10',attachment_ids:[],self_approve:true}})).status()).toBe(409);
+  await page.reload();expect((await(await page.request.get(`/api/projects/${pid}/dependencies`)).json()).items).toHaveLength(2);expect(errors).toEqual([]);
+});
