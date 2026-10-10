@@ -13,14 +13,14 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **TP-G 🔨 自訂回報欄位：D79已核准，實作中** |
+| 目前工作項目 | **TP-G ✅ 自訂回報欄位：工程交付完成** |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | 依D79完成API、前端、模板整合與驗收。 |
-| 分支 | `feature/tp-g-report-fields`；main凍結。 |
-| 最新程式 commit | `8469021`（TP-F產品、測試與交付說明）。 |
+| 下一個動作 | 下一批UI5，先對照Demo並提出短計畫；人類試用另簽核。 |
+| 分支 | `main`；feature已ff-only合併並刪除。 |
+| 最新程式 commit | `00e56b2`（TP-G產品、測試與交付說明）。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | TP-F：完整API475pass／5fail／13skip，五項契約更新後定向通過；完整Vitest199pass／43fail，修正後受影響檔通過；build0；完整E2E33pass／2fail後相關4pass；PG九階段分次完成，含TP-F核准併發200／409。真實摘要見§3。 |
-| 資料版本 | Demo v6/key未改；15173 migration `20261010_0010`。新增collaboration_requests／notifications空表；249節點及全部既有列／欄位值、附件SHA、env、DB容器一致，原表新增0列。 |
+| 測試基準 | TP-G：完整API502pass／1fail／14skip，修正後相關13pass及TP-G18+1pass；完整Vitest240pass／9fail，修正後97pass及欄位UI5pass；PG十階段13pass；build0；完整E2E34pass／3fail，修正後TP-G2pass及workspace3pass。真實摘要見§3。 |
+| 資料版本 | Demo v6/key未改；15173 migration `20261010_0011`。249節點、55回報及全部既有列／欄位值、附件SHA、env、DB容器一致；僅新增空欄位定義／版本0及空回報快照，無新增業務列。 |
 | 認領中 | 無。 |
 | 阻塞／待人類 | D79已核准；既有階段人類試用未代簽、D43/D10及LAN限制維持。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
@@ -102,7 +102,7 @@
 | 已完成 | TP-D | 任務規劃器：前置進階（SS／FF、延遲、軟性、人工條件、拖線建立） | ✅ | D70／D76 | TP-C ✅ |
 | 已完成 | TP-E | 任務規劃器：另存模板、套用到既有節點、模板版本、刪除模板 | ✅ | D70／D77，[短計畫](superpowers/plans/2026-10-10-tp-e-advanced-templates.md)已核准 | TP-D ✅ |
 | 已完成 | TP-F | 任務規劃器：跳過申請與覆寫、部門管理、成員權限頁、待我指派、負載、通知 | ✅ 工程交付 | D70；[短計畫](superpowers/plans/2026-10-10-tp-f-permissions-collaboration.md) | TP-E ✅ |
-| 目前 | TP-G | 任務規劃器：自訂回報欄位 | 🔨 實作中 | D70／D79，[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md) | TP-F |
+| 已完成 | TP-G | 任務規劃器：自訂回報欄位 | ✅ 工程交付 | D70／D79，[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md) | TP-F |
 | 後續 | UI5 | 文件／資料／營運／AI完整畫面 | ⬜ | 真功能或明確隔離展示預覽，分開追蹤；成員權限頁已移入TP-F（D70） | TP-G |
 | 後續 | F1 | 逐頁補正式功能：文件→資料→營運→規則副手治理 | ⬜ | 原P2d拆入，不再先做後端大包 | UI5 |
 | 後續 | F2 | 跨頁一致性與剩餘Demo差距 | ⬜ | 進階時程／相依、子樹套用、自訂回報已移入TP（D70）；真AI／ERP／LAN另定範圍 | F1 |
@@ -120,13 +120,13 @@
 
 ## 3. 工作項目明細
 
-### TP-G 自訂回報欄位 — 🔨 實作中
+### TP-G 自訂回報欄位 — ✅ 工程交付
 
 人類「照此計畫實作」核准D79。[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md)已實作四種類型、必填／單位／選項／排序、版本驗證、歷史快照、模板／複製及TP-F例外審核。父任務保留但停用葉任務定義，退回重報保留相同欄位的值。獨立唯讀審查發現兩項P2（autoOpen歷史載入與過期申請），修正與定向測試後複核Ready to merge。
 
-**真實驗收**：完整API初跑502pass／1fail／14skip（exit1），失敗為健康路由清單需納入新端點，修正後13pass；TP-G定向18pass，加模板父任務規則1pass。真PG十階段13pass（exit0），含0011保留資料與修改定義／送出回報併發200／409；可選舊P2a PG測試未另跑。完整Vitest240pass／9fail、2runtime errors（exit1），新增請求mock與契約修正後受影響五檔97pass、新欄位UI5pass（exit0）。最終build exit0。完整E2E34pass／3fail（exit1），測試選取器與等待修正後TP-G桌面／375px兩項通過；workspace定向結果另補。保留初跑失敗，不冒稱全套一次全綠。
+**真實驗收**：完整API初跑502pass／1fail／14skip（exit1），失敗為健康路由清單需納入新端點，修正後13pass；TP-G定向18pass，加模板父任務規則1pass。真PG十階段13pass（exit0），含0011保留資料與修改定義／送出回報併發200／409；可選舊P2a PG測試未另跑。完整Vitest240pass／9fail、2runtime errors（exit1），新增請求mock與契約修正後受影響五檔97pass、新欄位UI5pass（exit0）。最終build exit0。完整E2E34pass／3fail（exit1），測試選取器與等待修正後TP-G桌面／375px兩項通過；workspace桌面／375px及權限邊界3pass（exit0）。保留初跑失敗，不冒稱全套一次全綠。
 
-Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機必填勾選樣式已修正。測試與審查證據在忽略目錄`.superpowers/tpg/`。待ff-only合併及15173備份／部署／逐欄值核對，未代簽人類試用。下一批UI5，LAN限制維持。
+Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機必填勾選樣式已修正。測試與審查證據在忽略目錄`.superpowers/tpg/`。產品`00e56b2`已ff-only合併main，feature已刪除。15173先備份DB及附件，再以deploy/start.py升級0011，未seed；逐表逐列舊欄位值一致（249節點、55回報），附件SHA／env／DB容器一致，新增業務列0。正式入口桌面1280／1440及375px無溢位、pageerror=0、ready健康與舊任務欄位空值／version0已驗證。唯讀瀏覽後再比對仍一致。acceptance停止並保留volume。依D50發布origin/main；未代簽人類試用。下一批UI5，LAN限制維持。
 
 ### TP-F 權限與協作 — ✅ 已交付（人類試用未代簽）
 
@@ -1115,6 +1115,13 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-10｜Codex GPT-6｜TP-G工程交付
+
+- D79授權後完成自訂回報欄位、歷史快照、模板與例外申請整合；獨立審查修正後Ready to merge。
+- 一次完整回歸及受影響定向修正結果詳§3；build、PG及桌面／手機主流程通過。
+- `00e56b2`已ff-only合併，15173無seed升級0011且既有資料逐欄一致；備份及證據位於`.superpowers/tpg/`，acceptance保留volume。
+- README與試用清單已更新，依D50推送main並核對遠端SHA；下一批UI5，人類試用未代簽。
 
 ### 2026-10-10｜Codex GPT-6｜TP-G規劃
 
