@@ -342,10 +342,11 @@ describe('TP-A app flows', () => {
     expect(screen.queryByRole('button', { name: /套用模板/ })).not.toBeInTheDocument();
   });
 
-  it('still shows them disabled to users who can edit', async () => {
+  it('TP-E enables template actions for project managers', async () => {
     app('admin');
     await openProject();
-    expect(screen.getByRole('button', { name: /另存為模板/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /另存為模板/ })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /套用模板/ })).toBeEnabled();
   });
 
   it('opens the task with its report form from a card ✓ 回報', async () => {

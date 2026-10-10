@@ -16,7 +16,7 @@ from app.services.report_service import lock_node
 
 CLOSED_PARENT = {"review", "done", "skipped"}
 FINISHED = {"done", "skipped"}
-UNDOABLE = ("node.create", "node.delete", "node.move", "node.copy")
+UNDOABLE = ("node.create", "node.delete", "node.move", "node.copy", "template.apply")
 COPY_LIMIT = 300
 COPY_SUFFIX = "（複本）"
 
@@ -361,7 +361,7 @@ def undo(db: Session, current: CurrentUser, audit_id: str) -> dict:
                else can_manage_project(current, project))
     if not allowed or not can_view_node(current, subject, context=context):
         raise HTTPException(status_code=403, detail="沒有復原此操作的權限")
-    {"node.create": undo_create, "node.copy": undo_copy, "node.delete": undo_delete, "node.move": undo_move}[entry.action](
+    {"node.create": undo_create, "node.copy": undo_copy, "template.apply": undo_copy, "node.delete": undo_delete, "node.move": undo_move}[entry.action](
         db, current, entry, project, nodes, context)
     log_audit(db, current, "node.undo", node_id=entry.node_id, payload={"audit_id": entry.id, "action": entry.action})
     db.commit()

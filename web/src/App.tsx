@@ -1,3 +1,4 @@
+import TemplateDialogs from './components/TemplateDialogs';
 import WorkflowLibrary from './components/WorkflowLibrary';
 import TimelineView from './components/TimelineView';
 import DependencyPanel from './components/DependencyPanel';
@@ -36,6 +37,7 @@ export default function App() {
   const [message, setMessage] = useState('');
   // TP-B: the user's latest structure change (kept in memory like the Demo) and the notice that offers 復原／開啟.
   const [lastUndo, setLastUndo] = useState<{ id: string; label: string } | null>(null);
+  const [templateDialog,setTemplateDialog] = useState<'save'|'apply'|null>(null);
   const [notice, setNotice] = useState<{ text: string; undo: boolean; open?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [mutating, setMutating] = useState(false);
@@ -356,7 +358,7 @@ export default function App() {
     setWorkflowLoading(true);
     try {
       const result = await api.workflows(request.controller.signal);
-      if (current(request)) setWorkflows(result.items);
+      if (current(request)) setWorkflows(result.items.filter(w=>w.kind!=='task'));
     } catch (error) {
       if (current(request)) {
         if (error instanceof ApiError && error.status === 401) clearSession();
@@ -395,6 +397,7 @@ export default function App() {
 
   const selectedNode = project?.nodes.find(node => node.id === selectedNodeId) ?? null;
   const copilotScope = `${route.page === 'project' ? project?.title ?? '專案' : PAGE_SCOPES[route.page]}（只讀取你有權限的節點）`;
+  useEffect(()=>{setTemplateDialog(null);},[project?.id,selectedNodeId,session?.user.id,route.page]);
   const canAddNode = session?.user.role !== 'readonly' && (selectedNode ? selectedNode.capabilities?.create_child : project?.capabilities?.create_node);
   // D74: a review/done/skipped node cannot gain new children.
   const closedParent = !!selectedNode && (selectedNode.milestone || ['review', 'done', 'skipped'].includes(selectedNode.status));
@@ -468,6 +471,10 @@ export default function App() {
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'audit' && <AuditLogView openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && route.page === 'my-tasks' && <MyTasks userName={session.user.display_name} openNode={(projectId, nodeId) => navigate({ page: 'project', projectId, nodeId })} expired={expireSession} />}
+          {state==='ready'&&route.page==='project'&&project&&templateDialog&&<TemplateDialogs key={`${project.id}:${selectedNodeId}:${templateDialog}`} mode={templateDialog}
+            target={selectedNode&&selectedNode.kind!=='project'?`/nodes/${selectedNode.id}`:`/projects/${project.id}`} title={selectedNode?.title??project.title} projectTarget={!selectedNode||selectedNode.kind==='project'}
+            close={()=>setTemplateDialog(null)} expired={expireSession} saved={()=>{setWorkflows(null);setMessage('已儲存模板，可至模板庫查看版本');}}
+            applied={async (result,signal)=>{setLastUndo({id:result.undo_id,label:'套用模板'});await reloadRecords(signal);if(signal.aborted)return;announce(`已套用模板，新增 ${result.created_count} 個節點`,true);}}/>}
           {state === 'ready' && route.page === 'project' && project && <NodeWorkspace key={project.id} project={project} selectedNodeId={selectedNodeId} select={selectNode}
             userId={session.user.id} userName={session.user.display_name} roleLabel={ROLE_LABELS[session.user.role] ?? session.user.role}
             reloadRecords={reloadRecords} expired={expireSession} recordVersion={recordVersion} recordsEnabled={!busy && !editor && !creationOpen}
@@ -477,9 +484,9 @@ export default function App() {
             tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { begin(); closeCreation(); setProjectView(view); }}
             actions={<>
               {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
-              {session.user.role !== 'readonly' && <>
-                <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">另存為模板<span className="nav-badge">尚未提供</span></button>
-                <button disabled className="action-unavailable" title="排在任務規劃器（TP-E）">套用模板<span className="nav-badge">尚未提供</span></button>
+              {canAddNode && ['admin','project_owner'].includes(session.user.role) && <>
+                <button disabled={busy||mutating} onClick={()=>setTemplateDialog('save')}>另存為模板</button>
+                <button disabled={busy||mutating||closedParent} onClick={()=>setTemplateDialog('apply')}>套用模板</button>
               </>}
               {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen || closedParent} title={selectedNode?.milestone ? '里程碑不能有子任務，請先取消里程碑' : closedParent ? '不能在已完成、待確認或已略過的節點底下新增' : undefined} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
             </>}

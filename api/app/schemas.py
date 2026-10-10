@@ -125,6 +125,7 @@ class ProjectFromWorkflowCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     workflow_id: str
+    version: int | None = Field(default=None, ge=1, strict=True)
     title: str = Field(min_length=1, max_length=200)
     start_date: date | None = None
 
@@ -243,6 +244,25 @@ class CollaboratorsUpdate(BaseModel):
     expected_revision: int = Field(ge=0, strict=True)
 
 
+class TemplateCollaborator(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    user_id: str | None = Field(default=None, max_length=36)
+    department_id: str | None = Field(default=None, max_length=36)
+
+    @model_validator(mode='after')
+    def one_target(self):
+        if (self.user_id is None) == (self.department_id is None):
+            raise ValueError('協作對象需擇一')
+        return self
+
+
+class TemplateCondition(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    node_id: str = Field(min_length=1, max_length=36)
+    label: str = Field(min_length=1, max_length=200)
+    enforcement: Literal['hard', 'soft'] = 'hard'
+
+
 class WorkflowNodeInput(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     id: str = Field(min_length=1, max_length=36)
@@ -251,6 +271,11 @@ class WorkflowNodeInput(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     sort_order: int = Field(default=0, ge=0, strict=True)
     gate_after: bool = False
+    owner_user_id: str | None = Field(default=None, max_length=36)
+    department_id: str | None = Field(default=None, max_length=36)
+    collaborators: list[TemplateCollaborator] = Field(default_factory=list, max_length=100)
+    weight: int = Field(default=1, ge=0, le=100, strict=True)
+    milestone: bool = False
     start_offset: int | None = Field(default=None, ge=0, strict=True)
     due_offset: int | None = Field(default=None, ge=0, strict=True)
 
@@ -267,12 +292,18 @@ class WorkflowDependencyInput(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     predecessor_id: str = Field(min_length=1, max_length=36)
     successor_id: str = Field(min_length=1, max_length=36)
+    relation_type: Literal['FS', 'SS', 'FF'] = 'FS'
+    lag_days: int = Field(default=0, ge=-365, le=365, strict=True)
+    enforcement: Literal['hard', 'soft'] = 'hard'
 
 
 class WorkflowWrite(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     name: str = Field(min_length=1, max_length=160)
-    nodes: list[WorkflowNodeInput]
+    kind: Literal['workflow', 'task'] = 'workflow'
+    expected_version: int | None = Field(default=None, ge=1, strict=True)
+    nodes: list[WorkflowNodeInput] = Field(max_length=300)
+    conditions: list[TemplateCondition] = Field(default_factory=list, max_length=300)
     dependencies: list[WorkflowDependencyInput] = Field(default_factory=list)
 
 
@@ -321,3 +352,27 @@ class ConditionConfirm(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     is_met: bool = Field(strict=True)
     reason: str = Field(min_length=1, max_length=1000)
+
+
+class TemplateSave(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    name: str = Field(min_length=1, max_length=160)
+    template_id: str | None = None
+    expected_version: int | None = Field(default=None, ge=1, strict=True)
+
+
+class TemplateApply(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    template_id: str
+    version: int = Field(ge=1, strict=True)
+    start_date: date | None = None
+    structure: bool = True
+    dependencies: bool = True
+    owners: bool = False
+    dates: bool = True
+    variables: dict[str, str] = Field(default_factory=dict, max_length=50)
+
+    @field_validator('start_date', mode='before')
+    @classmethod
+    def calendar_start(cls, value):
+        return NodeMetadata.calendar_date(value)

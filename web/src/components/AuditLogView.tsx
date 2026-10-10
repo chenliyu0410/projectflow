@@ -11,6 +11,7 @@ const actions: Record<string, string> = {
   'dependency.create': '新增前置', 'dependency.update': '修改前置', 'dependency.delete': '移除前置',
   'condition.create': '新增人工條件', 'condition.update': '修改人工條件', 'condition.confirm': '人工條件確認／撤回', 'condition.delete': '移除人工條件',
   'project.create': '建立專案',
+  'template.apply': '套用模板', 'workflow.create': '新增模板', 'workflow.update': '建立模板新版', 'workflow.copy': '複製模板', 'workflow.delete': '刪除模板',
   'workflow.instantiate': '套用工作流',
   'node.create': '新增節點',
   'node.update': '更新節點資料',

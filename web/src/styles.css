@@ -690,3 +690,19 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .dependency-handle{position:absolute;width:22px;height:22px;min-height:22px;padding:0;border-radius:50%;z-index:2;touch-action:none;cursor:crosshair}
 .condition-row{padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .condition-row p{flex-basis:100%;overflow-wrap:anywhere}
+/* TP-E: the same compact template form on desktop and mobile. */
+.template-overlay { position:fixed; inset:0; z-index:80; background:#0005; display:flex; align-items:center; justify-content:center; padding:16px; }
+.template-dialog { background:var(--panel,#fff); border-radius:16px; width:min(580px,100%); max-height:90dvh; overflow:auto; padding:24px; box-shadow:0 16px 64px #0003; }
+.template-dialog h2 { margin-top:0; }
+.template-dialog fieldset { border:0; padding:0; min-width:0; }
+.template-dialog label { display:flex; flex-direction:column; gap:6px; margin:12px 0; }
+.template-dialog input,.template-dialog select { min-width:0; max-width:100%; }
+.template-options { display:flex; flex-wrap:wrap; gap:8px; }
+.template-options label { display:flex; flex-direction:row; align-items:center; border:1px solid var(--border,#ddd); border-radius:8px; padding:8px; }
+.template-dialog li { overflow-wrap:anywhere; }
+.template-dialog .note { background:#f4f3ef; border-radius:8px; padding:12px; font-size:13px; }
+@media(max-width:600px) { .template-dialog { padding:16px; } }
+.template-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:12px 0; }
+.template-options label { margin:0; gap:8px; line-height:1.5; }
+.template-options input[type=checkbox] { width:16px; height:16px; min-height:16px; padding:0; margin:0; flex:0 0 16px; }
+.template-dialog summary { overflow-wrap:anywhere; }

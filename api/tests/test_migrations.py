@@ -588,3 +588,82 @@ def test_tp_d_postgresql_migration_preserves_data(monkeypatch):
     assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
     assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
     check_tp_d_migration(url,monkeypatch)
+
+
+def check_tp_e_migration(url,monkeypatch):
+    import pytest
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, select, MetaData, Table
+    from sqlalchemy.orm import Session
+    from app.seed import seed_demo_data
+    from app.models import Workflow, WorkflowVersion
+    from app.services.workflow_service import read_payload, version_payload
+    monkeypatch.setenv('DATABASE_URL',url)
+    seed_at_revision(url,'20261010_0008',seed_demo_data)
+    engine=create_engine(sqlalchemy_url(url));config=Config('api/alembic.ini')
+    meta=MetaData();meta.reflect(engine)
+    def snapshot():
+        with engine.connect() as db:return {t.name:sorted([dict(r) for r in db.execute(select(t)).mappings()],key=lambda r:str(r.get('id'))) for t in meta.sorted_tables if t.name!='alembic_version'}
+    before=snapshot();command.upgrade(config,'20261010_0009');assert snapshot()==before
+    with Session(engine) as db:
+        for w in db.scalars(select(Workflow)):
+            v=db.scalar(select(WorkflowVersion).where(WorkflowVersion.workflow_id==w.id))
+            assert v.version==1 and w.version==1 and w.kind=='workflow' and w.deleted_at is None
+            from app.schemas import WorkflowWrite
+            assert WorkflowWrite.model_validate(v.snapshot)==read_payload(db,w)
+        w=db.scalars(select(Workflow)).first();w.version=2;db.commit()
+    with pytest.raises(RuntimeError):command.downgrade(config,'20261010_0008')
+    with Session(engine) as db:
+        for w in db.scalars(select(Workflow)):w.version=1
+        db.commit()
+    command.downgrade(config,'20261010_0008');assert snapshot()==before
+    command.upgrade(config,'head');engine.dispose()
+
+
+def test_tp_e_migration_preserves_templates(tmp_path,monkeypatch):
+    check_tp_e_migration(f"sqlite:///{tmp_path/'tp-e.db'}",monkeypatch)
+
+
+def test_tp_e_postgresql_migration_preserves_templates(monkeypatch):
+    import os,pytest
+    from sqlalchemy.engine import make_url
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url:pytest.skip('Fresh dedicated p2b_test PostgreSQL required for TP-E')
+    parsed=make_url(url)
+    assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
+    assert os.environ.get('PF_ACCEPTANCE_MODE')=='true'
+    check_tp_e_migration(url,monkeypatch)
+    # Real PostgreSQL row locking: two editors start with v1, exactly one becomes v2.
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+    from fastapi import HTTPException
+    from sqlalchemy import create_engine, select
+    from sqlalchemy.orm import Session
+    from app.auth import CurrentUser
+    from app.models import User, Organization, Workflow, WorkflowVersion
+    from app.services import workflow_service
+    from app.schemas import WorkflowWrite
+    engine=create_engine(sqlalchemy_url(url))
+    with Session(engine) as db:
+        user=db.scalar(select(User).where(User.username=='yu'))
+        workflow=db.scalar(select(Workflow).where(Workflow.organization_id==user.organization_id))
+        wid,uid,oid=workflow.id,user.id,user.organization_id
+        body=workflow_service.read_payload(db,workflow).model_dump()
+    barrier=Barrier(2)
+    def edit(label):
+        with Session(engine) as db:
+            current=CurrentUser(user=db.get(User,uid),organization=db.get(Organization,oid),token='test')
+            barrier.wait(timeout=10)
+            target=workflow_service.get_workflow(db,current,wid,lock=True)
+            payload=WorkflowWrite.model_validate({**body,'name':label,'expected_version':1})
+            try:return workflow_service.save(db,current,payload,target)['version']
+            except HTTPException as error:
+                db.rollback();return error.status_code
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results=list(pool.map(edit,['併發模板A','併發模板B']))
+    assert sorted(results)==[2,409]
+    with Session(engine) as db:
+        assert db.get(Workflow,wid).version==2
+        assert sorted(db.scalars(select(WorkflowVersion.version).where(WorkflowVersion.workflow_id==wid)))==[1,2]
+    engine.dispose()

@@ -51,6 +51,7 @@ const response = (body: unknown, status = 200) => ({
 });
 function setup(override?: (p: string, i?: RequestInit) => unknown) {
   const fetcher = vi.fn(async (p: string, i?: RequestInit) => {
+    if (p.endsWith('/versions')) return response({items:[{version:1,author:'測試',created_at:'2026-10-10'}]});
     const custom = override?.(p, i);
     return custom ?? response(p === '/api/workflows' ? list : detail);
   });

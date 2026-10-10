@@ -56,6 +56,7 @@ try:
                   ('TP-B migration', 'test_migrations.py::test_tp_b_postgresql_migration_preserves_nodes'),
                   ('TP-C migration', 'test_migrations.py::test_tp_c_postgresql_migration_preserves_nodes'),
                   ('TP-D migration', 'test_migrations.py::test_tp_d_postgresql_migration_preserves_data'),
+                  ('TP-E migration', 'test_migrations.py::test_tp_e_postgresql_migration_preserves_templates'),
                   ('API races', 'test_collaboration_postgresql.py')]
         for label, target in stages:
             # Each migration starts on a new database, never an already-upgraded stack.

@@ -1,4 +1,4 @@
-import type { CatalogEntry, WorkflowDetail, WorkflowWrite, WorkflowList, DependencyData, DependencyInput, Dependency, Undoable, CopyResult, DeleteResult, UndoResult } from './types';
+import type { TemplateVersion, TemplateApplyResult, TemplateApplyInput, CatalogEntry, WorkflowDetail, WorkflowWrite, WorkflowList, DependencyData, DependencyInput, Dependency, Undoable, CopyResult, DeleteResult, UndoResult } from './types';
 import type { ReviewPage, AuditPage } from './types';
 import { useEffect, useRef, useState } from 'react';
 import type {
@@ -134,6 +134,11 @@ export async function requestJson<T>(
 export const api = {
   workflow: (id: string, signal?: AbortSignal) =>
     requestJson<WorkflowDetail>(`/workflows/${id}`, { signal }),
+  templateVersions: (id: string, signal?: AbortSignal) => requestJson<{items: TemplateVersion[]}>(`/workflows/${id}/versions`, {signal}),
+  templateVersion: (id: string, version: number, signal?: AbortSignal) => requestJson<WorkflowDetail>(`/workflows/${id}/versions/${version}`, {signal}),
+  deleteTemplate: (id: string, signal?: AbortSignal) => requestJson<{deleted: boolean}>(`/workflows/${id}`, {method:'DELETE', signal}),
+  saveTemplate: (target: string, payload: {name: string; template_id?: string; expected_version?: number}, signal?: AbortSignal) => requestJson<WorkflowDetail>(`${target}/save-template`, {method:'POST', body:JSON.stringify(payload), signal}),
+  applyTemplate: (target: string, payload: TemplateApplyInput, signal?: AbortSignal) => requestJson<TemplateApplyResult>(`${target}/apply-template`, {method:'POST', body:JSON.stringify(payload), signal}),
   saveWorkflow: (
     id: string | null,
     payload: WorkflowWrite,

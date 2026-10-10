@@ -115,6 +115,9 @@ def project_payload(action, raw, node, context, projects, references):
     if action == 'gate.approve':
         gid = reference(raw, 'gate_id', references['gates'], node_id)
         return {'gate_id': gid, 'status': 'approved'} if gid and raw.get('status') == 'approved' else {}
+    if action in {'workflow.create','workflow.update','workflow.copy','workflow.delete','template.apply'}:
+        wid = safe_id(raw.get('workflow_id'), references['workflows'])
+        return {'workflow_id':wid,'version':integer_value(raw.get('version'),1)} if wid else {}
     if action == 'workflow.instantiate':
         pid, wid = safe_id(raw.get('project_id'), projects), safe_id(raw.get('workflow_id'), references['workflows'])
         if pid is None or wid is None:
@@ -146,7 +149,7 @@ def project_payload(action, raw, node, context, projects, references):
             result.update({'source_id': source, 'source_title': references['nodes'][source].title})
         return result
     if action == 'node.undo':
-        return {'action': raw['action']} if raw.get('action') in {'node.create', 'node.delete', 'node.move', 'node.copy'} else {}
+        return {'action': raw['action']} if raw.get('action') in {'node.create', 'node.delete', 'node.move', 'node.copy','template.apply'} else {}
     if action == 'node.move':
         result = {}
         for key in ['from_parent_id', 'to_parent_id']:
@@ -202,7 +205,7 @@ def project_payload(action, raw, node, context, projects, references):
     return {}
 
 
-SUMMARIES = {'dependency.create': '新增前置', 'dependency.update': '修改前置', 'dependency.delete': '移除前置',
+SUMMARIES = {'template.apply':'套用模板','workflow.create':'新增模板','workflow.update':'建立模板新版','workflow.copy':'複製模板','workflow.delete':'刪除模板','dependency.create': '新增前置', 'dependency.update': '修改前置', 'dependency.delete': '移除前置',
              'condition.create': '新增人工條件', 'condition.update': '修改人工條件', 'condition.confirm': '人工條件確認／撤回', 'condition.delete': '移除人工條件', 'project.create': '建立專案', 'workflow.instantiate': '套用工作流', 'node.create': '新增節點',
              'node.update': '更新節點資料', 'node.status': '更新節點狀態', 'node.move': '移動節點', 'node.reopen': '恢復工作',
              'node.delete': '刪除節點', 'node.copy': '複製子樹', 'node.undo': '復原',

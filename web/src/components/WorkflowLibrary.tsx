@@ -1,3 +1,4 @@
+import { VersionPicker } from './TemplateDialogs';
 import WorkflowCatalog from './WorkflowCatalog';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -86,6 +87,9 @@ function Editor({
       name: name.trim(),
       nodes: nodes.map((n) => ({ ...n, title: n.title.trim() })),
       dependencies: edges,
+      kind: detail?.kind ?? 'workflow',
+      conditions: (detail?.conditions ?? []).filter(c => nodes.some(n => n.id === c.node_id)),
+      ...(mode === 'edit' ? {expected_version: detail?.version} : {}),
     };
     void mutation.execute(async (signal) => {
       const result =
@@ -365,6 +369,8 @@ export default function WorkflowLibrary({
   changed: () => void;
   createProject?: (workflowId: string) => void;
 }) {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const scope = useRequestScope();
   const [list, setList] = useState<WorkflowList | null>(null);
@@ -378,6 +384,7 @@ export default function WorkflowLibrary({
     const r = scope.begin();
     setLoading(true);
     setError('');
+    setDeleteOpen(false);
     setSelected(id);
     setDetail(null);
     setMode(null);
@@ -433,9 +440,9 @@ export default function WorkflowLibrary({
         )}
       </div>
       <div className="workflow-list" aria-label="模板清單">
-        {list?.items.map((w) => (
+        {list?.items.filter(w=>w.kind!=='task').map((w) => (
           <article className="company-template-card" key={w.id}>
-            <div className="card-tags"><span className="tag blue">公司模板</span>{w.requires_start_date && <span className="tag gray" aria-hidden="true">含相對日期</span>}</div>
+            <div className="card-tags"><span className="tag blue">公司模板</span><span>v{w.version??1}</span>{w.requires_start_date && <span className="tag gray" aria-hidden="true">含相對日期</span>}</div>
             <h3><button
               className="row-link"
               aria-pressed={selected === w.id}
@@ -476,14 +483,17 @@ export default function WorkflowLibrary({
         !error && (
           <section className="record-panel" aria-label="模板內容">
             <h3>{detail.name}</h3>
+            <VersionPicker key={detail.id} detail={detail} select={value=>{setDetail(value);setDeleteOpen(false);}} expired={expired}/>
             <div className="record-actions">
               {detail.capabilities.edit && (
                 <button onClick={() => edit('edit')}>編輯模板</button>
               )}
+              {detail.capabilities.delete && <button onClick={()=>setDeleteOpen(true)}>刪除模板</button>}
               {detail.capabilities.copy && (
                 <button onClick={() => edit('copy')}>複製模板</button>
               )}
             </div>
+            {deleteOpen&&<div role="alertdialog" aria-label="刪除模板確認"><p>刪除「{detail.name}」後將無法再套用；已建立的任務與歷史資料保留，名稱仍保留。</p><button disabled={deleting} onClick={()=>setDeleteOpen(false)}>取消刪除</button><button disabled={deleting} onClick={()=>{const r=scope.begin();setDeleting(true);void api.deleteTemplate(detail.id,r.controller.signal).then(async()=>{if(scope.current(r)){changed();await load();}}).catch(e=>{if(scope.current(r)){setError(recordError(e));if(e instanceof ApiError&&e.status===401)expired();}}).finally(()=>setDeleting(false));}}>確認刪除模板</button></div>}
             <p>
               {detail.requires_start_date
                 ? '建立專案時需提供開始日'
@@ -519,7 +529,9 @@ export default function WorkflowLibrary({
         )
       )}
       <h2>任務模板</h2>
-      <p className="panel empty">尚未提供：任一節點另存為模板、套用到既有節點與模板版本排在任務規劃器（TP-E）。</p>
+      <p>在節點標題列「另存為模板」保存子樹，或「套用模板」選擇版本加入目前節點。</p>
+      <div className="workflow-list" aria-label="任務模板清單">{list?.items.filter(w=>w.kind==='task').map(w=><article className="company-template-card" key={w.id}><div className="card-tags"><span className="tag blue">公司任務模板</span><span>v{w.version??1}</span></div><h3>{w.name}</h3><p>{w.task_count} 個任務{w.requires_start_date?' · 含相對日期':''}</p><button onClick={()=>void load(w.id)}>查看與管理「{w.name}」</button></article>)}</div>
+      {!list?.items.some(w=>w.kind==='task')&&<p className="panel empty">尚無任務模板，請從現有節點另存。</p> }
       </>}
     </div>
   );
