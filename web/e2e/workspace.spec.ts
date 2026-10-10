@@ -118,7 +118,8 @@ test('P2a nested gate, visible statistics and cross-company metadata boundaries'
     const parent = detail.nodes.find((node: { title: string }) => node.title === '試作工單');
     const add = async (title: string, parentId: string, ownerId: string) => {
       const response = await admin.request.post(`/api/projects/${projectId}/nodes`, { data: { title, kind: 'task', parent_id: parentId, owner_user_id: ownerId, start_date: '2026-10-08', due_date: '2026-10-12' } });
-      expect(response.status()).toBe(201); return response.json();
+      // TP-B: the create response also carries the undo token, which the project detail does not list.
+      expect(response.status()).toBe(201); const { undo_id: undoId, ...node } = await response.json(); expect(undoId).toBeTruthy(); return node;
     };
     const visible = await add('可見深層任務', parent.id, member.user.id);
     const hidden = await add(`hidden-${randomUUID()}`, parent.id, admin.user.id);
