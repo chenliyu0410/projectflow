@@ -75,6 +75,7 @@ test('TP-C drag cascades, locked successor rejects atomically, arrows and screen
   await mkdir('../.superpowers/tpc/e2e', { recursive: true });
   for (const width of [1280, 1440, 375]) {
     await page.setViewportSize({ width, height: 900 });
+    await page.getByRole('button', { name: '時程任務：B', exact: true }).scrollIntoViewIfNeeded();
     await page.screenshot({ path: `../.superpowers/tpc/e2e/timeline-${width}.png`, fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
@@ -88,7 +89,10 @@ test('TP-C drag cascades, locked successor rejects atomically, arrows and screen
 test('TP-C drag-to-create and row plus use existing create and one-step undo', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 }); await login(page); const { pid, ids } = await setup(page);
   const track = page.getByLabel('拖曳日期新增子任務'); await track.scrollIntoViewIfNeeded(); const box = (await track.boundingBox())!;
-  await page.mouse.move(box.x + 20, box.y + 18); await page.mouse.down(); await page.mouse.move(box.x + 90, box.y + 18, { steps: 5 }); await page.mouse.up();
+  // The sticky name column can cover the track's left edge after horizontal scrolling.
+  const label = (await page.locator('.timeline-add .timeline-label').boundingBox())!;
+  const dragX = Math.max(box.x, label.x + label.width) + 20;
+  await page.mouse.move(dragX, box.y + 18); await page.mouse.down(); await page.mouse.move(dragX + 70, box.y + 18, { steps: 5 }); await page.mouse.up();
   let form = page.getByRole('form', { name: '新增節點表單' }); await expect(form).toBeVisible();
   expect(await form.getByLabel('開始日期').inputValue()).not.toBe('');
   await form.getByLabel('節點名稱').fill('拖出新任務'); await form.getByRole('button', { name: '儲存', exact: true }).click();

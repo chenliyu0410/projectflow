@@ -179,3 +179,18 @@ def test_more_than_thirty_successors_are_all_shifted(client, engine, schedule):
     assert r.status_code == 200, r.text
     assert r.json()['shifted_count'] == 37
     with Session(engine) as db: assert db.get(Node, 'long-34').due_date == date(2026, 11, 15)
+
+
+def test_cascade_audit_failure_rolls_back_every_date(client, engine, schedule, monkeypatch):
+    from app.services import schedule_service
+    before = snapshot(engine)
+    real = schedule_service.log_audit
+    calls = []
+    def fail_second(*args, **kwargs):
+        calls.append(kwargs['node_id'])
+        if len(calls) == 2: raise RuntimeError('simulated cascade audit failure')
+        return real(*args, **kwargs)
+    monkeypatch.setattr(schedule_service, 'log_audit', fail_second)
+    with pytest.raises(RuntimeError, match='simulated cascade audit'):
+        update(client)
+    assert len(calls) == 2 and snapshot(engine) == before

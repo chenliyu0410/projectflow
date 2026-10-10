@@ -345,3 +345,15 @@ UI4只改React介面，沒有新API、欄位或migration；拖曳改狀態、節
 TP-A新增`POST /nodes/{id}/move`（body `{parent_id}`，只限`can_manage_project`；目標要是同專案的專案根節點、階段或任務，狀態不能是待確認／完成／已略過，被移動子樹和新上層路徑之間不能有前置連線）與`GET /projects/{id}/records`（專案內所有可見節點的回報、筆記、附件，唯讀，游標綁定專案）。`PATCH /nodes/{id}`另收`weight`（0–100整數）與`progress`（0–100整數或null，只限任務）；`GET /workspace/overview`的專案多`progress_percent`（只用可見節點的加權進度）。階段改完成、送出回報（含送出並確認）、確認回報時，若有任何子節點不是完成或已略過，回409「子節點尚未全部完成」。前端只顯示這幾句固定的409文字，其他後端訊息仍不顯示。進度公式前後端各一份（`api/app/services/progress.py`、`web/src/progress.ts`），共用測試向量`web/src/progress.vectors.json`。migration `20261010_0005`的PG保留資料測試已加入`deploy/verify.py`；舊階段的migration測試改用`seed_at_revision`，先用目前ORM在暫存SQLite建資料，再只複製目標版本已有的欄位。E2E `web/e2e/planner.spec.ts`用真Chromium拖曳，對照截圖存在ignored `.superpowers/tpa/e2e/`。
 
 TP-B新增`DELETE /nodes/{id}`（軟刪除任務與整棵子樹，只限`can_manage_project`；子樹含看不到的節點、或是階段時拒絕；兩端任一在子樹內的前置連線實際移除並寫進稽核payload）、`POST /nodes/{id}/copy`（只限`can_manage_project`與任務，最多300個節點；複製名稱加「（複本）」、負責人、部門、日期、權重、協作與子樹內前置，狀態歸待處理）與`POST /undo`（body `{audit_id}`）。`POST /nodes/{id}/move`的`parent_id`可為null（移到專案最上層；有專案根節點時換成根節點），權限放寬為`can_manage_project`或`can_work_node`（D74）。新增節點、移動、複製、刪除的回應多`undo_id`；復原只接受目前使用者本公司最近一次「新增／刪除／移動／複製／復原」稽核，只限原操作者，之後有其他稽核、子節點或連線就回409。已刪除節點由ORM全域條件排除（`app/models.py`的`do_orm_execute`＋`with_loader_criteria`），需要讀到它們的地方（刪除、復原、稽核頁）明確加`execution_options(include_deleted=True)`；Core層級查詢不受這個條件影響，新寫的Core查詢要自行過濾`deleted_at`。新增子節點、重新開啟、恢復任務在上層是待確認／完成／已略過時回409。migration `20261010_0006`有降級保護：資料庫裡有已刪除節點時拒絕降級。PG保留資料測試已加入`deploy/verify.py`。E2E `web/e2e/tree.spec.ts`的對照截圖存在ignored `.superpowers/tpb/e2e/`。
+
+## TP-C 時程進階（D75）
+
+時程父條顯示自己與可見子孫計畫期間的聯集，不改資料庫日期；負責部門篩選保留上層路徑。每列「＋」及最下方空白軌拖曳開啟新增表單，手機／鍵盤用按鈕和日期欄位。葉任務可以拖移與左右拉伸，父條只供導覽，里程碑只移動。
+
+`POST /nodes/{id}/schedule`接受`{start_date, due_date, cascade}`，回傳`{node, shifted_count}`。`cascade`預設false；true時沿既有FS（完成→開始，翌日、零延遲）向後順延，保持工期與子樹相對日期。每個實際變更節點須可見、可編輯；後續鎖定、日期未排完整或已待確認／完成／略過時整次409，沒有部分日期或稽核寫入。前端保留失敗草稿。日期PATCH與建立也共用前置及里程碑檢查，不能繞過；不因前置提早而提前其他任務。
+
+migration `20261010_0007`新增`nodes.milestone`、`schedule_locked`，既有列預設false。里程碑只能是有完整同日起訖的葉任務，鎖定必須為里程碑；新增、移動、複製與復原不能把子任務放在里程碑下面。只有系統管理員或該專案負責人可以鎖定／解鎖或直接修改已鎖定日期。自動順延一律不能越過鎖定，管理者也要先明確解除。
+
+API `capabilities.edit_schedule`控制日期入口，`lock_schedule`控制鎖定入口；metadata編輯權限不變。時程改期使用`node.update`稽核，逐節點保留前後日期，摘要為「調整時程」或「自動順延」。複製子樹保留里程碑及鎖定值。D74的復原仍只涵蓋結構操作，日期不加入復原。
+
+箭頭只用目前範圍內可見的前置，灰實線表示前置已完成／略過，橘虛線表示等待；日期衝突另有說明。關鍵路徑沿Demo的最晚結束單條限制鏈估算，明示是可見範圍FS估算，非完整CPM或浮時分析。SS／FF、延遲、軟性及條件前置留TP-D；模板里程碑保存留TP-E；覆寫申請與通知留TP-F。ERP交期與首頁延後天數預測仍未提供。

@@ -13,13 +13,13 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **TP-C 🔨 時程進階實作中，D75已確認**（D70；TP-B ✅已交付） |
+| 目前工作項目 | **TP-C 🟢 時程進階已實作並驗收，待合併部署**（D70／D75） |
 | 模式 | **精簡流程（D65）**：每階段短規格／計畫、一次獨立審查與完整回歸、一次交付紀錄；一般畫面不強制TDD，人類試用另簽核。 |
-| 下一個動作 | TP-C：依[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md)實作migration／schedule API、時程介面及測試，完成後一次獨立審查與完整隔離回歸。 |
-| 分支 | `feature/tp-c-advanced-timeline`；D75決定提交後從main建立。 |
-| 最新程式 commit | `d5b999b`（TP-B審查修正）；`2980fd9` API、`5f36c25`前端、`543b6b9`／`4c8cd02` E2E。 |
+| 下一個動作 | TP-C ff-only合併，保留資料部署15173並依D50發布；完成後下一批TP-D。 |
+| 分支 | `feature/tp-c-advanced-timeline`；獨立審查 Ready to merge。 |
+| 最新程式 commit | `77b69b4`（TP-C實作）、`2e81ae8`（審查及日期完整性修正）；收尾測試與文件見本次commit。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | TP-B：`deploy/verify.py`：PG5階段全過（含TP-B migration）；API412pass/9skip；Vitest222；build0；E2E28/29（P2a測試比對建立回應多了`undo_id`，調整後7/7）。審查修正`d5b999b`後API414pass/9skip、Vitest222、build0、tree／workspace／planner／mvp E2E14/14。詳§3。 |
+| 測試基準 | TP-C：PG六階段全過；完整API428pass/1fail/10skip（舊audit mock位置已修正，定向2pass）；TP-C API16pass後補第17項audit rollback亦通過；Vitest233、build0；完整E2E31/32（拖曳測試座標修正後TP-C3/3）。詳§3。 |
 | 資料版本 | Demo v6/key未改；migration `20261010_0006`（`nodes.deleted_at`、`deleted_by`）。15173已升到0006：既有每列每個欄位值、附件SHA、env、DB容器逐一相同，節點只多兩個NULL欄位，新增0列。acceptance down不-v，volume保留；ui3cmp（15179）保留供對照。 |
 | 認領中 | 無。 |
 | 阻塞／待人類 | TP-C D75已決定，無產品規則阻塞；TP-B／TP-A／UI4／UI3／UI1／UI2及P1c/P2a/P2b/P2c人類試用與D43/D10仍待簽核。LAN未授權。 |
@@ -98,7 +98,7 @@
 | 已完成 | UI4 | 工作區／看板／回報／時程／模板操作一致 | ✅ 工程交付 | D70／D72，[短規格／計畫](superpowers/plans/2026-10-09-ui4-workspace-ops.md) | UI3 |
 | 已完成 | TP-A | 任務規劃器：節點分頁、看板拖曳與卡片資訊、進度彙總、父節點完成規則 | ✅ 工程交付 | D70／D73，[短規格／計畫](superpowers/plans/2026-10-10-tp-a-board-progress.md) | UI4 |
 | 已完成 | TP-B | 任務規劃器：刪除、升降級、拖曳改層級、複製子樹、復原上一步 | ✅ 工程交付 | D70／D74，[短規格／計畫](superpowers/plans/2026-10-10-tp-b-tree-editing.md) | TP-A |
-| 目前 | TP-C | 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑） | 🔨 D75已決定 | D70，[短計畫草案](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md) | TP-B ✅ |
+| 目前 | TP-C | 任務規劃器：時程進階（父條涵蓋、部門篩選、拖出新增、里程碑、自動順延、箭頭、關鍵路徑） | 🟢 驗收完成 | D70，[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md) | TP-B ✅ |
 | 後續 | TP-D | 任務規劃器：前置進階（SS／FF、延遲、軟性、條件型不含文件、拖線建立） | ⬜ | D70 | TP-C |
 | 後續 | TP-E | 任務規劃器：另存模板、套用到既有節點、模板版本、刪除模板 | ⬜ | D70 | TP-D |
 | 後續 | TP-F | 任務規劃器：跳過申請與覆寫、部門管理、成員權限頁、待我指派、負載、通知 | ⬜ | D70 | TP-E |
@@ -120,11 +120,17 @@
 
 ## 3. 工作項目明細
 
-### TP-C 時程進階 — 🔨 D75已決定
+### TP-C 時程進階 — 🟢 驗收完成，待合併部署
 
-2026-10-10人類授權「開始吧」。已盤點Demo與正式版時程程式，建立12列差距表及短規格／計畫，包含API、migration 0007、權限、實作清單、隔離驗收與保存資料交付方式。Demo以18005全新Playwright context取得1280／375時程與里程碑編輯器截圖，pageerror 0、頁面水平溢出false，證據在ignored `.superpowers/tpc/baseline/`。正式版15173已只讀查看「【展示】食品新品開發」1280／375時程並保存截圖，pageerror 0、頁面無水平溢出，未作業務寫入。目前只改文件，未開feature分支、未改產品程式或DB；文件規劃不冒稱測試通過。
+**範圍與決策**：人類「照 D75」核准[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md)。父條涵蓋可見子孫、部門篩選保留匹配路徑、每列＋與底部拖出新增、左右拉伸、單日里程碑與鎖定、延遲標示、可見FS箭頭與Demo單條關鍵鏈估算均已實作。順延預設關閉，逐項檢查可見／編輯權限；鎖定、未排程、已結束或不可編輯的受影響任務使整次改期與稽核全部回滾。鎖定／解鎖及直接改鎖定日期限系統管理員與專案負責人。日期不納入復原，新增沿用結構undo。SS／FF等留TP-D，首頁延後天數預測與完整CPM不在本階段。
 
-**已決定（人類2026-10-10：「照 D75」）**：D75-1順延逐項授權並於任何阻擋時全部取消；D75-2鎖定僅管理者控制；D75-3其餘按短計畫（可見範圍Demo單鏈估算、日期不納入undo、SS／FF等留TP-D）。D75已核准，接續實作。
+**實作與審查**：`77b69b4`實作、`2e81ae8`修正。migration `20261010_0007`只新增`milestone`、`schedule_locked` false欄位；新`POST /nodes/{id}/schedule`與原PATCH共用改期服務、project lock與逐節點audit。一位唯讀獨立審查 Critical 0／Important 0／Minor 2（scope依賴載入、部門篩選多留無關階段），兩者修正後複核接受；收尾三個測試檔再次定向複核 Ready to merge，無剩餘阻塞。
+
+**真實驗證**：一次完整隔離回歸：PG六階段（P2b、P2c、TP-A、TP-B、TP-C migration與API races）全過；API428pass／1fail／10skip，唯一失敗為舊audit故障注入仍攔截projects模組，補攔截schedule_service後與新增cascade第二次audit失敗全回滾測試2pass。TP-C定向API先16pass，再補上述第17項通過；既有project/tree/health42pass；SQLite migration11pass/6skip（PG另實跑）。Vitest233pass、build exit0。完整E2E31pass／1fail：新拖出新增測試起點被sticky名稱欄覆蓋，改可見日期區真實滑鼠座標後TP-C3/3pass（含新增、undo、順延、鎖定回滾、角色限制）。失敗均已解決；未宣稱原全量命令exit0。證據在ignored `.superpowers/tpc/`。1280／1440／375截圖人工核對菱形、連線、關鍵鏈；頁面無水平溢出、TP-C pageerror 0。
+
+**部署／試用**：待ff-only與15173保留資料部署。人類試用清單已新增，尚未代簽。Demo基準截圖在`.superpowers/tpc/baseline/`，正式隔離截圖在`.superpowers/tpc/e2e/`。
+
+**必要測試調整**：`api/tests/test_node_metadata.py`只更新audit mock的實際呼叫位置；不改產品規則。未引入新依賴、未改Demo、未開LAN。
 
 ### TP-B 樹狀編輯：刪除、升降級、移動、複製子樹與復原 — ✅ 工程交付
 

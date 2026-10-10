@@ -182,6 +182,8 @@ def test_audit_failure_rolls_back_metadata_and_creation(client,engine,monkeypatc
     def fail_audit(*args,**kwargs):
         raise RuntimeError('simulated audit write failure')
     monkeypatch.setattr(projects,'log_audit',fail_audit)
+    from app.services import schedule_service
+    monkeypatch.setattr(schedule_service,'log_audit',fail_audit)
     with pytest.raises(RuntimeError,match='simulated audit'):
         client.patch(f'/nodes/{nid}',json={'title':'must roll back'})
     assert snapshot(engine)==before
