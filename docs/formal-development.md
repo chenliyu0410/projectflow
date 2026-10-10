@@ -357,3 +357,18 @@ migration `20261010_0007`新增`nodes.milestone`、`schedule_locked`，既有列
 API `capabilities.edit_schedule`控制日期入口，`lock_schedule`控制鎖定入口；metadata編輯權限不變。時程改期使用`node.update`稽核，逐節點保留前後日期，摘要為「調整時程」或「自動順延」。複製子樹保留里程碑及鎖定值。D74的復原仍只涵蓋結構操作，日期不加入復原。
 
 箭頭只用目前範圍內可見的前置，灰實線表示前置已完成／略過，橘虛線表示等待；日期衝突另有說明。關鍵路徑沿Demo的最晚結束單條限制鏈估算，明示是可見範圍FS估算，非完整CPM或浮時分析。SS／FF、延遲、軟性及條件前置留TP-D；模板里程碑保存留TP-E；覆寫申請與通知留TP-F。ERP交期與首頁延後天數預測仍未提供。
+
+
+## TP-D 前置進階（D76）
+
+migration `20261010_0008`新增連線relation_type（FS／SS／FF）、lag_days（整數-365至365）、enforcement（hard／soft）及node_conditions表。舊連線預設FS／0／hard，舊值不變；存在進階設定或人工條件時拒絕降級。
+
+- `POST /projects/{id}/dependencies`接受三個新增設定；`PATCH /dependencies/{id}`只改提交的設定，端點不可改；自環、重複與循環仍拒絕。管理權限不變。
+- `GET /projects/{id}/dependencies`新增可見目標的conditions；不可見前置只有通用阻擋／軟性警示。
+- `POST /projects/{id}/conditions`：node_id、label、enforcement。`PATCH /conditions/{id}`：label、enforcement；改名稱清除先前確認。
+- `POST /conditions/{id}/confirmation`：is_met及非空reason，管理者確認／撤回；`DELETE /conditions/{id}`移除。所有寫入均鎖專案、同交易稽核。條件只有人工確認，尚未接ERP／文件。條件撤回不回退已開始任務。
+- FS日期為前置截止+1+lag；SS為前置開始+lag；FF為前置截止+lag限制後項截止。lag不表示實際狀態完成後倒數，也不排除假日。soft不強制日期或順延、不加入關鍵鏈。
+- FS／SS開始阻擋含上層，回報保留重檢；FF允許開始與送待確認回報，在自我確認和核准重檢。Gate與略過權限保持獨立。審核清單及核准回應提供軟性警示。
+- 複製子樹保留內部邊全部設定；人工條件複製為未確認。軟刪除保留條件原列，恢復保留原確認證據；刪除及復原邊保存完整設定。所有條件讀寫排除已刪除任務。
+
+範圍限制：模板進階保存留TP-E；覆寫申請／通知留TP-F；人工條件沒有推估日期，不宣稱完整CPM或ERP交期預測。
