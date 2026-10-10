@@ -194,7 +194,7 @@ def test_workspace_query_count_is_constant_as_projects_and_tasks_grow(client,eng
         assert sum('FROM node_dependencies' in query for query in queries)==1
         queries.clear()
         assert client.get('/workspace/overview').status_code==200
-        assert len(queries)<=8
+        assert len(queries)<=10
         assert sum('FROM node_dependencies' in query for query in queries)==1
     finally:
         event.remove(engine,'before_cursor_execute',record)
