@@ -4,7 +4,7 @@
 
 ## 目標與原始碼差距
 
-從既有節點保存可重用結構，選定版本加入其他節點，並管理模板。對照Demo的pageTemplates、nodeToTemplate、openApplyTpl、applyTemplate、submitSaveTpl、deleteWorkflow，以及正式版WorkflowLibrary、App標題列、workflow_service、WorkflowWrite與tree_service。本輪完成原始碼對照；瀏覽器同尺寸對照尚未執行，不宣稱視覺驗收。
+從既有節點保存可重用結構，選定版本加入其他節點，並管理模板。對照Demo的pageTemplates、nodeToTemplate、openApplyTpl、applyTemplate、submitSaveTpl、deleteWorkflow，以及正式版WorkflowLibrary、App標題列、workflow_service、WorkflowWrite與tree_service。原始碼與隔離瀏覽器同尺寸對照均已完成，證據位置見文末；不代人類視覺簽核。
 
 | 項目 | Demo實際行為 | 正式版現況 | 本批提案 |
 |---|---|---|---|
