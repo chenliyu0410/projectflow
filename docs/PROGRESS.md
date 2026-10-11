@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **AI-RAG ✅ 展示資料已匯入，RAG檢索／受控Text-to-SQL已部署** |
+| 目前工作項目 | **F1-DOC ✅ 正式文件管理已部署15173** |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 重新整理15173→右側AI副手→選AI展示專案→文件檢索／SQL分析。另一台Ollama尚未設定，完成後填位址與模型名稱測試；不假稱已驗收真模型。 |
-| 分支 | `main`；AI-RAG依D50 ff-only合併發布。 |
-| 最新程式 commit | `830794e`（AI資料匯入、檢索、受控SQL、模型設定與驗證）。 |
+| 下一個動作 | 重新整理15173→專案或任務→「文件」：上傳新文件、編輯TXT／CSV、儲存新版本與查看版本紀錄。營運正式功能待後續指示；Ollama尚未設定，人類試用未代簽。 |
+| 分支 | `main`；F1-DOC依D50 ff-only合併發布。 |
+| 最新程式 commit | `48330b2`（正式文件管理與不可變版本紀錄）。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | AI API10pass、health13pass；完整API521pass／14skip，唯一舊路由契約失敗已修正並包含於health13pass。前端264pass後舊副手預期修正，定向33pass；build0。AI／UI5／回報審核1280/375全部通過；96SQL對答案、432/432題有來源RAG recall@6；唯讀獨立審查Ready。 |
-| 資料版本 | migration仍20261010_0011，正式DB無seed／migration。新增AI volume dataset-v1：6公司144案3456任務4644文件，資料基準2026-10-11；原3120列、附件SHA、env保留。AI專案不混入正式任務樹。 |
+| 測試基準 | F1-DOC完整API535pass／14skip（專用歷史PG環境未設定）；新migration1pass，文件／health26pass。前端270pass，guard修正後48pass；build0。文件1280／375（含PG競爭201／409）、既有回報審核1280／375、UI5預覽1280／375通過。唯讀獨立審查Ready。 |
+| 資料版本 | migration `20261011_0012` 新增documents／document_versions；無seed，保留原3150筆業務／既有資料（不含alembic版本列）、files雜湊與env。DB及files備份在.superpowers/f1-documents；AI資料volume維持。 |
 | 認領中 | 無。 |
-| 阻塞／待人類 | AI-RAG工程無阻塞；人類說模型尚未設定，未做真Ollama推論驗收。既有LAN限制與人類試用簽核維持。 |
+| 阻塞／待人類 | F1-DOC工程無阻塞；Office網頁編輯、文件簽核／分類／版本還原與營運正式功能不在本次範圍。另一台Ollama尚未設定，既有LAN限制與人類試用簽核維持。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
 
 ---
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- F1-DOC ✅：2026-10-11完成正式文件上傳、TXT／CSV網頁編輯、不可變版本保存／歷史下載；其他格式上傳新版本。已保留資料部署15173。依[短計畫](superpowers/plans/2026-10-11-f1-documents.md)交付，營運與其餘F1待後續。
 
 - AI-RAG ✅：人類要求匯入AI-DATA並開始RAG／Text-to-SQL，依[短計畫](superpowers/plans/2026-10-11-ai-rag-text2sql.md)完成獨立AI資料區、文字檢索RAG、16種受控SQL與Ollama設定，已部署15173；模型尚未設定，免模型檢索／查詢可用。見[操作說明](ai-assistant.md)。
 
@@ -112,7 +114,7 @@
 | 已完成 | TP-F | 任務規劃器：跳過申請與覆寫、部門管理、成員權限頁、待我指派、負載、通知 | ✅ 工程交付 | D70；[短計畫](superpowers/plans/2026-10-10-tp-f-permissions-collaboration.md) | TP-E ✅ |
 | 已完成 | TP-G | 任務規劃器：自訂回報欄位 | ✅ 工程交付 | D70／D79，[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md) | TP-F |
 | 已完成 | UI5 | 文件／資料／營運／AI展示畫面 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-11-ui5-remaining-screens.md)，D81：三組實作一次交付，預覽與F1正式功能分開追蹤 | TP-G ✅ |
-| 展示後另定 | F1 | 逐頁補正式功能：文件→資料→營運→規則副手治理 | ⬜ | 原P2d拆入，不再先做後端大包 | UI5 |
+| 後續另定 | F1 | 逐頁補正式功能：文件→資料→營運→規則副手治理 | 文件管理本次範圍✅；其餘⬜ | 原P2d拆入，不再先做後端大包 | UI5 |
 | 展示後另定 | F2 | 跨頁一致性與剩餘Demo差距 | ⬜ | 進階時程／相依、子樹套用、自訂回報已移入TP（D70）；真AI／ERP／LAN另定範圍 | F1 |
 
 1. 永遠做順位最前面、而且沒有阻塞的項目。
@@ -1295,3 +1297,9 @@ TP-F啟動補記：人類回覆「照建議做」，D78與短計畫核准，開�
 - 隔離E2E初輪5pass、1fail：手機切公司後測試誤開選單，遮擋AI按鈕；修正腳本後AI1280/375兩項pass。原回報退回／重送／核准兩尺寸、UI5文件／營運兩尺寸已通過。手機關閉按鈕寬度修正並重驗，無水平溢位、pageerror。驗收容器已停止，保留volume。
 - 真資料包全部96 SQL與預期結果相同；指定公司／專案的432題有來源問題，預期文件均在前6筆。這是模板合成資料上的檢索驗證，不是生成答案準確率。正式15173六公司RAG＋3種SQL smoke通過，model_enabled均false。另兩台電腦真模型延遲／回答品質待設定後測試，未代簽。
 - 備份dump、列／附件hash、部署／測試log、資料評估與保留證據在忽略目錄`.superpowers/ai-rag/`；原始資料包仍在workspace `ai-demo-data/`。程式830794e，依D50 ff-only合併並發布main。
+
+### 2026-10-11｜Codex GPT-6｜F1-DOC正式文件管理交付
+- **做了什麼**：`48330b2`；專案／任務「文件」分頁改接正式API；上傳TXT／CSV／PDF／Office／圖片／ZIP，TXT／CSV網頁編輯保存新版本，其餘上傳新版本；保留歷史檔、作者、時間、說明與SHA256。單檔10MB、文字編輯1MB。專案文件管理者維護，任務文件沿紀錄權限，readonly唯讀。舊專案無根任務也可使用。
+- **驗證**：完整API535pass／14skip，skip為未設定專用歷史PG環境；新migration1pass（SQLite保值升降級），文件／health26pass。前端270pass；草稿離開guard修正後受影響48pass及build0。Playwright文件1280／375完成上傳→文字v2→重載→v1下載→上傳v3、取消離開保留草稿、真PG同時儲存201／409；回報審核2pass，UI5預覽2pass。獨立唯讀審查先發現草稿離開遺失，已補主要導覽／公司／登出／新增節點／結構操作／復原保護，複核Ready。
+- **部署／保值**：正式DB與files先備份，再migration0012；無seed。前後逐列雜湊確認3150筆既有資料保留（排除alembic版本列），既有files與env SHA不變；15173 health及登入後文件清單API通過。備份、保值摘要、截图與審查紀錄位於`.superpowers/f1-documents`（不入Git）。
+- **限制／下一步**：不含Office網頁編輯、簽核、分類與版本還原；營運預覽維持。若檔案已rename而DB提交結果不確定，保守保留檔案，不自動刪除孤立檔。人類試用不代簽；其餘F1／F2與Ollama設定待後續。
