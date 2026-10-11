@@ -1,3 +1,4 @@
+import InventoryPanel from './InventoryPanel';
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, requestJson } from '../api';
 
@@ -21,7 +22,8 @@ export default function OperationsManager({ expired, leaveGuard, preview }: {
   const [notice, setNotice] = useState('');
   const inFlight = useRef(false);
   const request = useRef<AbortController | null>(null);
-  const guard = () => !busy && (draft === null || window.confirm('營運資料有未儲存的修改，確定放棄並離開嗎？'));
+  const inventoryGuard = useRef<(() => boolean) | null>(null);
+  const guard = () => (inventoryGuard.current?.() ?? true) && !busy && (draft === null || window.confirm('營運資料有未儲存的修改，確定放棄並離開嗎？'));
   useEffect(() => {
     leaveGuard.current = guard;
     const unload = (event: BeforeUnloadEvent) => { if (draft || busy) { event.preventDefault(); event.returnValue = ''; } };
@@ -78,7 +80,7 @@ export default function OperationsManager({ expired, leaveGuard, preview }: {
     });
   }
   return <section className="operations-manager" aria-label="正式營運資料">
-    <div className="page-heading"><h2>營運資料</h2><p>維護公司的供應商、資源與單據。資料會正式保存；狀態為人工紀錄，不會自動異動庫存或執行簽核。</p></div>
+    <div className="page-heading"><h2>營運資料</h2><p>維護公司的供應商、資源與單據。資料會正式保存；採購詳情可收貨入庫，物料詳情可查看與調整庫存；單據狀態仍為人工紀錄。</p></div>
     <div className="record-actions"><button disabled={busy} onClick={() => { if (guard()) { setDraft(null); void run(async signal => { if (!catalog) await initialize(signal); else { await load(signal); if (selected) await open(selected.id, signal); } }); } }}>重新載入營運資料</button><button disabled={busy} onClick={() => { if (guard()) preview(); }}>查看原展示示例</button></div>
     {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}{busy && <p role="status">處理中…</p>}
     {catalog && <>
@@ -107,7 +109,8 @@ export default function OperationsManager({ expired, leaveGuard, preview }: {
       {selected.source === 'showcase' && <p>來源：虛構展示資料，已保存至營運資料庫。</p>}
       <dl>{selected.fields.map(field => <div key={field.label}><dt>{field.label}</dt><dd>{field.value || '未填寫'}</dd></div>)}</dl>
       <p>建立：{selected.created_by} · {new Date(selected.created_at).toLocaleString('zh-TW')}</p><p>最後修改：{selected.updated_by} · {new Date(selected.updated_at).toLocaleString('zh-TW')}</p>
-      {catalog?.can_manage && <button disabled={busy} onClick={() => edit(selected)}>編輯營運資料</button>}
+      {catalog?.can_manage && <button disabled={busy} onClick={() => { if (guard()) edit(selected); }}>編輯營運資料</button>}
+      {catalog?.can_manage && ['orders', 'resources'].includes(selected.category) && <InventoryPanel blocked={busy} key={selected.id} record={selected} expired={expired} leaveGuard={inventoryGuard} />}
     </article>}
   </section>;
 }

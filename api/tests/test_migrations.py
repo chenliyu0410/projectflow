@@ -886,3 +886,31 @@ def test_operation_links_migration_preserves_operations_and_refuses_loss(tmp_pat
         assert conn.scalar(text('SELECT count(*) FROM operation_links')) == 1
         assert conn.scalar(text('SELECT title FROM operations_records')) == 'Record'
     engine.dispose()
+
+
+def test_inventory_migration_preserves_data_and_refuses_loss(tmp_path, monkeypatch):
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text
+    import pytest
+    url = f'sqlite:///{tmp_path / "inventory.db"}'
+    monkeypatch.setenv('DATABASE_URL', url)
+    config = Config('api/alembic.ini')
+    command.upgrade(config, '20261011_0014')
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(text("INSERT INTO organizations (id,key,name) VALUES ('keep','keep','Keep data')"))
+    command.upgrade(config, 'head')
+    with engine.begin() as conn:
+        assert conn.scalar(text('SELECT name FROM organizations')) == 'Keep data'
+        assert conn.scalar(text('SELECT count(*) FROM inventory_movements')) == 0
+    command.downgrade(config, '20261011_0014')
+    command.upgrade(config, 'head')
+    with engine.begin() as conn:
+        conn.execute(text("INSERT INTO inventory_balances (organization_id,resource_id,unit,quantity_milli) VALUES ('keep','r','kg',1200)"))
+    with pytest.raises(RuntimeError, match='拒絕有損降級'):
+        command.downgrade(config, '20261011_0014')
+    with engine.connect() as conn:
+        assert conn.scalar(text('SELECT quantity_milli FROM inventory_balances')) == 1200
+        assert conn.scalar(text('SELECT name FROM organizations')) == 'Keep data'
+    engine.dispose()

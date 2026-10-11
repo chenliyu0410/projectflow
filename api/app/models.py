@@ -35,6 +35,48 @@ class OperationsRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
+class InventoryBalance(Base):
+    __tablename__ = 'inventory_balances'
+    __table_args__ = (
+        ForeignKeyConstraint(['organization_id', 'resource_id'], ['operations_records.organization_id', 'operations_records.id']),
+        CheckConstraint('quantity_milli >= 0 AND quantity_milli <= 999999999999', name='ck_inventory_balance_quantity'),
+    )
+    organization_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    resource_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    unit: Mapped[str] = mapped_column(String(20), nullable=False)
+    quantity_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+
+class InventoryMovement(Base):
+    __tablename__ = 'inventory_movements'
+    __table_args__ = (
+        UniqueConstraint('organization_id', 'request_id', name='uq_inventory_request'),
+        ForeignKeyConstraint(['organization_id', 'resource_id'], ['operations_records.organization_id', 'operations_records.id']),
+        ForeignKeyConstraint(['organization_id', 'order_id'], ['operations_records.organization_id', 'operations_records.id']),
+        ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
+        CheckConstraint("(kind = 'receipt' AND order_id IS NOT NULL AND delta_milli > 0) OR (kind = 'adjustment' AND order_id IS NULL AND delta_milli != 0)", name='ck_inventory_kind'),
+        CheckConstraint('before_milli >= 0 AND after_milli >= 0 AND after_milli = before_milli + delta_milli AND after_milli <= 999999999999', name='ck_inventory_movement_quantity'),
+        Index('ix_inventory_resource_date', 'organization_id', 'resource_id', 'created_at'),
+        Index('ix_inventory_order_date', 'organization_id', 'order_id', 'created_at'),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    organization_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    request_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    resource_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    order_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    unit: Mapped[str] = mapped_column(String(20), nullable=False)
+    delta_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    before_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    after_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    resource_label: Mapped[str] = mapped_column(String(300), nullable=False)
+    order_label: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    actor_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
 class OperationLink(Base):
     __tablename__ = 'operation_links'
     __table_args__ = (
