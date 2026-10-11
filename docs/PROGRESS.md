@@ -16,8 +16,8 @@
 | 目前工作項目 | **INDUSTRIES ✅ 五公司完整展示資料已部署** |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
 | 下一個動作 | 重新整理15173→切公司→操作新MY／FY／GD／YS／ZH專案與營運資料；人類試用，F1／F2另定。 |
-| 分支 | `feature/industry-showcases`；驗證完成待ff-only合併。 |
-| 最新程式 commit | `0d933e2`（HEMU資料匯入、入口與測試）。 |
+| 分支 | `main`；INDUSTRIES已ff-only合併。 |
+| 最新程式 commit | `0bc5cc4`（五公司資料、匯入、入口與測試）。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | INDUSTRIES＋HEMU API7pass，日期／資料定向2pass；前端15pass、build0；PG整批rollback／保值／冪等pass。舊UI5 E2E1280/375兩項pass；五公司×兩尺寸10路徑pass、零業務寫入／pageerror、無溢位；獨立審查修正後Ready。 |
 | 資料版本 | migration仍20261010_0011，未seed／migration。五公司追加50帳號、30部門、20專案、210節點（130任務）、70相依、80回報、200筆記、130通知；原六公司全部舊列、附件SHA、env與DB容器一致。 |
