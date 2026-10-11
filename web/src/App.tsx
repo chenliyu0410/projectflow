@@ -1,4 +1,5 @@
 import PreviewBoundary from './components/PreviewBoundary';
+import DocumentManager from './components/DocumentManager';
 import TemplateDialogs from './components/TemplateDialogs';
 import WorkflowLibrary from './components/WorkflowLibrary';
 import TimelineView from './components/TimelineView';
@@ -60,6 +61,8 @@ export default function App() {
   const defaultTab = (nodes: ProjectDetail['nodes'], nodeId: string | null): NodeTab => isLeafTask(nodes, nodes.find(node => node.id === nodeId)) ? 'records' : 'board';
   const sequence = useRef(0);
   const creationForm = useRef<HTMLFormElement>(null);
+  const documentLeaveGuard = useRef<(() => boolean) | null>(null);
+  const canLeaveDocument = () => documentLeaveGuard.current?.() ?? true;
   const controller = useRef<AbortController | null>(null);
 
   function begin() {
@@ -120,12 +123,14 @@ export default function App() {
   }
   function navigate(next: WorkspaceRoute) {
     if (busy) return;
+    if (!canLeaveDocument()) return;
     if (next.page === 'project' && next.projectId) { void selectProject(next.projectId, next.nodeId); return; }
     begin(); closeCreation(); setProject(null); setMessage(''); setRoute(next); setState('ready');
   }
   /** Timeline and graph drill-down keep their tab like the Demo; a leaf task still opens on its records. */
   function selectNode(nodeId: string | null, preferTab?: NodeTab) {
     if (busy) return;
+    if (!canLeaveDocument()) return;
     const nodes = project?.nodes ?? [];
     begin(); closeCreation(); setMessage(''); setReportIntent(null);
     setProjectView(preferTab && !isLeafTask(nodes, nodes.find(node => node.id === nodeId)) ? preferTab : defaultTab(nodes, nodeId));
@@ -169,6 +174,7 @@ export default function App() {
   }
   async function switchCompany(target = switchTarget) {
     if (!target || busy || !session?.showcase) return;
+    if (!canLeaveDocument()) { setSwitchTarget(''); return; }
     const request = begin();
     closeCreation(); setSwitchTarget(''); setBusy(true); setState('loading'); setMessage('');
     setProject(null); setProjects([]); setWorkflows(null); setRecordVersion(0); setRoute({page:'overview'});
@@ -187,6 +193,7 @@ export default function App() {
   }
   async function logout() {
     if (busy) return;
+    if (!canLeaveDocument()) return;
     const request = begin();
     closeCreation();
     setBusy(true); setMessage('');
@@ -233,6 +240,7 @@ export default function App() {
   /** TP-B structure changes: move (drag, 升級, 降級, 移動到…), copy and delete; each can be undone once. */
   async function structure(kind: 'move' | 'copy' | 'delete', id: string, parentId: string | null = null) {
     if (!project || !session || busy || mutationId.current !== null || session.user.role === 'readonly') return;
+    if (!canLeaveDocument()) return;
     const projectId = project.id;
     const title = project.nodes.find(node => node.id === id)?.title ?? '';
     const target = parentId ? project.nodes.find(node => node.id === parentId) : undefined;
@@ -282,6 +290,7 @@ export default function App() {
   const moveNode = (id: string, parentId: string | null) => structure('move', id, parentId);
   async function undoLast() {
     if (!session || busy || mutationId.current !== null || session.user.role === 'readonly') return;
+    if (!canLeaveDocument()) return;
     if (!lastUndo) { setNotice(null); setMessage('沒有可以復原的操作'); return; }
     const step = lastUndo; const projectId = project?.id;
     const request = begin();
@@ -352,6 +361,7 @@ export default function App() {
   }, [creationOpen]);
   async function openCreation(presetWorkflow = '') {
     if (!canCreate || busy || mutating || state !== 'ready') return;
+    if (!canLeaveDocument()) return;
     setCreationMode('workflow'); setEditor(null); setCreationOpen(true); setMessage('');
     if (presetWorkflow) setWorkflowId(presetWorkflow);
     if (workflows !== null) return;
@@ -405,6 +415,7 @@ export default function App() {
   const canEditNode = session?.user.role !== 'readonly' && selectedNode?.kind !== 'project' && selectedNode?.capabilities?.edit_metadata;
   function openNodeEditor(mode: 'create' | 'edit') {
     if (busy || mutating || creationOpen) return;
+    if (!canLeaveDocument()) return;
     begin(); setEditorGeneration(value => value + 1); setEditor(mode);
   }
   function expireSession() { begin(); clearSession(); setBusy(false); setMessage('登入已失效，請重新登入'); }
@@ -484,8 +495,8 @@ export default function App() {
             readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)}
             move={(id, parentId) => void moveNode(id, parentId)} openReport={openReport} reportIntent={reportIntent} notify={setMessage}
             color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))}
-            preview={(projectView === 'documents' || projectView === 'data') && <PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage={projectView} companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} />}
-            tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { begin(); closeCreation(); setProjectView(view); }}
+            preview={projectView === 'documents' ? <DocumentManager key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} /> : projectView === 'data' && <PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage="data" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} />}
+            tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { if (!canLeaveDocument()) return; begin(); closeCreation(); setProjectView(view); }}
             actions={<>
               {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
               {canAddNode && ['admin','project_owner'].includes(session.user.role) && <>

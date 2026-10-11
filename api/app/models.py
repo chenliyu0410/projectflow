@@ -10,6 +10,41 @@ from app.database import Base
 JsonType = JSON().with_variant(JSONB(), "postgresql")
 
 
+class Document(Base):
+    __tablename__ = 'documents'
+    __table_args__ = (
+        UniqueConstraint('organization_id', 'id'),
+        ForeignKeyConstraint(['organization_id', 'node_id'], ['nodes.organization_id', 'nodes.id']),
+        ForeignKeyConstraint(['organization_id', 'project_id'], ['projects.organization_id', 'projects.id']),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    node_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    project_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    current_version: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class DocumentVersion(Base):
+    __tablename__ = 'document_versions'
+    __table_args__ = (
+        ForeignKeyConstraint(['organization_id', 'document_id'], ['documents.organization_id', 'documents.id']),
+        ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
+        UniqueConstraint('document_id', 'version'),
+        CheckConstraint('version > 0 AND size_bytes > 0', name='ck_document_version'),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    document_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    filename: Mapped[str] = mapped_column(String(200), nullable=False)
+    storage_key: Mapped[str] = mapped_column(String(32), nullable=False, unique=True)
+    size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    comment: Mapped[str] = mapped_column(String(500), nullable=False)
+
+
 def uuid_text() -> str:
     return str(uuid.uuid4())
 

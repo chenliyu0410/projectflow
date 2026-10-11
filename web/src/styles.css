@@ -769,3 +769,13 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .copilot > .copilot-actions { flex-shrink:0; }
 .preview-suggestions { font-size:13px; overflow-wrap:anywhere; }
 @media(max-width:600px) { .preview-grid { grid-template-columns:minmax(0,1fr); } .preview-detail { padding:12px; } }
+/* Persistent documents: wrap long filenames and text without widening the workspace. */
+.document-manager { min-width: 0; }
+.document-list { display: grid; gap: 8px; margin: 16px 0; }
+.document-list button { text-align: left; display: grid; gap: 6px; overflow-wrap: anywhere; min-width: 0; }
+.document-list span { font-size: 12px; }
+.document-detail { border-top: 1px solid #ddd; padding-top: 16px; overflow-wrap: anywhere; }
+.document-detail label { display: grid; gap: 6px; margin: 12px 0; }
+.document-manager input, .document-manager select, .document-manager textarea { max-width: 100%; min-width: 0; box-sizing: border-box; }
+.document-text { white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; background: #f5f7f7; max-height: 480px; overflow: auto; }
+.document-detail textarea { width: 100%; }

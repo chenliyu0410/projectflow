@@ -23,8 +23,9 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   const writes: string[] = [];
   page.on('request', r => { if (!['GET', 'HEAD'].includes(r.method())) writes.push(`${r.method()} ${new URL(r.url()).pathname}`); });
   const initialStorage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }));
-  await page.getByRole('tab', { name: '文件', exact: true }).click();
+  await page.getByRole('tab', { name: '資料', exact: true }).click();
   await page.getByRole('button', { name: '查看原食品試產示例' }).click();
+  await page.getByRole('button', { name: '文件示例' }).click();
   await page.getByRole('button', { name: /試產規格書/ }).click();
   await page.getByLabel('示例版本').selectOption('0');
   await expect(page.getByText(/規劃試產 200 罐/)).toBeVisible();
@@ -59,8 +60,9 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   expect(writes).toEqual(['POST /api/ai/ask']);
   expect(await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))).toEqual(initialStorage);
   await page.getByRole('button', { name: '離開預覽，返回工作區' }).click();
-  await page.getByRole('tab', { name: '文件', exact: true }).click();
+  await page.getByRole('tab', { name: '資料', exact: true }).click();
   await page.getByRole('button', { name: '查看原食品試產示例' }).click();
+  await page.getByRole('button', { name: '文件示例' }).click();
   await page.getByRole('button', { name: /試產規格書/ }).click();
   await expect(page.getByText('UI5 暫存文字，不得保存')).toHaveCount(0);
   expect(await ai.locator('.copilot-message').count()).toBe(0);

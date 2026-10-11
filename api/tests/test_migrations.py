@@ -3,6 +3,28 @@ from pathlib import Path
 from app.database import sqlalchemy_url
 
 
+def test_documents_migration_preserves_existing_data(tmp_path, monkeypatch):
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text, inspect
+    url = f'sqlite:///{tmp_path / "documents-migration.db"}'
+    monkeypatch.setenv('DATABASE_URL', url)
+    config = Config('api/alembic.ini')
+    command.upgrade(config, '20261010_0011')
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(text("INSERT INTO organizations (id,key,name) VALUES ('keep','keep','Keep data')"))
+    command.upgrade(config, 'head')
+    with engine.connect() as conn:
+        assert conn.execute(text('SELECT id,key,name FROM organizations')).all() == [('keep', 'keep', 'Keep data')]
+        assert conn.scalar(text('SELECT count(*) FROM documents')) == 0
+    assert {'documents', 'document_versions'} <= set(inspect(engine).get_table_names())
+    command.downgrade(config, '20261010_0011')
+    with engine.connect() as conn:
+        assert conn.scalar(text('SELECT count(*) FROM organizations')) == 1
+    engine.dispose()
+
+
 def test_sqlalchemy_uses_psycopg_driver_for_postgresql():
     assert sqlalchemy_url("postgresql://user:pass@db:5432/projectflow") == "postgresql+psycopg://user:pass@db:5432/projectflow"
     assert sqlalchemy_url("sqlite:///tmp.db") == "sqlite:///tmp.db"
