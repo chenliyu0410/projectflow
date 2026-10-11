@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **INDUSTRIES ✅ 五公司完整展示資料已部署** |
+| 目前工作項目 | **AI-RAG ✅ 展示資料已匯入，RAG檢索／受控Text-to-SQL已部署** |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 重新整理15173→切公司→操作新MY／FY／GD／YS／ZH專案與營運資料；人類試用，F1／F2另定。 |
-| 分支 | `main`；INDUSTRIES已ff-only合併。 |
-| 最新程式 commit | `0bc5cc4`（五公司資料、匯入、入口與測試）。 |
+| 下一個動作 | 重新整理15173→右側AI副手→選AI展示專案→文件檢索／SQL分析。另一台Ollama尚未設定，完成後填位址與模型名稱測試；不假稱已驗收真模型。 |
+| 分支 | `main`；AI-RAG依D50 ff-only合併發布。 |
+| 最新程式 commit | `830794e`（AI資料匯入、檢索、受控SQL、模型設定與驗證）。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | INDUSTRIES＋HEMU API7pass，日期／資料定向2pass；前端15pass、build0；PG整批rollback／保值／冪等pass。舊UI5 E2E1280/375兩項pass；五公司×兩尺寸10路徑pass、零業務寫入／pageerror、無溢位；獨立審查修正後Ready。 |
-| 資料版本 | migration仍20261010_0011，未seed／migration。五公司追加50帳號、30部門、20專案、210節點（130任務）、70相依、80回報、200筆記、130通知；原六公司全部舊列、附件SHA、env與DB容器一致。 |
+| 測試基準 | AI API10pass、health13pass；完整API521pass／14skip，唯一舊路由契約失敗已修正並包含於health13pass。前端264pass後舊副手預期修正，定向33pass；build0。AI／UI5／回報審核1280/375全部通過；96SQL對答案、432/432題有來源RAG recall@6；唯讀獨立審查Ready。 |
+| 資料版本 | migration仍20261010_0011，正式DB無seed／migration。新增AI volume dataset-v1：6公司144案3456任務4644文件，資料基準2026-10-11；原3120列、附件SHA、env保留。AI專案不混入正式任務樹。 |
 | 認領中 | 無。 |
-| 阻塞／待人類 | INDUSTRIES工程無阻塞；人類展示／試用未代簽，D43/D10及LAN限制維持。 |
+| 阻塞／待人類 | AI-RAG工程無阻塞；人類說模型尚未設定，未做真Ollama推論驗收。既有LAN限制與人類試用簽核維持。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
 
 ---
@@ -66,6 +66,10 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- AI-RAG ✅：人類要求匯入AI-DATA並開始RAG／Text-to-SQL，依[短計畫](superpowers/plans/2026-10-11-ai-rag-text2sql.md)完成獨立AI資料區、文字檢索RAG、16種受控SQL與Ollama設定，已部署15173；模型尚未設定，免模型檢索／查詢可用。見[操作說明](ai-assistant.md)。
+
+- AI-DATA ✅（2026-10-11）：依人類要求完成workspace的`ai-demo-data`獨立虛構資料包；6公司、144專案、3456任務、10368筆記、1728採購、1728成本、864抽查、432風險；4644份RAG文件／4788分段／450題RAG／96題SQL附實際結果。提供ZIP、離線總覽、SQLite、隔離PostgreSQL匯入腳本、生成器、驗證器。`python -X utf8 ai-demo-data/verify.py` exit 0：96查詢重播、30獨立彙總、4644文件與ACL、4665檔SHA256通過。PostgreSQL腳本尚未實際匯入驗證；未修改產品程式、未匯入正式DB、未連接模型。資料包為模板式合成擴充，不等同正式DB ID。
 
 - INDUSTRIES ✅：人類2026-10-11指示其餘公司比照禾沐，生成完整展示資料並放入系統，原資料保留。見[短計畫](superpowers/plans/2026-10-11-industry-showcases.md)。
 
@@ -1279,3 +1283,15 @@ TP-F啟動補記：人類回覆「照建議做」，D78與短計畫核准，開�
 - 隔離驗收環境跑更新入口後的UI5 E2E：1280／375兩項pass；結束停止acceptance容器並保留volume。正式15173五公司×1280/375共10路徑，驗新專案、文件編輯清除、單據操作／關聯、重載清除與公司資料獨立；全數pass、零業務寫入、零pageerror、無水平溢位。截圖抽查，另確認選中分頁色彩轉場完成後對比正常。
 - 正式環境只更新web；api／DB容器不重建，無seed／migration。匯入後及唯讀走查後核對原六公司19專案290節點65回報等全部表舊列完全保留；附件hash、env、DB容器ID一致。備份dump／附件tar／列快照／截圖放在忽略目錄`.superpowers/industries/`。瀏覽驗證專用臨時sessions已刪除，不刪改舊session。
 - 操作：15173重新整理→左下選公司→新【虛構展示】MY/FY/GD/YS/ZH專案；營運資料看公司與人員、單據／文件／關聯流程。D50合併發布，未代簽人類試用，F1／F2未開工。
+
+### 2026-10-11｜Codex｜AI-RAG資料匯入與助手交付
+
+- 人類要求將先前AI-DATA匯入並開始RAG/Text-to-SQL，另回覆模型主機尚未設定。依D65短計畫完成，不擴張為正式ERP／文件CRUD或公開LAN服務。
+- 獨立AI volume每公司一個SQLite，匯入6公司、144案、3456任務、10368筆記、1728採購、1728成本、864抽查、432風險、4644文件；來源hash、外鍵、暫存原子發布、重跑冪等驗證。正式PostgreSQL未seed／migration，原3120筆列值、附件及.env SHA256保留，重建API後AI資料仍存在。
+- 助手新增模式、AI專案範圍、FTS5/BM25中文檢索、現行版本／角色過濾、原文引用、16種SQL分析／表格／SQL參數、本機管理者Ollama設定／測試。檢索是文字式RAG，尚無向量embedding／OCR／正式附件索引。沒有模型時不生成答案；模型格式或引用錯誤回退原文，無雲端fallback。
+- SQL固定白名單＋参数化＋唯讀＋authorizer，公司物理分庫。審查發現關鍵字辨識會忽略日期／已結案條件，改完整標籤／有限別名；模型只提出模板建議，確認範圍後才查。一次唯讀獨立審查及定向複核Ready（2pass），沒有未解阻擋。
+- AI API定向10pass，含原子匯入、資料隔離、角色、模型HTTP契約、錯誤引用與條件反轉拒答。完整API第一次從api cwd執行，歷史migration相對路徑失敗後中止；改repo根目錄跑完：521pass、14skip、1fail（新增AI路由尚未加入舊白名單）。白名單更新後health13pass；沒有把skipped的專用PostgreSQL migration/race測試標成通過，本次無PG schema變更。
+- 前端第一次全量因舊fetch mocks未覆蓋新增AI狀態請求失敗，增加隔離mock後全量264pass、1fail（舊副手不可用預期）。修正並增加模型建議確認測試後，AI／workspace／UI5定向33pass；其餘已通過項目不機械重跑。build exit0，既有bundle>500kB提示保留。
+- 隔離E2E初輪5pass、1fail：手機切公司後測試誤開選單，遮擋AI按鈕；修正腳本後AI1280/375兩項pass。原回報退回／重送／核准兩尺寸、UI5文件／營運兩尺寸已通過。手機關閉按鈕寬度修正並重驗，無水平溢位、pageerror。驗收容器已停止，保留volume。
+- 真資料包全部96 SQL與預期結果相同；指定公司／專案的432題有來源問題，預期文件均在前6筆。這是模板合成資料上的檢索驗證，不是生成答案準確率。正式15173六公司RAG＋3種SQL smoke通過，model_enabled均false。另兩台電腦真模型延遲／回答品質待設定後測試，未代簽。
+- 備份dump、列／附件hash、部署／測試log、資料評估與保留證據在忽略目錄`.superpowers/ai-rag/`；原始資料包仍在workspace `ai-demo-data/`。程式830794e，依D50 ff-only合併並發布main。
