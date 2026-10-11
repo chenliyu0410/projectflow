@@ -51,24 +51,12 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   await capture('governance');
   if (width === 375) await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const ai = page.getByLabel('AI 專案副手', { exact: true });
-  for (const name of ['本週進度報告', '延遲風險分析', '拆解下一階段', '會議紀錄抽待辦', '配方成本比較', '推薦模板與部門']) {
-    await ai.getByRole('button', { name, exact: true }).click();
-    if (name === '會議紀錄抽待辦') {
-      await ai.getByLabel('會議紀錄（僅預覽）').fill('請採購確認到貨。請品保安排送驗。');
-      await ai.getByRole('button', { name: '預覽待辦' }).click();
-    }
-    await expect(ai.locator('.copilot-message').last()).toContainText(name);
-  }
-  await ai.getByRole('button', { name: '確認套用至預覽' }).last().click();
-  await expect(ai.getByLabel('已套用預覽清單')).toContainText('品保：留樣送驗');
-  await ai.getByLabel('詢問 AI').fill('請拆解下一階段');
-  await ai.getByRole('button', { name: '送出預覽問題' }).click();
-  await ai.locator('.copilot-message').last().getByText('結果詳情／引用與送出內容').click();
-  await expect(ai.locator('.copilot-message').last()).toContainText('試產規格書 v2');
-  await ai.locator('.copilot-message').last().getByRole('button', { name: '確認套用至預覽' }).click();
+  await ai.getByLabel('AI展示專案').selectOption('MY-AI-001');
+  await ai.getByRole('button', { name: '現行交付需要幾張截圖？' }).click();
+  await expect(ai.locator('.copilot-message').last()).toContainText('找到');
   await capture('copilot');
   if (width === 375) await ai.getByRole('button', { name: '關閉 AI 副手' }).click();
-  expect(writes).toEqual([]);
+  expect(writes).toEqual(['POST /api/ai/ask']);
   expect(await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))).toEqual(initialStorage);
   await page.getByRole('button', { name: '離開預覽，返回工作區' }).click();
   await page.getByRole('tab', { name: '文件', exact: true }).click();

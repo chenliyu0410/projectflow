@@ -321,19 +321,19 @@ describe('UI3 Demo home pages', () => {
     expect(openNode).toHaveBeenCalledWith('p', '配方設計');
   });
 
-  it('shows the copilot as a labelled preview with no active actions', async () => {
+  it('shows the copilot data availability and preserves drawer keyboard access', async () => {
     vi.stubGlobal('fetch', vi.fn(async (path: string) => response(path === '/api/auth/me' ? identity : path === '/api/projects' ? { items: [] }
       : { project_count: 0, task_counts: { todo: 0, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: null, projects: [] })));
     render(<App />);
     const copilot = within(await screen.findByRole('complementary', { name: 'AI 專案副手' }));
-    expect(copilot.getByText('展示預覽')).toBeInTheDocument();
-    expect(copilot.getByText(/範圍：所有可見專案/)).toBeInTheDocument();
+    expect(copilot.getByText('模型未啟用・檢索與資料查詢可用')).toBeInTheDocument();
+    expect(copilot.getByText(/目前位置：所有可見專案/)).toBeInTheDocument();
     for (const button of copilot.getAllByRole('button').filter(item => item.getAttribute('aria-label') !== '關閉 AI 副手')) expect(button).toBeDisabled();
-    expect(copilot.getByPlaceholderText('AI 副手尚未提供')).toBeDisabled();
+    expect(copilot.getByLabelText('詢問 AI')).toBeEnabled();
     const toggle = screen.getByRole('button', { name: '切換 AI 副手' });
     fireEvent.click(toggle); expect(toggle).toHaveAttribute('aria-expanded', 'true');
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(within(screen.getByRole('navigation', { name: '工作區導覽' })).getByRole('button', { name: /營運資料/ })).toBeDisabled();
+    expect(within(screen.getByRole('navigation', { name: '工作區導覽' })).getByRole('button', { name: /營運資料/ })).toBeEnabled();
   });
 });

@@ -23,8 +23,10 @@ services:
       PF_ACCEPTANCE_MODE: ${PF_ACCEPTANCE_MODE:-false}
       PF_ATTACHMENT_ROOT: ${PF_ATTACHMENT_ROOT:-/var/lib/projectflow-files}
       PF_ATTACHMENT_QUOTA_BYTES: ${PF_ATTACHMENT_QUOTA_BYTES:-1000000000}
+      PF_AI_ROOT: /var/lib/projectflow-ai
     volumes:
       - files:/var/lib/projectflow-files
+      - ai_data:/var/lib/projectflow-ai
     ports:
       - '127.0.0.1:${API_PORT:-18000}:8000'
     depends_on:
@@ -47,3 +49,4 @@ services:
 volumes:
   pgdata:
   files:
+  ai_data:

@@ -1,0 +1,82 @@
+[
+  {
+    "query_id": "q01",
+    "label": "任務狀態分布",
+    "sql": "SELECT status, COUNT(*) AS count FROM tasks WHERE company_id=:company_id GROUP BY status ORDER BY status"
+  },
+  {
+    "query_id": "q02",
+    "label": "各部門逾期未完成數",
+    "sql": "SELECT p.department, COUNT(*) AS overdue_count FROM tasks t JOIN people p ON p.company_id=t.company_id AND p.person_id=t.owner_id WHERE t.company_id=:company_id AND t.due_date<:as_of AND t.status<>'done' GROUP BY p.department ORDER BY overdue_count DESC,p.department"
+  },
+  {
+    "query_id": "q03",
+    "label": "各專案完成率",
+    "sql": "SELECT project_id, COUNT(*) AS total, SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) AS done_count, ROUND(100.0*SUM(CASE WHEN status='done' THEN 1 ELSE 0 END)/COUNT(*),2) AS completion_pct FROM tasks WHERE company_id=:company_id GROUP BY project_id ORDER BY project_id"
+  },
+  {
+    "query_id": "q04",
+    "label": "超支專案及超支金額",
+    "sql": "SELECT p.project_id,p.budget_twd,SUM(e.amount_twd) AS actual_twd,SUM(e.amount_twd)-p.budget_twd AS overrun_twd FROM projects p JOIN expenses e ON e.company_id=p.company_id AND e.project_id=p.project_id WHERE p.company_id=:company_id GROUP BY p.project_id,p.budget_twd HAVING SUM(e.amount_twd)>p.budget_twd ORDER BY overrun_twd DESC,p.project_id"
+  },
+  {
+    "query_id": "q05",
+    "label": "供應商未交逾期訂單數與金額",
+    "sql": "SELECT supplier_id,COUNT(*) AS overdue_count,SUM(amount_twd) AS amount_twd FROM purchase_orders WHERE company_id=:company_id AND status='pending' AND promised_date<:as_of GROUP BY supplier_id ORDER BY overdue_count DESC,supplier_id"
+  },
+  {
+    "query_id": "q06",
+    "label": "供應商已收貨延遲率",
+    "sql": "SELECT supplier_id,COUNT(*) AS received_count,SUM(CASE WHEN received_date>promised_date THEN 1 ELSE 0 END) AS late_count,ROUND(100.0*SUM(CASE WHEN received_date>promised_date THEN 1 ELSE 0 END)/COUNT(*),2) AS late_pct FROM purchase_orders WHERE company_id=:company_id AND status='received' GROUP BY supplier_id ORDER BY supplier_id"
+  },
+  {
+    "query_id": "q07",
+    "label": "各專案加權不良率",
+    "sql": "SELECT project_id,SUM(sample_count) AS samples,SUM(defect_count) AS defects,ROUND(100.0*SUM(defect_count)/SUM(sample_count),2) AS defect_pct FROM quality_checks WHERE company_id=:company_id GROUP BY project_id ORDER BY defect_pct DESC,project_id"
+  },
+  {
+    "query_id": "q08",
+    "label": "各月各類已入帳成本",
+    "sql": "SELECT SUBSTR(booked_date,1,7) AS month,category,SUM(amount_twd) AS amount_twd FROM expenses WHERE company_id=:company_id GROUP BY SUBSTR(booked_date,1,7),category ORDER BY month,category"
+  },
+  {
+    "query_id": "q09",
+    "label": "尚未結案的高風險清單",
+    "sql": "SELECT risk_id,project_id,cause,action FROM risks WHERE company_id=:company_id AND severity='high' AND status='open' ORDER BY risk_id"
+  },
+  {
+    "query_id": "q10",
+    "label": "未完成工作最多的前五位負責人",
+    "sql": "SELECT p.person_id,p.name,COUNT(*) AS open_tasks FROM people p JOIN tasks t ON t.company_id=p.company_id AND t.owner_id=p.person_id WHERE t.company_id=:company_id AND t.status<>'done' GROUP BY p.person_id,p.name ORDER BY open_tasks DESC,p.person_id LIMIT 5"
+  },
+  {
+    "query_id": "q11",
+    "label": "已完成任務工時超估清單",
+    "sql": "SELECT task_id,estimated_hours,actual_hours,actual_hours-estimated_hours AS extra_hours FROM tasks WHERE company_id=:company_id AND status='done' AND actual_hours>estimated_hours ORDER BY extra_hours DESC,task_id"
+  },
+  {
+    "query_id": "q12",
+    "label": "各專案未取消的採購承諾金額",
+    "sql": "SELECT project_id,SUM(amount_twd) AS committed_twd FROM purchase_orders WHERE company_id=:company_id AND status<>'cancelled' GROUP BY project_id ORDER BY project_id"
+  },
+  {
+    "query_id": "q13",
+    "label": "本週到期未完成任務",
+    "sql": "SELECT task_id,due_date,status FROM tasks WHERE company_id=:company_id AND due_date BETWEEN '2026-10-05' AND '2026-10-11' AND status<>'done' ORDER BY due_date,task_id"
+  },
+  {
+    "query_id": "q14",
+    "label": "各專案退回與受阻任務數",
+    "sql": "SELECT project_id,SUM(CASE WHEN status='rejected' THEN 1 ELSE 0 END) AS rejected_count,SUM(CASE WHEN status='blocked' THEN 1 ELSE 0 END) AS blocked_count FROM tasks WHERE company_id=:company_id GROUP BY project_id ORDER BY project_id"
+  },
+  {
+    "query_id": "q15",
+    "label": "尚未收貨但未逾期的訂單",
+    "sql": "SELECT order_id,promised_date,amount_twd FROM purchase_orders WHERE company_id=:company_id AND status='pending' AND promised_date>=:as_of ORDER BY promised_date,order_id"
+  },
+  {
+    "query_id": "q16",
+    "label": "零不良批次數",
+    "sql": "SELECT COUNT(*) AS zero_defect_batches FROM quality_checks WHERE company_id=:company_id AND defect_count=0"
+  }
+]

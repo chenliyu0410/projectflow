@@ -1,0 +1,6 @@
+"""Run inside API container: python -m app.ai.import_cli PACK_DIRECTORY."""
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'api'))
+from app.ai.import_cli import main
+if __name__=='__main__': main()
