@@ -779,3 +779,13 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .document-manager input, .document-manager select, .document-manager textarea { max-width: 100%; min-width: 0; box-sizing: border-box; }
 .document-text { white-space: pre-wrap; overflow-wrap: anywhere; padding: 12px; background: #f5f7f7; max-height: 480px; overflow: auto; }
 .document-detail textarea { width: 100%; }
+.operations-manager { min-width: 0; }
+.operations-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 10px; margin: 16px 0; }
+.operations-list button { display: grid; gap: 8px; text-align: left; overflow-wrap: anywhere; min-width: 0; }
+.operations-list span { font-size: 12px; }
+.operations-editor label { display: grid; gap: 6px; margin: 10px 0; min-width: 0; }
+.operations-editor input, .operations-editor select, .operations-editor textarea { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; }
+.operations-field { padding: 12px; border: 1px solid #deded8; border-radius: 8px; margin: 12px 0; }
+.operations-detail { overflow-wrap: anywhere; }
+.operations-detail dd { white-space: pre-wrap; margin-left: 0; margin-bottom: 12px; }
+.operations-detail dt { font-weight: 600; }

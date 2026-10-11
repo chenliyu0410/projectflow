@@ -1,0 +1,54 @@
+import { test, expect } from '@playwright/test';
+
+for (const width of [1280, 375]) test(`persistent operations ${width}`, async ({ page, request }, info) => {
+  test.setTimeout(60000);
+  expect(await (await request.get('/api/health/acceptance')).json()).toEqual({ acceptance: true });
+  await page.setViewportSize({ width, height: 900 });
+  const errors: string[] = []; page.on('pageerror', e => errors.push(String(e)));
+  await page.goto('/');
+  await page.getByLabel('帳號').fill('yu'); await page.getByLabel('密碼').fill('demo-yu');
+  await page.getByRole('button', { name: '登入', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
+  async function navigate(name: string) {
+    if (width === 375 && !await page.getByLabel('工作區導覽').isVisible()) await page.getByRole('button', { name: '切換導覽' }).click();
+    await page.getByLabel('工作區導覽').getByRole('button', { name, exact: true }).click();
+  }
+  await navigate('營運資料');
+  await page.getByRole('button', { name: '新增供應商 / 檢測' }).click();
+  const code = `OPS-${width}-${Date.now()}`;
+  await page.getByLabel('代碼', { exact: true }).fill(code);
+  await page.getByLabel('名稱', { exact: true }).fill('營運保存驗收');
+  await page.getByLabel('欄位內容 1', { exact: true }).fill('第一次保存');
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.getByLabel('營運分類').getByRole('button', { name: '採購', exact: true }).click();
+  await expect(page.getByLabel('名稱', { exact: true })).toHaveValue('營運保存驗收');
+  await page.getByRole('button', { name: '儲存營運資料' }).click();
+  await expect(page.getByLabel('營運資料詳情')).toContainText('第一次保存');
+  await page.reload(); await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
+  await navigate('營運資料');
+  await page.getByLabel('搜尋代碼或名稱').fill(code); await page.getByRole('button', { name: '搜尋', exact: true }).click();
+  await page.getByRole('button', { name: new RegExp(code) }).click();
+  await page.getByRole('button', { name: '編輯營運資料' }).click();
+  await page.getByLabel('狀態', { exact: true }).fill('已確認');
+  await page.getByLabel('欄位內容 1', { exact: true }).fill('第二次保存');
+  page.once('dialog', dialog => dialog.dismiss());
+  await navigate('所有專案總覽');
+  await expect(page.getByLabel('欄位內容 1', { exact: true })).toHaveValue('第二次保存');
+  await page.getByRole('button', { name: '儲存營運資料' }).click();
+  await expect(page.getByLabel('營運資料詳情')).toContainText('第二次保存');
+  const listed = await (await page.request.get(`/api/operations?q=${code}`)).json();
+  const row = listed.items[0];
+  expect(row.revision).toBe(2);
+  const body = Object.fromEntries(['category', 'code', 'title', 'status', 'visibility', 'fields'].map(key => [key, row[key]]));
+  const responses = await Promise.all(['A', 'B'].map(status => page.request.put(`/api/operations/${row.id}`, { data: { ...body, status, expected_revision: 2 } })));
+  expect(responses.map(response => response.status()).sort()).toEqual([200, 409]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await page.locator('.workspace-content').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath(`operations-${width}.png`), fullPage: true });
+  await page.getByRole('button', { name: '編輯營運資料' }).click();
+  if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: '建立新專案', exact: true }).click();
+  await expect(page.getByLabel('正式營運資料', { exact: true })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

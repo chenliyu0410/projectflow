@@ -1,0 +1,2397 @@
+{
+  "food": [
+    {
+      "key": "partners",
+      "label": "供應商 / 檢測",
+      "fields": [
+        "供應",
+        "交期",
+        "付款",
+        "服務",
+        "最低試產量",
+        "報告",
+        "結帳"
+      ],
+      "records": [
+        {
+          "code": "MY-S01",
+          "title": "森禾禽肉原料",
+          "status": "合格供應商",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "冷凍雞胸肉"
+            },
+            {
+              "label": "交期",
+              "value": "10天"
+            },
+            {
+              "label": "付款",
+              "value": "月結30天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "MY-S02",
+          "title": "澤昕食品加工",
+          "status": "試產排程待確認",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "委外凍乾與分裝"
+            },
+            {
+              "label": "最低試產量",
+              "value": "投料120kg"
+            },
+            {
+              "label": "交期",
+              "value": "確認後21天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "MY-S03",
+          "title": "宜封包裝材料",
+          "status": "打樣待確認",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "高阻隔夾鏈袋"
+            },
+            {
+              "label": "交期",
+              "value": "21天"
+            },
+            {
+              "label": "付款",
+              "value": "月結30天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "MY-S04",
+          "title": "禾析檢測服務",
+          "status": "合作實驗室",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "水分、微生物等送驗"
+            },
+            {
+              "label": "報告",
+              "value": "收樣後10工作天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "MY-S05",
+          "title": "匯寵通路服務",
+          "status": "新通路洽談",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "寵物門市配銷"
+            },
+            {
+              "label": "結帳",
+              "value": "月結45天"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "resources",
+      "label": "原料 / 包材",
+      "fields": [
+        "單位",
+        "單價",
+        "庫存",
+        "供應商",
+        "規格",
+        "位置",
+        "用途",
+        "實際樣品"
+      ],
+      "records": [
+        {
+          "code": "MY-R01",
+          "title": "冷凍雞胸肉",
+          "status": "展示庫存",
+          "fields": [
+            {
+              "label": "單位",
+              "value": "kg"
+            },
+            {
+              "label": "單價",
+              "value": "NT$116"
+            },
+            {
+              "label": "庫存",
+              "value": "280"
+            },
+            {
+              "label": "供應商",
+              "value": "MY-S01"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "MY-R02",
+          "title": "30g高阻隔袋",
+          "status": "打樣中",
+          "fields": [
+            {
+              "label": "單位",
+              "value": "個"
+            },
+            {
+              "label": "單價",
+              "value": "NT$3.20"
+            },
+            {
+              "label": "庫存",
+              "value": "0"
+            },
+            {
+              "label": "供應商",
+              "value": "MY-S03"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "MY-R03",
+          "title": "24包外箱",
+          "status": "可用示例",
+          "fields": [
+            {
+              "label": "單位",
+              "value": "個"
+            },
+            {
+              "label": "單價",
+              "value": "NT$22"
+            },
+            {
+              "label": "庫存",
+              "value": "180"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "MY-R04",
+          "title": "120g粉包外袋",
+          "status": "新版待確認",
+          "fields": [
+            {
+              "label": "單位",
+              "value": "個"
+            },
+            {
+              "label": "規格",
+              "value": "尺寸與標示待審"
+            },
+            {
+              "label": "庫存",
+              "value": "0"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "MY-R05",
+          "title": "試產留樣位置",
+          "status": "預留",
+          "fields": [
+            {
+              "label": "位置",
+              "value": "RD-FD-02"
+            },
+            {
+              "label": "用途",
+              "value": "凍乾新品留樣"
+            },
+            {
+              "label": "實際樣品",
+              "value": "未入庫"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "orders",
+      "label": "採購",
+      "fields": [
+        "數量",
+        "單價",
+        "未稅金額",
+        "預計到貨",
+        "樣品",
+        "未稅估價",
+        "送樣"
+      ],
+      "records": [
+        {
+          "code": "MY-PO01",
+          "title": "雞肉試產原料採購",
+          "status": "供應商已確認",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "120kg"
+            },
+            {
+              "label": "單價",
+              "value": "NT$116"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$13,920"
+            },
+            {
+              "label": "預計到貨",
+              "value": "2026-10-16"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "MY-PO02",
+          "title": "30g高阻隔袋採購",
+          "status": "打樣待確認",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "2,000個"
+            },
+            {
+              "label": "單價",
+              "value": "NT$3.20"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$6,400"
+            },
+            {
+              "label": "預計到貨",
+              "value": "2026-10-20"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "MY-PO03",
+          "title": "首輪檢驗委託",
+          "status": "待送樣",
+          "fields": [
+            {
+              "label": "樣品",
+              "value": "凍乾成品"
+            },
+            {
+              "label": "未稅估價",
+              "value": "NT$12,800"
+            },
+            {
+              "label": "送樣",
+              "value": "試產完成後"
+            }
+          ],
+          "visibility": "restricted"
+        }
+      ]
+    },
+    {
+      "key": "work",
+      "label": "試產 / 檢驗",
+      "fields": [
+        "暫排",
+        "投料",
+        "目標成品",
+        "說明",
+        "預計收樣",
+        "結果"
+      ],
+      "records": [
+        {
+          "code": "MY-W01",
+          "title": "凍乾新品工程試產",
+          "status": "未放行",
+          "fields": [
+            {
+              "label": "暫排",
+              "value": "2026-10-23"
+            },
+            {
+              "label": "投料",
+              "value": "120kg"
+            },
+            {
+              "label": "目標成品",
+              "value": "45kg＝1,500包×30g"
+            },
+            {
+              "label": "說明",
+              "value": "目標收率37.5%，實際失重與耗損待試產量測"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "MY-W02",
+          "title": "凍乾成品檢驗",
+          "status": "待試產樣品",
+          "fields": [
+            {
+              "label": "預計收樣",
+              "value": "2026-10-26"
+            },
+            {
+              "label": "結果",
+              "value": "尚未出具；不能當作合格證明"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "formulas",
+      "label": "配方 / 組成",
+      "fields": [
+        "版本",
+        "組成內容",
+        "用途",
+        "備註"
+      ],
+      "records": []
+    },
+    {
+      "key": "batches",
+      "label": "批號紀錄",
+      "fields": [
+        "批號",
+        "來源單據",
+        "原料批號",
+        "成品批號",
+        "備註"
+      ],
+      "records": []
+    }
+  ],
+  "electronics": [
+    {
+      "key": "partners",
+      "label": "供應商 / 代工",
+      "fields": [
+        "供應",
+        "交期",
+        "付款",
+        "服務",
+        "報告",
+        "需求",
+        "交付"
+      ],
+      "records": [
+        {
+          "code": "FY-S01",
+          "title": "承曜精密加工",
+          "status": "合格",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "銅合金端子"
+            },
+            {
+              "label": "交期",
+              "value": "14天"
+            },
+            {
+              "label": "付款",
+              "value": "月結45天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "FY-S02",
+          "title": "聚楷高分子材料",
+          "status": "樣品待驗",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "矽膠密封圈"
+            },
+            {
+              "label": "交期",
+              "value": "21天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "FY-S03",
+          "title": "銓立模具工業",
+          "status": "合作廠商",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "模具與塑膠射出"
+            },
+            {
+              "label": "交期",
+              "value": "依圖面確認"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "FY-S04",
+          "title": "恆測驗證服務",
+          "status": "排程待確認",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "防護等級與環境試驗"
+            },
+            {
+              "label": "報告",
+              "value": "依實際測項"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "FY-S05",
+          "title": "景衡自動化設備",
+          "status": "樣品客戶",
+          "fields": [
+            {
+              "label": "需求",
+              "value": "C24工程樣機"
+            },
+            {
+              "label": "交付",
+              "value": "驗證完成後交付"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "resources",
+      "label": "料件 / 設備",
+      "fields": [
+        "庫存",
+        "單價",
+        "供應商",
+        "版本",
+        "規格",
+        "設備編號",
+        "用途",
+        "校驗"
+      ],
+      "records": [
+        {
+          "code": "FY-R01",
+          "title": "C24銅合金端子",
+          "status": "展示庫存",
+          "fields": [
+            {
+              "label": "庫存",
+              "value": "1,800個"
+            },
+            {
+              "label": "單價",
+              "value": "NT$18"
+            },
+            {
+              "label": "供應商",
+              "value": "FY-S01"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "FY-R02",
+          "title": "C24矽膠密封圈",
+          "status": "待進料",
+          "fields": [
+            {
+              "label": "庫存",
+              "value": "0"
+            },
+            {
+              "label": "單價",
+              "value": "NT$6.50"
+            },
+            {
+              "label": "供應商",
+              "value": "FY-S02"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "FY-R03",
+          "title": "C24射出外殼",
+          "status": "試模件",
+          "fields": [
+            {
+              "label": "庫存",
+              "value": "220個"
+            },
+            {
+              "label": "版本",
+              "value": "REV.B"
+            },
+            {
+              "label": "供應商",
+              "value": "FY-S03"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "FY-R04",
+          "title": "H08探針組",
+          "status": "待補料",
+          "fields": [
+            {
+              "label": "規格",
+              "value": "測試治具用"
+            },
+            {
+              "label": "庫存",
+              "value": "12組"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "FY-R05",
+          "title": "接觸電阻測試台",
+          "status": "可預約示例",
+          "fields": [
+            {
+              "label": "設備編號",
+              "value": "EQ-QA-07"
+            },
+            {
+              "label": "用途",
+              "value": "工程驗證"
+            },
+            {
+              "label": "校驗",
+              "value": "待依實際校驗紀錄確認"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "orders",
+      "label": "採購",
+      "fields": [
+        "數量",
+        "單價",
+        "未稅金額",
+        "交期",
+        "未稅估價",
+        "樣品版本",
+        "預計送樣"
+      ],
+      "records": [
+        {
+          "code": "FY-PO01",
+          "title": "C24端子採購",
+          "status": "已確認",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "600個"
+            },
+            {
+              "label": "單價",
+              "value": "NT$18"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$10,800"
+            },
+            {
+              "label": "交期",
+              "value": "2026-10-16"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "FY-PO02",
+          "title": "密封圈工程批採購",
+          "status": "交期追蹤中",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "300個"
+            },
+            {
+              "label": "單價",
+              "value": "NT$6.50"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$1,950"
+            },
+            {
+              "label": "交期",
+              "value": "2026-10-19"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "FY-PO03",
+          "title": "可靠度試驗委託",
+          "status": "待送樣",
+          "fields": [
+            {
+              "label": "未稅估價",
+              "value": "NT$48,000"
+            },
+            {
+              "label": "樣品版本",
+              "value": "REV.B"
+            },
+            {
+              "label": "預計送樣",
+              "value": "2026-10-26"
+            }
+          ],
+          "visibility": "restricted"
+        }
+      ]
+    },
+    {
+      "key": "work",
+      "label": "試製 / 品質",
+      "fields": [
+        "工單",
+        "目標",
+        "暫排",
+        "批次",
+        "計畫",
+        "結果"
+      ],
+      "records": [
+        {
+          "code": "FY-W01",
+          "title": "C24工程樣機試製",
+          "status": "待密封圈與圖面確認",
+          "fields": [
+            {
+              "label": "工單",
+              "value": "EVT-C24-1023"
+            },
+            {
+              "label": "目標",
+              "value": "200組"
+            },
+            {
+              "label": "暫排",
+              "value": "2026-10-23"
+            },
+            {
+              "label": "批次",
+              "value": "尚未投產"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "FY-W02",
+          "title": "C24防護與可靠度驗證",
+          "status": "待樣品",
+          "fields": [
+            {
+              "label": "計畫",
+              "value": "IP防護／溫循／接觸電阻"
+            },
+            {
+              "label": "結果",
+              "value": "未出具，不宣稱已通過IP67"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "formulas",
+      "label": "配方 / 組成",
+      "fields": [
+        "版本",
+        "組成內容",
+        "用途",
+        "備註"
+      ],
+      "records": []
+    },
+    {
+      "key": "batches",
+      "label": "批號紀錄",
+      "fields": [
+        "批號",
+        "來源單據",
+        "原料批號",
+        "成品批號",
+        "備註"
+      ],
+      "records": []
+    }
+  ],
+  "events": [
+    {
+      "key": "partners",
+      "label": "客戶 / 合作夥伴",
+      "fields": [
+        "活動",
+        "人數",
+        "預算上限",
+        "服務",
+        "進場",
+        "容量",
+        "交期",
+        "備餐"
+      ],
+      "records": [
+        {
+          "code": "GD-C01",
+          "title": "沐光生活選品",
+          "status": "活動客戶",
+          "fields": [
+            {
+              "label": "活動",
+              "value": "秋季新品發表會"
+            },
+            {
+              "label": "人數",
+              "value": "120人"
+            },
+            {
+              "label": "預算上限",
+              "value": "NT$680,000未稅"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "GD-S01",
+          "title": "映程影音工程",
+          "status": "報價確認",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "音響、燈光、直播"
+            },
+            {
+              "label": "進場",
+              "value": "2026-10-29"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "GD-S02",
+          "title": "序場空間營運",
+          "status": "檔期暫留",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "多功能展演場地"
+            },
+            {
+              "label": "容量",
+              "value": "150人展示設定"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "GD-S03",
+          "title": "墨序設計輸出",
+          "status": "色樣待確認",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "背板、指引與輸出"
+            },
+            {
+              "label": "交期",
+              "value": "校稿後5工作天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "GD-S04",
+          "title": "拾味餐飲服務",
+          "status": "菜單待確認",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "活動茶點"
+            },
+            {
+              "label": "備餐",
+              "value": "依最終人數"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "resources",
+      "label": "場地 / 執行資源",
+      "fields": [
+        "尺寸",
+        "版本",
+        "供應商",
+        "數量",
+        "用途",
+        "單價",
+        "人數",
+        "班別"
+      ],
+      "records": [
+        {
+          "code": "GD-R01",
+          "title": "主舞台與背板",
+          "status": "設計待審",
+          "fields": [
+            {
+              "label": "尺寸",
+              "value": "6m×3m"
+            },
+            {
+              "label": "版本",
+              "value": "V3"
+            },
+            {
+              "label": "供應商",
+              "value": "GD-S03"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "GD-R02",
+          "title": "無線手持麥克風",
+          "status": "預約示例",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "6支"
+            },
+            {
+              "label": "供應商",
+              "value": "GD-S01"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "GD-R03",
+          "title": "報到平板",
+          "status": "可用示例",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "4台"
+            },
+            {
+              "label": "用途",
+              "value": "來賓報到；未含個資"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "GD-R04",
+          "title": "活動茶點",
+          "status": "待人數確認",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "120份"
+            },
+            {
+              "label": "單價",
+              "value": "NT$450"
+            },
+            {
+              "label": "供應商",
+              "value": "GD-S04"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "GD-R05",
+          "title": "現場工作人員",
+          "status": "排班中",
+          "fields": [
+            {
+              "label": "人數",
+              "value": "12位含協力人員"
+            },
+            {
+              "label": "班別",
+              "value": "10/30 08:00–18:00"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "orders",
+      "label": "委託 / 採購",
+      "fields": [
+        "未稅金額",
+        "進場",
+        "服務日",
+        "期間",
+        "訂金",
+        "數量",
+        "單價"
+      ],
+      "records": [
+        {
+          "code": "GD-PO01",
+          "title": "影音設備與人員委託",
+          "status": "檔期待確認",
+          "fields": [
+            {
+              "label": "未稅金額",
+              "value": "NT$180,000"
+            },
+            {
+              "label": "進場",
+              "value": "2026-10-29"
+            },
+            {
+              "label": "服務日",
+              "value": "2026-10-30"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "GD-PO02",
+          "title": "場地租用",
+          "status": "暫留",
+          "fields": [
+            {
+              "label": "未稅金額",
+              "value": "NT$96,000"
+            },
+            {
+              "label": "期間",
+              "value": "10/29佈場、10/30活動"
+            },
+            {
+              "label": "訂金",
+              "value": "30%＝NT$28,800；尚未付款"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "GD-PO03",
+          "title": "活動茶點採購",
+          "status": "待最終人數",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "120份"
+            },
+            {
+              "label": "單價",
+              "value": "NT$450"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$54,000"
+            }
+          ],
+          "visibility": "restricted"
+        }
+      ]
+    },
+    {
+      "key": "work",
+      "label": "執行 / 驗收",
+      "fields": [
+        "彩排",
+        "重點",
+        "活動日",
+        "預計來賓",
+        "結案"
+      ],
+      "records": [
+        {
+          "code": "GD-W01",
+          "title": "發表會場佈與總彩排",
+          "status": "待場地及設備確認",
+          "fields": [
+            {
+              "label": "彩排",
+              "value": "2026-10-29"
+            },
+            {
+              "label": "重點",
+              "value": "音訊、投影、來賓動線、緊急出口"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "GD-W02",
+          "title": "發表會現場執行",
+          "status": "計畫中",
+          "fields": [
+            {
+              "label": "活動日",
+              "value": "2026-10-30"
+            },
+            {
+              "label": "預計來賓",
+              "value": "120人"
+            },
+            {
+              "label": "結案",
+              "value": "活動後彙整，不預填滿意度"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "formulas",
+      "label": "配方 / 組成",
+      "fields": [
+        "版本",
+        "組成內容",
+        "用途",
+        "備註"
+      ],
+      "records": []
+    },
+    {
+      "key": "batches",
+      "label": "批號紀錄",
+      "fields": [
+        "批號",
+        "來源單據",
+        "原料批號",
+        "成品批號",
+        "備註"
+      ],
+      "records": []
+    }
+  ],
+  "software": [
+    {
+      "key": "partners",
+      "label": "客戶 / 服務商",
+      "fields": [
+        "服務",
+        "範圍",
+        "窗口",
+        "連線",
+        "交付",
+        "日期"
+      ],
+      "records": [
+        {
+          "code": "YS-C01",
+          "title": "澄岳物流管理",
+          "status": "導入中",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "企業協作平台"
+            },
+            {
+              "label": "範圍",
+              "value": "30個使用者席位"
+            },
+            {
+              "label": "窗口",
+              "value": "虛構客戶團隊；無真實聯絡個資"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "YS-C02",
+          "title": "微境設計工作室",
+          "status": "需求洽談",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "入口網站與報表"
+            },
+            {
+              "label": "範圍",
+              "value": "需求尚未定案"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "YS-S01",
+          "title": "衡雲基礎服務",
+          "status": "測試用服務商",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "運算與物件儲存"
+            },
+            {
+              "label": "連線",
+              "value": "未串接真實雲端帳號"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "YS-S02",
+          "title": "驗序軟體測試",
+          "status": "委外報價確認",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "瀏覽器相容性測試"
+            },
+            {
+              "label": "交付",
+              "value": "測試報告"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "YS-S03",
+          "title": "啟程資訊培訓",
+          "status": "課程暫排",
+          "fields": [
+            {
+              "label": "服務",
+              "value": "使用者教育訓練"
+            },
+            {
+              "label": "日期",
+              "value": "2026-11-06"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "resources",
+      "label": "系統 / 服務資源",
+      "fields": [
+        "用途",
+        "資料",
+        "對外位址",
+        "數量",
+        "客戶",
+        "容量",
+        "單價",
+        "月估價",
+        "範圍",
+        "案例",
+        "規模",
+        "個資"
+      ],
+      "records": [
+        {
+          "code": "YS-R01",
+          "title": "v2.1隔離測試環境",
+          "status": "規劃中",
+          "fields": [
+            {
+              "label": "用途",
+              "value": "UAT"
+            },
+            {
+              "label": "資料",
+              "value": "虛構測試資料"
+            },
+            {
+              "label": "對外位址",
+              "value": "未配置"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "YS-R02",
+          "title": "客戶驗收席位",
+          "status": "規劃中",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "30席"
+            },
+            {
+              "label": "客戶",
+              "value": "YS-C01"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "YS-R03",
+          "title": "備援物件儲存",
+          "status": "估算示例",
+          "fields": [
+            {
+              "label": "容量",
+              "value": "500GB"
+            },
+            {
+              "label": "單價",
+              "value": "NT$1.20/GB月"
+            },
+            {
+              "label": "月估價",
+              "value": "NT$600"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "YS-R04",
+          "title": "相容性測試矩陣",
+          "status": "待審",
+          "fields": [
+            {
+              "label": "範圍",
+              "value": "桌面與手機主要瀏覽器"
+            },
+            {
+              "label": "案例",
+              "value": "48項計畫案例"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "YS-R05",
+          "title": "報表效能測試資料",
+          "status": "待產生",
+          "fields": [
+            {
+              "label": "規模",
+              "value": "10萬列虛構資料"
+            },
+            {
+              "label": "個資",
+              "value": "不使用真實客戶資料"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "orders",
+      "label": "合約 / 服務訂單",
+      "fields": [
+        "席位",
+        "單價",
+        "期間",
+        "未稅總額",
+        "性質",
+        "未稅金額",
+        "案例",
+        "預計交付",
+        "未稅月估價",
+        "其中儲存"
+      ],
+      "records": [
+        {
+          "code": "YS-PO01",
+          "title": "澄岳物流年度服務合約",
+          "status": "待驗收生效",
+          "fields": [
+            {
+              "label": "席位",
+              "value": "30"
+            },
+            {
+              "label": "單價",
+              "value": "NT$800/席月"
+            },
+            {
+              "label": "期間",
+              "value": "12個月"
+            },
+            {
+              "label": "未稅總額",
+              "value": "NT$288,000"
+            },
+            {
+              "label": "性質",
+              "value": "客戶收入合約，非採購成本"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "YS-PO02",
+          "title": "相容性測試委託",
+          "status": "待安排",
+          "fields": [
+            {
+              "label": "未稅金額",
+              "value": "NT$36,000"
+            },
+            {
+              "label": "案例",
+              "value": "48項"
+            },
+            {
+              "label": "預計交付",
+              "value": "2026-10-23"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "YS-PO03",
+          "title": "測試環境資源訂單",
+          "status": "尚未開通",
+          "fields": [
+            {
+              "label": "未稅月估價",
+              "value": "NT$8,600"
+            },
+            {
+              "label": "其中儲存",
+              "value": "500GB×NT$1.20＝NT$600"
+            },
+            {
+              "label": "期間",
+              "value": "2026-10-16起1個月"
+            }
+          ],
+          "visibility": "restricted"
+        }
+      ]
+    },
+    {
+      "key": "work",
+      "label": "版本 / 變更",
+      "fields": [
+        "版本",
+        "計畫發布",
+        "正式部署",
+        "席位",
+        "驗收",
+        "實際使用率"
+      ],
+      "records": [
+        {
+          "code": "YS-W01",
+          "title": "v2.1發布候選RC1",
+          "status": "待UAT與資源確認",
+          "fields": [
+            {
+              "label": "版本",
+              "value": "2.1.0-rc.1"
+            },
+            {
+              "label": "計畫發布",
+              "value": "2026-11-06"
+            },
+            {
+              "label": "正式部署",
+              "value": "尚未執行"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "YS-W02",
+          "title": "澄岳物流導入驗收",
+          "status": "待訓練與驗收",
+          "fields": [
+            {
+              "label": "席位",
+              "value": "30"
+            },
+            {
+              "label": "驗收",
+              "value": "2026-11-20"
+            },
+            {
+              "label": "實際使用率",
+              "value": "尚無資料"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "formulas",
+      "label": "配方 / 組成",
+      "fields": [
+        "版本",
+        "組成內容",
+        "用途",
+        "備註"
+      ],
+      "records": []
+    },
+    {
+      "key": "batches",
+      "label": "批號紀錄",
+      "fields": [
+        "批號",
+        "來源單據",
+        "原料批號",
+        "成品批號",
+        "備註"
+      ],
+      "records": []
+    }
+  ],
+  "construction": [
+    {
+      "key": "partners",
+      "label": "業主 / 協力廠商",
+      "fields": [
+        "案場",
+        "預算",
+        "聯絡",
+        "工項",
+        "資格",
+        "排程",
+        "供應",
+        "交期"
+      ],
+      "records": [
+        {
+          "code": "ZH-C01",
+          "title": "青嶼商務服務",
+          "status": "業主",
+          "fields": [
+            {
+              "label": "案場",
+              "value": "180坪商辦展示案"
+            },
+            {
+              "label": "預算",
+              "value": "依核定範圍"
+            },
+            {
+              "label": "聯絡",
+              "value": "虛構專案窗口"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "ZH-S01",
+          "title": "楷盛室內工程",
+          "status": "協力廠商",
+          "fields": [
+            {
+              "label": "工項",
+              "value": "輕隔間與天花"
+            },
+            {
+              "label": "資格",
+              "value": "文件審核中"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "ZH-S02",
+          "title": "澤安機電工程",
+          "status": "協力廠商",
+          "fields": [
+            {
+              "label": "工項",
+              "value": "配電與弱電"
+            },
+            {
+              "label": "排程",
+              "value": "待施工界面確認"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "ZH-S03",
+          "title": "承朗空調設備",
+          "status": "設備供應商",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "空調主機與安裝"
+            },
+            {
+              "label": "交期",
+              "value": "28天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "ZH-S04",
+          "title": "曜和照明材料",
+          "status": "報價確認",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "LED燈具"
+            },
+            {
+              "label": "交期",
+              "value": "14天"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "resources",
+      "label": "材料 / 設備",
+      "fields": [
+        "數量",
+        "單價",
+        "供應商",
+        "版本",
+        "用途",
+        "內容",
+        "說明"
+      ],
+      "records": [
+        {
+          "code": "ZH-R01",
+          "title": "輕隔間板材",
+          "status": "待進場",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "240片"
+            },
+            {
+              "label": "單價",
+              "value": "NT$420"
+            },
+            {
+              "label": "供應商",
+              "value": "ZH-S01"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "ZH-R02",
+          "title": "LED平板燈",
+          "status": "待樣品確認",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "80盞"
+            },
+            {
+              "label": "單價",
+              "value": "NT$950"
+            },
+            {
+              "label": "供應商",
+              "value": "ZH-S04"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "ZH-R03",
+          "title": "配電盤迴路標示",
+          "status": "待審",
+          "fields": [
+            {
+              "label": "版本",
+              "value": "E-03 REV.B"
+            },
+            {
+              "label": "用途",
+              "value": "案場查驗"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "ZH-R04",
+          "title": "會議室空調設備",
+          "status": "交期追蹤",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "2組"
+            },
+            {
+              "label": "供應商",
+              "value": "ZH-S03"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "ZH-R05",
+          "title": "現場查驗工具",
+          "status": "排程中",
+          "fields": [
+            {
+              "label": "內容",
+              "value": "絕緣量測、照度計"
+            },
+            {
+              "label": "說明",
+              "value": "實際校驗及操作資格另行確認"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "orders",
+      "label": "採購 / 發包",
+      "fields": [
+        "數量",
+        "單價",
+        "未稅金額",
+        "交期"
+      ],
+      "records": [
+        {
+          "code": "ZH-PO01",
+          "title": "首區輕隔間材料",
+          "status": "待進場",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "240片"
+            },
+            {
+              "label": "單價",
+              "value": "NT$420"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$100,800"
+            },
+            {
+              "label": "交期",
+              "value": "2026-10-16"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "ZH-PO02",
+          "title": "LED燈具採購",
+          "status": "樣品待審",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "80盞"
+            },
+            {
+              "label": "單價",
+              "value": "NT$950"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$76,000"
+            },
+            {
+              "label": "交期",
+              "value": "2026-10-23"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "ZH-PO03",
+          "title": "會議室空調設備與安裝",
+          "status": "交期追蹤",
+          "fields": [
+            {
+              "label": "數量",
+              "value": "2組"
+            },
+            {
+              "label": "單價",
+              "value": "NT$68,000"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$136,000"
+            },
+            {
+              "label": "交期",
+              "value": "2026-10-30"
+            }
+          ],
+          "visibility": "restricted"
+        }
+      ]
+    },
+    {
+      "key": "work",
+      "label": "工項 / 查驗",
+      "fields": [
+        "暫排",
+        "條件",
+        "結果",
+        "記錄"
+      ],
+      "records": [
+        {
+          "code": "ZH-W01",
+          "title": "首區隔間隱蔽工程查驗",
+          "status": "待施工與報驗",
+          "fields": [
+            {
+              "label": "暫排",
+              "value": "2026-10-23"
+            },
+            {
+              "label": "條件",
+              "value": "圖說與材料確認後施工"
+            },
+            {
+              "label": "結果",
+              "value": "未查驗，不構成驗收證明"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "ZH-W02",
+          "title": "機電設備整合驗收",
+          "status": "計畫中",
+          "fields": [
+            {
+              "label": "暫排",
+              "value": "2026-11-06"
+            },
+            {
+              "label": "條件",
+              "value": "配電、照明與空調完成後"
+            },
+            {
+              "label": "記錄",
+              "value": "量測值待現場填寫"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "formulas",
+      "label": "配方 / 組成",
+      "fields": [
+        "版本",
+        "組成內容",
+        "用途",
+        "備註"
+      ],
+      "records": []
+    },
+    {
+      "key": "batches",
+      "label": "批號紀錄",
+      "fields": [
+        "批號",
+        "來源單據",
+        "原料批號",
+        "成品批號",
+        "備註"
+      ],
+      "records": []
+    }
+  ],
+  "hemu": [
+    {
+      "key": "partners",
+      "label": "供應商",
+      "fields": [
+        "供應",
+        "交期",
+        "付款"
+      ],
+      "records": [
+        {
+          "code": "SUP-001",
+          "title": "青原禽肉供應有限公司",
+          "status": "合格主要供應商",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "冷凍雞胸肉、雞肝"
+            },
+            {
+              "label": "交期",
+              "value": "7–10天"
+            },
+            {
+              "label": "付款",
+              "value": "月結30天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "SUP-002",
+          "title": "澄海水產原料有限公司",
+          "status": "新批次待送樣",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "冷凍鮪魚"
+            },
+            {
+              "label": "交期",
+              "value": "14–21天"
+            },
+            {
+              "label": "付款",
+              "value": "月結30天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "SUP-003",
+          "title": "衡益營養原料有限公司",
+          "status": "合格；規格需版本確認",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "營養預混料、牛磺酸"
+            },
+            {
+              "label": "交期",
+              "value": "21天"
+            },
+            {
+              "label": "付款",
+              "value": "月結30天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "SUP-004",
+          "title": "方禾金屬包材有限公司",
+          "status": "合格；排程較滿",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "85g罐身、易開蓋"
+            },
+            {
+              "label": "交期",
+              "value": "28天"
+            },
+            {
+              "label": "付款",
+              "value": "月結45天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "SUP-005",
+          "title": "采序印刷包裝有限公司",
+          "status": "新包裝打樣中",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "彩盒、外箱、標籤"
+            },
+            {
+              "label": "交期",
+              "value": "校稿後14天"
+            },
+            {
+              "label": "付款",
+              "value": "月結30天"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "MFG-001",
+          "title": "沐川食品製造股份有限公司",
+          "status": "試產暫排10/22",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "委託試產與量產"
+            },
+            {
+              "label": "交期",
+              "value": "確認後21天"
+            },
+            {
+              "label": "付款",
+              "value": "依合約"
+            }
+          ],
+          "visibility": "internal"
+        },
+        {
+          "code": "LAB-001",
+          "title": "明析食品檢測有限公司",
+          "status": "合作實驗室",
+          "fields": [
+            {
+              "label": "供應",
+              "value": "營養、微生物送驗"
+            },
+            {
+              "label": "交期",
+              "value": "收樣後7–12工作天"
+            },
+            {
+              "label": "付款",
+              "value": "月結30天"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "resources",
+      "label": "原料 / 包材",
+      "fields": [
+        "供應商",
+        "單位",
+        "未稅參考單價",
+        "庫存"
+      ],
+      "records": [
+        {
+          "code": "RM-CHK-001",
+          "title": "冷凍去皮雞胸肉",
+          "status": "展示帳面庫存",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-001"
+            },
+            {
+              "label": "單位",
+              "value": "kg"
+            },
+            {
+              "label": "未稅參考單價",
+              "value": "118"
+            },
+            {
+              "label": "庫存",
+              "value": "360"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "RM-LIV-001",
+          "title": "冷凍雞肝",
+          "status": "展示帳面庫存",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-001"
+            },
+            {
+              "label": "單位",
+              "value": "kg"
+            },
+            {
+              "label": "未稅參考單價",
+              "value": "62"
+            },
+            {
+              "label": "庫存",
+              "value": "48"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "RM-TUN-001",
+          "title": "冷凍鮪魚碎肉",
+          "status": "展示帳面庫存",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-002"
+            },
+            {
+              "label": "單位",
+              "value": "kg"
+            },
+            {
+              "label": "未稅參考單價",
+              "value": "145"
+            },
+            {
+              "label": "庫存",
+              "value": "120"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "RM-PMX-001",
+          "title": "貓用營養預混料",
+          "status": "展示帳面庫存",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-003"
+            },
+            {
+              "label": "單位",
+              "value": "kg"
+            },
+            {
+              "label": "未稅參考單價",
+              "value": "480"
+            },
+            {
+              "label": "庫存",
+              "value": "18"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "RM-TAU-001",
+          "title": "牛磺酸",
+          "status": "展示帳面庫存",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-003"
+            },
+            {
+              "label": "單位",
+              "value": "kg"
+            },
+            {
+              "label": "未稅參考單價",
+              "value": "220"
+            },
+            {
+              "label": "庫存",
+              "value": "6"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "PK-CAN-085",
+          "title": "85g罐身",
+          "status": "展示帳面庫存",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-004"
+            },
+            {
+              "label": "單位",
+              "value": "個"
+            },
+            {
+              "label": "未稅參考單價",
+              "value": "2.6"
+            },
+            {
+              "label": "庫存",
+              "value": "8400"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "PK-LID-085",
+          "title": "85g易開蓋",
+          "status": "展示帳面庫存",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-004"
+            },
+            {
+              "label": "單位",
+              "value": "個"
+            },
+            {
+              "label": "未稅參考單價",
+              "value": "0.95"
+            },
+            {
+              "label": "庫存",
+              "value": "8400"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "PK-BOX-024",
+          "title": "24入運輸外箱",
+          "status": "展示帳面庫存",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-005"
+            },
+            {
+              "label": "單位",
+              "value": "個"
+            },
+            {
+              "label": "未稅參考單價",
+              "value": "18"
+            },
+            {
+              "label": "庫存",
+              "value": "350"
+            }
+          ],
+          "visibility": "restricted"
+        }
+      ]
+    },
+    {
+      "key": "orders",
+      "label": "採購",
+      "fields": [
+        "供應商",
+        "料號",
+        "數量",
+        "未稅金額",
+        "預計到貨",
+        "用途"
+      ],
+      "records": [
+        {
+          "code": "PO-261002-01",
+          "title": "雞胸肉採購",
+          "status": "供應商已確認",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-001"
+            },
+            {
+              "label": "料號",
+              "value": "RM-CHK-001"
+            },
+            {
+              "label": "數量",
+              "value": "200 kg"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$23,600"
+            },
+            {
+              "label": "預計到貨",
+              "value": "2026-10-15"
+            },
+            {
+              "label": "用途",
+              "value": "WO-261022-01"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "PO-260925-02",
+          "title": "罐身與易開蓋採購",
+          "status": "樣品確認待完成",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-004"
+            },
+            {
+              "label": "料號",
+              "value": "PK-CAN-085、PK-LID-085"
+            },
+            {
+              "label": "數量",
+              "value": "各12,000個"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$42,600"
+            },
+            {
+              "label": "預計到貨",
+              "value": "2026-10-19"
+            },
+            {
+              "label": "用途",
+              "value": "試產與後續量產備料"
+            }
+          ],
+          "visibility": "restricted"
+        },
+        {
+          "code": "PO-261005-03",
+          "title": "營養預混料採購",
+          "status": "已確認",
+          "fields": [
+            {
+              "label": "供應商",
+              "value": "SUP-003"
+            },
+            {
+              "label": "料號",
+              "value": "RM-PMX-001"
+            },
+            {
+              "label": "數量",
+              "value": "10 kg"
+            },
+            {
+              "label": "未稅金額",
+              "value": "NT$4,800"
+            },
+            {
+              "label": "預計到貨",
+              "value": "2026-10-26"
+            },
+            {
+              "label": "用途",
+              "value": "後續批次；10/22試產使用既有庫存"
+            }
+          ],
+          "visibility": "restricted"
+        }
+      ]
+    },
+    {
+      "key": "work",
+      "label": "工單",
+      "fields": [
+        "代工廠",
+        "日期",
+        "投料",
+        "目標",
+        "預留耗損",
+        "前置",
+        "採購"
+      ],
+      "records": [
+        {
+          "code": "WO-261022-01",
+          "title": "雞肉主食罐工程試產",
+          "status": "暫排，尚未放行",
+          "fields": [
+            {
+              "label": "代工廠",
+              "value": "MFG-001"
+            },
+            {
+              "label": "日期",
+              "value": "2026-10-22"
+            },
+            {
+              "label": "投料",
+              "value": "180 kg"
+            },
+            {
+              "label": "目標",
+              "value": "2,000罐 × 85g＝170 kg"
+            },
+            {
+              "label": "預留耗損",
+              "value": "10 kg；實際產出待回報"
+            },
+            {
+              "label": "前置",
+              "value": "包材確認、試作審核、排程確認"
+            },
+            {
+              "label": "採購",
+              "value": "PO-261002-01、PO-260925-02"
+            }
+          ],
+          "visibility": "internal"
+        }
+      ]
+    },
+    {
+      "key": "formulas",
+      "label": "配方 / 組成",
+      "fields": [
+        "版本",
+        "組成內容",
+        "用途",
+        "備註"
+      ],
+      "records": []
+    },
+    {
+      "key": "batches",
+      "label": "批號紀錄",
+      "fields": [
+        "批號",
+        "來源單據",
+        "原料批號",
+        "成品批號",
+        "備註"
+      ],
+      "records": []
+    }
+  ]
+}

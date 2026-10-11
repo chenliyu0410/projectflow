@@ -10,6 +10,30 @@ from app.database import Base
 JsonType = JSON().with_variant(JSONB(), "postgresql")
 
 
+class OperationsRecord(Base):
+    __tablename__ = 'operations_records'
+    __table_args__ = (
+        UniqueConstraint('organization_id', 'category', 'code', name='uq_operations_code'),
+        ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
+        ForeignKeyConstraint(['organization_id', 'updated_by'], ['users.organization_id', 'users.id']),
+        CheckConstraint("visibility IN ('internal','restricted') AND revision > 0", name='ck_operations_revision_visibility'),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    organization_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), nullable=False, index=True)
+    category: Mapped[str] = mapped_column(String(32), nullable=False)
+    code: Mapped[str] = mapped_column(String(80), nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    status: Mapped[str] = mapped_column(String(80), nullable=False)
+    visibility: Mapped[str] = mapped_column(String(16), nullable=False)
+    fields: Mapped[list] = mapped_column(JsonType, nullable=False)
+    source: Mapped[str] = mapped_column(String(32), nullable=False, default='native')
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    updated_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
 class Document(Base):
     __tablename__ = 'documents'
     __table_args__ = (

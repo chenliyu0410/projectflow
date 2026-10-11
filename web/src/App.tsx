@@ -1,5 +1,6 @@
 import PreviewBoundary from './components/PreviewBoundary';
 import DocumentManager from './components/DocumentManager';
+import OperationsManager from './components/OperationsManager';
 import TemplateDialogs from './components/TemplateDialogs';
 import WorkflowLibrary from './components/WorkflowLibrary';
 import TimelineView from './components/TimelineView';
@@ -19,7 +20,7 @@ import MyTasks from './components/MyTasks';
 import NavIcon from './components/NavIcons';
 
 const ROLE_LABELS: Record<string, string> = { admin: '系統管理員', project_owner: '專案負責人', reviewer: '階段審核人', member: '成員', readonly: '唯讀' };
-const PAGE_SCOPES: Record<string, string> = { overview: '所有可見專案', 'my-tasks': '我的任務', reviews: '審核中心', workflows: '模板庫', audit: '活動與稽核紀錄', operations: '營運展示預覽', governance: 'AI 政策展示預覽' };
+const PAGE_SCOPES: Record<string, string> = { overview: '所有可見專案', 'my-tasks': '我的任務', reviews: '審核中心', workflows: '模板庫', audit: '活動與稽核紀錄', operations: '公司營運資料', governance: 'AI 政策展示預覽' };
 
 type State = 'checking-session' | 'login' | 'loading' | 'ready' | 'error';
 export default function App() {
@@ -62,6 +63,7 @@ export default function App() {
   const sequence = useRef(0);
   const creationForm = useRef<HTMLFormElement>(null);
   const documentLeaveGuard = useRef<(() => boolean) | null>(null);
+  const [operationsPreview, setOperationsPreview] = useState(false);
   const canLeaveDocument = () => documentLeaveGuard.current?.() ?? true;
   const controller = useRef<AbortController | null>(null);
 
@@ -124,6 +126,7 @@ export default function App() {
   function navigate(next: WorkspaceRoute) {
     if (busy) return;
     if (!canLeaveDocument()) return;
+    setOperationsPreview(false);
     if (next.page === 'project' && next.projectId) { void selectProject(next.projectId, next.nodeId); return; }
     begin(); closeCreation(); setProject(null); setMessage(''); setRoute(next); setState('ready');
   }
@@ -175,6 +178,7 @@ export default function App() {
   async function switchCompany(target = switchTarget) {
     if (!target || busy || !session?.showcase) return;
     if (!canLeaveDocument()) { setSwitchTarget(''); return; }
+    setOperationsPreview(false);
     const request = begin();
     closeCreation(); setSwitchTarget(''); setBusy(true); setState('loading'); setMessage('');
     setProject(null); setProjects([]); setWorkflows(null); setRecordVersion(0); setRoute({page:'overview'});
@@ -479,7 +483,8 @@ export default function App() {
           {state === 'checking-session' && <p role="status">確認登入狀態中</p>}
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
-          {state === 'ready' && (route.page === 'operations' || route.page === 'governance') && <PreviewBoundary initialPage={route.page} companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => navigate({ page: 'overview' })} />}
+          {state === 'ready' && !creationOpen && route.page === 'operations' && !operationsPreview && <OperationsManager key={session.organization.id} expired={expireSession} leaveGuard={documentLeaveGuard} preview={() => setOperationsPreview(true)} />}
+          {state === 'ready' && (route.page === 'governance' || (route.page === 'operations' && operationsPreview)) && <PreviewBoundary initialPage={route.page as 'operations' | 'governance'} companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => route.page === 'operations' ? setOperationsPreview(false) : navigate({ page: 'overview' })} />}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview showAssignHint={canCreate} openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} createProject={canCreate ? id => void openCreation(id) : undefined} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
