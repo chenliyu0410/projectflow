@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UI5 📋 D81展示優先，一次整合交付待實作** |
+| 目前工作項目 | **UI5 ✅ 展示版本工程交付完成** |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 直接實作UI5唯一執行計畫；食品案例＋Demo式AI副手，一次交付，達停止條件即收工。 |
-| 分支 | `main`；feature已ff-only合併並刪除。 |
-| 最新程式 commit | `00e56b2`（TP-G產品、測試與交付說明）。 |
+| 下一個動作 | 依formal-development的UI5步驟展示／人類試用；F1／F2另定範圍，不自動開始。 |
+| 分支 | `main`；UI5已ff-only合併。 |
+| 最新程式 commit | `229c445`（UI5產品與測試）。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | TP-G：完整API502pass／1fail／14skip，修正後相關13pass及TP-G18+1pass；完整Vitest240pass／9fail，修正後97pass及欄位UI5pass；PG十階段13pass；build0；完整E2E34pass／3fail，修正後TP-G2pass及workspace3pass。真實摘要見§3。 |
+| 測試基準 | UI5：build exit0；相關Vitest 91pass；初次E2E 2pass/1fail（375切公司等待），修正測試後UI5 1280/375兩項pass；既有回報退回重送審核1280pass。一次獨立審查及兩小處複核通過，15173健康／入口pass。歷史基準見§3。 |
 | 資料版本 | Demo v6/key未改；15173 migration `20261010_0011`。249節點、55回報及全部既有列／欄位值、附件SHA、env、DB容器一致；僅新增空欄位定義／版本0及空回報快照，無新增業務列。 |
 | 認領中 | 無。 |
-| 阻塞／待人類 | UI5無規劃阻塞；既有階段人類試用未代簽、D43/D10及LAN限制維持。 |
+| 阻塞／待人類 | UI5工程無阻塞；人類展示／試用未代簽，D43/D10及LAN限制維持。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
 
 ---
@@ -103,7 +103,7 @@
 | 已完成 | TP-E | 任務規劃器：另存模板、套用到既有節點、模板版本、刪除模板 | ✅ | D70／D77，[短計畫](superpowers/plans/2026-10-10-tp-e-advanced-templates.md)已核准 | TP-D ✅ |
 | 已完成 | TP-F | 任務規劃器：跳過申請與覆寫、部門管理、成員權限頁、待我指派、負載、通知 | ✅ 工程交付 | D70；[短計畫](superpowers/plans/2026-10-10-tp-f-permissions-collaboration.md) | TP-E ✅ |
 | 已完成 | TP-G | 任務規劃器：自訂回報欄位 | ✅ 工程交付 | D70／D79，[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md) | TP-F |
-| 目前 | UI5 | 文件／資料／營運／AI完整畫面 | 📋 D80已核准 | [短計畫](superpowers/plans/2026-10-11-ui5-remaining-screens.md)，D81：三組實作一次交付，預覽與F1正式功能分開追蹤 | TP-G ✅ |
+| 已完成 | UI5 | 文件／資料／營運／AI展示畫面 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-11-ui5-remaining-screens.md)，D81：三組實作一次交付，預覽與F1正式功能分開追蹤 | TP-G ✅ |
 | 展示後另定 | F1 | 逐頁補正式功能：文件→資料→營運→規則副手治理 | ⬜ | 原P2d拆入，不再先做後端大包 | UI5 |
 | 展示後另定 | F2 | 跨頁一致性與剩餘Demo差距 | ⬜ | 進階時程／相依、子樹套用、自訂回報已移入TP（D70）；真AI／ERP／LAN另定範圍 | F1 |
 
@@ -120,11 +120,17 @@
 
 ## 3. 工作項目明細
 
-### UI5 — 📋 已授權，直接實作
+### UI5 — ✅ 展示版本工程交付
 
-依[唯一執行計畫](superpowers/plans/2026-10-11-ui5-remaining-screens.md)完成一個食品展示案例。文件／資料→營運→AI只是開發順序，使用feature/ui5-demo-ready，一次審查、相關驗收與web部署。其他公司預覽用明確空狀態，AI依人類最新要求保留Demo六個快捷、輸入對話與建議操作，使用本地規則／預覽，不串接真模型或寫正式任務；營運仍不做完整CRUD。
+依[唯一執行計畫](superpowers/plans/2026-10-11-ui5-remaining-screens.md)完成一個食品案例：文件卡／v1-v2／文字編輯、關聯卡與子層來源、供應商→採購→收貨預覽→工單、七營運分頁、AI六快捷／輸入／待辦擷取／引用與送出內容／建議套用／政策與路由遮罩示例。其他公司為明確空狀態；既有任務、回報、附件和權限保持真功能。
 
-2026-10-11再次收斂：直接重寫計畫，移除舊三批部署、五產業完整示例、三尺寸全頁對照與全量驗證的矛盾條文。現仍未改產品／DB／部署；文件核對完成，不宣稱產品測試通過。展示路徑能重複演示並符合資料邊界即交付，不自動開F1／F2，不再做規劃輪次。
+所有新增狀態只存React記憶體，示例ID不綁真實節點；文件／收貨於示例內導航保留，離開預覽、切公司、登出或刷新清除。AI僅固定案例與關鍵詞規則，不讀真任務；遮罩只展示固定對照，不宣稱實際模型／ERP／政策或正式寫入。
+
+**真實驗收**：build exit0；ui5-preview／App／planner三檔Vitest 91pass（exit0）。初次E2E 2pass／1fail（exit1）：回報退回重送審核1280及UI5桌面pass，UI5手機切回食品公司時，測試早於Shell重掛載開導覽而逾時；補等待公司／總覽載入後，UI5桌面1280及手機375皆pass（2pass、exit0）。涵蓋六快捷、輸入→詳情→套用、文件版本、七分頁、零預覽寫入、storage不變、離開／切公司／登出清除、無頁面溢位／pageerror。未機械重跑API／PG歷史全套。截圖已看桌面營運、手機文件／副手並與既有Demo三欄與卡片布局對照；修正active tab hover對比，部署冒煙核對最終色值。
+
+一次唯讀獨立審查無阻擋；審查後僅修App位置說明及CSS色值／優先度，複核通過。產品`92563c1..229c445` ff-only合併main。15173只build/update web --no-deps；Docker原本未啟動，啟動Docker並恢復既有正式DB／API容器，未重建API／DB、未seed、未migration。更新前後API／DB容器ID一致；ready健康、營運／AI入口、零業務寫入及pageerror=0已實測。附件／env／資料volume未動；本輪無DB變更，未另做逐表對帳。
+
+測試／審查／截圖日誌保留於`.superpowers/ui5/`及web/test-results。隔離acceptance停止並保留volume。展示講稿及限制見[formal-development](formal-development.md#ui5-展示操作2026-10-11)，[人類試用清單](mvp-trial-checklist.md)未代簽。依D50發布main並核對SHA；展示完成即停止，F1／F2不自動開工。
 
 ### TP-G 自訂回報欄位 — ✅ 工程交付
 
@@ -1123,6 +1129,13 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-11｜Codex｜UI5一次展示交付
+
+- 依現行進度直接實作，未追加規劃輪次；完成文件／資料／營運／Demo式AI預覽。
+- 91項相關Vitest、build與回報審核冒煙通過；UI5 E2E手機初跑等待失敗、修測試後1280／375通過，獨立審查／小修複核通過。
+- `229c445`已ff-only合併，15173純web更新並健康／入口驗證。資料不seed、不migration，既有API／DB容器與volume保留。
+- 展示操作見formal-development；下一步是人類展示／試用，不自動開始F1／F2。完整結果見本頁UI5明細。
 
 ### 2026-10-11｜Codex GPT-6｜AI副手保留Demo互動
 
