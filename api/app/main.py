@@ -6,7 +6,7 @@ import psycopg
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from app.routes import collaboration, notifications, report_fields, ai, documents, operations
+from app.routes import collaboration, notifications, report_fields, ai, documents, operations, operation_links
 from app.routes import audit_logs, auth, departments, projects, reports, workflows, workspace, records, collaborators, attachments, dependencies, conditions
 
 
@@ -35,6 +35,7 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     application.include_router(ai.router)
     application.include_router(documents.router)
     application.include_router(operations.router)
+    application.include_router(operation_links.router)
     probe = checker if checker is not None else database_ready
     application.include_router(report_fields.router)
     application.include_router(collaboration.router)

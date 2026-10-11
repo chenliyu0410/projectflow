@@ -789,3 +789,12 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .operations-detail { overflow-wrap: anywhere; }
 .operations-detail dd { white-space: pre-wrap; margin-left: 0; margin-bottom: 12px; }
 .operations-detail dt { font-weight: 600; }
+
+.linked-operations { padding: 20px; min-width: 0; overflow-wrap: anywhere; }
+.linked-operations ul { padding: 0; list-style: none; }
+.linked-operations li { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid #dce3ea; }
+.linked-operations fieldset { min-width: 0; margin-top: 20px; border: 1px solid #dce3ea; border-radius: 8px; padding: 16px; }
+.linked-operations label { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.linked-operations button { white-space: normal; overflow-wrap: anywhere; max-width: 100%; margin: 3px; }
+.linked-operations input, .linked-operations select { width: 100%; min-width: 0; }
+.linked-operations dd { margin: 6px 0 14px; white-space: pre-wrap; }

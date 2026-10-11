@@ -860,3 +860,29 @@ def test_tp_g_postgresql_migration_and_field_submit_race(monkeypatch):
         reports = list(db.scalars(select(TaskReport).where(TaskReport.node_id == nid)))
         assert (node.report_fields_version == 1 and reports == []) or (node.report_fields_version == 0 and len(reports) == 1 and reports[0].fields == [])
     engine.dispose()
+
+
+def test_operation_links_migration_preserves_operations_and_refuses_loss(tmp_path, monkeypatch):
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text
+    import pytest
+    url = f'sqlite:///{tmp_path / "links.db"}'
+    monkeypatch.setenv('DATABASE_URL', url)
+    config = Config('api/alembic.ini')
+    command.upgrade(config, '20261011_0013')
+    engine = create_engine(url)
+    with engine.begin() as conn:
+        conn.execute(text("INSERT INTO organizations (id,key,name) VALUES ('keep','keep','Keep data')"))
+        conn.execute(text("INSERT INTO operations_records (id,organization_id,category,code,title,status,visibility,fields,source,revision,created_by,updated_by,created_at,updated_at) VALUES ('a','keep','partners','A','Record','active','internal','[]','native',1,'actor','actor','2026-10-11','2026-10-11')"))
+    command.upgrade(config, 'head')
+    with engine.begin() as conn:
+        assert conn.scalar(text('SELECT title FROM operations_records')) == 'Record'
+        assert conn.scalar(text('SELECT count(*) FROM operation_links')) == 0
+        conn.execute(text("INSERT INTO operation_links (id,organization_id,project_id,record_id,created_by,created_at) VALUES ('link','keep','project','a','actor','2026-10-11')"))
+    with pytest.raises(RuntimeError, match='拒絕有損降級'):
+        command.downgrade(config, '20261011_0013')
+    with engine.connect() as conn:
+        assert conn.scalar(text('SELECT count(*) FROM operation_links')) == 1
+        assert conn.scalar(text('SELECT title FROM operations_records')) == 'Record'
+    engine.dispose()

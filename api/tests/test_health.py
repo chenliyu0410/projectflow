@@ -62,6 +62,10 @@ def test_connection_failure_is_unavailable(monkeypatch):
 def test_only_health_routes_exist():
     paths = set(create_app().openapi()["paths"])
     assert paths == {
+        '/projects/{project_id}/operation-links',
+        '/nodes/{node_id}/operation-links',
+        '/projects/{project_id}/operation-links/{record_id}',
+        '/nodes/{node_id}/operation-links/{record_id}',
         '/operations',
         '/operations/catalog',
         '/operations/{record_id}',

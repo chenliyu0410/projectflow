@@ -14,6 +14,7 @@ class OperationsRecord(Base):
     __tablename__ = 'operations_records'
     __table_args__ = (
         UniqueConstraint('organization_id', 'category', 'code', name='uq_operations_code'),
+        Index('uq_operations_org_id', 'organization_id', 'id', unique=True),
         ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
         ForeignKeyConstraint(['organization_id', 'updated_by'], ['users.organization_id', 'users.id']),
         CheckConstraint("visibility IN ('internal','restricted') AND revision > 0", name='ck_operations_revision_visibility'),
@@ -32,6 +33,25 @@ class OperationsRecord(Base):
     updated_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
+class OperationLink(Base):
+    __tablename__ = 'operation_links'
+    __table_args__ = (
+        ForeignKeyConstraint(['organization_id', 'record_id'], ['operations_records.organization_id', 'operations_records.id']),
+        ForeignKeyConstraint(['organization_id', 'project_id'], ['projects.organization_id', 'projects.id']),
+        ForeignKeyConstraint(['organization_id', 'project_id', 'node_id'], ['nodes.organization_id', 'nodes.project_id', 'nodes.id']),
+        ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
+        Index('uq_operation_links_project', 'organization_id', 'project_id', 'record_id', unique=True, postgresql_where=text('node_id IS NULL'), sqlite_where=text('node_id IS NULL')),
+        Index('uq_operation_links_node', 'organization_id', 'node_id', 'record_id', unique=True, postgresql_where=text('node_id IS NOT NULL'), sqlite_where=text('node_id IS NOT NULL')),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    organization_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    project_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    node_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    record_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    created_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
 class Document(Base):

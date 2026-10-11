@@ -24,6 +24,7 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   page.on('request', r => { if (!['GET', 'HEAD'].includes(r.method())) writes.push(`${r.method()} ${new URL(r.url()).pathname}`); });
   const initialStorage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }));
   await page.getByRole('tab', { name: '資料', exact: true }).click();
+  await page.getByRole('button', { name: '查看原關聯示例' }).click();
   await page.getByRole('button', { name: '查看原食品試產示例' }).click();
   await page.getByRole('button', { name: '文件示例' }).click();
   await page.getByRole('button', { name: /試產規格書/ }).click();
@@ -61,6 +62,7 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   expect(await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))).toEqual(initialStorage);
   await page.getByRole('button', { name: '離開預覽，返回工作區' }).click();
   await page.getByRole('tab', { name: '資料', exact: true }).click();
+  await page.getByRole('button', { name: '查看原關聯示例' }).click();
   await page.getByRole('button', { name: '查看原食品試產示例' }).click();
   await page.getByRole('button', { name: '文件示例' }).click();
   await page.getByRole('button', { name: /試產規格書/ }).click();
