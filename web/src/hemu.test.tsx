@@ -1,0 +1,31 @@
+import { fireEvent, render, screen, cleanup } from '@testing-library/react';
+import { afterEach, expect, it, vi } from 'vitest';
+import PreviewBoundary from './components/PreviewBoundary';
+afterEach(cleanup);
+it('shows the complete company dataset and isolated purchase/document previews', () => {
+  const props = { initialPage: 'operations' as const, food: false, companyName: '禾沐', companyKey: 'hemu', exit: vi.fn() };
+  const { unmount } = render(<PreviewBoundary {...props} />);
+  expect(screen.getByText('禾沐寵物營養股份有限公司')).toBeInTheDocument();
+  expect(screen.getByText('黃子晴｜食品研發專員')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '採購' }));
+  fireEvent.click(screen.getByRole('button', { name: /PO-261002-01/ }));
+  expect(screen.getByText('NT$23,600')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '模擬收貨至預覽' }));
+  expect(screen.getByRole('status')).toHaveTextContent('未增加庫存');
+  fireEvent.click(screen.getByRole('button', { name: /PO-261005-03/ }));
+  expect(screen.queryByRole('button', { name: '查看關聯工單' })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /PO-261002-01/ }));
+  fireEvent.click(screen.getByRole('button', { name: '查看供應商' }));
+  expect(screen.getByRole('heading', { name: /青原禽肉/ })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '文件' }));
+  fireEvent.click(screen.getByRole('button', { name: /DOC-RD-026/ }));
+  fireEvent.change(screen.getByRole('textbox'), { target: { value: 'temporary edit' } });
+  unmount();
+  render(<PreviewBoundary {...props} initialPage="documents" />);
+  fireEvent.click(screen.getByRole('button', { name: /DOC-RD-026/ }));
+  expect(screen.getByRole('textbox')).not.toHaveValue('temporary edit');
+});
+it('does not expose the Hemu records in another company preview', () => {
+  render(<PreviewBoundary initialPage="operations" food={false} companyName="其他公司" companyKey="software" exit={vi.fn()} />);
+  expect(screen.queryByText('禾沐寵物營養股份有限公司')).not.toBeInTheDocument();
+});

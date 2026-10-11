@@ -1,0 +1,782 @@
+{
+  "company": {
+    "key": "hemu",
+    "code": "HM-PET",
+    "name": "禾沐寵物營養股份有限公司",
+    "brand": "禾尾日常",
+    "established": 2018,
+    "employees": 42,
+    "location": "台中市；研發辦公室與試作場域",
+    "email": "service@hemu-pet.example",
+    "business": "自有配方研發、委託工廠量產；品牌官網、電商、寵物用品店與經銷商",
+    "focus": "成貓主食罐上市、第二原料來源、改善包材交期",
+    "asOf": "2026-10-11"
+  },
+  "departments": [
+    {
+      "name": "經營管理",
+      "count": 3,
+      "head": "lin"
+    },
+    {
+      "name": "研發",
+      "count": 7,
+      "head": "chen"
+    },
+    {
+      "name": "品保法規",
+      "count": 5,
+      "head": "tsai"
+    },
+    {
+      "name": "採購供應鏈",
+      "count": 5,
+      "head": "wang"
+    },
+    {
+      "name": "生產倉儲",
+      "count": 8,
+      "head": "chao"
+    },
+    {
+      "name": "業務行銷",
+      "count": 10,
+      "head": "hsu"
+    },
+    {
+      "name": "財務行政",
+      "count": 3,
+      "head": "chou"
+    },
+    {
+      "name": "資訊",
+      "count": 1,
+      "head": "cheng"
+    }
+  ],
+  "people": [
+    {
+      "key": "lin",
+      "name": "林承岳",
+      "department": "經營管理",
+      "title": "總經理",
+      "role": "admin"
+    },
+    {
+      "key": "chen",
+      "name": "陳怡安",
+      "department": "研發",
+      "title": "研發經理",
+      "role": "project_owner"
+    },
+    {
+      "key": "huang",
+      "name": "黃子晴",
+      "department": "研發",
+      "title": "食品研發專員",
+      "role": "member"
+    },
+    {
+      "key": "wu",
+      "name": "吳柏廷",
+      "department": "研發",
+      "title": "製程工程師",
+      "role": "member"
+    },
+    {
+      "key": "tsai",
+      "name": "蔡佩珊",
+      "department": "品保法規",
+      "title": "品保法規主管",
+      "role": "project_owner"
+    },
+    {
+      "key": "lee",
+      "name": "李冠宇",
+      "department": "品保法規",
+      "title": "品保專員",
+      "role": "member"
+    },
+    {
+      "key": "wang",
+      "name": "王郁雯",
+      "department": "採購供應鏈",
+      "title": "採購主管",
+      "role": "project_owner"
+    },
+    {
+      "key": "chang",
+      "name": "張育誠",
+      "department": "採購供應鏈",
+      "title": "採購專員",
+      "role": "member"
+    },
+    {
+      "key": "chao",
+      "name": "趙志豪",
+      "department": "生產倉儲",
+      "title": "生產協調主管",
+      "role": "member"
+    },
+    {
+      "key": "hsu",
+      "name": "許雅筑",
+      "department": "業務行銷",
+      "title": "品牌經理",
+      "role": "project_owner"
+    },
+    {
+      "key": "chou",
+      "name": "周宛庭",
+      "department": "財務行政",
+      "title": "財務專員",
+      "role": "member"
+    },
+    {
+      "key": "cheng",
+      "name": "鄭宇翔",
+      "department": "資訊",
+      "title": "資訊管理員",
+      "role": "admin"
+    }
+  ],
+  "suppliers": [
+    {
+      "code": "SUP-001",
+      "title": "青原禽肉供應有限公司",
+      "status": "合格主要供應商",
+      "fields": {
+        "供應": "冷凍雞胸肉、雞肝",
+        "交期": "7–10天",
+        "付款": "月結30天"
+      }
+    },
+    {
+      "code": "SUP-002",
+      "title": "澄海水產原料有限公司",
+      "status": "新批次待送樣",
+      "fields": {
+        "供應": "冷凍鮪魚",
+        "交期": "14–21天",
+        "付款": "月結30天"
+      }
+    },
+    {
+      "code": "SUP-003",
+      "title": "衡益營養原料有限公司",
+      "status": "合格；規格需版本確認",
+      "fields": {
+        "供應": "營養預混料、牛磺酸",
+        "交期": "21天",
+        "付款": "月結30天"
+      }
+    },
+    {
+      "code": "SUP-004",
+      "title": "方禾金屬包材有限公司",
+      "status": "合格；排程較滿",
+      "fields": {
+        "供應": "85g罐身、易開蓋",
+        "交期": "28天",
+        "付款": "月結45天"
+      }
+    },
+    {
+      "code": "SUP-005",
+      "title": "采序印刷包裝有限公司",
+      "status": "新包裝打樣中",
+      "fields": {
+        "供應": "彩盒、外箱、標籤",
+        "交期": "校稿後14天",
+        "付款": "月結30天"
+      }
+    },
+    {
+      "code": "MFG-001",
+      "title": "沐川食品製造股份有限公司",
+      "status": "試產暫排10/22",
+      "fields": {
+        "供應": "委託試產與量產",
+        "交期": "確認後21天",
+        "付款": "依合約"
+      }
+    },
+    {
+      "code": "LAB-001",
+      "title": "明析食品檢測有限公司",
+      "status": "合作實驗室",
+      "fields": {
+        "供應": "營養、微生物送驗",
+        "交期": "收樣後7–12工作天",
+        "付款": "月結30天"
+      }
+    }
+  ],
+  "materials": [
+    {
+      "code": "RM-CHK-001",
+      "title": "冷凍去皮雞胸肉",
+      "status": "展示帳面庫存",
+      "fields": {
+        "供應商": "SUP-001",
+        "單位": "kg",
+        "未稅參考單價": "118",
+        "庫存": "360"
+      }
+    },
+    {
+      "code": "RM-LIV-001",
+      "title": "冷凍雞肝",
+      "status": "展示帳面庫存",
+      "fields": {
+        "供應商": "SUP-001",
+        "單位": "kg",
+        "未稅參考單價": "62",
+        "庫存": "48"
+      }
+    },
+    {
+      "code": "RM-TUN-001",
+      "title": "冷凍鮪魚碎肉",
+      "status": "展示帳面庫存",
+      "fields": {
+        "供應商": "SUP-002",
+        "單位": "kg",
+        "未稅參考單價": "145",
+        "庫存": "120"
+      }
+    },
+    {
+      "code": "RM-PMX-001",
+      "title": "貓用營養預混料",
+      "status": "展示帳面庫存",
+      "fields": {
+        "供應商": "SUP-003",
+        "單位": "kg",
+        "未稅參考單價": "480",
+        "庫存": "18"
+      }
+    },
+    {
+      "code": "RM-TAU-001",
+      "title": "牛磺酸",
+      "status": "展示帳面庫存",
+      "fields": {
+        "供應商": "SUP-003",
+        "單位": "kg",
+        "未稅參考單價": "220",
+        "庫存": "6"
+      }
+    },
+    {
+      "code": "PK-CAN-085",
+      "title": "85g罐身",
+      "status": "展示帳面庫存",
+      "fields": {
+        "供應商": "SUP-004",
+        "單位": "個",
+        "未稅參考單價": "2.6",
+        "庫存": "8400"
+      }
+    },
+    {
+      "code": "PK-LID-085",
+      "title": "85g易開蓋",
+      "status": "展示帳面庫存",
+      "fields": {
+        "供應商": "SUP-004",
+        "單位": "個",
+        "未稅參考單價": "0.95",
+        "庫存": "8400"
+      }
+    },
+    {
+      "code": "PK-BOX-024",
+      "title": "24入運輸外箱",
+      "status": "展示帳面庫存",
+      "fields": {
+        "供應商": "SUP-005",
+        "單位": "個",
+        "未稅參考單價": "18",
+        "庫存": "350"
+      }
+    }
+  ],
+  "orders": [
+    {
+      "code": "PO-261002-01",
+      "title": "雞胸肉採購",
+      "status": "供應商已確認",
+      "fields": {
+        "供應商": "SUP-001",
+        "料號": "RM-CHK-001",
+        "數量": "200 kg",
+        "未稅金額": "NT$23,600",
+        "預計到貨": "2026-10-15",
+        "用途": "WO-261022-01"
+      }
+    },
+    {
+      "code": "PO-260925-02",
+      "title": "罐身與易開蓋採購",
+      "status": "樣品確認待完成",
+      "fields": {
+        "供應商": "SUP-004",
+        "料號": "PK-CAN-085、PK-LID-085",
+        "數量": "各12,000個",
+        "未稅金額": "NT$42,600",
+        "預計到貨": "2026-10-19",
+        "用途": "試產與後續量產備料"
+      }
+    },
+    {
+      "code": "PO-261005-03",
+      "title": "營養預混料採購",
+      "status": "已確認",
+      "fields": {
+        "供應商": "SUP-003",
+        "料號": "RM-PMX-001",
+        "數量": "10 kg",
+        "未稅金額": "NT$4,800",
+        "預計到貨": "2026-10-26",
+        "用途": "後續批次；10/22試產使用既有庫存"
+      }
+    }
+  ],
+  "documents": [
+    {
+      "code": "DOC-RD-026",
+      "title": "成貓雞肉主食罐產品規格書",
+      "status": "待審",
+      "fields": {
+        "版本": "v0.3",
+        "負責人": "陳怡安",
+        "內容": "85g主食罐；試產投料180kg、目標2,000罐，開發預算NT$280,000。營養與製程規格待專業驗證，不構成可投產配方。"
+      }
+    },
+    {
+      "code": "DOC-RD-027",
+      "title": "第二輪試作紀錄",
+      "status": "已提交",
+      "fields": {
+        "版本": "v1.0",
+        "負責人": "黃子晴",
+        "內容": "60罐樣品中3罐有明顯析水；待主管確認。照片與檢驗附件尚未上傳，非真實檢驗證明。"
+      }
+    },
+    {
+      "code": "DOC-QA-014",
+      "title": "原料驗收項目與抽樣表",
+      "status": "生效示例",
+      "fields": {
+        "版本": "v1.2",
+        "負責人": "蔡佩珊",
+        "內容": "確認供應商、料號、批號、包裝完整性與隨貨文件；實際允收標準待品保訂定。"
+      }
+    },
+    {
+      "code": "DOC-PK-009",
+      "title": "85g罐身與罐蓋確認表",
+      "status": "待補資料",
+      "fields": {
+        "版本": "v0.2",
+        "負責人": "吳柏廷",
+        "內容": "罐蓋樣品預計10/13到廠，10/15前確認；未完成不得放行試產。"
+      }
+    },
+    {
+      "code": "DOC-MK-018",
+      "title": "包裝標示文字稿",
+      "status": "退回修改",
+      "fields": {
+        "版本": "v0.4",
+        "負責人": "許雅筑",
+        "內容": "營養標示仍引用上一版資料；更新資料來源與版本後重送。"
+      }
+    }
+  ],
+  "workOrders": [
+    {
+      "code": "WO-261022-01",
+      "title": "雞肉主食罐工程試產",
+      "status": "暫排，尚未放行",
+      "fields": {
+        "代工廠": "MFG-001",
+        "日期": "2026-10-22",
+        "投料": "180 kg",
+        "目標": "2,000罐 × 85g＝170 kg",
+        "預留耗損": "10 kg；實際產出待回報",
+        "前置": "包材確認、試作審核、排程確認",
+        "採購": "PO-261002-01、PO-260925-02"
+      }
+    }
+  ],
+  "projects": [
+    {
+      "code": "PRJ-2608",
+      "title": "成貓雞肉主食罐85g開發",
+      "owner": "chen",
+      "phases": [
+        {
+          "title": "市場與配方",
+          "tasks": [
+            {
+              "key": "market",
+              "title": "競品與價格帶分析",
+              "owner": "hsu",
+              "start": "2026-08-17",
+              "due": "2026-08-28",
+              "state": "done",
+              "deps": [],
+              "summary": ""
+            },
+            {
+              "key": "cost",
+              "title": "原料初選與初版成本",
+              "owner": "wang",
+              "start": "2026-08-24",
+              "due": "2026-09-04",
+              "state": "done",
+              "deps": [],
+              "summary": ""
+            },
+            {
+              "key": "first",
+              "title": "第一輪配方試作",
+              "owner": "huang",
+              "start": "2026-09-07",
+              "due": "2026-09-18",
+              "state": "done",
+              "deps": [],
+              "summary": ""
+            }
+          ]
+        },
+        {
+          "title": "小量試作",
+          "tasks": [
+            {
+              "key": "texture",
+              "title": "第二輪質地調整",
+              "owner": "huang",
+              "start": "2026-09-21",
+              "due": "2026-10-08",
+              "state": "done",
+              "deps": [],
+              "summary": ""
+            },
+            {
+              "key": "review",
+              "title": "第二輪試作回報審核",
+              "owner": "huang",
+              "start": "2026-10-08",
+              "due": "2026-10-12",
+              "state": "review",
+              "deps": [
+                "texture"
+              ],
+              "summary": "第二輪樣品共60罐，3罐有明顯析水。已整理樣品編號；照片尚未上傳，請研發主管確認是否調整。"
+            },
+            {
+              "key": "can",
+              "title": "罐身與易開蓋相容性確認",
+              "owner": "wu",
+              "start": "2026-10-01",
+              "due": "2026-10-09",
+              "state": "doing",
+              "deps": [],
+              "summary": ""
+            },
+            {
+              "key": "schedule",
+              "title": "確認委外試產排程",
+              "owner": "chao",
+              "start": "2026-10-12",
+              "due": "2026-10-16",
+              "state": "todo",
+              "deps": [
+                "can"
+              ],
+              "summary": ""
+            }
+          ]
+        },
+        {
+          "title": "製程與保存",
+          "tasks": [
+            {
+              "key": "trial",
+              "title": "試產及製程紀錄",
+              "owner": "wu",
+              "start": "2026-10-22",
+              "due": "2026-10-22",
+              "state": "todo",
+              "deps": [
+                "review",
+                "schedule"
+              ],
+              "summary": ""
+            },
+            {
+              "key": "shelf",
+              "title": "保存性試驗啟動",
+              "owner": "lee",
+              "start": "2026-10-23",
+              "due": "2026-10-26",
+              "state": "todo",
+              "deps": [
+                "trial"
+              ],
+              "summary": ""
+            }
+          ]
+        },
+        {
+          "title": "檢驗與標示",
+          "tasks": [
+            {
+              "key": "lab",
+              "title": "營養與微生物送驗",
+              "owner": "lee",
+              "start": "2026-10-26",
+              "due": "2026-11-06",
+              "state": "todo",
+              "deps": [
+                "trial"
+              ],
+              "summary": ""
+            },
+            {
+              "key": "label",
+              "title": "包裝標示初稿修訂",
+              "owner": "hsu",
+              "start": "2026-10-05",
+              "due": "2026-10-15",
+              "state": "rejected",
+              "deps": [],
+              "summary": "包裝初稿的營養標示仍引用上一版資料，請更新來源與版本後重送。"
+            }
+          ]
+        },
+        {
+          "title": "量產上市",
+          "tasks": [
+            {
+              "key": "release",
+              "title": "首批量產放行",
+              "owner": "tsai",
+              "start": "2026-11-23",
+              "due": "2026-12-04",
+              "state": "todo",
+              "deps": [
+                "lab",
+                "label",
+                "shelf"
+              ],
+              "summary": ""
+            },
+            {
+              "key": "launch",
+              "title": "官網與通路上架",
+              "owner": "hsu",
+              "start": "2026-12-07",
+              "due": "2026-12-18",
+              "state": "todo",
+              "deps": [
+                "release"
+              ],
+              "summary": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "PRJ-2609",
+      "title": "鮪魚原料第二供應來源導入",
+      "owner": "wang",
+      "phases": [
+        {
+          "title": "供應商初評",
+          "tasks": [
+            {
+              "key": "survey",
+              "title": "供應商能力與報價初評",
+              "owner": "wang",
+              "start": "2026-09-07",
+              "due": "2026-09-18",
+              "state": "done",
+              "deps": [],
+              "summary": ""
+            }
+          ]
+        },
+        {
+          "title": "樣品評估",
+          "tasks": [
+            {
+              "key": "sample",
+              "title": "追蹤鮪魚樣品到貨",
+              "owner": "chang",
+              "start": "2026-09-21",
+              "due": "2026-10-09",
+              "state": "doing",
+              "deps": [],
+              "summary": "樣品延至10/14到貨，送驗時程需調整。"
+            },
+            {
+              "key": "test",
+              "title": "安排樣品送驗",
+              "owner": "lee",
+              "start": "2026-10-15",
+              "due": "2026-10-28",
+              "state": "todo",
+              "deps": [
+                "sample"
+              ],
+              "summary": ""
+            }
+          ]
+        },
+        {
+          "title": "導入核准",
+          "tasks": [
+            {
+              "key": "approve",
+              "title": "第二供應來源核准",
+              "owner": "tsai",
+              "start": "2026-11-02",
+              "due": "2026-11-13",
+              "state": "todo",
+              "deps": [
+                "test"
+              ],
+              "summary": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "PRJ-2610",
+      "title": "犬用鮮食餐包包裝改版",
+      "owner": "hsu",
+      "phases": [
+        {
+          "title": "設計打樣",
+          "tasks": [
+            {
+              "key": "brief",
+              "title": "包裝設計需求確認",
+              "owner": "hsu",
+              "start": "2026-09-21",
+              "due": "2026-09-25",
+              "state": "done",
+              "deps": [],
+              "summary": ""
+            },
+            {
+              "key": "proof",
+              "title": "新版包裝打樣",
+              "owner": "hsu",
+              "start": "2026-09-28",
+              "due": "2026-10-12",
+              "state": "doing",
+              "deps": [],
+              "summary": ""
+            },
+            {
+              "key": "legal",
+              "title": "法規文字審查",
+              "owner": "tsai",
+              "start": "2026-10-05",
+              "due": "2026-10-15",
+              "state": "review",
+              "deps": [],
+              "summary": "新版標示文字已整理，請確認後再批准印刷。"
+            }
+          ]
+        },
+        {
+          "title": "印刷與換版",
+          "tasks": [
+            {
+              "key": "print",
+              "title": "核准印刷與換版",
+              "owner": "hsu",
+              "start": "2026-10-16",
+              "due": "2026-11-20",
+              "state": "todo",
+              "deps": [
+                "proof",
+                "legal"
+              ],
+              "summary": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "PRJ-2611",
+      "title": "年度供應商評鑑",
+      "owner": "tsai",
+      "phases": [
+        {
+          "title": "資料收集",
+          "tasks": [
+            {
+              "key": "list",
+              "title": "確認年度評鑑名單",
+              "owner": "wang",
+              "start": "2026-10-01",
+              "due": "2026-10-05",
+              "state": "done",
+              "deps": [],
+              "summary": ""
+            },
+            {
+              "key": "collect",
+              "title": "追蹤供應商補件",
+              "owner": "chang",
+              "start": "2026-10-05",
+              "due": "2026-10-23",
+              "state": "doing",
+              "deps": [],
+              "summary": "7家合作單位中有2家尚未補齊文件。"
+            }
+          ]
+        },
+        {
+          "title": "評鑑與結案",
+          "tasks": [
+            {
+              "key": "score",
+              "title": "彙整品質與交期評分",
+              "owner": "tsai",
+              "start": "2026-10-26",
+              "due": "2026-11-20",
+              "state": "todo",
+              "deps": [
+                "collect"
+              ],
+              "summary": ""
+            },
+            {
+              "key": "close",
+              "title": "核准年度評鑑結果",
+              "owner": "lin",
+              "start": "2026-11-23",
+              "due": "2026-12-04",
+              "state": "todo",
+              "deps": [
+                "score"
+              ],
+              "summary": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

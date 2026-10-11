@@ -468,7 +468,7 @@ export default function App() {
           {state === 'checking-session' && <p role="status">確認登入狀態中</p>}
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
-          {state === 'ready' && (route.page === 'operations' || route.page === 'governance') && <PreviewBoundary initialPage={route.page} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => navigate({ page: 'overview' })} />}
+          {state === 'ready' && (route.page === 'operations' || route.page === 'governance') && <PreviewBoundary initialPage={route.page} companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => navigate({ page: 'overview' })} />}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview showAssignHint={canCreate} openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} createProject={canCreate ? id => void openCreation(id) : undefined} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
@@ -484,7 +484,7 @@ export default function App() {
             readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)}
             move={(id, parentId) => void moveNode(id, parentId)} openReport={openReport} reportIntent={reportIntent} notify={setMessage}
             color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))}
-            preview={(projectView === 'documents' || projectView === 'data') && <PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage={projectView} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} />}
+            preview={(projectView === 'documents' || projectView === 'data') && <PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage={projectView} companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} />}
             tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { begin(); closeCreation(); setProjectView(view); }}
             actions={<>
               {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}

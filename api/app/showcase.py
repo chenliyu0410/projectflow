@@ -17,6 +17,7 @@ COMPANIES = [
     {'key': 'events', 'name': '光點企劃', 'industry': '活動行銷'},
     {'key': 'software', 'name': '雲序軟體', 'industry': 'SaaS 軟體服務'},
     {'key': 'construction', 'name': '築衡工程', 'industry': '營建工程'},
+    {'key': 'hemu', 'name': '禾沐寵物營養股份有限公司', 'industry': '寵物食品研發（虛構展示）'},
 ]
 USERNAME = '_showcase_demo'
 
@@ -65,6 +66,8 @@ def provision(db):
     from app.services.workflow_service import validate_graph
     added = {'organizations': 0, 'users': 0, 'workflows': 0}
     for company in COMPANIES:
+        if company['key'] == 'hemu':
+            continue  # Dedicated atomic importer owns this approved company dataset.
         org = db.scalar(select(Organization).where(Organization.key == company['key']))
         if org is None:
             org = Organization(key=company['key'], name=company['name']); db.add(org); db.flush(); added['organizations'] += 1
