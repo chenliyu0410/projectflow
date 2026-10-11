@@ -103,7 +103,8 @@ export default function WorkOrderPanel({ record, expired, leaveGuard, blocked = 
     });
   }
   const closed = production?.status === 'closed';
-  const plan: ProgressLine[] = production?.product ? [{ id: 'plan', line_no: 1, resource_id: production.product.id, resource_code: production.product.code,
+  // Keyed by product so a selection made before someone else changed the product no longer matches.
+  const plan: ProgressLine[] = production?.product ? [{ id: production.product.id, line_no: 1, resource_id: production.product.id, resource_code: production.product.code,
     resource_title: production.product.title, unit: production.unit!, ordered: production.planned!, received: production.completed!, remaining: production.remaining!, note: production.note,
     status: Number(production.remaining) <= 0 ? 'received' : Number(production.completed) > 0 ? 'partial' : 'pending' }] : [];
   const invalid = !draft?.product || !draft.quantity || Number(draft.quantity) <= 0 || !draft.unit.trim()

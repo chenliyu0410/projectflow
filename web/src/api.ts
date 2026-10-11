@@ -71,6 +71,7 @@ export const KNOWN_CONFLICTS = new Set([
   '計畫產量不可少於已完工數量',
   '計畫單位須與成品既有庫存單位一致',
   '工單尚未結案',
+  '庫存單位不一致，請使用既有單位',
 ]);
 
 export async function requestJson<T>(
