@@ -1,0 +1,4107 @@
+{
+  "food": {
+    "company": {
+      "key": "food",
+      "name": "毛研食品",
+      "code": "MY",
+      "brand": "毛研營養研究室",
+      "established": 2016,
+      "employees": 32,
+      "location": "台南市；研發辦公室及委外生產協調中心",
+      "email": "contact@food-showcase.example",
+      "business": "犬貓營養補充品與凍乾零食開發，委外製造，電商與寵物門市銷售",
+      "focus": "凍乾新品、犬用營養粉包裝與原料品質追蹤",
+      "asOf": "2026-10-11"
+    },
+    "people": [
+      {
+        "key": "p0",
+        "name": "何俊廷",
+        "department": "經營管理組",
+        "title": "營運長",
+        "role": "admin"
+      },
+      {
+        "key": "p1",
+        "name": "蘇品蓁",
+        "department": "配方研發中心",
+        "title": "研發主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p2",
+        "name": "賴冠廷",
+        "department": "配方研發中心",
+        "title": "研發專員",
+        "role": "member"
+      },
+      {
+        "key": "p3",
+        "name": "江婉如",
+        "department": "品質法規中心",
+        "title": "品質法規主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p4",
+        "name": "潘思穎",
+        "department": "品質法規中心",
+        "title": "品保專員",
+        "role": "member"
+      },
+      {
+        "key": "p5",
+        "name": "曾柏鈞",
+        "department": "供應鏈管理組",
+        "title": "供應鏈主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p6",
+        "name": "姚佩芸",
+        "department": "供應鏈管理組",
+        "title": "採購專員",
+        "role": "member"
+      },
+      {
+        "key": "p7",
+        "name": "高雅雯",
+        "department": "品牌通路組",
+        "title": "品牌主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p8",
+        "name": "游承翰",
+        "department": "品牌通路組",
+        "title": "通路企劃",
+        "role": "member"
+      },
+      {
+        "key": "p9",
+        "name": "邱怡君",
+        "department": "營運行政組",
+        "title": "財務行政專員",
+        "role": "member"
+      }
+    ],
+    "departments": [
+      {
+        "name": "經營管理組",
+        "count": 3,
+        "head": "p0"
+      },
+      {
+        "name": "配方研發中心",
+        "count": 8,
+        "head": "p1"
+      },
+      {
+        "name": "品質法規中心",
+        "count": 5,
+        "head": "p3"
+      },
+      {
+        "name": "供應鏈管理組",
+        "count": 5,
+        "head": "p5"
+      },
+      {
+        "name": "品牌通路組",
+        "count": 7,
+        "head": "p7"
+      },
+      {
+        "name": "營運行政組",
+        "count": 4,
+        "head": "p9"
+      }
+    ],
+    "projects": [
+      {
+        "code": "MY-2610",
+        "title": "雞肉凍乾零食30g新品開發",
+        "owner": "p1",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "通路需求與售價區間確認",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "試產目標1,500包×30g，包材到貨後再安排投料。 已完成「通路需求與售價區間確認」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "凍乾樣品與原料規格整理",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "試產目標1,500包×30g，包材到貨後再安排投料。 已完成「凍乾樣品與原料規格整理」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "第二輪適口性紀錄審核",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "試產目標1,500包×30g，包材到貨後再安排投料。 「第二輪適口性紀錄審核」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "高阻隔袋交期確認",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "試產目標1,500包×30g，包材到貨後再安排投料。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "營養及標示資料修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "試產目標1,500包×30g，包材到貨後再安排投料。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "委外試產確認",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t6",
+                "title": "成品檢驗與留樣",
+                "owner": "p5",
+                "start": "2026-10-26",
+                "due": "2026-11-06",
+                "state": "todo",
+                "deps": [
+                  "t5"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t7",
+                "title": "首批上架與交付",
+                "owner": "p1",
+                "start": "2026-11-09",
+                "due": "2026-11-20",
+                "state": "todo",
+                "deps": [
+                  "t6"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "MY-2611",
+        "title": "犬用營養粉120g包裝改版",
+        "owner": "p7",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "舊版客訴與需求盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "新包材使用前需完成密封確認，舊庫存分批消化。 已完成「舊版客訴與需求盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "新版包裝尺寸定稿",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "新包材使用前需完成密封確認，舊庫存分批消化。 已完成「新版包裝尺寸定稿」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "打樣外觀回報",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "新包材使用前需完成密封確認，舊庫存分批消化。 「打樣外觀回報」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "封口袋測試追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "新包材使用前需完成密封確認，舊庫存分批消化。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "標示文字修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "新包材使用前需完成密封確認，舊庫存分批消化。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "包材換版驗收",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "MY-2612",
+        "title": "冷凍雞肉第二來源評估",
+        "owner": "p5",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "第二來源報價盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "供應商資料仍缺一次到貨溫度紀錄，不先列為合格。 已完成「第二來源報價盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "冷鏈與規格文件收集",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "供應商資料仍缺一次到貨溫度紀錄，不先列為合格。 已完成「冷鏈與規格文件收集」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "樣品初評回報",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "供應商資料仍缺一次到貨溫度紀錄，不先列為合格。 「樣品初評回報」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "隨貨檢驗文件追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "供應商資料仍缺一次到貨溫度紀錄，不先列為合格。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "供應商評鑑修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "供應商資料仍缺一次到貨溫度紀錄，不先列為合格。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "導入核准",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "MY-2613",
+        "title": "第四季電商組合包上市",
+        "owner": "p7",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "組合包銷量預估",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "預計備貨800組，商品效期與批號需逐批核對。 已完成「組合包銷量預估」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "商品與贈品清單確認",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "預計備貨800組，商品效期與批號需逐批核對。 已完成「商品與贈品清單確認」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "素材初稿審核",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "預計備貨800組，商品效期與批號需逐批核對。 「素材初稿審核」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "贈品交期追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "預計備貨800組，商品效期與批號需逐批核對。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "活動頁內容修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "預計備貨800組，商品效期與批號需逐批核對。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "活動頁與出貨流程驗收",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "key": "partners",
+        "label": "供應商 / 檢測",
+        "records": [
+          {
+            "code": "MY-S01",
+            "title": "森禾禽肉原料",
+            "status": "合格供應商",
+            "fields": {
+              "供應": "冷凍雞胸肉",
+              "交期": "10天",
+              "付款": "月結30天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "MY-S02",
+            "title": "澤昕食品加工",
+            "status": "試產排程待確認",
+            "fields": {
+              "服務": "委外凍乾與分裝",
+              "最低試產量": "投料120kg",
+              "交期": "確認後21天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "MY-S03",
+            "title": "宜封包裝材料",
+            "status": "打樣待確認",
+            "fields": {
+              "供應": "高阻隔夾鏈袋",
+              "交期": "21天",
+              "付款": "月結30天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "MY-S04",
+            "title": "禾析檢測服務",
+            "status": "合作實驗室",
+            "fields": {
+              "服務": "水分、微生物等送驗",
+              "報告": "收樣後10工作天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "MY-S05",
+            "title": "匯寵通路服務",
+            "status": "新通路洽談",
+            "fields": {
+              "服務": "寵物門市配銷",
+              "結帳": "月結45天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "resources",
+        "label": "原料 / 包材",
+        "records": [
+          {
+            "code": "MY-R01",
+            "title": "冷凍雞胸肉",
+            "status": "展示庫存",
+            "fields": {
+              "單位": "kg",
+              "單價": "NT$116",
+              "庫存": "280",
+              "供應商": "MY-S01"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "MY-R02",
+            "title": "30g高阻隔袋",
+            "status": "打樣中",
+            "fields": {
+              "單位": "個",
+              "單價": "NT$3.20",
+              "庫存": "0",
+              "供應商": "MY-S03"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "MY-R03",
+            "title": "24包外箱",
+            "status": "可用示例",
+            "fields": {
+              "單位": "個",
+              "單價": "NT$22",
+              "庫存": "180"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "MY-R04",
+            "title": "120g粉包外袋",
+            "status": "新版待確認",
+            "fields": {
+              "單位": "個",
+              "規格": "尺寸與標示待審",
+              "庫存": "0"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "MY-R05",
+            "title": "試產留樣位置",
+            "status": "預留",
+            "fields": {
+              "位置": "RD-FD-02",
+              "用途": "凍乾新品留樣",
+              "實際樣品": "未入庫"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "orders",
+        "label": "採購",
+        "records": [
+          {
+            "code": "MY-PO01",
+            "title": "雞肉試產原料採購",
+            "status": "供應商已確認",
+            "fields": {
+              "數量": "120kg",
+              "單價": "NT$116",
+              "未稅金額": "NT$13,920",
+              "預計到貨": "2026-10-16"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "MY-S01"
+              },
+              {
+                "group": "work",
+                "code": "MY-W01"
+              }
+            ],
+            "action": "模擬到貨",
+            "editable": false
+          },
+          {
+            "code": "MY-PO02",
+            "title": "30g高阻隔袋採購",
+            "status": "打樣待確認",
+            "fields": {
+              "數量": "2,000個",
+              "單價": "NT$3.20",
+              "未稅金額": "NT$6,400",
+              "預計到貨": "2026-10-20"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "MY-S03"
+              },
+              {
+                "group": "work",
+                "code": "MY-W01"
+              }
+            ],
+            "action": "模擬到貨",
+            "editable": false
+          },
+          {
+            "code": "MY-PO03",
+            "title": "首輪檢驗委託",
+            "status": "待送樣",
+            "fields": {
+              "樣品": "凍乾成品",
+              "未稅估價": "NT$12,800",
+              "送樣": "試產完成後"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "MY-S04"
+              },
+              {
+                "group": "work",
+                "code": "MY-W02"
+              }
+            ],
+            "action": "模擬確認",
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "work",
+        "label": "試產 / 檢驗",
+        "records": [
+          {
+            "code": "MY-W01",
+            "title": "凍乾新品工程試產",
+            "status": "未放行",
+            "fields": {
+              "暫排": "2026-10-23",
+              "投料": "120kg",
+              "目標成品": "45kg＝1,500包×30g",
+              "說明": "目標收率37.5%，實際失重與耗損待試產量測"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "MY-S02"
+              },
+              {
+                "group": "documents",
+                "code": "MY-DOC-001"
+              }
+            ],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "MY-W02",
+            "title": "凍乾成品檢驗",
+            "status": "待試產樣品",
+            "fields": {
+              "預計收樣": "2026-10-26",
+              "結果": "尚未出具；不能當作合格證明"
+            },
+            "links": [
+              {
+                "group": "work",
+                "code": "MY-W01"
+              }
+            ],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "documents",
+        "label": "文件",
+        "records": [
+          {
+            "code": "MY-DOC-001",
+            "title": "凍乾新品試產需求書",
+            "status": "待審",
+            "fields": {
+              "版本": "v0.3",
+              "負責人": "蘇品蓁",
+              "內容": "目標1,500包×30g；工廠確認包材與製程後才能投料，不代表核准生產配方。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "MY-DOC-002",
+            "title": "凍乾新品包裝文字稿",
+            "status": "退回修改",
+            "fields": {
+              "版本": "v0.4",
+              "負責人": "高雅雯",
+              "內容": "標示需引用最新檢驗資料；文案尚未核准。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "MY-DOC-003",
+            "title": "第二輪試樣觀察紀錄",
+            "status": "已提交",
+            "fields": {
+              "版本": "v1.0",
+              "負責人": "賴冠廷",
+              "內容": "樣品共40份，3份碎屑較多；樣品編號與觀察方法待審。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "MY-DOC-004",
+            "title": "原料冷鏈驗收表",
+            "status": "生效示例",
+            "fields": {
+              "版本": "v1.2",
+              "負責人": "江婉如",
+              "內容": "核對批號、來源、冷鏈紀錄及允收標準；本文件為虛構參考。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "MY-DOC-005",
+            "title": "委外試產交接清單",
+            "status": "待補資料",
+            "fields": {
+              "版本": "v0.2",
+              "負責人": "曾柏鈞",
+              "內容": "原料與包材到齊後確認工廠排程，保留每批留樣紀錄。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          }
+        ]
+      }
+    ],
+    "journey": "雞肉與包材確認 → 委外試產 → 檢驗留樣 → 新品上架。試產與檢驗目前尚無實際結果。"
+  },
+  "electronics": {
+    "company": {
+      "key": "electronics",
+      "name": "峰曜科技",
+      "code": "FY",
+      "brand": "峰曜工業連接方案",
+      "established": 2012,
+      "employees": 48,
+      "location": "新北市；研發中心與委外組裝據點",
+      "email": "contact@electronics-showcase.example",
+      "business": "工業連接器與線束模組設計，委外模具與組裝，供應設備製造客戶",
+      "focus": "IP67連接器驗證、料件第二來源與試製交付",
+      "asOf": "2026-10-11"
+    },
+    "people": [
+      {
+        "key": "p0",
+        "name": "徐致遠",
+        "department": "經營管理處",
+        "title": "總經理",
+        "role": "admin"
+      },
+      {
+        "key": "p1",
+        "name": "郭明哲",
+        "department": "硬體研發中心",
+        "title": "硬體研發經理",
+        "role": "project_owner"
+      },
+      {
+        "key": "p2",
+        "name": "簡奕辰",
+        "department": "硬體研發中心",
+        "title": "機構工程師",
+        "role": "member"
+      },
+      {
+        "key": "p3",
+        "name": "鍾雅婷",
+        "department": "品質工程中心",
+        "title": "品質主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p4",
+        "name": "葉承恩",
+        "department": "品質工程中心",
+        "title": "驗證工程師",
+        "role": "member"
+      },
+      {
+        "key": "p5",
+        "name": "謝宗翰",
+        "department": "製造供應鏈組",
+        "title": "製造供應鏈主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p6",
+        "name": "盧映彤",
+        "department": "製造供應鏈組",
+        "title": "採購工程師",
+        "role": "member"
+      },
+      {
+        "key": "p7",
+        "name": "許家瑜",
+        "department": "業務專案組",
+        "title": "業務專案主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p8",
+        "name": "楊博鈞",
+        "department": "業務專案組",
+        "title": "客戶專案專員",
+        "role": "member"
+      },
+      {
+        "key": "p9",
+        "name": "莊惠如",
+        "department": "資訊行政組",
+        "title": "資訊行政專員",
+        "role": "member"
+      }
+    ],
+    "departments": [
+      {
+        "name": "經營管理處",
+        "count": 4,
+        "head": "p0"
+      },
+      {
+        "name": "硬體研發中心",
+        "count": 16,
+        "head": "p1"
+      },
+      {
+        "name": "品質工程中心",
+        "count": 8,
+        "head": "p3"
+      },
+      {
+        "name": "製造供應鏈組",
+        "count": 9,
+        "head": "p5"
+      },
+      {
+        "name": "業務專案組",
+        "count": 7,
+        "head": "p7"
+      },
+      {
+        "name": "資訊行政組",
+        "count": 4,
+        "head": "p9"
+      }
+    ],
+    "projects": [
+      {
+        "code": "FY-2610",
+        "title": "IP67工業連接器C24開發",
+        "owner": "p1",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "客戶接口需求確認",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "C24工程樣機目標200組，防護等級須測試合格後才能宣稱。 已完成「客戶接口需求確認」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "機構與電氣初版設計",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "C24工程樣機目標200組，防護等級須測試合格後才能宣稱。 已完成「機構與電氣初版設計」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "密封結構設計審核",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "C24工程樣機目標200組，防護等級須測試合格後才能宣稱。 「密封結構設計審核」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "矽膠密封圈交期追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "C24工程樣機目標200組，防護等級須測試合格後才能宣稱。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "驗證計畫修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "C24工程樣機目標200組，防護等級須測試合格後才能宣稱。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "工程樣機試製",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t6",
+                "title": "可靠度測試",
+                "owner": "p5",
+                "start": "2026-10-26",
+                "due": "2026-11-06",
+                "state": "todo",
+                "deps": [
+                  "t5"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t7",
+                "title": "客戶樣品交付",
+                "owner": "p1",
+                "start": "2026-11-09",
+                "due": "2026-11-20",
+                "state": "todo",
+                "deps": [
+                  "t6"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "FY-2611",
+        "title": "連接器鍍層第二來源導入",
+        "owner": "p5",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "供應商能力盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "待補測試條件與試片批號，尚未核准替代原供應商。 已完成「供應商能力盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "鍍層規格對照",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "待補測試條件與試片批號，尚未核准替代原供應商。 已完成「鍍層規格對照」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "試片外觀回報",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "待補測試條件與試片批號，尚未核准替代原供應商。 「試片外觀回報」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "鹽霧報告交期追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "待補測試條件與試片批號，尚未核准替代原供應商。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "測試計畫補件",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "待補測試條件與試片批號，尚未核准替代原供應商。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "第二來源評估結案",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "FY-2612",
+        "title": "線束模組H08測試治具改善",
+        "owner": "p1",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "不良模式統計",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "目標降低重測率，改善效果待驗收後統計。 已完成「不良模式統計」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "治具修改圖確認",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "目標降低重測率，改善效果待驗收後統計。 已完成「治具修改圖確認」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "接觸穩定性回報",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "目標降低重測率，改善效果待驗收後統計。 「接觸穩定性回報」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "探針交期追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "目標降低重測率，改善效果待驗收後統計。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "操作說明修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "目標降低重測率，改善效果待驗收後統計。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "治具驗收",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "FY-2613",
+        "title": "工業客戶年度樣品認證",
+        "owner": "p7",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "客戶認證項目盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "認證檔不得引用不同版本的材料報告。 已完成「客戶認證項目盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "送樣版本確認",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "認證檔不得引用不同版本的材料報告。 已完成「送樣版本確認」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "認證文件初審",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "認證檔不得引用不同版本的材料報告。 「認證文件初審」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "客戶窗口回覆追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "認證檔不得引用不同版本的材料報告。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "材料聲明修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "認證檔不得引用不同版本的材料報告。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "認證資料交付",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "key": "partners",
+        "label": "供應商 / 代工",
+        "records": [
+          {
+            "code": "FY-S01",
+            "title": "承曜精密加工",
+            "status": "合格",
+            "fields": {
+              "供應": "銅合金端子",
+              "交期": "14天",
+              "付款": "月結45天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "FY-S02",
+            "title": "聚楷高分子材料",
+            "status": "樣品待驗",
+            "fields": {
+              "供應": "矽膠密封圈",
+              "交期": "21天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "FY-S03",
+            "title": "銓立模具工業",
+            "status": "合作廠商",
+            "fields": {
+              "服務": "模具與塑膠射出",
+              "交期": "依圖面確認"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "FY-S04",
+            "title": "恆測驗證服務",
+            "status": "排程待確認",
+            "fields": {
+              "服務": "防護等級與環境試驗",
+              "報告": "依實際測項"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "FY-S05",
+            "title": "景衡自動化設備",
+            "status": "樣品客戶",
+            "fields": {
+              "需求": "C24工程樣機",
+              "交付": "驗證完成後交付"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "resources",
+        "label": "料件 / 設備",
+        "records": [
+          {
+            "code": "FY-R01",
+            "title": "C24銅合金端子",
+            "status": "展示庫存",
+            "fields": {
+              "庫存": "1,800個",
+              "單價": "NT$18",
+              "供應商": "FY-S01"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "FY-R02",
+            "title": "C24矽膠密封圈",
+            "status": "待進料",
+            "fields": {
+              "庫存": "0",
+              "單價": "NT$6.50",
+              "供應商": "FY-S02"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "FY-R03",
+            "title": "C24射出外殼",
+            "status": "試模件",
+            "fields": {
+              "庫存": "220個",
+              "版本": "REV.B",
+              "供應商": "FY-S03"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "FY-R04",
+            "title": "H08探針組",
+            "status": "待補料",
+            "fields": {
+              "規格": "測試治具用",
+              "庫存": "12組"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "FY-R05",
+            "title": "接觸電阻測試台",
+            "status": "可預約示例",
+            "fields": {
+              "設備編號": "EQ-QA-07",
+              "用途": "工程驗證",
+              "校驗": "待依實際校驗紀錄確認"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "orders",
+        "label": "採購",
+        "records": [
+          {
+            "code": "FY-PO01",
+            "title": "C24端子採購",
+            "status": "已確認",
+            "fields": {
+              "數量": "600個",
+              "單價": "NT$18",
+              "未稅金額": "NT$10,800",
+              "交期": "2026-10-16"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "FY-S01"
+              },
+              {
+                "group": "work",
+                "code": "FY-W01"
+              }
+            ],
+            "action": "模擬收料",
+            "editable": false
+          },
+          {
+            "code": "FY-PO02",
+            "title": "密封圈工程批採購",
+            "status": "交期追蹤中",
+            "fields": {
+              "數量": "300個",
+              "單價": "NT$6.50",
+              "未稅金額": "NT$1,950",
+              "交期": "2026-10-19"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "FY-S02"
+              },
+              {
+                "group": "work",
+                "code": "FY-W01"
+              }
+            ],
+            "action": "模擬收料",
+            "editable": false
+          },
+          {
+            "code": "FY-PO03",
+            "title": "可靠度試驗委託",
+            "status": "待送樣",
+            "fields": {
+              "未稅估價": "NT$48,000",
+              "樣品版本": "REV.B",
+              "預計送樣": "2026-10-26"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "FY-S04"
+              },
+              {
+                "group": "work",
+                "code": "FY-W02"
+              }
+            ],
+            "action": "模擬確認",
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "work",
+        "label": "試製 / 品質",
+        "records": [
+          {
+            "code": "FY-W01",
+            "title": "C24工程樣機試製",
+            "status": "待密封圈與圖面確認",
+            "fields": {
+              "工單": "EVT-C24-1023",
+              "目標": "200組",
+              "暫排": "2026-10-23",
+              "批次": "尚未投產"
+            },
+            "links": [
+              {
+                "group": "documents",
+                "code": "FY-DOC-001"
+              }
+            ],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "FY-W02",
+            "title": "C24防護與可靠度驗證",
+            "status": "待樣品",
+            "fields": {
+              "計畫": "IP防護／溫循／接觸電阻",
+              "結果": "未出具，不宣稱已通過IP67"
+            },
+            "links": [
+              {
+                "group": "work",
+                "code": "FY-W01"
+              },
+              {
+                "group": "documents",
+                "code": "FY-DOC-003"
+              }
+            ],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "documents",
+        "label": "文件",
+        "records": [
+          {
+            "code": "FY-DOC-001",
+            "title": "C24工程樣機需求書",
+            "status": "待審",
+            "fields": {
+              "版本": "v0.3",
+              "負責人": "郭明哲",
+              "內容": "200組工程樣機；REV.B圖面與料件清單待確認。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "FY-DOC-002",
+            "title": "C24驗證計畫修訂稿",
+            "status": "退回修改",
+            "fields": {
+              "版本": "v0.4",
+              "負責人": "鍾雅婷",
+              "內容": "補齊樣品批號、測試條件、失效判定與報告版本。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "FY-DOC-003",
+            "title": "密封結構設計審查紀錄",
+            "status": "已提交",
+            "fields": {
+              "版本": "v1.0",
+              "負責人": "簡奕辰",
+              "內容": "需核對密封圈尺寸公差；防護等級尚未驗證。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "FY-DOC-004",
+            "title": "工程變更審核清單",
+            "status": "生效示例",
+            "fields": {
+              "版本": "v1.2",
+              "負責人": "鍾雅婷",
+              "內容": "列出受影響料件、圖面、庫存及客戶認證。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "FY-DOC-005",
+            "title": "客戶樣品交付清單",
+            "status": "待補資料",
+            "fields": {
+              "版本": "v0.2",
+              "負責人": "許家瑜",
+              "內容": "景衡自動化樣品需附正確版本的測試報告。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          }
+        ]
+      }
+    ],
+    "journey": "端子與密封圈到料 → REV.B樣機試製 → 可靠度驗證 → 客戶樣品交付。採購卡與試製批次逐筆關聯。"
+  },
+  "events": {
+    "company": {
+      "key": "events",
+      "name": "光點企劃",
+      "code": "GD",
+      "brand": "光點品牌體驗",
+      "established": 2019,
+      "employees": 24,
+      "location": "台北市；品牌活動企劃與現場執行團隊",
+      "email": "contact@events-showcase.example",
+      "business": "品牌發表會、展覽與體驗活動企劃，整合場地、影音及設計供應商",
+      "focus": "品牌發表會彩排、展場動線與第四季活動排程",
+      "asOf": "2026-10-11"
+    },
+    "people": [
+      {
+        "key": "p0",
+        "name": "羅子軒",
+        "department": "經營策略組",
+        "title": "營運總監",
+        "role": "admin"
+      },
+      {
+        "key": "p1",
+        "name": "洪郁涵",
+        "department": "創意企劃中心",
+        "title": "創意企劃主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p2",
+        "name": "蕭宇辰",
+        "department": "創意企劃中心",
+        "title": "活動企劃",
+        "role": "member"
+      },
+      {
+        "key": "p3",
+        "name": "梁詠晴",
+        "department": "製作品質組",
+        "title": "製作主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p4",
+        "name": "杜柏安",
+        "department": "製作品質組",
+        "title": "視覺設計",
+        "role": "member"
+      },
+      {
+        "key": "p5",
+        "name": "彭冠霖",
+        "department": "現場執行組",
+        "title": "現場執行主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p6",
+        "name": "方庭瑜",
+        "department": "現場執行組",
+        "title": "執行專員",
+        "role": "member"
+      },
+      {
+        "key": "p7",
+        "name": "沈佳穎",
+        "department": "客戶服務組",
+        "title": "客戶服務主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p8",
+        "name": "宋哲宇",
+        "department": "客戶服務組",
+        "title": "專案企劃",
+        "role": "member"
+      },
+      {
+        "key": "p9",
+        "name": "戴敏如",
+        "department": "財務行政組",
+        "title": "財務行政專員",
+        "role": "member"
+      }
+    ],
+    "departments": [
+      {
+        "name": "經營策略組",
+        "count": 2,
+        "head": "p0"
+      },
+      {
+        "name": "創意企劃中心",
+        "count": 6,
+        "head": "p1"
+      },
+      {
+        "name": "製作品質組",
+        "count": 4,
+        "head": "p3"
+      },
+      {
+        "name": "現場執行組",
+        "count": 5,
+        "head": "p5"
+      },
+      {
+        "name": "客戶服務組",
+        "count": 5,
+        "head": "p7"
+      },
+      {
+        "name": "財務行政組",
+        "count": 2,
+        "head": "p9"
+      }
+    ],
+    "projects": [
+      {
+        "code": "GD-2610",
+        "title": "沐光生活秋季新品發表會",
+        "owner": "p7",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "活動目標與預算確認",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "預計120位來賓；活動暫排10/30，未取得最終確認不發布邀請。 已完成「活動目標與預算確認」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "流程與空間配置初稿",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "預計120位來賓；活動暫排10/30，未取得最終確認不發布邀請。 已完成「流程與空間配置初稿」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "主視覺提案審核",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "預計120位來賓；活動暫排10/30，未取得最終確認不發布邀請。 「主視覺提案審核」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "影音設備檔期確認",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "預計120位來賓；活動暫排10/30，未取得最終確認不發布邀請。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "現場安全與動線修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "預計120位來賓；活動暫排10/30，未取得最終確認不發布邀請。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "執行前總彩排",
+                "owner": "p3",
+                "start": "2026-10-26",
+                "due": "2026-10-29",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t6",
+                "title": "活動執行與紀錄",
+                "owner": "p5",
+                "start": "2026-10-30",
+                "due": "2026-10-30",
+                "state": "todo",
+                "deps": [
+                  "t5"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t7",
+                "title": "客戶驗收與結案",
+                "owner": "p7",
+                "start": "2026-11-02",
+                "due": "2026-11-13",
+                "state": "todo",
+                "deps": [
+                  "t6"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "GD-2611",
+        "title": "城市咖啡週末快閃企劃",
+        "owner": "p1",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "客群與場地需求盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "兩日活動預計服務600人次，物料依確認名單備貨。 已完成「客群與場地需求盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "攤位配置確認",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "兩日活動預計服務600人次，物料依確認名單備貨。 已完成「攤位配置確認」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "試飲體驗流程回報",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "兩日活動預計服務600人次，物料依確認名單備貨。 「試飲體驗流程回報」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "冷藏設備檔期追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "兩日活動預計服務600人次，物料依確認名單備貨。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "現場告示修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "兩日活動預計服務600人次，物料依確認名單備貨。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "快閃活動驗收",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "GD-2612",
+        "title": "企業年度論壇視覺製作",
+        "owner": "p3",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "論壇主題與識別盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "講者名單與照片版本須經客戶確認。 已完成「論壇主題與識別盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "主視覺版型確認",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "講者名單與照片版本須經客戶確認。 已完成「主視覺版型確認」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "舞台輸出初稿審核",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "講者名單與照片版本須經客戶確認。 「舞台輸出初稿審核」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "輸出廠色樣追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "講者名單與照片版本須經客戶確認。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "講者資料版面修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "講者名單與照片版本須經客戶確認。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "輸出成品驗收",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "GD-2613",
+        "title": "第四季活動供應商評選",
+        "owner": "p5",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "供應商名單盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "價格以同一服務範圍比較，缺件廠商不提前核准。 已完成「供應商名單盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "報價格式整理",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "價格以同一服務範圍比較，缺件廠商不提前核准。 已完成「報價格式整理」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "服務實績初審",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "價格以同一服務範圍比較，缺件廠商不提前核准。 「服務實績初審」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "保險與設備文件追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "價格以同一服務範圍比較，缺件廠商不提前核准。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "評選紀錄修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "價格以同一服務範圍比較，缺件廠商不提前核准。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "供應商名單核定",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "key": "partners",
+        "label": "客戶 / 合作夥伴",
+        "records": [
+          {
+            "code": "GD-C01",
+            "title": "沐光生活選品",
+            "status": "活動客戶",
+            "fields": {
+              "活動": "秋季新品發表會",
+              "人數": "120人",
+              "預算上限": "NT$680,000未稅"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "GD-S01",
+            "title": "映程影音工程",
+            "status": "報價確認",
+            "fields": {
+              "服務": "音響、燈光、直播",
+              "進場": "2026-10-29"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "GD-S02",
+            "title": "序場空間營運",
+            "status": "檔期暫留",
+            "fields": {
+              "服務": "多功能展演場地",
+              "容量": "150人展示設定"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "GD-S03",
+            "title": "墨序設計輸出",
+            "status": "色樣待確認",
+            "fields": {
+              "服務": "背板、指引與輸出",
+              "交期": "校稿後5工作天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "GD-S04",
+            "title": "拾味餐飲服務",
+            "status": "菜單待確認",
+            "fields": {
+              "服務": "活動茶點",
+              "備餐": "依最終人數"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "resources",
+        "label": "場地 / 執行資源",
+        "records": [
+          {
+            "code": "GD-R01",
+            "title": "主舞台與背板",
+            "status": "設計待審",
+            "fields": {
+              "尺寸": "6m×3m",
+              "版本": "V3",
+              "供應商": "GD-S03"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "GD-R02",
+            "title": "無線手持麥克風",
+            "status": "預約示例",
+            "fields": {
+              "數量": "6支",
+              "供應商": "GD-S01"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "GD-R03",
+            "title": "報到平板",
+            "status": "可用示例",
+            "fields": {
+              "數量": "4台",
+              "用途": "來賓報到；未含個資"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "GD-R04",
+            "title": "活動茶點",
+            "status": "待人數確認",
+            "fields": {
+              "數量": "120份",
+              "單價": "NT$450",
+              "供應商": "GD-S04"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "GD-R05",
+            "title": "現場工作人員",
+            "status": "排班中",
+            "fields": {
+              "人數": "12位含協力人員",
+              "班別": "10/30 08:00–18:00"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "orders",
+        "label": "委託 / 採購",
+        "records": [
+          {
+            "code": "GD-PO01",
+            "title": "影音設備與人員委託",
+            "status": "檔期待確認",
+            "fields": {
+              "未稅金額": "NT$180,000",
+              "進場": "2026-10-29",
+              "服務日": "2026-10-30"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "GD-S01"
+              },
+              {
+                "group": "work",
+                "code": "GD-W01"
+              }
+            ],
+            "action": "模擬確認檔期",
+            "editable": false
+          },
+          {
+            "code": "GD-PO02",
+            "title": "場地租用",
+            "status": "暫留",
+            "fields": {
+              "未稅金額": "NT$96,000",
+              "期間": "10/29佈場、10/30活動",
+              "訂金": "30%＝NT$28,800；尚未付款"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "GD-S02"
+              },
+              {
+                "group": "work",
+                "code": "GD-W01"
+              }
+            ],
+            "action": "模擬確認場地",
+            "editable": false
+          },
+          {
+            "code": "GD-PO03",
+            "title": "活動茶點採購",
+            "status": "待最終人數",
+            "fields": {
+              "數量": "120份",
+              "單價": "NT$450",
+              "未稅金額": "NT$54,000"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "GD-S04"
+              },
+              {
+                "group": "work",
+                "code": "GD-W02"
+              }
+            ],
+            "action": "模擬確認數量",
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "work",
+        "label": "執行 / 驗收",
+        "records": [
+          {
+            "code": "GD-W01",
+            "title": "發表會場佈與總彩排",
+            "status": "待場地及設備確認",
+            "fields": {
+              "彩排": "2026-10-29",
+              "重點": "音訊、投影、來賓動線、緊急出口"
+            },
+            "links": [
+              {
+                "group": "documents",
+                "code": "GD-DOC-001"
+              }
+            ],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "GD-W02",
+            "title": "發表會現場執行",
+            "status": "計畫中",
+            "fields": {
+              "活動日": "2026-10-30",
+              "預計來賓": "120人",
+              "結案": "活動後彙整，不預填滿意度"
+            },
+            "links": [
+              {
+                "group": "work",
+                "code": "GD-W01"
+              },
+              {
+                "group": "documents",
+                "code": "GD-DOC-005"
+              }
+            ],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "documents",
+        "label": "文件",
+        "records": [
+          {
+            "code": "GD-DOC-001",
+            "title": "秋季發表會執行企劃",
+            "status": "待審",
+            "fields": {
+              "版本": "v0.3",
+              "負責人": "洪郁涵",
+              "內容": "120位來賓；總預算上限NT$680,000未稅。列示委託合計NT$330,000，其餘預算供製作、人力及預備費，非已支出。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "GD-DOC-002",
+            "title": "場地動線與安全檢核稿",
+            "status": "退回修改",
+            "fields": {
+              "版本": "v0.4",
+              "負責人": "彭冠霖",
+              "內容": "標明來賓入口、工作區與緊急通道；待場地方確認。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "GD-DOC-003",
+            "title": "主視覺提案紀錄",
+            "status": "已提交",
+            "fields": {
+              "版本": "v1.0",
+              "負責人": "杜柏安",
+              "內容": "客戶尚未核定最終色樣與版面，不先送印。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "GD-DOC-004",
+            "title": "供應商進撤場規範",
+            "status": "生效示例",
+            "fields": {
+              "版本": "v1.2",
+              "負責人": "梁詠晴",
+              "內容": "10/29佈場、10/30執行及撤場；各供應商須確認時段。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "GD-DOC-005",
+            "title": "活動驗收與結案表",
+            "status": "待補資料",
+            "fields": {
+              "版本": "v0.2",
+              "負責人": "沈佳穎",
+              "內容": "實到人數、設備異常與客戶意見待活動後填寫。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          }
+        ]
+      }
+    ],
+    "journey": "客戶需求 → 場地與影音委託 → 場佈彩排 → 10/30活動 → 客戶驗收。所有人數為計畫值，不是真實來賓個資。"
+  },
+  "software": {
+    "company": {
+      "key": "software",
+      "name": "雲序軟體",
+      "code": "YS",
+      "brand": "雲序企業協作平台",
+      "established": 2020,
+      "employees": 36,
+      "location": "新竹市；混合辦公軟體研發團隊",
+      "email": "contact@software-showcase.example",
+      "business": "企業流程SaaS開發與導入，提供版本維護、客戶訓練及服務支援",
+      "focus": "入口網站v2.1、客戶導入與備援演練",
+      "asOf": "2026-10-11"
+    },
+    "people": [
+      {
+        "key": "p0",
+        "name": "吳致謙",
+        "department": "經營產品組",
+        "title": "產品長",
+        "role": "admin"
+      },
+      {
+        "key": "p1",
+        "name": "程雅萱",
+        "department": "平台研發中心",
+        "title": "研發主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p2",
+        "name": "余承翰",
+        "department": "平台研發中心",
+        "title": "全端工程師",
+        "role": "member"
+      },
+      {
+        "key": "p3",
+        "name": "張宥安",
+        "department": "品質可靠性組",
+        "title": "品質主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p4",
+        "name": "陸思妤",
+        "department": "品質可靠性組",
+        "title": "測試工程師",
+        "role": "member"
+      },
+      {
+        "key": "p5",
+        "name": "林柏丞",
+        "department": "雲端維運組",
+        "title": "維運主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p6",
+        "name": "溫品妍",
+        "department": "雲端維運組",
+        "title": "平台工程師",
+        "role": "member"
+      },
+      {
+        "key": "p7",
+        "name": "蔡若晴",
+        "department": "客戶成功組",
+        "title": "客戶成功主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p8",
+        "name": "周宇軒",
+        "department": "客戶成功組",
+        "title": "導入顧問",
+        "role": "member"
+      },
+      {
+        "key": "p9",
+        "name": "江佩容",
+        "department": "營運行政組",
+        "title": "財務行政專員",
+        "role": "member"
+      }
+    ],
+    "departments": [
+      {
+        "name": "經營產品組",
+        "count": 3,
+        "head": "p0"
+      },
+      {
+        "name": "平台研發中心",
+        "count": 14,
+        "head": "p1"
+      },
+      {
+        "name": "品質可靠性組",
+        "count": 6,
+        "head": "p3"
+      },
+      {
+        "name": "雲端維運組",
+        "count": 5,
+        "head": "p5"
+      },
+      {
+        "name": "客戶成功組",
+        "count": 6,
+        "head": "p7"
+      },
+      {
+        "name": "營運行政組",
+        "count": 2,
+        "head": "p9"
+      }
+    ],
+    "projects": [
+      {
+        "code": "YS-2610",
+        "title": "客戶入口網站v2.1交付",
+        "owner": "p1",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "客戶使用情境確認",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "先在隔離環境完成驗收；不含真實客戶資料或正式金鑰。 已完成「客戶使用情境確認」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "API契約與畫面定稿",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "先在隔離環境完成驗收；不含真實客戶資料或正式金鑰。 已完成「API契約與畫面定稿」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "權限測試初稿審核",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "先在隔離環境完成驗收；不含真實客戶資料或正式金鑰。 「權限測試初稿審核」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "測試環境資源追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "先在隔離環境完成驗收；不含真實客戶資料或正式金鑰。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "UAT案例修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "先在隔離環境完成驗收；不含真實客戶資料或正式金鑰。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "整合驗收",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t6",
+                "title": "版本發布演練",
+                "owner": "p5",
+                "start": "2026-10-26",
+                "due": "2026-11-06",
+                "state": "todo",
+                "deps": [
+                  "t5"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t7",
+                "title": "客戶交付與觀察",
+                "owner": "p1",
+                "start": "2026-11-09",
+                "due": "2026-11-20",
+                "state": "todo",
+                "deps": [
+                  "t6"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "YS-2611",
+        "title": "澄岳物流導入專案",
+        "owner": "p7",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "導入範圍與窗口確認",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "測試帳號與範例資料獨立，尚未搬移正式客戶資料。 已完成「導入範圍與窗口確認」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "測試資料欄位對照",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "測試帳號與範例資料獨立，尚未搬移正式客戶資料。 已完成「測試資料欄位對照」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "導入流程初審",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "測試帳號與範例資料獨立，尚未搬移正式客戶資料。 「導入流程初審」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "客戶測試檔追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "測試帳號與範例資料獨立，尚未搬移正式客戶資料。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "訓練教材修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "測試帳號與範例資料獨立，尚未搬移正式客戶資料。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "客戶驗收",
+                "owner": "p3",
+                "start": "2026-11-09",
+                "due": "2026-11-20",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "YS-2612",
+        "title": "服務備援與還原演練",
+        "owner": "p5",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "備援需求盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "RTO目標4小時、RPO目標24小時，尚非實測達成值。 已完成「備援需求盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "演練環境與腳本整理",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "RTO目標4小時、RPO目標24小時，尚非實測達成值。 已完成「演練環境與腳本整理」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "還原步驟初審",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "RTO目標4小時、RPO目標24小時，尚非實測達成值。 「還原步驟初審」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "備份儲存額度追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "RTO目標4小時、RPO目標24小時，尚非實測達成值。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "演練檢核表修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "RTO目標4小時、RPO目標24小時，尚非實測達成值。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "隔離環境演練驗收",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "YS-2613",
+        "title": "企業報表匯出效能改善",
+        "owner": "p1",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "大量報表需求盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "目標案例10萬列，測試結果須注明資料量與環境。 已完成「大量報表需求盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "效能基準測試設計",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "目標案例10萬列，測試結果須注明資料量與環境。 已完成「效能基準測試設計」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "查詢改善初審",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "目標案例10萬列，測試結果須注明資料量與環境。 「查詢改善初審」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "測試資料產生追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "目標案例10萬列，測試結果須注明資料量與環境。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "驗收指標修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "目標案例10萬列，測試結果須注明資料量與環境。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "效能比較驗收",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "key": "partners",
+        "label": "客戶 / 服務商",
+        "records": [
+          {
+            "code": "YS-C01",
+            "title": "澄岳物流管理",
+            "status": "導入中",
+            "fields": {
+              "服務": "企業協作平台",
+              "範圍": "30個使用者席位",
+              "窗口": "虛構客戶團隊；無真實聯絡個資"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "YS-C02",
+            "title": "微境設計工作室",
+            "status": "需求洽談",
+            "fields": {
+              "服務": "入口網站與報表",
+              "範圍": "需求尚未定案"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "YS-S01",
+            "title": "衡雲基礎服務",
+            "status": "測試用服務商",
+            "fields": {
+              "服務": "運算與物件儲存",
+              "連線": "未串接真實雲端帳號"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "YS-S02",
+            "title": "驗序軟體測試",
+            "status": "委外報價確認",
+            "fields": {
+              "服務": "瀏覽器相容性測試",
+              "交付": "測試報告"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "YS-S03",
+            "title": "啟程資訊培訓",
+            "status": "課程暫排",
+            "fields": {
+              "服務": "使用者教育訓練",
+              "日期": "2026-11-06"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "resources",
+        "label": "系統 / 服務資源",
+        "records": [
+          {
+            "code": "YS-R01",
+            "title": "v2.1隔離測試環境",
+            "status": "規劃中",
+            "fields": {
+              "用途": "UAT",
+              "資料": "虛構測試資料",
+              "對外位址": "未配置"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "YS-R02",
+            "title": "客戶驗收席位",
+            "status": "規劃中",
+            "fields": {
+              "數量": "30席",
+              "客戶": "YS-C01"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "YS-R03",
+            "title": "備援物件儲存",
+            "status": "估算示例",
+            "fields": {
+              "容量": "500GB",
+              "單價": "NT$1.20/GB月",
+              "月估價": "NT$600"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "YS-R04",
+            "title": "相容性測試矩陣",
+            "status": "待審",
+            "fields": {
+              "範圍": "桌面與手機主要瀏覽器",
+              "案例": "48項計畫案例"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "YS-R05",
+            "title": "報表效能測試資料",
+            "status": "待產生",
+            "fields": {
+              "規模": "10萬列虛構資料",
+              "個資": "不使用真實客戶資料"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "orders",
+        "label": "合約 / 服務訂單",
+        "records": [
+          {
+            "code": "YS-PO01",
+            "title": "澄岳物流年度服務合約",
+            "status": "待驗收生效",
+            "fields": {
+              "席位": "30",
+              "單價": "NT$800/席月",
+              "期間": "12個月",
+              "未稅總額": "NT$288,000",
+              "性質": "客戶收入合約，非採購成本"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "YS-C01"
+              },
+              {
+                "group": "work",
+                "code": "YS-W02"
+              }
+            ],
+            "action": "模擬確認合約",
+            "editable": false
+          },
+          {
+            "code": "YS-PO02",
+            "title": "相容性測試委託",
+            "status": "待安排",
+            "fields": {
+              "未稅金額": "NT$36,000",
+              "案例": "48項",
+              "預計交付": "2026-10-23"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "YS-S02"
+              },
+              {
+                "group": "work",
+                "code": "YS-W01"
+              }
+            ],
+            "action": "模擬確認委託",
+            "editable": false
+          },
+          {
+            "code": "YS-PO03",
+            "title": "測試環境資源訂單",
+            "status": "尚未開通",
+            "fields": {
+              "未稅月估價": "NT$8,600",
+              "其中儲存": "500GB×NT$1.20＝NT$600",
+              "期間": "2026-10-16起1個月"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "YS-S01"
+              },
+              {
+                "group": "work",
+                "code": "YS-W01"
+              }
+            ],
+            "action": "模擬開通確認",
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "work",
+        "label": "版本 / 變更",
+        "records": [
+          {
+            "code": "YS-W01",
+            "title": "v2.1發布候選RC1",
+            "status": "待UAT與資源確認",
+            "fields": {
+              "版本": "2.1.0-rc.1",
+              "計畫發布": "2026-11-06",
+              "正式部署": "尚未執行"
+            },
+            "links": [
+              {
+                "group": "documents",
+                "code": "YS-DOC-001"
+              },
+              {
+                "group": "documents",
+                "code": "YS-DOC-003"
+              }
+            ],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "YS-W02",
+            "title": "澄岳物流導入驗收",
+            "status": "待訓練與驗收",
+            "fields": {
+              "席位": "30",
+              "驗收": "2026-11-20",
+              "實際使用率": "尚無資料"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "YS-C01"
+              },
+              {
+                "group": "documents",
+                "code": "YS-DOC-005"
+              }
+            ],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "documents",
+        "label": "文件",
+        "records": [
+          {
+            "code": "YS-DOC-001",
+            "title": "v2.1交付範圍與API契約",
+            "status": "待審",
+            "fields": {
+              "版本": "v0.3",
+              "負責人": "程雅萱",
+              "內容": "列出入口網站、權限、匯出與驗收範圍；不含正式環境密鑰。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "YS-DOC-002",
+            "title": "UAT測試案例修訂稿",
+            "status": "退回修改",
+            "fields": {
+              "版本": "v0.4",
+              "負責人": "張宥安",
+              "內容": "補齊預期結果、測試角色與版本；未通過案例不能標完成。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "YS-DOC-003",
+            "title": "發布與回復計畫",
+            "status": "已提交",
+            "fields": {
+              "版本": "v1.0",
+              "負責人": "林柏丞",
+              "內容": "先完成備份檢查、發布演練、健康檢查與回復演練。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "YS-DOC-004",
+            "title": "測試資料使用規範",
+            "status": "生效示例",
+            "fields": {
+              "版本": "v1.2",
+              "負責人": "張宥安",
+              "內容": "僅使用虛構資料，禁止上傳真實客戶個資與token。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "YS-DOC-005",
+            "title": "客戶導入驗收清單",
+            "status": "待補資料",
+            "fields": {
+              "版本": "v0.2",
+              "負責人": "蔡若晴",
+              "內容": "帳號席位、訓練、功能驗收及未決事項需逐項確認。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          }
+        ]
+      }
+    ],
+    "journey": "測試環境與驗收案例 → RC1驗證 → 發布演練 → 客戶驗收。合約屬展示資料，不會實際開通雲端服務。"
+  },
+  "construction": {
+    "company": {
+      "key": "construction",
+      "name": "築衡工程",
+      "code": "ZH",
+      "brand": "築衡商辦空間工程",
+      "established": 2010,
+      "employees": 38,
+      "location": "桃園市；工程管理辦公室與商辦施工團隊",
+      "email": "contact@construction-showcase.example",
+      "business": "商辦裝修、機電整合與工程管理，與專業協力廠商合作施工",
+      "focus": "辦公室改裝、會議室機電變更與工項查驗",
+      "asOf": "2026-10-11"
+    },
+    "people": [
+      {
+        "key": "p0",
+        "name": "廖建宏",
+        "department": "經營管理室",
+        "title": "總經理",
+        "role": "admin"
+      },
+      {
+        "key": "p1",
+        "name": "范雅筑",
+        "department": "設計工程中心",
+        "title": "設計工程主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p2",
+        "name": "唐承佑",
+        "department": "設計工程中心",
+        "title": "機電工程師",
+        "role": "member"
+      },
+      {
+        "key": "p3",
+        "name": "鄧惠文",
+        "department": "品質安衛組",
+        "title": "品質安衛主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p4",
+        "name": "連柏勳",
+        "department": "品質安衛組",
+        "title": "現場品管",
+        "role": "member"
+      },
+      {
+        "key": "p5",
+        "name": "施志遠",
+        "department": "工務協調組",
+        "title": "工務主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p6",
+        "name": "柯品蓉",
+        "department": "工務協調組",
+        "title": "工務專員",
+        "role": "member"
+      },
+      {
+        "key": "p7",
+        "name": "曾詠晴",
+        "department": "業主服務組",
+        "title": "業主服務主管",
+        "role": "project_owner"
+      },
+      {
+        "key": "p8",
+        "name": "龔宇翔",
+        "department": "業主服務組",
+        "title": "專案助理",
+        "role": "member"
+      },
+      {
+        "key": "p9",
+        "name": "白怡萱",
+        "department": "採購行政組",
+        "title": "採購行政專員",
+        "role": "member"
+      }
+    ],
+    "departments": [
+      {
+        "name": "經營管理室",
+        "count": 3,
+        "head": "p0"
+      },
+      {
+        "name": "設計工程中心",
+        "count": 9,
+        "head": "p1"
+      },
+      {
+        "name": "品質安衛組",
+        "count": 5,
+        "head": "p3"
+      },
+      {
+        "name": "工務協調組",
+        "count": 12,
+        "head": "p5"
+      },
+      {
+        "name": "業主服務組",
+        "count": 6,
+        "head": "p7"
+      },
+      {
+        "name": "採購行政組",
+        "count": 3,
+        "head": "p9"
+      }
+    ],
+    "projects": [
+      {
+        "code": "ZH-2610",
+        "title": "青嶼商務辦公室整修",
+        "owner": "p1",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "業主需求與現況丈量",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "約180坪商辦；工程範圍依核定圖說，未簽核變更不先施工。 已完成「業主需求與現況丈量」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "平面配置與預算整理",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "約180坪商辦；工程範圍依核定圖說，未簽核變更不先施工。 已完成「平面配置與預算整理」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "機電圖說審查",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "約180坪商辦；工程範圍依核定圖說，未簽核變更不先施工。 「機電圖說審查」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "輕隔間材料交期追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "約180坪商辦；工程範圍依核定圖說，未簽核變更不先施工。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "施工與安衛計畫修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "約180坪商辦；工程範圍依核定圖說，未簽核變更不先施工。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "首區施工查驗",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t6",
+                "title": "機電整合測試",
+                "owner": "p5",
+                "start": "2026-10-26",
+                "due": "2026-11-06",
+                "state": "todo",
+                "deps": [
+                  "t5"
+                ],
+                "summary": ""
+              },
+              {
+                "key": "t7",
+                "title": "業主驗收與移交",
+                "owner": "p1",
+                "start": "2026-11-09",
+                "due": "2026-11-20",
+                "state": "todo",
+                "deps": [
+                  "t6"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "ZH-2611",
+        "title": "會議室空調與配電改善",
+        "owner": "p5",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "設備負載與問題盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "須與業主確認停電與施工時段，不影響營運區域。 已完成「設備負載與問題盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "改善圖面整理",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "須與業主確認停電與施工時段，不影響營運區域。 已完成「改善圖面整理」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "施工界面初審",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "須與業主確認停電與施工時段，不影響營運區域。 「施工界面初審」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "空調設備交期追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "須與業主確認停電與施工時段，不影響營運區域。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "停電作業通知修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "須與業主確認停電與施工時段，不影響營運區域。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "改善工項驗收",
+                "owner": "p3",
+                "start": "2026-11-02",
+                "due": "2026-11-06",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "ZH-2612",
+        "title": "協力廠商年度評鑑",
+        "owner": "p3",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "協力廠商名單盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "缺少必要文件的協力廠商列待補，不宣稱已通過審查。 已完成「協力廠商名單盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "資格與實績資料整理",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "缺少必要文件的協力廠商列待補，不宣稱已通過審查。 已完成「資格與實績資料整理」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "查驗紀錄初審",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "缺少必要文件的協力廠商列待補，不宣稱已通過審查。 「查驗紀錄初審」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "保險與證照文件追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "缺少必要文件的協力廠商列待補，不宣稱已通過審查。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "評鑑意見修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "缺少必要文件的協力廠商列待補，不宣稱已通過審查。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "合格名單核定",
+                "owner": "p3",
+                "start": "2026-10-16",
+                "due": "2026-10-23",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "ZH-2613",
+        "title": "既有辦公區照明節能改造",
+        "owner": "p1",
+        "phases": [
+          {
+            "title": "需求與規劃",
+            "tasks": [
+              {
+                "key": "t0",
+                "title": "照明現況與數量盤點",
+                "owner": "p7",
+                "start": "2026-09-21",
+                "due": "2026-09-25",
+                "state": "done",
+                "deps": [],
+                "summary": "節能率須依安裝前後量測，展示不預填節電績效。 已完成「照明現況與數量盤點」的資料整理，版本與負責人已確認。"
+              },
+              {
+                "key": "t1",
+                "title": "燈具配置初稿",
+                "owner": "p1",
+                "start": "2026-09-28",
+                "due": "2026-10-02",
+                "state": "done",
+                "deps": [],
+                "summary": "節能率須依安裝前後量測，展示不預填節電績效。 已完成「燈具配置初稿」的資料整理，版本與負責人已確認。"
+              }
+            ]
+          },
+          {
+            "title": "執行與確認",
+            "tasks": [
+              {
+                "key": "t2",
+                "title": "樣品照度紀錄審核",
+                "owner": "p2",
+                "start": "2026-10-05",
+                "due": "2026-10-12",
+                "state": "review",
+                "deps": [],
+                "summary": "節能率須依安裝前後量測，展示不預填節電績效。 「樣品照度紀錄審核」初稿已提交；請主管確認驗收條件與缺漏。"
+              },
+              {
+                "key": "t3",
+                "title": "LED燈具交期追蹤",
+                "owner": "p6",
+                "start": "2026-10-05",
+                "due": "2026-10-09",
+                "state": "doing",
+                "deps": [],
+                "summary": "節能率須依安裝前後量測，展示不預填節電績效。 尚有一項外部回覆未到，原10/09期限逾期；已約定10/14追蹤。"
+              },
+              {
+                "key": "t4",
+                "title": "安裝計畫修訂",
+                "owner": "p4",
+                "start": "2026-10-05",
+                "due": "2026-10-15",
+                "state": "rejected",
+                "deps": [],
+                "summary": "節能率須依安裝前後量測，展示不預填節電績效。 審核退回：附件摘要缺少版本及確認日期，請補齊後重送。"
+              }
+            ]
+          },
+          {
+            "title": "驗收與交付",
+            "tasks": [
+              {
+                "key": "t5",
+                "title": "照明工項驗收",
+                "owner": "p3",
+                "start": "2026-11-02",
+                "due": "2026-11-06",
+                "state": "todo",
+                "deps": [
+                  "t2",
+                  "t3",
+                  "t4"
+                ],
+                "summary": ""
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "key": "partners",
+        "label": "業主 / 協力廠商",
+        "records": [
+          {
+            "code": "ZH-C01",
+            "title": "青嶼商務服務",
+            "status": "業主",
+            "fields": {
+              "案場": "180坪商辦展示案",
+              "預算": "依核定範圍",
+              "聯絡": "虛構專案窗口"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "ZH-S01",
+            "title": "楷盛室內工程",
+            "status": "協力廠商",
+            "fields": {
+              "工項": "輕隔間與天花",
+              "資格": "文件審核中"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "ZH-S02",
+            "title": "澤安機電工程",
+            "status": "協力廠商",
+            "fields": {
+              "工項": "配電與弱電",
+              "排程": "待施工界面確認"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "ZH-S03",
+            "title": "承朗空調設備",
+            "status": "設備供應商",
+            "fields": {
+              "供應": "空調主機與安裝",
+              "交期": "28天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "ZH-S04",
+            "title": "曜和照明材料",
+            "status": "報價確認",
+            "fields": {
+              "供應": "LED燈具",
+              "交期": "14天"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "resources",
+        "label": "材料 / 設備",
+        "records": [
+          {
+            "code": "ZH-R01",
+            "title": "輕隔間板材",
+            "status": "待進場",
+            "fields": {
+              "數量": "240片",
+              "單價": "NT$420",
+              "供應商": "ZH-S01"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "ZH-R02",
+            "title": "LED平板燈",
+            "status": "待樣品確認",
+            "fields": {
+              "數量": "80盞",
+              "單價": "NT$950",
+              "供應商": "ZH-S04"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "ZH-R03",
+            "title": "配電盤迴路標示",
+            "status": "待審",
+            "fields": {
+              "版本": "E-03 REV.B",
+              "用途": "案場查驗"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "ZH-R04",
+            "title": "會議室空調設備",
+            "status": "交期追蹤",
+            "fields": {
+              "數量": "2組",
+              "供應商": "ZH-S03"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "ZH-R05",
+            "title": "現場查驗工具",
+            "status": "排程中",
+            "fields": {
+              "內容": "絕緣量測、照度計",
+              "說明": "實際校驗及操作資格另行確認"
+            },
+            "links": [],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "orders",
+        "label": "採購 / 發包",
+        "records": [
+          {
+            "code": "ZH-PO01",
+            "title": "首區輕隔間材料",
+            "status": "待進場",
+            "fields": {
+              "數量": "240片",
+              "單價": "NT$420",
+              "未稅金額": "NT$100,800",
+              "交期": "2026-10-16"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "ZH-S01"
+              },
+              {
+                "group": "work",
+                "code": "ZH-W01"
+              }
+            ],
+            "action": "模擬進場確認",
+            "editable": false
+          },
+          {
+            "code": "ZH-PO02",
+            "title": "LED燈具採購",
+            "status": "樣品待審",
+            "fields": {
+              "數量": "80盞",
+              "單價": "NT$950",
+              "未稅金額": "NT$76,000",
+              "交期": "2026-10-23"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "ZH-S04"
+              },
+              {
+                "group": "work",
+                "code": "ZH-W02"
+              }
+            ],
+            "action": "模擬進場確認",
+            "editable": false
+          },
+          {
+            "code": "ZH-PO03",
+            "title": "會議室空調設備與安裝",
+            "status": "交期追蹤",
+            "fields": {
+              "數量": "2組",
+              "單價": "NT$68,000",
+              "未稅金額": "NT$136,000",
+              "交期": "2026-10-30"
+            },
+            "links": [
+              {
+                "group": "partners",
+                "code": "ZH-S03"
+              },
+              {
+                "group": "work",
+                "code": "ZH-W02"
+              }
+            ],
+            "action": "模擬交期確認",
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "work",
+        "label": "工項 / 查驗",
+        "records": [
+          {
+            "code": "ZH-W01",
+            "title": "首區隔間隱蔽工程查驗",
+            "status": "待施工與報驗",
+            "fields": {
+              "暫排": "2026-10-23",
+              "條件": "圖說與材料確認後施工",
+              "結果": "未查驗，不構成驗收證明"
+            },
+            "links": [
+              {
+                "group": "documents",
+                "code": "ZH-DOC-001"
+              },
+              {
+                "group": "documents",
+                "code": "ZH-DOC-004"
+              }
+            ],
+            "action": null,
+            "editable": false
+          },
+          {
+            "code": "ZH-W02",
+            "title": "機電設備整合驗收",
+            "status": "計畫中",
+            "fields": {
+              "暫排": "2026-11-06",
+              "條件": "配電、照明與空調完成後",
+              "記錄": "量測值待現場填寫"
+            },
+            "links": [
+              {
+                "group": "documents",
+                "code": "ZH-DOC-003"
+              },
+              {
+                "group": "documents",
+                "code": "ZH-DOC-005"
+              }
+            ],
+            "action": null,
+            "editable": false
+          }
+        ]
+      },
+      {
+        "key": "documents",
+        "label": "文件",
+        "records": [
+          {
+            "code": "ZH-DOC-001",
+            "title": "辦公室整修圖說交接清單",
+            "status": "待審",
+            "fields": {
+              "版本": "v0.3",
+              "負責人": "范雅筑",
+              "內容": "平面、機電與材料表需為相同核定版本；未核定不施工。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "ZH-DOC-002",
+            "title": "施工安衛計畫修訂稿",
+            "status": "退回修改",
+            "fields": {
+              "版本": "v0.4",
+              "負責人": "鄧惠文",
+              "內容": "補齊施工界面、隔離範圍與業主作業時段。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "ZH-DOC-003",
+            "title": "機電整合測試計畫",
+            "status": "已提交",
+            "fields": {
+              "版本": "v1.0",
+              "負責人": "唐承佑",
+              "內容": "逐項確認配電、空調與照明；不得以計畫值代替量測。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "ZH-DOC-004",
+            "title": "隱蔽工程查驗表",
+            "status": "生效示例",
+            "fields": {
+              "版本": "v1.2",
+              "負責人": "連柏勳",
+              "內容": "封板前完成照片、材料與查驗簽認；本次尚未查驗。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          },
+          {
+            "code": "ZH-DOC-005",
+            "title": "業主驗收移交清單",
+            "status": "待補資料",
+            "fields": {
+              "版本": "v0.2",
+              "負責人": "曾詠晴",
+              "內容": "圖說、設備保固、缺失改善與操作說明逐項移交。"
+            },
+            "links": [],
+            "action": null,
+            "editable": true
+          }
+        ]
+      }
+    ],
+    "journey": "核定圖說 → 材料進場 → 首區施工查驗 → 機電整合 → 業主驗收。未出具任何真實安檢或驗收證明。"
+  }
+}

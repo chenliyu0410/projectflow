@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **HEMU ✅ 禾沐食品公司資料已部署** |
+| 目前工作項目 | **INDUSTRIES ✅ 五公司完整展示資料已部署** |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 15173重新整理→左下切換禾沐公司→操作4專案及營運資料；人類試用，F1／F2另定。 |
-| 分支 | `main`；HEMU已ff-only合併。 |
+| 下一個動作 | 重新整理15173→切公司→操作新MY／FY／GD／YS／ZH專案與營運資料；人類試用，F1／F2另定。 |
+| 分支 | `feature/industry-showcases`；驗證完成待ff-only合併。 |
 | 最新程式 commit | `0d933e2`（HEMU資料匯入、入口與測試）。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | HEMU API新3pass＋切換1pass、既有showcase12pass；相關前端9pass，修正後定向2pass；build0。PG隔離rollback／保值／冪等pass；15173桌面1280／手機375路徑pass、零寫入／pageerror；独立審查Ready。 |
-| 資料版本 | migration仍20261010_0011，未seed／migration。新增hemu：1公司、13帳號、8部門、4專案、41節點（25任務）、16相依、10回報、37筆記、25通知。原有全部列值、附件SHA、env及DB容器一致。 |
+| 測試基準 | INDUSTRIES＋HEMU API7pass，日期／資料定向2pass；前端15pass、build0；PG整批rollback／保值／冪等pass。舊UI5 E2E1280/375兩項pass；五公司×兩尺寸10路徑pass、零業務寫入／pageerror、無溢位；獨立審查修正後Ready。 |
+| 資料版本 | migration仍20261010_0011，未seed／migration。五公司追加50帳號、30部門、20專案、210節點（130任務）、70相依、80回報、200筆記、130通知；原六公司全部舊列、附件SHA、env與DB容器一致。 |
 | 認領中 | 無。 |
-| 阻塞／待人類 | HEMU工程無阻塞；人類展示／試用未代簽，D43/D10及LAN限制維持。 |
+| 阻塞／待人類 | INDUSTRIES工程無阻塞；人類展示／試用未代簽，D43/D10及LAN限制維持。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
 
 ---
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- INDUSTRIES ✅：人類2026-10-11指示其餘公司比照禾沐，生成完整展示資料並放入系統，原資料保留。見[短計畫](superpowers/plans/2026-10-11-industry-showcases.md)。
 
 - HEMU ✅：人類2026-10-11要求將已確認的禾沐食品公司完整展示資料放入系統，原資料全部保留。依[短計畫](superpowers/plans/2026-10-11-hemu-showcase.md)執行。
 
@@ -374,7 +376,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 
 **Task3證據**：ignored `.superpowers/p2b/task3-red.txt`、`task3-target-final.txt`、`task3-full.txt`（稽核名稱修正前）、`task3-final-target.txt`、`task3-final-pg.txt`及`task3-fix1-{api-red,green}.txt`。最終專用PG `p2b_test_42cc6517b0ff41778250b83db08a2824`保留。中間誤替換edited_at的失敗log保留且已修復，不算功能RED。cursor純解析修正後跑51項目標，不冒稱HEAD全量／PG重跑。Task5最新回報以受控self分頁取得，未載完不判未回報；紀錄UI仍分頁追加。
 
-**Task4證據與資源**：ignored `.superpowers/p2b/task4-{red,deploy-red,length-red,hardening-red,hardened-green,full-final,pg-final}.txt`及`task4-volume-*`／`task4-recovery-*`。專用PG `p2b_test_38bf2081c79745afa0c3fad532c25d73`保留；新隔離stack `projectflow-p2b-task4`運行於15177/18004，files及pgdata兩volume保留，私密task4.env不進Git。最後映像重驗原SHA、ZIP拒絕、舊volume可寫；不可寫root503且不fallback/chown。primary／原acceptance無业务測試。
+**Task4證據與資源**：ignored `.superpowers/p2b/task4-{red,deploy-red,length-red,hardening-red,hardened-green,full-final,pg-final}.txt`及`task4-volume-*`／`task4-recovery-*`。專用PG `p2b_test_38bf2081c79745afa0c3fad532c25d73`保留；新隔離stack `projectflow-p2b-task4`運行於15177/18004，files及pgdata兩volume保留，私密task4.env不進Git。最後映像重驗原SHA、ZIP拒絕、舊volume可寫；不可寫root503且不fallback/chown。primary／原acceptance無業務測試。
 
 **Task5證據**：ignored `.superpowers/p2b/task5-{red,green,build,ui,review-ui}.txt`及`task5-fix1-{red,green,build,ui}.txt`（126passed/build0）。新版`task5-1280-card.png`／`task5-375-attachments.png`／`task5-rejected-375.png`、fix1 legacy／read-error圖片由parent實看；原fullpage及修整前圖片保留。UI已更新隔離15177，primary尚未更新；回報卡掃self各頁，紀錄獨立分頁，成功後read失敗只GET重試。
 
@@ -1264,3 +1266,16 @@ TP-F啟動補記：人類回覆「照建議做」，D78與短計畫核准，開�
 - 部署僅重建api/web，無seed／migration、未動DB容器。資料前後核對原5公司、15專案、249節點、55回報等所有表舊列值完整保留；附件hash、deploy/.env hash、DB容器ID一致。備份dump、附件tar、逐列快照與畫面證據在忽略目錄`.superpowers/hemu/`，不提交秘密。
 - 15173驗證：1280／375公司入口、採購→工單、文件編輯／離開清除；零業務請求、零pageerror、無水平溢位；截圖已檢視。用新公司臨時session唯讀驗證後已刪除，沒有變更舊session。健康ready pass。
 - 操作：重新整理15173→左下切換公司→禾沐；先開PRJ-2608看回報與前置阻擋，再點營運資料看公司／供應商／採購／工單，文件分頁看5份文件。人類試用未代簽，F1／F2未展開。
+
+
+### 2026-10-11｜Codex｜INDUSTRIES五公司展示資料追加
+
+- 人類要求其他公司比照禾沐完整展示資料、直接操作且保留原資料。範圍為毛研食品food、峰曜科技electronics、光點企劃events、雲序軟體software、築衡工程construction五公司；不新增替代公司、不重設舊資料。見[短計畫](superpowers/plans/2026-10-11-industry-showcases.md)。
+- 每家6新部門、10具名人員、4專案、26任務、16回報；總計20專案、130任務、80回報、70相依。新增部門採獨立名稱，既有部門／人員／專案／模板全部保留。虛構編制數不等於帳號數，進度實算。
+- 每家5合作單位、5產業資源、3單據、2執行紀錄、5文件，合計100筆預覽資料；有公司概況、完整關聯、暫存操作與文件編輯。原食品UI5示例保留切換入口；禾沐頁與資料保持。沒有真ERP／營運CRUD或新AI服務，預覽不寫正式資料。完整快照在新專案根層筆記。
+- 匯入復用既有業務服務與稽核，要求AtomicSession；五公司同一交易、PG鎖、固定標記、同名部門／username／專案碰撞拒絕。CLI預設dry-run，提交前檢查全部舊列；重跑不更新使用者修改。
+- API INDUSTRIES＋HEMU7pass；審查發現軟體客戶驗收早於訓練、工程驗收早於設備到貨，修正為YS-2611 11/09–11/20、ZH-2611 11/02–11/06，並同步照明ZH-2613；日期與資料校驗定向2pass。一次唯讀獨立審查複核Ready。前端15pass，build0（產業靜態資料加入後bundle超500kB提示，非失敗）。
+- 真PostgreSQL隔離庫由本次備份還原；整批rollback、apply舊列保值、再次執行完全不變均pass。驗收後移除本次臨時資料庫，未動正式DB。
+- 隔離驗收環境跑更新入口後的UI5 E2E：1280／375兩項pass；結束停止acceptance容器並保留volume。正式15173五公司×1280/375共10路徑，驗新專案、文件編輯清除、單據操作／關聯、重載清除與公司資料獨立；全數pass、零業務寫入、零pageerror、無水平溢位。截圖抽查，另確認選中分頁色彩轉場完成後對比正常。
+- 正式環境只更新web；api／DB容器不重建，無seed／migration。匯入後及唯讀走查後核對原六公司19專案290節點65回報等全部表舊列完全保留；附件hash、env、DB容器ID一致。備份dump／附件tar／列快照／截圖放在忽略目錄`.superpowers/industries/`。瀏覽驗證專用臨時sessions已刪除，不刪改舊session。
+- 操作：15173重新整理→左下選公司→新【虛構展示】MY/FY/GD/YS/ZH專案；營運資料看公司與人員、單據／文件／關聯流程。D50合併發布，未代簽人類試用，F1／F2未開工。

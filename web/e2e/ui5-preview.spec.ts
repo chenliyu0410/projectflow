@@ -24,6 +24,7 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   page.on('request', r => { if (!['GET', 'HEAD'].includes(r.method())) writes.push(`${r.method()} ${new URL(r.url()).pathname}`); });
   const initialStorage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }));
   await page.getByRole('tab', { name: '文件', exact: true }).click();
+  await page.getByRole('button', { name: '查看原食品試產示例' }).click();
   await page.getByRole('button', { name: /試產規格書/ }).click();
   await page.getByLabel('示例版本').selectOption('0');
   await expect(page.getByText(/規劃試產 200 罐/)).toBeVisible();
@@ -71,6 +72,7 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   expect(await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))).toEqual(initialStorage);
   await page.getByRole('button', { name: '離開預覽，返回工作區' }).click();
   await page.getByRole('tab', { name: '文件', exact: true }).click();
+  await page.getByRole('button', { name: '查看原食品試產示例' }).click();
   await page.getByRole('button', { name: /試產規格書/ }).click();
   await expect(page.getByText('UI5 暫存文字，不得保存')).toHaveCount(0);
   expect(await ai.locator('.copilot-message').count()).toBe(0);
@@ -82,12 +84,13 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   await expect(page.getByLabel('目前公司')).not.toContainText('毛研食品');
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
   await nav('營運資料');
-  await expect(page.getByText(/尚未建立此類展示示例/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: '峰曜科技', exact: true })).toBeVisible();
   await expect(page.getByText(/青禾原料/)).toHaveCount(0);
   await menu(); await page.getByLabel('切換公司（本機展示）').selectOption('food');
   await expect(page.getByLabel('目前公司')).toContainText('毛研食品');
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
   await nav('營運資料');
+  await page.getByRole('button', { name: '查看原食品試產示例' }).click();
   await page.getByRole('button', { name: '文件示例' }).click();
   await page.getByRole('button', { name: /試產規格書/ }).click();
   await expect(page.getByText('切公司前暫存')).toHaveCount(0);
@@ -100,6 +103,7 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   await page.getByRole('button', { name: '登入', exact: true }).click();
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
   await nav('營運資料');
+  await page.getByRole('button', { name: '查看原食品試產示例' }).click();
   await page.getByRole('button', { name: '文件示例' }).click();
   await page.getByRole('button', { name: /試產規格書/ }).click();
   await expect(page.getByText('登出前暫存')).toHaveCount(0);

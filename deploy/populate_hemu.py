@@ -26,29 +26,52 @@ class AtomicSession(Session):
 MARKER = str(uuid.uuid5(uuid.NAMESPACE_URL, 'projectflow:hemu:v1:import'))
 
 
-def populate(db, data):
+def populate(db, data, *, existing_company=False):
+    if not isinstance(db, AtomicSession):
+        raise RuntimeError("AtomicSession required")
+    key = data["company"]["key"]
+    if (existing_company and key not in {"food", "electronics", "events", "software", "construction"}) or (not existing_company and key != "hemu"):
+        raise RuntimeError("Unsupported import target")
+    marker_id = str(uuid.uuid5(uuid.NAMESPACE_URL, "projectflow:industries:v1:" + key)) if existing_company else MARKER
     if not enabled():
         raise RuntimeError('Local showcase mode required')
     if db.bind.dialect.name == 'postgresql':
         db.execute(text('SELECT pg_advisory_xact_lock(20261011, 7201)'))
-    marker = db.get(AuditLog, MARKER)
-    org = db.scalar(select(Organization).where(Organization.key == 'hemu'))
+    marker = db.get(AuditLog, marker_id)
+    org = db.scalar(select(Organization).where(Organization.key == key))
     if marker:
         if org is None or marker.organization_id != org.id:
             raise RuntimeError('Import marker identity mismatch')
         return {'existing': True, 'organization_id': org.id}
-    if org is not None:
-        raise RuntimeError('Untracked hemu organization exists; refusing to overwrite')
-    org = Organization(key='hemu', name=data['company']['name'])
-    db.add(org); db.flush()
-    admin = User(id=identifier('user:hemu'), organization_id=org.id, username=USERNAME,
-                 display_name='禾沐展示管理者', role='admin', password_hash=hash_password(secrets.token_urlsafe(48)))
-    db.add(admin); db.flush()
+    if existing_company:
+        if org is None:
+            raise RuntimeError('Existing showcase company required')
+        admin = db.get(User, identifier('user:' + key))
+        if not admin or admin.organization_id != org.id or admin.username != USERNAME or admin.role != 'admin':
+            raise RuntimeError('Dedicated showcase admin identity mismatch')
+    else:
+        if org is not None:
+            raise RuntimeError('Untracked hemu organization exists; refusing to overwrite')
+        org = Organization(key=key, name=data['company']['name'])
+        db.add(org); db.flush()
+        admin = User(id=identifier('user:hemu'), organization_id=org.id, username=USERNAME,
+                     display_name='禾沐展示管理者', role='admin', password_hash=hash_password(secrets.token_urlsafe(48)))
+        db.add(admin); db.flush()
     current = CurrentUser(user=admin, organization=org, token='')
-    log_audit(db, current, 'showcase.organization_create', payload={'fictional': True, 'company': data['company'], 'admin_user_id': admin.id})
+    prefix = key + '_20261011_' if existing_company else 'hemu_'
+    for person in data['people']:
+        if db.scalar(select(User.id).where(User.organization_id == org.id, User.username == prefix + person['key'])):
+            raise RuntimeError('Reserved username collision; refusing to overwrite')
+    for spec in data['departments']:
+        if db.scalar(select(Department.id).where(Department.organization_id == org.id, Department.name == spec['name'])):
+            raise RuntimeError('Department name collision; refusing to overwrite')
+    for spec in data['projects']:
+        if db.scalar(select(Project.id).where(Project.organization_id == org.id, Project.title == '【虛構展示】' + spec['code'] + ' ' + spec['title'])):
+            raise RuntimeError('Project title collision; refusing to overwrite')
+    log_audit(db, current, 'showcase.dataset_append' if existing_company else 'showcase.organization_create', payload={'fictional': True, 'company': data['company'], 'admin_user_id': admin.id})
     users = {}
     for person in data['people']:
-        user = User(organization_id=org.id, username='hemu_' + person['key'], display_name=person['name'],
+        user = User(organization_id=org.id, username=prefix + person['key'], display_name=person['name'],
                     role=person['role'], password_hash=hash_password(secrets.token_urlsafe(48)))
         db.add(user); db.flush(); users[person['key']] = user
         log_audit(db, current, 'showcase.user_create', payload={'user_id': user.id, 'title': person['title'], 'fictional': True})
@@ -113,12 +136,12 @@ def populate(db, data):
         dossier = {k: v for k, v in data.items() if k != 'projects'}
         for label, value in dossier.items():
             note = TaskNote(organization_id=org.id, node_id=root.id, author_id=admin.id,
-                body='【禾沐虛構展示資料／參考快照】' + label + '\n' + json.dumps(value, ensure_ascii=False, indent=2))
+                body='【' + data['company']['name'] + '虛構展示資料／參考快照】' + label + '\n' + json.dumps(value, ensure_ascii=False, indent=2))
             db.add(note); db.flush()
             log_audit(db, current, 'note.create', node_id=root.id, payload={'note_id': note.id, 'fictional': True})
         project_ids.append(project.id)
-    marker = log_audit(db, current, 'showcase.hemu_import', payload={'fictional': True, 'project_ids': project_ids, 'version': 1})
-    marker.id = MARKER
+    marker = log_audit(db, current, 'showcase.industry_import' if existing_company else 'showcase.hemu_import', payload={'fictional': True, 'project_ids': project_ids, 'version': 1})
+    marker.id = marker_id
     db.flush()
     return {'existing': False, 'organization_id': org.id, 'project_ids': project_ids, 'people': len(users), 'departments': len(departments)}
 
