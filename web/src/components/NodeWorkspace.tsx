@@ -19,10 +19,10 @@ const columns: { label: string; match: NodeStatus[] }[] = [
   { label: '待處理', match: ['todo'] }, { label: '進行中', match: ['doing'] },
   { label: '待確認', match: ['review'] }, { label: '完成', match: ['done', 'skipped'] },
 ];
-export type NodeTab = 'board' | 'timeline' | 'graph' | 'people' | 'records';
+export type NodeTab = 'board' | 'timeline' | 'graph' | 'people' | 'records' | 'documents' | 'data';
 const TABS: { tab: NodeTab | null; label: string }[] = [
   { tab: 'board', label: '看板' }, { tab: 'timeline', label: '時程' }, { tab: 'graph', label: '相依圖' },
-  { tab: null, label: '文件' }, { tab: null, label: '資料' }, { tab: 'people', label: '成員與權限' }, { tab: 'records', label: '紀錄' },
+  { tab: 'documents', label: '文件' }, { tab: 'data', label: '資料' }, { tab: 'people', label: '成員與權限' }, { tab: 'records', label: '紀錄' },
 ];
 const CLOSED: NodeStatus[] = ['done', 'skipped'];
 const label = (status: NodeStatus) => statuses.find(item => item.status === status)?.label ?? status;
@@ -100,13 +100,13 @@ function Progress({ value, color }: { value: number | null; color?: string }) {
   </span>;
 }
 
-export default function NodeWorkspace({ project, selectedNodeId, select, readonly, canApprove, disabled, mutate, move, openReport, reportIntent = null, notify, userId = '', userName = '', roleLabel = '', reloadRecords, expired, recordVersion = 0, recordsEnabled = true, tab = 'board', tabsDisabled = false, changeTab, actions, editor, timeline, graph, color = 'var(--teal)' }: {
+export default function NodeWorkspace({ project, selectedNodeId, select, readonly, canApprove, disabled, mutate, move, openReport, reportIntent = null, notify, userId = '', userName = '', roleLabel = '', reloadRecords, expired, recordVersion = 0, recordsEnabled = true, tab = 'board', tabsDisabled = false, changeTab, actions, editor, timeline, graph, preview, color = 'var(--teal)' }: {
   project: ProjectDetail; selectedNodeId: string | null; select: (id: string | null) => void;
   readonly: boolean; canApprove: boolean; disabled: boolean;
   userId?: string; userName?: string; roleLabel?: string; reloadRecords?: RecordReload; expired?: () => void; recordVersion?: number; recordsEnabled?: boolean;
   mutate: (action: 'status' | 'gate', id: string, status?: NodeStatus) => void;
   move?: (id: string, parentId: string) => void; openReport?: (id: string) => void; reportIntent?: string | null; notify?: (text: string) => void;
-  tab?: NodeTab; tabsDisabled?: boolean; changeTab?: (tab: NodeTab) => void; actions?: ReactNode; editor?: ReactNode; timeline?: ReactNode; graph?: ReactNode; color?: string;
+  tab?: NodeTab; tabsDisabled?: boolean; changeTab?: (tab: NodeTab) => void; actions?: ReactNode; editor?: ReactNode; timeline?: ReactNode; graph?: ReactNode; preview?: ReactNode; color?: string;
 }) {
   const nodes = project.nodes;
   const today = localToday();
@@ -321,6 +321,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         </div>;
       })}</div>}
     </section>}
+    {(active === 'documents' || active === 'data') && preview}
     {active === 'timeline' && timeline}
     {active === 'graph' && graph}
     {active === 'people' && selected && <div className="people-view">

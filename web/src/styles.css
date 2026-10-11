@@ -716,3 +716,38 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 
 .report-field-editor .report-field-required { display: flex; align-items: center; gap: 8px; margin-block: 8px; }
 .report-field-editor .report-field-required input { width: 18px; height: 18px; min-height: 18px; margin: 0; }
+
+/* UI5: bounded, in-memory examples share the Demo's cards and compact tabs. */
+.preview-boundary { min-width:0; margin-top:16px; }
+.preview-banner { padding:16px; border:1px solid #b7ccc5; border-radius:12px; background:#eef4f0; }
+.preview-banner strong { display:block; margin-top:8px; font-size:18px; }
+.preview-banner p,.preview-boundary p { line-height:1.65; }
+.preview-tabs,.preview-actions { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+.preview-tabs button { font-size:13px; padding:7px 11px; }
+.preview-tabs button[aria-current=page],.preview-tabs button[aria-selected=true] { background:var(--teal); color:white; }
+.preview-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.preview-card,.preview-detail { min-width:0; background:var(--surface,#fff); border:1px solid var(--line); border-radius:12px; padding:16px; text-align:left; }
+.preview-card { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.preview-card strong { font-size:17px; }
+.preview-card small,.preview-card span { color:var(--muted); }
+.preview-detail { margin-top:12px; }
+.preview-detail h3 { margin-top:0; }
+.preview-detail dl>div { display:grid; grid-template-columns:100px minmax(0,1fr); gap:12px; padding:8px 0; border-bottom:1px solid var(--line); }
+.preview-detail dt { color:var(--muted); }
+.preview-detail dd { margin:0; }
+.preview-boundary label,.copilot-meeting label { display:flex; flex-direction:column; gap:8px; }
+.preview-boundary textarea,.copilot-meeting textarea { width:100%; min-height:100px; resize:vertical; }
+.preview-boundary :is(p,dd,pre,button),.copilot-message { overflow-wrap:anywhere; }
+.preview-boundary pre,.preview-prose,.copilot-message :is(p,pre) { white-space:pre-wrap; font-family:inherit; }
+.preview-list-row { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; width:100%; margin-top:10px; text-align:left; }
+.copilot-example-note { font-size:12px; color:var(--muted); margin:0; }
+.copilot-message { border:1px solid var(--line); border-radius:10px; background:var(--surface); padding:12px; margin-bottom:10px; color:var(--ink); font-size:13px; }
+.copilot-message.user { background:#e7f0ed; }
+.copilot-message small { display:block; margin-top:5px; color:var(--muted); font-size:11px; }
+.copilot-message summary { cursor:pointer; color:var(--teal); }
+.copilot-message button { font-size:12px; max-width:100%; }
+.copilot-message ul,.preview-suggestions ul { padding-left:18px; }
+.copilot-meeting { flex-shrink:0; max-height:220px; overflow:auto; font-size:12px; }
+.copilot-meeting textarea { min-height:68px; }
+.preview-suggestions { font-size:13px; overflow-wrap:anywhere; }
+@media(max-width:600px) { .preview-grid { grid-template-columns:minmax(0,1fr); } .preview-detail { padding:12px; } }

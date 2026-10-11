@@ -1,3 +1,4 @@
+import PreviewBoundary from './components/PreviewBoundary';
 import TemplateDialogs from './components/TemplateDialogs';
 import WorkflowLibrary from './components/WorkflowLibrary';
 import TimelineView from './components/TimelineView';
@@ -17,7 +18,7 @@ import MyTasks from './components/MyTasks';
 import NavIcon from './components/NavIcons';
 
 const ROLE_LABELS: Record<string, string> = { admin: '系統管理員', project_owner: '專案負責人', reviewer: '階段審核人', member: '成員', readonly: '唯讀' };
-const PAGE_SCOPES: Record<string, string> = { overview: '所有可見專案', 'my-tasks': '我的任務', reviews: '審核中心', workflows: '模板庫', audit: '活動與稽核紀錄' };
+const PAGE_SCOPES: Record<string, string> = { overview: '所有可見專案', 'my-tasks': '我的任務', reviews: '審核中心', workflows: '模板庫', audit: '活動與稽核紀錄', operations: '營運展示預覽', governance: 'AI 政策展示預覽' };
 
 type State = 'checking-session' | 'login' | 'loading' | 'ready' | 'error';
 export default function App() {
@@ -396,7 +397,7 @@ export default function App() {
   }
 
   const selectedNode = project?.nodes.find(node => node.id === selectedNodeId) ?? null;
-  const copilotScope = `${route.page === 'project' ? project?.title ?? '專案' : PAGE_SCOPES[route.page]}（只讀取你有權限的節點）`;
+  const copilotScope = route.page === 'project' ? project?.title ?? '專案' : PAGE_SCOPES[route.page];
   useEffect(()=>{setTemplateDialog(null);},[project?.id,selectedNodeId,session?.user.id,route.page]);
   const canAddNode = session?.user.role !== 'readonly' && (selectedNode ? selectedNode.capabilities?.create_child : project?.capabilities?.create_node);
   // D74: a review/done/skipped node cannot gain new children.
@@ -443,7 +444,8 @@ export default function App() {
         <label>密碼<input type="password" value={password} onChange={event => setPassword(event.target.value)} required disabled={busy} autoComplete="current-password" /></label>
         <button type="submit" disabled={busy}>{busy ? '登入中' : '登入'}</button>
       </form> : <>
-        {session ? <WorkspaceShell key={session.organization.id} route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} copilotScope={copilotScope}
+        {session ? <WorkspaceShell key={session.organization.id} route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} copilotScope={copilotScope} food={session.organization.key === 'food'} companyName={session.organization.name}
+          previewKey={state !== 'ready' ? state : route.page === 'operations' || route.page === 'governance' || (route.page === 'project' && ['documents', 'data'].includes(projectView)) ? 'preview' : `${route.page}:${selectedId}:${selectedNodeId}:${projectView}`}
           createAction={canCreate && <button className="new-project" disabled={busy || mutating || workflowLoading || state !== 'ready'} onClick={() => { if (creationOpen) { creationForm.current?.scrollIntoView?.({ block: 'start' }); creationForm.current?.focus(); } else void openCreation(); }}><NavIcon name="plus" size={16} />建立新專案</button>} session={<><span aria-label="目前公司">{session.organization.name}</span>{session.showcase && <><label>切換公司（本機展示）<select aria-label="切換公司（本機展示）" value={switchTarget || session.organization.key} disabled={busy || mutating} onChange={e=>{const key=e.target.value;if(key===session.organization.key){setSwitchTarget('');return;}if(document.querySelector('.workspace-content form')) setSwitchTarget(key);else void switchCompany(key);}}>{session.showcase.companies.map(company=><option key={company.key} value={company.key}>{company.name}｜{company.industry}</option>)}</select></label><span className="showcase-badge">{session.showcase.active ? '展示身分 · 管理者' : '本機展示模式'}</span>{switchTarget && <div className="company-switch-confirm" role="group" aria-label="確認切換公司"><p>將以展示管理者進入所選公司。未儲存的表單內容將離開。</p><button disabled={busy} onClick={()=>void switchCompany()}>確認切換公司</button><button disabled={busy} onClick={()=>setSwitchTarget('')}>取消切換</button></div>}</>}<div className="session-person"><span className="avatar" aria-hidden="true">{session.user.display_name.slice(0, 1)}</span><div><strong>{session.user.display_name}</strong><small>{ROLE_LABELS[session.user.role] ?? session.user.role}</small></div></div><button disabled={busy} onClick={() => void logout()}>登出</button></>}>
         {message && <p role="alert" className={notice?.text === message ? 'notice' : undefined}>{message}
           {notice?.text === message && notice.open && <button type="button" disabled={busy || mutating} onClick={() => { const id = notice.open!; selectNode(id); }}>開啟</button>}
@@ -466,6 +468,7 @@ export default function App() {
           {state === 'checking-session' && <p role="status">確認登入狀態中</p>}
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
+          {state === 'ready' && (route.page === 'operations' || route.page === 'governance') && <PreviewBoundary initialPage={route.page} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => navigate({ page: 'overview' })} />}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview showAssignHint={canCreate} openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} createProject={canCreate ? id => void openCreation(id) : undefined} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
@@ -481,6 +484,7 @@ export default function App() {
             readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)}
             move={(id, parentId) => void moveNode(id, parentId)} openReport={openReport} reportIntent={reportIntent} notify={setMessage}
             color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))}
+            preview={(projectView === 'documents' || projectView === 'data') && <PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage={projectView} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} />}
             tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { begin(); closeCreation(); setProjectView(view); }}
             actions={<>
               {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}

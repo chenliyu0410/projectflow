@@ -1,0 +1,107 @@
+import { expect, test } from '@playwright/test';
+
+for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, async ({ page, request }, info) => {
+  test.setTimeout(120000);
+  expect(await (await request.get('/api/health/acceptance')).json()).toEqual({ acceptance: true });
+  await page.setViewportSize({ width, height: 900 });
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  await page.goto('/');
+  await page.getByLabel('帳號').fill('yu'); await page.getByLabel('密碼').fill('demo-yu');
+  await page.getByRole('button', { name: '登入', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
+  const menu = async () => { if (width === 375 && !await page.getByLabel('工作區導覽').isVisible()) await page.getByRole('button', { name: '切換導覽' }).click(); };
+  const nav = async (name: string) => { await menu(); await page.getByRole('button', { name, exact: true }).click(); };
+  const capture = async (name: string) => {
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(await page.locator('.workspace-content').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    await page.screenshot({ path: info.outputPath(`${name}-${width}.png`), fullPage: true });
+  };
+  await menu();
+  await page.getByLabel('專案清單').getByRole('button').first().click();
+  await expect(page.getByRole('tab', { name: '文件', exact: true })).toBeVisible();
+  const writes: string[] = [];
+  page.on('request', r => { if (!['GET', 'HEAD'].includes(r.method())) writes.push(`${r.method()} ${new URL(r.url()).pathname}`); });
+  const initialStorage = await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }));
+  await page.getByRole('tab', { name: '文件', exact: true }).click();
+  await page.getByRole('button', { name: /試產規格書/ }).click();
+  await page.getByLabel('示例版本').selectOption('0');
+  await expect(page.getByText(/規劃試產 200 罐/)).toBeVisible();
+  await page.getByLabel('示例版本').selectOption('1');
+  await page.getByRole('button', { name: '編輯文字預覽' }).click();
+  await page.getByLabel('文件文字').fill('UI5 暫存文字，不得保存');
+  await page.getByRole('button', { name: '套用至預覽', exact: true }).click();
+  await capture('documents');
+  await page.getByRole('button', { name: '關聯資料示例', exact: true }).click();
+  await page.getByRole('button', { name: '查看供應商詳情' }).click();
+  await page.getByRole('button', { name: '查看關聯採購' }).click();
+  await page.getByRole('button', { name: '模擬收貨（僅預覽）' }).click();
+  await page.getByRole('button', { name: '查看關聯工單' }).click();
+  await expect(page.getByText('原料到位，待包材確認', { exact: true }).last()).toBeVisible();
+  await capture('operations');
+  for (const name of ['供應商', '原料 / 物料', '配方', '採購', '工單', '批號追溯', 'ERP 同步']) {
+    await page.getByRole('tab', { name, exact: true }).click();
+    await expect(page.getByLabel('營運資料展示')).toBeVisible();
+  }
+  await expect(page.getByRole('heading', { name: 'ERP 尚未連線' })).toBeVisible();
+  await page.getByRole('button', { name: 'AI 政策示例' }).click();
+  await page.getByLabel('預覽政策').selectOption('混合');
+  await page.getByText('查看示例送出內容', { exact: true }).click();
+  await capture('governance');
+  if (width === 375) await page.getByRole('button', { name: '切換 AI 副手' }).click();
+  const ai = page.getByLabel('AI 專案副手', { exact: true });
+  for (const name of ['本週進度報告', '延遲風險分析', '拆解下一階段', '會議紀錄抽待辦', '配方成本比較', '推薦模板與部門']) {
+    await ai.getByRole('button', { name, exact: true }).click();
+    if (name === '會議紀錄抽待辦') {
+      await ai.getByLabel('會議紀錄（僅預覽）').fill('請採購確認到貨。請品保安排送驗。');
+      await ai.getByRole('button', { name: '預覽待辦' }).click();
+    }
+    await expect(ai.locator('.copilot-message').last()).toContainText(name);
+  }
+  await ai.getByRole('button', { name: '確認套用至預覽' }).last().click();
+  await expect(ai.getByLabel('已套用預覽清單')).toContainText('品保：留樣送驗');
+  await ai.getByLabel('詢問 AI').fill('請拆解下一階段');
+  await ai.getByRole('button', { name: '送出預覽問題' }).click();
+  await ai.locator('.copilot-message').last().getByText('結果詳情／引用與送出內容').click();
+  await expect(ai.locator('.copilot-message').last()).toContainText('試產規格書 v2');
+  await ai.locator('.copilot-message').last().getByRole('button', { name: '確認套用至預覽' }).click();
+  await capture('copilot');
+  if (width === 375) await ai.getByRole('button', { name: '關閉 AI 副手' }).click();
+  expect(writes).toEqual([]);
+  expect(await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }))).toEqual(initialStorage);
+  await page.getByRole('button', { name: '離開預覽，返回工作區' }).click();
+  await page.getByRole('tab', { name: '文件', exact: true }).click();
+  await page.getByRole('button', { name: /試產規格書/ }).click();
+  await expect(page.getByText('UI5 暫存文字，不得保存')).toHaveCount(0);
+  expect(await ai.locator('.copilot-message').count()).toBe(0);
+  await page.getByRole('button', { name: '編輯文字預覽' }).click();
+  await page.getByLabel('文件文字').fill('切公司前暫存');
+  await page.getByRole('button', { name: '套用至預覽', exact: true }).click();
+  await menu();
+  await page.getByLabel('切換公司（本機展示）').selectOption('electronics');
+  await expect(page.getByLabel('目前公司')).not.toContainText('毛研食品');
+  await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
+  await nav('營運資料');
+  await expect(page.getByText(/尚未建立此類展示示例/)).toBeVisible();
+  await expect(page.getByText(/青禾原料/)).toHaveCount(0);
+  await menu(); await page.getByLabel('切換公司（本機展示）').selectOption('food');
+  await expect(page.getByLabel('目前公司')).toContainText('毛研食品');
+  await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
+  await nav('營運資料');
+  await page.getByRole('button', { name: '文件示例' }).click();
+  await page.getByRole('button', { name: /試產規格書/ }).click();
+  await expect(page.getByText('切公司前暫存')).toHaveCount(0);
+  await page.getByRole('button', { name: '編輯文字預覽' }).click();
+  await page.getByLabel('文件文字').fill('登出前暫存');
+  await page.getByRole('button', { name: '套用至預覽', exact: true }).click();
+  await nav('登出');
+  await expect(page.getByRole('heading', { name: '登入專流' })).toBeVisible();
+  await page.getByLabel('帳號').fill('yu'); await page.getByLabel('密碼').fill('demo-yu');
+  await page.getByRole('button', { name: '登入', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
+  await nav('營運資料');
+  await page.getByRole('button', { name: '文件示例' }).click();
+  await page.getByRole('button', { name: /試產規格書/ }).click();
+  await expect(page.getByText('登出前暫存')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

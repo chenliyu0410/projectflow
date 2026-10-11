@@ -10,18 +10,18 @@ import type { IconName } from './NavIcons';
 export const PROJECT_COLORS = ['#1F5F5B', '#B4541F', '#4A5A8C', '#6B7A3A', '#914667', '#216677', '#A9692E', '#3D6F4E'];
 export const projectColor = (index: number) => PROJECT_COLORS[index % PROJECT_COLORS.length];
 
-type NavItem = { page: 'overview' | 'my-tasks' | 'reviews' | 'workflows' | 'audit' | null; label: string; icon: IconName };
+type NavItem = { page: 'overview' | 'my-tasks' | 'reviews' | 'workflows' | 'audit' | 'operations' | 'governance' | null; label: string; icon: IconName };
 const LINKS: NavItem[] = [
   { page: 'overview', label: '所有專案總覽', icon: 'overview' }, { page: 'my-tasks', label: '我的任務', icon: 'tasks' },
-  { page: 'reviews', label: '審核中心', icon: 'review' }, { page: null, label: '營運資料', icon: 'ops' },
-  { page: 'workflows', label: '模板庫', icon: 'templates' }, { page: null, label: 'AI 政策與稽核', icon: 'ai' },
+  { page: 'reviews', label: '審核中心', icon: 'review' }, { page: 'operations', label: '營運資料', icon: 'ops' },
+  { page: 'workflows', label: '模板庫', icon: 'templates' }, { page: 'governance', label: 'AI 政策與稽核', icon: 'ai' },
   { page: 'audit', label: '活動與稽核紀錄', icon: 'audit' },
 ];
 
-export default function WorkspaceShell({ route, projects, busy, navigate, children, session, createAction, copilotScope }: {
+export default function WorkspaceShell({ route, projects, busy, navigate, children, session, createAction, copilotScope, food = false, companyName = '目前公司', previewKey }: {
   route: WorkspaceRoute; projects: ProjectSummary[]; busy: boolean;
   navigate: (route: WorkspaceRoute) => void; children: ReactNode; session?: ReactNode;
-  createAction?: ReactNode; copilotScope: string;
+  createAction?: ReactNode; copilotScope: string; food?: boolean; companyName?: string; previewKey?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [copilotOpen, setCopilotOpen] = useState(false);
@@ -74,7 +74,7 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
       </div>
       <div className="workspace-content">{children}</div>
     </div>
-    <CopilotPanel scope={copilotScope} open={copilotOpen} close={closeCopilot} />
+    <CopilotPanel key={previewKey ?? location} food={food} companyName={companyName} scope={copilotScope} open={copilotOpen} close={closeCopilot} />
     {(expanded || copilotOpen) && <div className="drawer-backdrop" aria-hidden="true" onClick={() => { if (expanded) closeNavigation(); if (copilotOpen) closeCopilot(); }} />}
   </>;
 }
