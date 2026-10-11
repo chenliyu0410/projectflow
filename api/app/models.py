@@ -53,8 +53,9 @@ class InventoryMovement(Base):
         UniqueConstraint('organization_id', 'request_id', name='uq_inventory_request'),
         ForeignKeyConstraint(['organization_id', 'resource_id'], ['operations_records.organization_id', 'operations_records.id']),
         ForeignKeyConstraint(['organization_id', 'order_id'], ['operations_records.organization_id', 'operations_records.id']),
+        ForeignKeyConstraint(['organization_id', 'work_id'], ['operations_records.organization_id', 'operations_records.id'], name='fk_inventory_work'),
         ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
-        CheckConstraint("(kind = 'receipt' AND order_id IS NOT NULL AND delta_milli > 0) OR (kind = 'adjustment' AND order_id IS NULL AND delta_milli != 0)", name='ck_inventory_kind'),
+        CheckConstraint("(kind = 'receipt' AND order_id IS NOT NULL AND work_id IS NULL AND delta_milli > 0) OR (kind = 'adjustment' AND order_id IS NULL AND work_id IS NULL AND delta_milli != 0) OR (kind = 'issue' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli < 0) OR (kind = 'completion' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli > 0)", name='ck_inventory_kind'),
         CheckConstraint('before_milli >= 0 AND after_milli >= 0 AND after_milli = before_milli + delta_milli AND after_milli <= 999999999999', name='ck_inventory_movement_quantity'),
         Index('ix_inventory_resource_date', 'organization_id', 'resource_id', 'created_at'),
         Index('ix_inventory_order_date', 'organization_id', 'order_id', 'created_at'),
@@ -64,6 +65,8 @@ class InventoryMovement(Base):
     request_id: Mapped[str] = mapped_column(String(36), nullable=False)
     resource_id: Mapped[str] = mapped_column(String(36), nullable=False)
     order_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    work_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    work_label: Mapped[str | None] = mapped_column(String(300), nullable=True)
     kind: Mapped[str] = mapped_column(String(16), nullable=False)
     unit: Mapped[str] = mapped_column(String(20), nullable=False)
     delta_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)

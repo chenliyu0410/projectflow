@@ -80,7 +80,7 @@ export default function OperationsManager({ expired, leaveGuard, preview }: {
     });
   }
   return <section className="operations-manager" aria-label="正式營運資料">
-    <div className="page-heading"><h2>營運資料</h2><p>維護公司的供應商、資源與單據。資料會正式保存；採購詳情可收貨入庫，物料詳情可查看與調整庫存；單據狀態仍為人工紀錄。</p></div>
+    <div className="page-heading"><h2>營運資料</h2><p>維護公司的供應商、資源與單據。資料會正式保存；採購可收貨、工單可領料與完工入庫，物料詳情可查看與調整庫存；單據狀態仍為人工紀錄。</p></div>
     <div className="record-actions"><button disabled={busy} onClick={() => { if (guard()) { setDraft(null); void run(async signal => { if (!catalog) await initialize(signal); else { await load(signal); if (selected) await open(selected.id, signal); } }); } }}>重新載入營運資料</button><button disabled={busy} onClick={() => { if (guard()) preview(); }}>查看原展示示例</button></div>
     {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}{busy && <p role="status">處理中…</p>}
     {catalog && <>
@@ -110,7 +110,7 @@ export default function OperationsManager({ expired, leaveGuard, preview }: {
       <dl>{selected.fields.map(field => <div key={field.label}><dt>{field.label}</dt><dd>{field.value || '未填寫'}</dd></div>)}</dl>
       <p>建立：{selected.created_by} · {new Date(selected.created_at).toLocaleString('zh-TW')}</p><p>最後修改：{selected.updated_by} · {new Date(selected.updated_at).toLocaleString('zh-TW')}</p>
       {catalog?.can_manage && <button disabled={busy} onClick={() => { if (guard()) edit(selected); }}>編輯營運資料</button>}
-      {catalog?.can_manage && ['orders', 'resources'].includes(selected.category) && <InventoryPanel blocked={busy} key={selected.id} record={selected} expired={expired} leaveGuard={inventoryGuard} />}
+      {catalog?.can_manage && ['orders', 'resources', 'work'].includes(selected.category) && <InventoryPanel blocked={busy} key={selected.id} record={selected} expired={expired} leaveGuard={inventoryGuard} />}
     </article>}
   </section>;
 }

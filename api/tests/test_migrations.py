@@ -914,3 +914,33 @@ def test_inventory_migration_preserves_data_and_refuses_loss(tmp_path, monkeypat
         assert conn.scalar(text('SELECT quantity_milli FROM inventory_balances')) == 1200
         assert conn.scalar(text('SELECT name FROM organizations')) == 'Keep data'
     engine.dispose()
+
+
+def test_work_stock_migration_preserves_ledger_and_refuses_loss(tmp_path, monkeypatch):
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text
+    import pytest
+    monkeypatch.setenv('DATABASE_URL', f'sqlite:///{tmp_path / "work-stock.db"}')
+    config = Config('api/alembic.ini')
+    command.upgrade(config, '20261011_0015')
+    engine = create_engine(f'sqlite:///{tmp_path / "work-stock.db"}')
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO inventory_balances VALUES ('org','raw','kg',1000)"))
+        c.execute(text("INSERT INTO inventory_movements (id,organization_id,request_id,resource_id,kind,unit,delta_milli,before_milli,after_milli,resource_label,reason,created_by,actor_name,created_at) VALUES ('old','org','request','raw','adjustment','kg',1000,0,1000,'RAW','initial','user','User','2026-10-12')"))
+        before = dict(c.execute(text('SELECT * FROM inventory_movements')).mappings().one())
+    command.upgrade(config, 'head')
+    with engine.connect() as c:
+        after = dict(c.execute(text('SELECT * FROM inventory_movements')).mappings().one())
+        assert all(after[k] == v for k, v in before.items())
+        assert after['work_id'] is None and after['work_label'] is None
+        assert c.scalar(text('SELECT quantity_milli FROM inventory_balances')) == 1000
+    command.downgrade(config, '20261011_0015')
+    command.upgrade(config, 'head')
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO inventory_movements (id,organization_id,request_id,resource_id,work_id,work_label,kind,unit,delta_milli,before_milli,after_milli,resource_label,reason,created_by,actor_name,created_at) VALUES ('new','org','req2','raw','work','WO','issue','kg',-100,1000,900,'RAW','production','user','User','2026-10-12')"))
+    with pytest.raises(RuntimeError, match='拒絕有損降級'):
+        command.downgrade(config, '20261011_0015')
+    with engine.connect() as c:
+        assert c.scalar(text('SELECT count(*) FROM inventory_movements')) == 2
+    engine.dispose()

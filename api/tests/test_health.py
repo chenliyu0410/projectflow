@@ -70,6 +70,8 @@ def test_only_health_routes_exist():
         '/inventory/movements',
         '/operations/{order_id}/receipts',
         '/inventory/adjustments',
+        '/operations/{work_id}/issues',
+        '/operations/{work_id}/completions',
         '/operations',
         '/operations/catalog',
         '/operations/{record_id}',
