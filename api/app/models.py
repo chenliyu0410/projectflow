@@ -90,6 +90,32 @@ class PurchaseOrderLine(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
+class WorkOrder(Base):
+    """Production plan and state for a work record; created with its first plan or state change."""
+    __tablename__ = 'work_orders'
+    __table_args__ = (
+        ForeignKeyConstraint(['organization_id', 'work_id'], ['operations_records.organization_id', 'operations_records.id']),
+        ForeignKeyConstraint(['organization_id', 'product_id'], ['operations_records.organization_id', 'operations_records.id'], name='fk_work_order_product'),
+        ForeignKeyConstraint(['organization_id', 'updated_by'], ['users.organization_id', 'users.id']),
+        ForeignKeyConstraint(['organization_id', 'closed_by'], ['users.organization_id', 'users.id']),
+        CheckConstraint('revision > 0 AND ((closed_at IS NULL AND closed_by IS NULL AND close_reason IS NULL) OR (closed_at IS NOT NULL AND closed_by IS NOT NULL AND close_reason IS NOT NULL))', name='ck_work_order_state'),
+        CheckConstraint('(product_id IS NULL AND unit IS NULL AND planned_milli IS NULL AND completed_milli = 0) OR (product_id IS NOT NULL AND unit IS NOT NULL AND planned_milli > 0 AND planned_milli <= 999999999999 AND completed_milli >= 0 AND completed_milli <= planned_milli)', name='ck_work_order_plan'),
+    )
+    organization_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    work_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    product_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    planned_milli: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    completed_milli: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    note: Mapped[str] = mapped_column(String(500), nullable=False, default='')
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    closed_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    close_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    updated_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
 class InventoryMovement(Base):
     __tablename__ = 'inventory_movements'
     __table_args__ = (
@@ -101,6 +127,7 @@ class InventoryMovement(Base):
         ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
         CheckConstraint("(kind = 'receipt' AND order_id IS NOT NULL AND work_id IS NULL AND delta_milli > 0) OR (kind = 'adjustment' AND order_id IS NULL AND work_id IS NULL AND delta_milli != 0) OR (kind = 'issue' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli < 0) OR (kind = 'completion' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli > 0)", name='ck_inventory_kind'),
         CheckConstraint("line_id IS NULL OR kind = 'receipt'", name='ck_inventory_line'),
+        CheckConstraint("NOT counted_in_plan OR kind = 'completion'", name='ck_inventory_plan'),
         CheckConstraint('before_milli >= 0 AND after_milli >= 0 AND after_milli = before_milli + delta_milli AND after_milli <= 999999999999', name='ck_inventory_movement_quantity'),
         Index('ix_inventory_resource_date', 'organization_id', 'resource_id', 'created_at'),
         Index('ix_inventory_order_date', 'organization_id', 'order_id', 'created_at'),
@@ -113,6 +140,8 @@ class InventoryMovement(Base):
     work_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     work_label: Mapped[str | None] = mapped_column(String(300), nullable=True)
     line_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # Completions posted against a work order plan; earlier free completions stay false.
+    counted_in_plan: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
     kind: Mapped[str] = mapped_column(String(16), nullable=False)
     unit: Mapped[str] = mapped_column(String(20), nullable=False)
     delta_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)

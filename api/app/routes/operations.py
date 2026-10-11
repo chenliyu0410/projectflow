@@ -14,6 +14,7 @@ from app.database import get_session
 from app.models import OperationsRecord, User, now_utc
 from app.audit import log_audit
 from app.services.purchase_service import summaries
+from app.services.work_order_service import summaries as work_summaries
 
 router = APIRouter(tags=['operations'])
 CATALOG = json.loads((Path(__file__).parents[1] / 'operations_catalog.json').read_text(encoding='utf-8'))
@@ -88,9 +89,12 @@ def listing(category: str = Query('partners', max_length=32), q: str = Query('',
         filters.append(or_(OperationsRecord.code.contains(q.strip().upper(), autoescape=True), OperationsRecord.title.contains(q.strip(), autoescape=True)))
     total = db.scalar(select(func.count()).select_from(OperationsRecord).where(*filters))
     rows = db.scalars(select(OperationsRecord).where(*filters).order_by(OperationsRecord.code, OperationsRecord.id).offset(offset).limit(limit)).all()
-    # Receiving progress follows the stock ledger's manager-only rule.
-    receiving = summaries(db, current.organization.id, [row.id for row in rows]) if category == 'orders' and can_manage(current) else {}
-    return {'items': [{**output(db, row), **({'receiving': receiving[row.id]} if row.id in receiving else {})} for row in rows],
+    # Receiving and production progress follow the stock ledger's manager-only rule.
+    ids = [row.id for row in rows]
+    receiving = summaries(db, current.organization.id, ids) if category == 'orders' and can_manage(current) else {}
+    production = work_summaries(db, current.organization.id, ids) if category == 'work' and can_manage(current) else {}
+    return {'items': [{**output(db, row), **({'receiving': receiving[row.id]} if row.id in receiving else {}),
+        **({'production': production[row.id]} if row.id in production else {})} for row in rows],
         'total': total, 'offset': offset, 'limit': limit}
 
 

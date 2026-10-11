@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ApiError, KNOWN_CONFLICTS, requestJson } from '../api';
 
 type Resource = { id: string; code: string; title: string };
-export type PurchaseLine = { id: string; line_no: number; resource_id: string; resource_code: string; resource_title: string; unit: string; ordered: string; received: string; remaining: string; note: string; status: 'pending' | 'partial' | 'received' };
+/** A purchase line, or a work order's planned product, that postings count toward. */
+export type ProgressLine = { id: string; line_no: number; resource_id: string; resource_code: string; resource_title: string; unit: string; ordered: string; received: string; remaining: string; note: string; status: 'pending' | 'partial' | 'received' };
 type Movement = { id: string; kind: string; resource_label: string; order_label: string | null; work_label: string | null; quantity: string; unit: string; before: string; after: string; reason: string; actor_name: string; created_at: string };
 type History = { items: Movement[]; total: number; offset: number; limit: number };
 type Stock = { quantity: string; unit: string | null };
@@ -10,16 +11,16 @@ type Payload = { request_id: string; resource_id: string; quantity: string; unit
 
 export default function InventoryPanel({ record, expired, leaveGuard, blocked = false, lines = null, closed = false, onPosted }: {
   blocked?: boolean; record: Resource & { category: string }; expired: () => void; leaveGuard: { current: (() => boolean) | null };
-  /** Purchase lines: when present, receipts pick a line instead of searching all resources. */
-  lines?: PurchaseLine[] | null; closed?: boolean; onPosted?: () => void;
+  /** Progress lines: receipts, or completions of a planned work order, pick a line instead of searching all resources. */
+  lines?: ProgressLine[] | null; closed?: boolean; onPosted?: () => void;
 }) {
   const receipt = record.category === 'orders';
   const work = record.category === 'work';
   const picking = receipt || work;
-  const listed = receipt && !!lines?.length;
+  const [workMode, setWorkMode] = useState<'issues' | 'completions'>('issues');
+  const listed = !!lines?.length && (receipt || (work && workMode === 'completions'));
   const [lineId, setLineId] = useState<string | null>(null);
   const line = listed ? lines!.find(item => item.id === lineId) ?? null : null;
-  const [workMode, setWorkMode] = useState<'issues' | 'completions'>('issues');
   const actionName = work ? workMode === 'issues' ? '工單領料' : '完工入庫' : receipt ? '收貨入庫' : '庫存調整';
   const [history, setHistory] = useState<History | null>(null);
   const [stock, setStock] = useState<Stock | null>(null);
@@ -68,7 +69,7 @@ export default function InventoryPanel({ record, expired, leaveGuard, blocked = 
     const value = await requestJson<Stock>(`/inventory/resources/${item.id}`, { signal });
     if (!signal.aborted) { setStock(value); setUnit(value.unit ?? ''); }
   }
-  function pickLine(item: PurchaseLine) {
+  function pickLine(item: ProgressLine) {
     const picked = { id: item.resource_id, code: item.resource_code, title: item.resource_title };
     setLineId(item.id); setResource(picked); setStock(null); setUnit(item.unit);
     // The line fixes the unit; the server still checks it against the stock unit.
@@ -107,16 +108,18 @@ export default function InventoryPanel({ record, expired, leaveGuard, blocked = 
     {receipt && (listed ? <p>依採購明細收貨：只能收明細內物料，可分次收貨，累計不得超過訂購數量。</p>
       : <p>此單尚未建立採購明細：可分次自由收貨，不檢查訂購數量，也不計入收貨進度。</p>)}
     {receipt && closed && <p role="status">採購單已結案，不能再收貨；如需補收請先重新開啟。</p>}
-    {work && <p>先選領料或完工入庫，再選物料或成品。成品請先在物料／資源分類建立；可分批入帳，不自動結案，不依配方自動扣料。</p>}
+    {work && (lines?.length ? <p>領料可選任何物料並分次入帳；完工入庫只能選工單指定成品，累計不得超過計畫產量。不依配方自動扣料。</p>
+      : <p>先選領料或完工入庫，再選物料或成品。此工單尚未設定生產計畫：可分批自由入帳，不計入計畫產量，不依配方自動扣料。</p>)}
+    {work && closed && <p role="status">工單已結案，不能再領料或完工；如需補登請先重新開啟。</p>}
     {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
     {pending && <p role="alert">{busy ? '入帳處理中…' : '入帳結果待確認，請重試相同入帳，不要另外新增同一筆收貨。'}</p>}
     <fieldset disabled={busy || !!pending || closed}><legend>{work ? actionName : receipt ? '收貨明細' : '盤點／補正調整'}</legend>
       {work && <label>工單操作<select aria-label="工單操作" value={workMode} onChange={e => {
         if (dirty && !window.confirm('切換操作會清除尚未保存的輸入，確定切換嗎？')) return;
-        setWorkMode(e.target.value as 'issues' | 'completions'); setResource(null); setStock(null); setQuantity(''); setReason(''); setUnit(''); setResources(null); setQuery(''); setNotice('');
+        setWorkMode(e.target.value as 'issues' | 'completions'); setResource(null); setLineId(null); setStock(null); setQuantity(''); setReason(''); setUnit(''); setResources(null); setQuery(''); setNotice('');
       }}><option value="issues">領料扣庫存</option><option value="completions">完工入庫</option></select></label>}
-      {listed && <><p>選擇收貨明細</p><ul className="receipt-lines">{lines!.map(item => <li key={item.id}><button type="button" aria-pressed={lineId === item.id}
-        disabled={item.status === 'received'} onClick={() => pickLine(item)}>{item.resource_code}｜{item.resource_title} · {item.status === 'received' ? '已收齊' : `未收 ${item.remaining} ${item.unit}`}</button></li>)}</ul></>}
+      {listed && <><p>{work ? '工單指定成品' : '選擇收貨明細'}</p><ul className="receipt-lines">{lines!.map(item => <li key={item.id}><button type="button" aria-pressed={lineId === item.id}
+        disabled={item.status === 'received'} onClick={() => pickLine(item)}>{item.resource_code}｜{item.resource_title} · {work ? item.status === 'received' ? '已達計畫產量' : `尚可完工 ${item.remaining} ${item.unit}` : item.status === 'received' ? '已收齊' : `未收 ${item.remaining} ${item.unit}`}</button></li>)}</ul></>}
       {picking && !listed && <><label>{work ? '搜尋物料或成品' : '搜尋收貨物料'}<input aria-label={work ? '搜尋物料或成品' : '搜尋收貨物料'} maxLength={100} value={query} onChange={e => setQuery(e.target.value)} /></label>
         <button type="button" onClick={() => void run(signal => search(signal))}>搜尋物料</button>
         {resources && <><p>找到 {resources.total} 筆物料／資源</p><ul>{resources.items.map(item => <li key={item.id}><button type="button" aria-pressed={resource?.id === item.id} onClick={() => { setResource(item); setStock(null); setUnit(''); void run(signal => loadStock(item, signal)); }}>{item.code}｜{item.title}</button></li>)}</ul>
@@ -126,8 +129,9 @@ export default function InventoryPanel({ record, expired, leaveGuard, blocked = 
       {resource && <p>物料：{resource.code}｜{resource.title}</p>}
       {stock && <p aria-label="目前庫存">目前庫存：{stock.quantity} {stock.unit ?? '（尚未設定單位）'}</p>}
       <label>{work ? `${actionName}數量（請填正數）` : receipt ? '實收數量' : '調整數量（增加為正、減少為負）'}<input aria-label="異動數量" type="number" step="0.001" min={picking ? '0.001' : '-999999999'} max="999999999" value={quantity} onChange={e => setQuantity(e.target.value)} /></label>
-      {line && <p aria-label="本次可收">本次最多可收 {line.remaining} {line.unit}（訂購 {line.ordered}，已收 {line.received}）</p>}
-      {overLine && <p role="alert">超過未收數量；實際多到貨請先修改採購明細的訂購數量。</p>}
+      {line && (work ? <p aria-label="本次可完工">本次最多可完工 {line.remaining} {line.unit}（計畫 {line.ordered}，已完工 {line.received}）</p>
+        : <p aria-label="本次可收">本次最多可收 {line.remaining} {line.unit}（訂購 {line.ordered}，已收 {line.received}）</p>)}
+      {overLine && <p role="alert">{work ? '超過計畫剩餘產量；實際多產出請先調高工單計畫產量。' : '超過未收數量；實際多到貨請先修改採購明細的訂購數量。'}</p>}
       <label>庫存單位<input aria-label="庫存單位" maxLength={20} disabled={!!stock?.unit || !!line} value={unit} onChange={e => setUnit(e.target.value)} placeholder="例如 kg、件、箱" /></label>
       <label>異動原因／收貨說明<textarea aria-label="異動原因／收貨說明" maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label>
     </fieldset>

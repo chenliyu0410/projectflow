@@ -62,6 +62,15 @@ export const KNOWN_CONFLICTS = new Set([
   '訂購數量不可少於已收數量',
   '明細單位須與物料既有庫存單位一致',
   '採購單尚未結案',
+  '工單已結案，不能領料、完工或修改計畫',
+  '完工品項須為工單指定成品',
+  '超過計畫產量，請先調整計畫產量',
+  '完工單位須與工單計畫一致',
+  '工單計畫已變更，請重新載入',
+  '已有完工的計畫不可更換成品或單位',
+  '計畫產量不可少於已完工數量',
+  '計畫單位須與成品既有庫存單位一致',
+  '工單尚未結案',
 ]);
 
 export async function requestJson<T>(
@@ -114,6 +123,8 @@ export async function requestJson<T>(
                     : response.status === 422 && path !== '/auth/login'
                       ? path.includes('/purchase/')
                         ? '請檢查採購明細：物料不可重複，數量為正數且最多三位小數，並填寫單位或原因'
+                        : path.includes('/production/')
+                        ? '請檢查生產計畫：成品須為物料／資源，產量為正數且最多三位小數，並填寫單位或原因'
                         : path.includes('/workflows') ||
                         path.includes('/from-workflow') ||
                         path.includes('/dependencies')

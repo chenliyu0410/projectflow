@@ -11,6 +11,7 @@ from app.models import Organization, InventoryBalance, InventoryMovement, now_ut
 from app.audit import log_audit
 from app.routes.operations import can_manage, get_record
 from app.services.purchase_service import receipt_line
+from app.services.work_order_service import check_posting
 
 router = APIRouter(tags=['inventory'])
 
@@ -35,7 +36,7 @@ def quantity(value):
 
 
 def output(row):
-    return {**{key: getattr(row, key) for key in ['id', 'request_id', 'resource_id', 'order_id', 'work_id', 'work_label', 'line_id', 'kind', 'unit',
+    return {**{key: getattr(row, key) for key in ['id', 'request_id', 'resource_id', 'order_id', 'work_id', 'work_label', 'line_id', 'counted_in_plan', 'kind', 'unit',
         'resource_label', 'order_label', 'reason', 'actor_name']},
         'quantity': quantity(row.delta_milli), 'before': quantity(row.before_milli), 'after': quantity(row.after_milli),
         'created_at': row.created_at.isoformat()}
@@ -95,6 +96,8 @@ def post(db, current, payload, order_id=None, *, work_id=None, work_kind=None):
         return result
     # Orders with lines only accept listed items up to the ordered quantity; older orders keep free receipts.
     line = receipt_line(db, org, order.id, resource.id, payload.unit, delta) if order else None
+    # Planned work orders only complete their product up to the planned output; closed ones refuse any posting.
+    plan = check_posting(db, org, work.id, kind, resource.id, payload.unit, delta) if work else None
     stock = db.get(InventoryBalance, (org, resource.id))
     if stock and stock.unit != payload.unit:
         raise HTTPException(409, '庫存單位不一致，請使用既有單位')
@@ -109,13 +112,16 @@ def post(db, current, payload, order_id=None, *, work_id=None, work_kind=None):
         stock.quantity_milli = after
     row = InventoryMovement(organization_id=org, request_id=str(payload.request_id), resource_id=resource.id,
         order_id=order_id, work_id=work_id, work_label=f'{work.code}｜{work.title}' if work else None,
-        line_id=line.id if line else None, kind=kind, unit=payload.unit,
+        line_id=line.id if line else None, counted_in_plan=plan is not None, kind=kind, unit=payload.unit,
         delta_milli=delta, before_milli=before, after_milli=after, resource_label=f'{resource.code}｜{resource.title}',
         order_label=f'{order.code}｜{order.title}' if order else None, reason=payload.reason,
         created_by=current.user.id, actor_name=current.user.display_name)
     if line:
         line.received_milli += delta
         line.updated_at = now_utc()
+    if plan:
+        plan.completed_milli += delta
+        plan.updated_at = now_utc()
     db.add(row); db.flush()
     result = output(row)
     log_audit(db, current, 'inventory.' + row.kind, payload=result)

@@ -977,3 +977,34 @@ def test_purchase_lines_migration_preserves_ledger_and_refuses_loss(tmp_path, mo
         assert c.scalar(text('SELECT ordered_milli FROM purchase_order_lines')) == 2000
         assert c.scalar(text('SELECT count(*) FROM inventory_movements')) == 1
     engine.dispose()
+
+
+def test_work_orders_migration_preserves_ledger_and_refuses_loss(tmp_path, monkeypatch):
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text
+    import pytest
+    url = f'sqlite:///{tmp_path / "work-orders.db"}'
+    monkeypatch.setenv('DATABASE_URL', url)
+    config = Config('api/alembic.ini')
+    command.upgrade(config, '20261012_0017')
+    engine = create_engine(url)
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO inventory_balances VALUES ('org','fg','件',2000)"))
+        c.execute(text("INSERT INTO inventory_movements (id,organization_id,request_id,resource_id,work_id,work_label,kind,unit,delta_milli,before_milli,after_milli,resource_label,reason,created_by,actor_name,created_at) VALUES ('old','org','request','fg','wo','WO','completion','件',2000,0,2000,'FG','free completion','user','User','2026-10-12')"))
+        before = dict(c.execute(text('SELECT * FROM inventory_movements')).mappings().one())
+    command.upgrade(config, 'head')
+    with engine.connect() as c:
+        after = dict(c.execute(text('SELECT * FROM inventory_movements')).mappings().one())
+        assert all(after[k] == v for k, v in before.items()) and not after['counted_in_plan']
+        assert c.scalar(text('SELECT count(*) FROM work_orders')) == 0
+    command.downgrade(config, '20261012_0017')
+    command.upgrade(config, 'head')
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO work_orders (organization_id,work_id,product_id,unit,planned_milli,completed_milli,note,revision,updated_by,updated_at) VALUES ('org','wo','fg','件',5000,0,'',1,'user','2026-10-12')"))
+    with pytest.raises(RuntimeError, match='拒絕有損降級'):
+        command.downgrade(config, '20261012_0017')
+    with engine.connect() as c:
+        assert c.scalar(text('SELECT planned_milli FROM work_orders')) == 5000
+        assert c.scalar(text('SELECT count(*) FROM inventory_movements')) == 1
+    engine.dispose()

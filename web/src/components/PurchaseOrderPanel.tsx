@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, requestJson } from '../api';
-import InventoryPanel, { type PurchaseLine } from './InventoryPanel';
+import InventoryPanel, { type ProgressLine } from './InventoryPanel';
 
 type Resource = { id: string; code: string; title: string };
 type Purchase = {
   order_id: string; revision: number; status: 'no_lines' | 'pending' | 'partial' | 'received' | 'closed'; status_label: string;
-  closed_at: string | null; closed_by: string | null; close_reason: string | null; unlinked_receipts: number; lines: PurchaseLine[];
+  closed_at: string | null; closed_by: string | null; close_reason: string | null; unlinked_receipts: number; lines: ProgressLine[];
 };
 type Draft = { id?: string; resource_id: string; code: string; title: string; quantity: string; unit: string; note: string; received: string; locked: boolean; fixedUnit: boolean };
 const LINE_LABELS = { pending: '待收貨', partial: '部分收貨', received: '已收齊' };
