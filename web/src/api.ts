@@ -53,6 +53,15 @@ export const KNOWN_CONFLICTS = new Set([
   '原本的上層已無法放回，無法復原',
   '相關任務已有變更，無法復原',
   '此節點底下有你看不到的子任務，無法移動',
+  '採購單已結案，不能收貨或修改明細',
+  '此物料不在採購明細中',
+  '超過未收數量，請先確認訂購數量',
+  '單位須與採購明細一致',
+  '採購明細已變更，請重新載入',
+  '已有收貨的明細不可刪除或更換物料、單位',
+  '訂購數量不可少於已收數量',
+  '明細單位須與物料既有庫存單位一致',
+  '採購單尚未結案',
 ]);
 
 export async function requestJson<T>(
@@ -103,7 +112,9 @@ export async function requestJson<T>(
                   : response.status === 411
                     ? '無法確認檔案大小，請重新選擇檔案'
                     : response.status === 422 && path !== '/auth/login'
-                      ? path.includes('/workflows') ||
+                      ? path.includes('/purchase/')
+                        ? '請檢查採購明細：物料不可重複，數量為正數且最多三位小數，並填寫單位或原因'
+                        : path.includes('/workflows') ||
                         path.includes('/from-workflow') ||
                         path.includes('/dependencies')
                         ? '請檢查名稱、模板階層、日期與前置設定是否符合規則'

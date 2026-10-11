@@ -944,3 +944,36 @@ def test_work_stock_migration_preserves_ledger_and_refuses_loss(tmp_path, monkey
     with engine.connect() as c:
         assert c.scalar(text('SELECT count(*) FROM inventory_movements')) == 2
     engine.dispose()
+
+
+def test_purchase_lines_migration_preserves_ledger_and_refuses_loss(tmp_path, monkeypatch):
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text
+    import pytest
+    url = f'sqlite:///{tmp_path / "purchase-lines.db"}'
+    monkeypatch.setenv('DATABASE_URL', url)
+    config = Config('api/alembic.ini')
+    command.upgrade(config, '20261012_0016')
+    engine = create_engine(url)
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO inventory_balances VALUES ('org','raw','kg',1000)"))
+        c.execute(text("INSERT INTO inventory_movements (id,organization_id,request_id,resource_id,order_id,kind,unit,delta_milli,before_milli,after_milli,resource_label,order_label,reason,created_by,actor_name,created_at) VALUES ('old','org','request','raw','po','receipt','kg',1000,0,1000,'RAW','PO','free receipt','user','User','2026-10-12')"))
+        before = dict(c.execute(text('SELECT * FROM inventory_movements')).mappings().one())
+    command.upgrade(config, 'head')
+    with engine.connect() as c:
+        after = dict(c.execute(text('SELECT * FROM inventory_movements')).mappings().one())
+        assert all(after[k] == v for k, v in before.items()) and after['line_id'] is None
+        assert c.scalar(text('SELECT count(*) FROM purchase_order_lines')) == 0
+        assert c.scalar(text('SELECT quantity_milli FROM inventory_balances')) == 1000
+    command.downgrade(config, '20261012_0016')
+    command.upgrade(config, 'head')
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO purchase_orders (organization_id,order_id,revision,updated_by,updated_at) VALUES ('org','po',1,'user','2026-10-12')"))
+        c.execute(text("INSERT INTO purchase_order_lines (id,organization_id,order_id,resource_id,line_no,unit,ordered_milli,received_milli,note,created_by,created_at,updated_at) VALUES ('line','org','po','raw',1,'kg',2000,0,'','user','2026-10-12','2026-10-12')"))
+    with pytest.raises(RuntimeError, match='拒絕有損降級'):
+        command.downgrade(config, '20261012_0016')
+    with engine.connect() as c:
+        assert c.scalar(text('SELECT ordered_milli FROM purchase_order_lines')) == 2000
+        assert c.scalar(text('SELECT count(*) FROM inventory_movements')) == 1
+    engine.dispose()

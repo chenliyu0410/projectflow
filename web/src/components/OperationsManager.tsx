@@ -1,10 +1,12 @@
 import InventoryPanel from './InventoryPanel';
+import PurchaseOrderPanel from './PurchaseOrderPanel';
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, requestJson } from '../api';
 
 type Field = { label: string; value: string };
 type Write = { category: string; code: string; title: string; status: string; visibility: 'internal' | 'restricted'; fields: Field[] };
-type RecordItem = Write & { id: string; revision: number; source: string; created_at: string; updated_at: string; created_by: string; updated_by: string };
+type Receiving = { status: string; label: string; lines: number; received_lines: number };
+type RecordItem = Write & { id: string; revision: number; source: string; created_at: string; updated_at: string; created_by: string; updated_by: string; receiving?: Receiving };
 type Catalog = { categories: { key: string; label: string; fields: string[] }[]; can_manage: boolean };
 type Listing = { items: RecordItem[]; total: number; offset: number; limit: number };
 
@@ -80,7 +82,7 @@ export default function OperationsManager({ expired, leaveGuard, preview }: {
     });
   }
   return <section className="operations-manager" aria-label="正式營運資料">
-    <div className="page-heading"><h2>營運資料</h2><p>維護公司的供應商、資源與單據。資料會正式保存；採購可收貨、工單可領料與完工入庫，物料詳情可查看與調整庫存；單據狀態仍為人工紀錄。</p></div>
+    <div className="page-heading"><h2>營運資料</h2><p>維護公司的供應商、資源與單據。資料會正式保存；採購可建立明細、分批收貨並追蹤未收數量與結案，工單可領料與完工入庫，物料詳情可查看與調整庫存。「狀態」欄位仍為人工紀錄，採購收貨狀態由系統計算。</p></div>
     <div className="record-actions"><button disabled={busy} onClick={() => { if (guard()) { setDraft(null); void run(async signal => { if (!catalog) await initialize(signal); else { await load(signal); if (selected) await open(selected.id, signal); } }); } }}>重新載入營運資料</button><button disabled={busy} onClick={() => { if (guard()) preview(); }}>查看原展示示例</button></div>
     {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}{busy && <p role="status">處理中…</p>}
     {catalog && <>
@@ -88,7 +90,8 @@ export default function OperationsManager({ expired, leaveGuard, preview }: {
       {!catalog.can_manage && <p>目前可查看公司內部紀錄；新增、編輯與機密資料由管理者或專案負責人維護。</p>}
       <div className="record-actions"><label>搜尋代碼或名稱<input maxLength={100} disabled={busy} value={query} onChange={e => setQuery(e.target.value)} /></label><button disabled={busy} onClick={() => { if (guard()) { setDraft(null); setSelected(null); void run(signal => load(signal)); } }}>搜尋</button>{catalog.can_manage && <button className="primary" disabled={busy} onClick={create}>新增{group?.label ?? '紀錄'}</button>}</div>
     </>}
-    {listing && <><p>共 {listing.total} 筆符合條件的資料</p><div className="operations-list">{listing.items.map(item => <button key={item.id} disabled={busy} aria-pressed={selected?.id === item.id} onClick={() => { if (guard()) void run(signal => open(item.id, signal)); }}><strong>{item.code}｜{item.title}</strong><span>{item.status} · {item.visibility === 'restricted' ? '機密' : '公司內部'}{item.source === 'showcase' ? ' · 展示資料' : ''}</span></button>)}</div>{listing.items.length === 0 && <p>目前沒有符合條件的紀錄。</p>}
+    {listing && <><p>共 {listing.total} 筆符合條件的資料</p><div className="operations-list">{listing.items.map(item => <button key={item.id} disabled={busy} aria-pressed={selected?.id === item.id} onClick={() => { if (guard()) void run(signal => open(item.id, signal)); }}><strong>{item.code}｜{item.title}</strong><span>{item.status} · {item.visibility === 'restricted' ? '機密' : '公司內部'}{item.source === 'showcase' ? ' · 展示資料' : ''}</span>
+        {item.receiving && <span className={`purchase-state is-${item.receiving.status}`}>收貨：{item.receiving.label}{item.receiving.lines ? `（${item.receiving.received_lines}/${item.receiving.lines} 列）` : ''}</span>}</button>)}</div>{listing.items.length === 0 && <p>目前沒有符合條件的紀錄。</p>}
       <div className="record-actions"><button disabled={busy || listing.offset === 0} onClick={() => { if (guard()) { setDraft(null); setSelected(null); void run(signal => load(signal, category, query, Math.max(0, listing.offset - listing.limit))); } }}>上一頁</button><button disabled={busy || listing.offset + listing.limit >= listing.total} onClick={() => { if (guard()) { setDraft(null); setSelected(null); void run(signal => load(signal, category, query, listing.offset + listing.limit)); } }}>下一頁</button></div></>}
     {draft ? <form className="panel operations-editor" aria-label="營運資料編輯" onSubmit={e => { e.preventDefault(); void save(); }}>
       <h3>{selected ? '編輯紀錄' : '新增紀錄'} · {group?.label}</h3>
@@ -110,7 +113,8 @@ export default function OperationsManager({ expired, leaveGuard, preview }: {
       <dl>{selected.fields.map(field => <div key={field.label}><dt>{field.label}</dt><dd>{field.value || '未填寫'}</dd></div>)}</dl>
       <p>建立：{selected.created_by} · {new Date(selected.created_at).toLocaleString('zh-TW')}</p><p>最後修改：{selected.updated_by} · {new Date(selected.updated_at).toLocaleString('zh-TW')}</p>
       {catalog?.can_manage && <button disabled={busy} onClick={() => { if (guard()) edit(selected); }}>編輯營運資料</button>}
-      {catalog?.can_manage && ['orders', 'resources', 'work'].includes(selected.category) && <InventoryPanel blocked={busy} key={selected.id} record={selected} expired={expired} leaveGuard={inventoryGuard} />}
+      {catalog?.can_manage && selected.category === 'orders' && <PurchaseOrderPanel blocked={busy} key={selected.id} record={selected} expired={expired} leaveGuard={inventoryGuard} onChanged={() => void run(signal => load(signal))} />}
+      {catalog?.can_manage && ['resources', 'work'].includes(selected.category) && <InventoryPanel blocked={busy} key={selected.id} record={selected} expired={expired} leaveGuard={inventoryGuard} />}
     </article>}
   </section>;
 }

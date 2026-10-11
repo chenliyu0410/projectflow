@@ -47,6 +47,49 @@ class InventoryBalance(Base):
     quantity_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
 
+class PurchaseOrder(Base):
+    """Receiving header for an orders record; created with its first lines or state change."""
+    __tablename__ = 'purchase_orders'
+    __table_args__ = (
+        ForeignKeyConstraint(['organization_id', 'order_id'], ['operations_records.organization_id', 'operations_records.id']),
+        ForeignKeyConstraint(['organization_id', 'updated_by'], ['users.organization_id', 'users.id']),
+        ForeignKeyConstraint(['organization_id', 'closed_by'], ['users.organization_id', 'users.id']),
+        CheckConstraint('revision > 0 AND ((closed_at IS NULL AND closed_by IS NULL AND close_reason IS NULL) OR (closed_at IS NOT NULL AND closed_by IS NOT NULL AND close_reason IS NOT NULL))', name='ck_purchase_order_state'),
+    )
+    organization_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    order_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    closed_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    close_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    updated_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
+class PurchaseOrderLine(Base):
+    __tablename__ = 'purchase_order_lines'
+    __table_args__ = (
+        UniqueConstraint('organization_id', 'order_id', 'resource_id', name='uq_purchase_line_resource'),
+        UniqueConstraint('organization_id', 'id', name='uq_purchase_line_org_id'),
+        ForeignKeyConstraint(['organization_id', 'order_id'], ['purchase_orders.organization_id', 'purchase_orders.order_id']),
+        ForeignKeyConstraint(['organization_id', 'resource_id'], ['operations_records.organization_id', 'operations_records.id']),
+        ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
+        CheckConstraint('line_no > 0 AND ordered_milli > 0 AND ordered_milli <= 999999999999 AND received_milli >= 0 AND received_milli <= ordered_milli', name='ck_purchase_line_quantity'),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    organization_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    order_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    resource_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    line_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    unit: Mapped[str] = mapped_column(String(20), nullable=False)
+    ordered_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    received_milli: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    note: Mapped[str] = mapped_column(String(500), nullable=False, default='')
+    created_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
 class InventoryMovement(Base):
     __tablename__ = 'inventory_movements'
     __table_args__ = (
@@ -54,8 +97,10 @@ class InventoryMovement(Base):
         ForeignKeyConstraint(['organization_id', 'resource_id'], ['operations_records.organization_id', 'operations_records.id']),
         ForeignKeyConstraint(['organization_id', 'order_id'], ['operations_records.organization_id', 'operations_records.id']),
         ForeignKeyConstraint(['organization_id', 'work_id'], ['operations_records.organization_id', 'operations_records.id'], name='fk_inventory_work'),
+        ForeignKeyConstraint(['organization_id', 'line_id'], ['purchase_order_lines.organization_id', 'purchase_order_lines.id'], name='fk_inventory_line'),
         ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
         CheckConstraint("(kind = 'receipt' AND order_id IS NOT NULL AND work_id IS NULL AND delta_milli > 0) OR (kind = 'adjustment' AND order_id IS NULL AND work_id IS NULL AND delta_milli != 0) OR (kind = 'issue' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli < 0) OR (kind = 'completion' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli > 0)", name='ck_inventory_kind'),
+        CheckConstraint("line_id IS NULL OR kind = 'receipt'", name='ck_inventory_line'),
         CheckConstraint('before_milli >= 0 AND after_milli >= 0 AND after_milli = before_milli + delta_milli AND after_milli <= 999999999999', name='ck_inventory_movement_quantity'),
         Index('ix_inventory_resource_date', 'organization_id', 'resource_id', 'created_at'),
         Index('ix_inventory_order_date', 'organization_id', 'order_id', 'created_at'),
@@ -67,6 +112,7 @@ class InventoryMovement(Base):
     order_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     work_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     work_label: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    line_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     kind: Mapped[str] = mapped_column(String(16), nullable=False)
     unit: Mapped[str] = mapped_column(String(20), nullable=False)
     delta_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)

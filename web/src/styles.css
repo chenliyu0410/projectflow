@@ -808,3 +808,19 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .inventory-history li { border-bottom: 1px solid #dce3ea; padding: 12px 0; }
 
 .inventory-shell { border: 0; padding: 0; margin: 0; min-width: 0; }
+
+.purchase-panel { margin-top: 24px; border-top: 1px solid #dce3ea; padding-top: 16px; overflow-wrap: anywhere; min-width: 0; }
+.purchase-panel ul { list-style: none; padding: 0; }
+.purchase-panel button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; margin: 4px; }
+.purchase-state, .line-state { justify-self: start; display: inline-block; border-radius: 5px; padding: 1px 8px; background: #EFEBE3; color: var(--muted); }
+.purchase-state.is-pending, .line-state.is-pending { background: #FBF1DC; color: #7A5212; }
+.purchase-state.is-partial, .line-state.is-partial { background: #E3EEF7; color: #1D4F75; }
+.purchase-state.is-received, .line-state.is-received { background: #E1F0E6; color: #1E5C38; }
+.purchase-state.is-closed { background: #ECEAE6; color: #4A4741; }
+.purchase-lines li { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid #dce3ea; }
+.purchase-lines span { font-size: 13px; }
+.purchase-editor { min-width: 0; border: 1px solid #dce3ea; border-radius: 8px; padding: 14px; margin: 12px 0; }
+.purchase-editor label { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.purchase-editor input, .purchase-editor textarea { min-width: 0; width: 100%; box-sizing: border-box; }
+.purchase-draft { display: grid; gap: 4px; padding: 12px; border: 1px solid #deded8; border-radius: 8px; margin: 10px 0; min-width: 0; }
+.receipt-lines li { margin: 2px 0; }
