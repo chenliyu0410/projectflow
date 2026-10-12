@@ -136,6 +136,58 @@ def test_shared_start_cannot_inherit_acceptance_marker(tmp_path, start_module, m
     assert all(call['env']['PF_ACCEPTANCE_MODE'] == 'false' for call in calls)
 
 
+def test_lan_start_binds_all_interfaces_but_checks_loopback(tmp_path, start_module, monkeypatch):
+    calls = []
+    def run(args, **kwargs):
+        calls.append(kwargs['env'])
+        return subprocess.CompletedProcess(args, 0, '0.0.0.0:15173\n' if 'port' in args else '', '')
+    monkeypatch.setattr(start_module.subprocess, 'run', run)
+    monkeypatch.setattr(start_module, 'check_readiness', MagicMock())
+    result = start_module.start(tmp_path, lan=True)
+    assert result['web_url'] == 'http://127.0.0.1:15173'
+    assert result['lan'] is True
+    assert calls and all(env['WEB_BIND'] == '0.0.0.0' for env in calls)
+    start_module.check_readiness.assert_called_once_with('http://127.0.0.1:15173', acceptance=False)
+
+
+def test_default_start_forces_loopback_bind(tmp_path, start_module, monkeypatch):
+    monkeypatch.setenv('WEB_BIND', '0.0.0.0')
+    calls = []
+    def run(args, **kwargs):
+        calls.append(kwargs['env'])
+        return subprocess.CompletedProcess(args, 0, '127.0.0.1:15173' if 'port' in args else '', '')
+    monkeypatch.setattr(start_module.subprocess, 'run', run)
+    monkeypatch.setattr(start_module, 'check_readiness', MagicMock())
+    result = start_module.start(tmp_path)
+    assert result['lan'] is False
+    assert calls and all(env['WEB_BIND'] == '127.0.0.1' for env in calls)
+
+
+@pytest.mark.parametrize('address', ['127.0.0.1:15173', 'example.com:15173', '0.0.0.0:0'])
+def test_lan_start_rejects_unexpected_binding(tmp_path, start_module, monkeypatch, address):
+    monkeypatch.setattr(start_module.subprocess, 'run', lambda args, **kwargs: subprocess.CompletedProcess(args, 0, address, ''))
+    monkeypatch.setattr(start_module, 'check_readiness', MagicMock())
+    with pytest.raises(RuntimeError):
+        start_module.start(tmp_path, lan=True)
+    start_module.check_readiness.assert_not_called()
+
+
+def test_lan_is_refused_for_acceptance_before_any_command(tmp_path, start_module, monkeypatch):
+    runner = MagicMock()
+    monkeypatch.setattr(start_module.subprocess, 'run', runner)
+    with pytest.raises(RuntimeError):
+        start_module.start(tmp_path, acceptance=True, lan=True)
+    runner.assert_not_called()
+    assert not (tmp_path / '.superpowers').exists()
+
+
+def test_compose_web_bind_defaults_to_loopback_and_api_stays_loopback():
+    compose = (Path(__file__).resolve().parents[2] / 'deploy/docker-compose.yml').read_text()
+    assert "'${WEB_BIND:-127.0.0.1}:${WEB_PORT:-15173}:80'" in compose
+    assert "'127.0.0.1:${API_PORT:-18000}:8000'" in compose
+    assert compose.count('WEB_BIND') == 1
+
+
 def test_docker_output_is_decoded_as_utf8(start_module, monkeypatch):
     runner = MagicMock(return_value=subprocess.CompletedProcess([], 0, 'output', ''))
     monkeypatch.setattr(start_module.subprocess, 'run', runner)

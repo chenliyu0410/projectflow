@@ -18,6 +18,24 @@ python deploy/start.py --seed-demo
 
 之後重啟用 `python deploy/start.py`，不重新種資料。此入口仍為 http://127.0.0.1:15173 。初次Compose會下載Python／Node／PostgreSQL映像與鎖版套件，需要網路。這不是LAN／正式環境部署或人類試用簽核。
 
+### 同網域試用（LAN-TRIAL）
+
+要讓同一個網路的其他電腦試用，改用以下命令重啟。只有web綁定所有網卡，API與DB仍只在本機；資料不重設、不seed。
+
+```powershell
+python deploy/start.py --lan
+```
+
+成功後會印出 `Network access: http://<這台電腦的IP>:15173`，把這個網址給其他人。這台電腦照舊用 http://127.0.0.1:15173 。要停止對外開放，不加 `--lan` 再執行一次 `python deploy/start.py`，web會回到只綁127.0.0.1。`--lan` 不能和 `--acceptance` 一起用。
+
+- **防火牆要自己開**：Windows預設擋外部連線，網路類型是「公用」時更是如此。用系統管理員身分開PowerShell執行下面這行，只允許同網段連入15173；停止試用時用 `Remove-NetFirewallRule -DisplayName 'ProjectFlow 15173 (LAN trial)'` 移除。如果同事在不同網段，`LocalSubnet` 要換成對方的網段。
+  ```powershell
+  New-NetFirewallRule -DisplayName 'ProjectFlow 15173 (LAN trial)' -Direction Inbound -Protocol TCP -LocalPort 15173 -RemoteAddress LocalSubnet -Action Allow
+  ```
+  開了還是連不到時，到「Windows Defender 防火牆→輸入規則」看有沒有封鎖 Docker Desktop Backend 的規則；封鎖規則優先於允許規則。
+- **帳號**：登入表單要填公司代碼、帳號、密碼。公司代碼是 `food`、`electronics`、`events`、`software`、`construction`、`hemu`，帳號清單在 `deploy/demo-data/tables/users.json`。資料包還原後密碼都是 `demo-<帳號>`，例如 `food`／`yu`／`demo-yu`。
+- **限制**：這些密碼寫在repo裡，同網路的任何人都能用管理員登入，只在信任的網路開放，試用完就關閉。沒有HTTPS，左下展示公司切換與AI模型設定只在本機127.0.0.1出現，區網試用者要切公司請用該公司的帳號重新登入。試用者的修改會直接寫進15173的資料庫；要回到乾淨的展示資料，照 `deploy/demo-data/README.md` 還原。
+
 自動驗收使用另一個Compose專案、volume與loopback埠，避免寫入使用者試用資料：
 
 ```powershell
@@ -42,7 +60,7 @@ api/.venv/Scripts/python.exe deploy/verify.py --keep-running
 
 - 本機開發：Python 3.13、Node 24.15以上且小於25；套件分別使用`api/requirements.lock`及`web/package-lock.json`。
 - 完整環境：Docker Desktop的Linux容器引擎與Docker Compose。容器自帶Python／Node，不依賴主機安裝的執行環境。
-- 目前為loopback本機MVP；部署強化、LAN發布與人類內部試用簽核尚未完成，不可視為內網正式版發布。
+- 目前為loopback本機MVP，可用 `--lan` 暫時開放同網域試用；部署強化（HTTPS、帳號管理）與人類內部試用簽核尚未完成，不可視為內網正式版發布。
 
 ## 本機API
 
