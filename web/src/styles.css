@@ -828,3 +828,18 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .production-plan div { margin: 6px 0; }
 .production-plan dt { font-weight: 600; font-size: 13px; }
 .production-plan dd { margin: 2px 0 0; }
+
+/* UX-CHILD: keep the timeline in place while adding children. */
+.timeline-create-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); padding: 0; border: 1px solid var(--line); border-radius: 16px; overflow: auto; box-shadow: 0 16px 64px #182c3833; }
+.timeline-create-dialog::backdrop { background: #182c3855; }
+.timeline-create-dialog .node-editor { border: 0; margin: 0; }
+.creation-destination { padding: 10px 12px; border-left: 3px solid var(--teal); background: #edf5f2; overflow-wrap: anywhere; }
+.timeline-add-destination { max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
+.timeline-add-destination select { width: min(360px, 100%); max-width: 100%; min-width: 0; }
+.timeline-add-destination small { color: var(--muted); }
+.creation-restrictions { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; overflow-wrap: anywhere; }
+.creation-restrictions summary { cursor: pointer; }
+.creation-restrictions li { margin: 8px 0; }
+.location-context { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.location-context > span { padding: 3px 8px; color: var(--teal); background: #edf5f2; border-radius: 5px; font-size: 13px; font-weight: 600; }
+.location-context button { font-size: 13px; padding: 4px 8px; min-height: 30px; }

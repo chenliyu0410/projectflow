@@ -83,7 +83,7 @@ describe('P2a node editor', () => {
     expect(reads).toBe(3); expect(fetcher.mock.calls.filter(([path]) => path === '/api/nodes/n')).toHaveLength(1);
   });
 
-  it('selects a newly created node and closes the editor after reloading', async () => {
+  it('keeps the parent after creation and opens the new node only on request', async () => {
     let created = false;
     const fetcher = vi.fn(async (path: string) => {
       if (path === '/api/auth/me') return response({ ...identity, user: { ...identity.user, role: 'admin' } });
@@ -101,7 +101,8 @@ describe('P2a node editor', () => {
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: task.title } });
     fireEvent.click(screen.getByRole('button', { name: '儲存' }));
     await waitFor(() => expect(screen.queryByLabelText('節點名稱')).not.toBeInTheDocument());
-    expect(screen.getByLabelText('節點詳情')).toHaveTextContent(task.title);
+    expect(within(screen.getByLabelText('節點詳情')).getByRole('heading', { level: 1, name: summary.title })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '開啟' }));
     // UI4: the selected node is marked in the breadcrumb (the node tree was removed).
     expect(within(screen.getByLabelText('節點詳情')).getByRole('heading', { level: 1, name: task.title })).toBeInTheDocument();
     expect(within(screen.getByLabelText('節點路徑')).getByRole('button', { name: task.title })).toHaveAttribute('aria-current', 'location');

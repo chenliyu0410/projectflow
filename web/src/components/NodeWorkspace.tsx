@@ -266,6 +266,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     <section aria-label="節點詳情" className="node-head">
       <div className="node-head-main">
         <nav aria-label="節點路徑" className="breadcrumbs"><button aria-current={selected ? undefined : 'location'} onClick={() => select(null)}>{project.title}</button>{crumbs.map(node => <span key={node.id}> / <button aria-current={node.id === selectedNodeId ? 'location' : undefined} onClick={() => select(node.id)}>{node.title}</button></span>)}</nav>
+        <div className="location-context"><span aria-label="目前層級">{level ? `第 ${level} 層 · ${selected?.kind === 'phase' ? '階段' : '任務'}` : '專案總覽'}</span>{selected && <button type="button" onClick={() => select(crumbs.length > 1 ? crumbs[crumbs.length - 2].id : null)}>↑ 返回上一層</button>}</div>
         <h1 className="node-title">{selected?.title ?? project.title}</h1>
         <div className="node-meta">
           {selected && <span>{selected.kind === 'task' ? '負責' : '負責人'}：{owner ?? '未指派'}{selected.department_name ? `・${selected.department_name}` : ''}</span>}

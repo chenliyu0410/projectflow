@@ -94,7 +94,7 @@ describe('TP-C interactions', () => {
     expect(screen.queryByRole('button', { name: '調整日期：m' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '調整截止日：m' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '新增子任務：m' })).toBeDisabled();
-    expect(screen.getByText('里程碑不能有子任務，請先取消里程碑')).toBeVisible();
+    expect(screen.getByRole('button', { name: '新增子任務：m' })).toHaveAccessibleDescription('里程碑不能有子任務，請先取消里程碑');
   });
   it('row plus opens the existing task form, cancel makes no business write', async () => {
     const fetcher = vi.fn().mockResolvedValue(response({ users: [], departments: [] })); vi.stubGlobal('fetch', fetcher);

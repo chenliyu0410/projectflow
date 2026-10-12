@@ -1,3 +1,4 @@
+import { childCreationReason } from './child-creation';
 import LinkedOperations from './components/LinkedOperations';
 import PreviewBoundary from './components/PreviewBoundary';
 import DocumentManager from './components/DocumentManager';
@@ -131,18 +132,18 @@ export default function App() {
     if (next.page === 'project' && next.projectId) { void selectProject(next.projectId, next.nodeId); return; }
     begin(); closeCreation(); setProject(null); setMessage(''); setRoute(next); setState('ready');
   }
-  /** Timeline and graph drill-down keep their tab like the Demo; a leaf task still opens on its records. */
+  /** Keep the user's timeline/graph context, including leaf tasks and breadcrumbs. */
   function selectNode(nodeId: string | null, preferTab?: NodeTab) {
     if (busy) return;
     if (!canLeaveDocument()) return;
     const nodes = project?.nodes ?? [];
     begin(); closeCreation(); setMessage(''); setReportIntent(null);
-    setProjectView(preferTab && !isLeafTask(nodes, nodes.find(node => node.id === nodeId)) ? preferTab : defaultTab(nodes, nodeId));
+    setProjectView(preferTab ?? (projectView === 'timeline' || projectView === 'graph' ? projectView : defaultTab(nodes, nodeId)));
     setSelectedNodeId(nodeId);
   }
   function openReport(nodeId: string) {
     if (busy || mutationId.current !== null) return;
-    selectNode(nodeId); setReportIntent(nodeId);
+    selectNode(nodeId, 'records'); setReportIntent(nodeId);
   }
   function retry() {
     if (session && selectedId) void selectProject(selectedId, selectedNodeId);
@@ -343,7 +344,7 @@ export default function App() {
       event.preventDefault();
       // Undo reloads the project and remounts record forms, so an open draft would be lost.
       const content = document.querySelector('.workspace-content');
-      if (content && (content.querySelector('.schedule-editor, form[aria-label="回報表單"]')
+      if (content && (content.querySelector('.node-editor, .schedule-editor, form[aria-label="回報表單"]')
         || [...content.querySelectorAll('textarea')].some(area => area.value.trim() !== ''))) {
         setNotice(null); setMessage('請先送出或取消開著的表單，再按 Ctrl+Z 復原'); return;
       }
@@ -416,7 +417,7 @@ export default function App() {
   useEffect(()=>{setTemplateDialog(null);},[project?.id,selectedNodeId,session?.user.id,route.page]);
   const canAddNode = session?.user.role !== 'readonly' && (selectedNode ? selectedNode.capabilities?.create_child : project?.capabilities?.create_node);
   // D74: a review/done/skipped node cannot gain new children.
-  const closedParent = !!selectedNode && (selectedNode.milestone || ['review', 'done', 'skipped'].includes(selectedNode.status));
+  const closedParent = !!selectedNode && !!childCreationReason(selectedNode, true);
   const canEditNode = session?.user.role !== 'readonly' && selectedNode?.kind !== 'project' && selectedNode?.capabilities?.edit_metadata;
   function openNodeEditor(mode: 'create' | 'edit') {
     if (busy || mutating || creationOpen) return;
@@ -430,9 +431,12 @@ export default function App() {
     const detail = await api.project(project.id, request.controller.signal);
     if (!current(request)) return;
     const kept = detail.nodes.some(node => node.id === nodeId) ? nodeId : null;
-    // A newly created node opens on its default tab; saving the current node keeps the tab the user is on.
-    if (kept !== selectedNodeId) setProjectView(defaultTab(detail.nodes, kept));
-    setEditor(null); setProject(detail); setSelectedNodeId(kept);
+    // Creating a child keeps the parent and current tab; users can explicitly open it.
+    if (editor === 'create') {
+      const made = detail.nodes.find(node => node.id === kept);
+      if (made) announce(`已新增「${made.title}」，目前仍在原位置`, true, made.id);
+      setEditor(null); setProject(detail);
+    } else { setEditor(null); setProject(detail); setSelectedNodeId(kept); }
   }
 
   async function reloadRecords(signal: AbortSignal) {
@@ -514,7 +518,7 @@ export default function App() {
             editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
               canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession}
               nodes={project.nodes} created={nodeCreated} tree={selectedNode ? { move: parentId => void moveNode(selectedNode.id, parentId), copy: () => void structure('copy', selectedNode.id), remove: () => void structure('delete', selectedNode.id) } : undefined} />}
-            timeline={!busy && !creationOpen && <TimelineView key={`${project.id}:${recordVersion}`} project={project} scopeId={selectedNodeId} created={nodeCreated} notice={setMessage} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession}
+            timeline={!busy && !creationOpen && <TimelineView key={project.id} recordVersion={recordVersion} project={project} scopeId={selectedNodeId} created={nodeCreated} notice={setMessage} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession}
               undo={session.user.role === 'readonly' ? undefined : { label: lastUndo?.label ?? null, disabled: busy || mutating, run: () => void undoLast() }} />}
             graph={!busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} project={project} scopeId={selectedNodeId} select={id => selectNode(id, 'graph')} reload={reloadRecords} expired={expireSession} />} />}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}

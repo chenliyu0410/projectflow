@@ -1,3 +1,4 @@
+import { childCreationReason } from '../child-creation';
 import { dependencyLabel, dependencyMet, dependencyShift } from '../dependencies';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
@@ -60,8 +61,9 @@ export default function TimelineView({
   reload,
   expired,
   color = 'var(--teal)',
-  undo, created, notice,
+  undo, created, notice, recordVersion = 0,
 }: {
+  recordVersion?: number;
   created?: (title: string, undoId: string | null) => void;
   notice?: (message: string) => void;
   project: ProjectDetail;
@@ -94,9 +96,25 @@ export default function TimelineView({
   const filtered = departmentNodes(nodes, department);
   const chain = criticalChain(nodes, edges);
   const editable = (n: NodeItem) => n.capabilities.edit_schedule ?? (n.capabilities.edit_metadata && !n.schedule_locked);
-  const addReason = (n: NodeItem | null) => n?.milestone ? '里程碑不能有子任務，請先取消里程碑' : n && ['review', 'done', 'skipped'].includes(n.status) ? '不能在已完成、待確認或已略過的節點底下新增' : '';
-  const addParent = root ?? project.nodes.find(n => n.kind === 'project' && !n.parent_id) ?? null;
-  const canAdd = addParent ? addParent.capabilities.create_child : project.capabilities.create_node;
+  const addReason = (n: NodeItem | null) => childCreationReason(n, n ? !!n.capabilities.create_child : !!project.capabilities.create_node);
+  const defaultParent = root ?? project.nodes.find(n => n.kind === 'project' && !n.parent_id) ?? null;
+  const [addParentId, setAddParentId] = useState<string | undefined>();
+  const addParent = addParentId === undefined ? defaultParent : addParentId === '' && !root ? null : nodes.find(n => n.id === addParentId) ?? defaultParent;
+  const canAdd = nodes.some(n => n.capabilities.create_child) || project.capabilities.create_node;
+  const creationDialog = useRef<HTMLDialogElement>(null);
+  const creationTrigger = useRef<HTMLElement | null>(null);
+  function openCreation(value: NonNullable<typeof creation>) {
+    creationTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setCreation(value);
+  }
+  const suppressClick = useRef(false);
+  useEffect(() => { setAddParentId(undefined); setCreation(null); setDraft(null); }, [scopeId]);
+  useEffect(() => {
+    if (!creation) return;
+    const dialog = creationDialog.current;
+    if (dialog?.showModal) dialog.showModal(); else dialog?.setAttribute('open', '');
+    return () => { dialog?.close?.(); if (creationTrigger.current?.isConnected) creationTrigger.current.focus({ preventScroll: true }); };
+  }, [creation]);
   useEffect(() => {
     if (project.nodes.filter(n => n.kind === 'task').length < 2) return;
     const controller = new AbortController();
@@ -106,7 +124,7 @@ export default function TimelineView({
       if (error instanceof ApiError && error.status === 401) expired(); else setEdgeError('前置連線載入失敗');
     });
     return () => controller.abort();
-  }, [project.id, edgeAttempt]);
+  }, [project.id, edgeAttempt, recordVersion]);
   const [zoom, setZoom] = useState('week');
   const [collapsed, setCollapsed] = useState(new Set<string>());
   const [draft, setDraft] = useState<{
@@ -126,7 +144,10 @@ export default function TimelineView({
     delta: number;
     scale: number;
   } | null>(null);
-  const mutation = useRecordMutation(reload, expired);
+  const mutation = useRecordMutation(async signal => {
+    await reload(signal);
+    if (!signal.aborted) setDraft(null);
+  }, expired, true);
   const now = new Date();
   const today = calendarDay(
     `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
@@ -181,6 +202,7 @@ export default function TimelineView({
     n: NodeItem,
     resize: boolean | 'left' = false,
   ) {
+    suppressClick.current = false;
     if (
       !editable(n) || nodes.some(c => c.parent_id === n.id) || creation ||
       n.kind !== 'task' ||
@@ -215,10 +237,8 @@ export default function TimelineView({
     gesture.current = null;
     setPreview(null);
     if (!g) return;
-    if (g.delta === 0) {
-      if (!g.resize) select(g.node.id);
-      return;
-    }
+    suppressClick.current = g.delta !== 0 || !!g.resize;
+    if (g.delta === 0) return;
     const dates = shiftDates(
       g.node.start_date!,
       g.node.due_date!,
@@ -265,7 +285,11 @@ export default function TimelineView({
       <div className="tl-departments" role="group" aria-label="依負責部門篩選工作">
         {[['all', '全部'], ...Array.from(new Map(nodes.filter(n => n.kind === 'task').map(n => [n.department_id ?? 'none', n.department_name ?? '未指派'])))].map(([id, label]) => <button key={id} type="button" aria-pressed={department === id} onClick={() => setDepartment(id)}>{label} {nodes.filter(n => n.kind === 'task' && (id === 'all' || (n.department_id ?? 'none') === id)).length}</button>)}
       </div>
-      {creation && <NodeEditor projectId={project.id} mode="create" node={null} parent={creation.parent} canAssign leaf nodes={project.nodes} initialDates={creation} created={created} expired={expired} close={() => setCreation(null)} reload={async () => { await reload(new AbortController().signal); setCreation(null); }} />}
+      {canAdd && <label className="timeline-add-destination">新增位置<select aria-label="新增位置" value={addParent?.id ?? ''} disabled={!!creation || !!draft || mutation.busy || mutation.saved} onChange={e => setAddParentId(e.target.value)}>
+        {!root && <option value="" disabled={!!childCreationReason(null, !!project.capabilities.create_node)}>專案最上層</option>}
+        {timelineRows(nodes, new Set()).map(({node, depth}) => <option key={node.id} value={node.id} disabled={!!addReason(node)}>{'　'.repeat(Math.min(depth, 8))}{node.title}{addReason(node) ? `（${addReason(node)}）` : ''}</option>)}
+      </select><small>下方「＋ 新增子任務」或拖曳日期，會新增到這裡。手機請用＋。</small></label>}
+      {creation && <dialog ref={creationDialog} className="timeline-create-dialog" aria-label="新增子任務" onCancel={event => event.preventDefault()}><NodeEditor projectId={project.id} mode="create" node={null} parent={creation.parent} canAssign leaf nodes={project.nodes} initialDates={creation} created={created} expired={expired} close={() => setCreation(null)} reload={async () => { await reload(new AbortController().signal); setCreation(null); }} /></dialog>}
       {draft && (
         <form
           className="record-panel schedule-editor"
@@ -409,7 +433,7 @@ export default function TimelineView({
                     ✎
                   </button>
                 )}
-                {n.capabilities.create_child && <button type="button" className="ed" aria-label={`新增子任務：${n.title}`} disabled={!!addReason(n) || mutation.busy || !!draft || !!creation} onClick={() => setCreation({ parent: n })}>＋</button>}
+                <button type="button" className="ed" aria-label={`新增子任務：${n.title}`} aria-describedby={addReason(n) ? `${marker}-add-${n.id}` : undefined} title={addReason(n) || `在「${n.title}」下新增子任務`} disabled={!!addReason(n) || mutation.busy || mutation.saved || !!draft || !!creation} onClick={() => openCreation({ parent: n })}>＋</button>
               </div>
               <div className="timeline-track" style={{ width, ...grid }}>
                 <span
@@ -449,12 +473,9 @@ export default function TimelineView({
                             setPreview(null);
                           }}
                           onClick={(e) => {
-                            if (
-                              e.detail === 0 ||
-                              children || n.kind !== 'task' ||
-                              !editable(n)
-                            )
-                              select(n.id);
+                            if (mutation.busy || mutation.saved || creation || draft) return;
+                            if (suppressClick.current && e.detail !== 0) { suppressClick.current = false; return; }
+                            select(n.id);
                           }}
                         >
                           {n.milestone ? '◆' : length > 50 ? (children ? `${n.owner_display_name ?? '未指派'}・${progress}%` : (n.owner_display_name ?? '')) : ''}
@@ -485,15 +506,15 @@ export default function TimelineView({
             </div>
           ))}
           {canAdd && <div className="timeline-row timeline-add">
-            <div className="timeline-label"><button type="button" disabled={!!addReason(addParent) || !!draft || !!creation || mutation.busy} onClick={() => setCreation({ parent: addParent })}>＋ 新增子任務</button></div>
+            <div className="timeline-label"><button type="button" disabled={!!addReason(addParent) || !!draft || !!creation || mutation.busy || mutation.saved} onClick={() => openCreation({ parent: addParent })}>＋ 新增子任務</button></div>
             <div className="timeline-track timeline-add-track" aria-label="拖曳日期新增子任務" style={{ width }} onPointerDown={e => {
-              if (e.button !== 0 || e.pointerType === 'touch' || addReason(addParent) || draft || creation || mutation.busy) return;
+              if (e.button !== 0 || e.pointerType === 'touch' || addReason(addParent) || draft || creation || mutation.busy || mutation.saved) return;
               const rect = e.currentTarget.getBoundingClientRect(); const day = Math.max(0, Math.min(count - 1, Math.floor((e.clientX - rect.left) / actualScale)));
               newDrag.current = { x: e.clientX, day, trackLeft: rect.left }; setNewRange({ start: day, end: day }); e.currentTarget.setPointerCapture?.(e.pointerId); e.preventDefault();
             }} onPointerMove={e => { const g = newDrag.current; if (!g) return; setNewRange({ start: g.day, end: Math.max(0, Math.min(count - 1, Math.floor((e.clientX - g.trackLeft) / actualScale))) }); }} onPointerUp={e => {
-              const g = newDrag.current; newDrag.current = null; setNewRange(null); if (!g || Math.abs(e.clientX - g.x) < actualScale) return;
+              const g = newDrag.current; newDrag.current = null; setNewRange(null); if (!g || Math.abs(e.clientX - g.x) < 4) return;
               const last = Math.max(0, Math.min(count - 1, Math.floor((e.clientX - g.trackLeft) / actualScale)));
-              setCreation({ parent: addParent, start_date: calendarDate(left + Math.min(g.day, last)), due_date: calendarDate(left + Math.max(g.day, last)) });
+              openCreation({ parent: addParent, start_date: calendarDate(left + Math.min(g.day, last)), due_date: calendarDate(left + Math.max(g.day, last)) });
             }} onPointerCancel={() => { newDrag.current = null; setNewRange(null); }}>
               {newRange ? <span className="tl-new-range" style={{ left: Math.min(newRange.start, newRange.end) * actualScale, width: (Math.abs(newRange.end - newRange.start) + 1) * actualScale }} /> : <span className="small muted">在空白處拖曳一段日期以新增子任務</span>}
             </div>
@@ -516,8 +537,8 @@ export default function TimelineView({
           </svg>
         </div>
       </div>
-      {canAdd && addReason(addParent) && <p className="scope-note">{addReason(addParent)}</p>}
-      {[...new Set(rows.filter(r => r.node.capabilities.create_child).map(r => addReason(r.node)).filter(Boolean))].map(reason => <p className="scope-note" key={reason}>{reason}</p>)}
+      {addReason(addParent) && <p className="scope-note">目前新增位置：{addReason(addParent)}</p>}
+      {rows.some(r => addReason(r.node)) && <details className="creation-restrictions"><summary>查看無法新增的項目與原因（{rows.filter(r => addReason(r.node)).length}）</summary><ul>{rows.filter(r => addReason(r.node)).map(({ node }) => <li key={node.id}><b>{node.title}：</b><span id={`${marker}-add-${node.id}`}>{addReason(node)}</span></li>)}</ul></details>}
       <p className="scope-note">箭頭只顯示目前範圍內可見的前置；灰實線＝已滿足，橘虛線＝等待前置。紅框及「已延遲」提示表示逾期未完成。</p>
       {nodes.length === 0 && <p>目前沒有可見節點</p>}
       <section className="unscheduled-list">

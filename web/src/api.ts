@@ -502,7 +502,7 @@ export function recordError(error: unknown) {
       : error.message
     : '操作失敗，請重新整理確認結果';
 }
-export function useRecordMutation(reload: RecordReload, expired: () => void) {
+export function useRecordMutation(reload: RecordReload, expired: () => void, resetOnReload = false) {
   const scope = useRequestScope();
   const lock = useRef(false);
   const [busy, setBusy] = useState(false);
@@ -523,6 +523,7 @@ export function useRecordMutation(reload: RecordReload, expired: () => void) {
         setSaved(true);
       }
       await reload(request.controller.signal);
+      if (resetOnReload && scope.current(request)) setSaved(false);
     } catch (value) {
       if (!scope.current(request)) return;
       if (value instanceof ApiError && value.status === 401) expired();

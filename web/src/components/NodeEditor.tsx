@@ -191,6 +191,7 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, l
   const treeNode = mode === 'edit' && node?.kind === 'task' && tree ? node : null;
   return <form aria-label={mode === 'create' ? '新增節點表單' : '編輯節點表單'} className="node-editor" onSubmit={event => void save(event)}>
     <h2>{mode === 'create' ? '新增子節點' : '編輯節點'}</h2>
+    {mode === 'create' && <p className="creation-destination">新增位置：{parent?.title ?? '專案最上層'}<br /><small>儲存後保留目前位置，可繼續新增。</small></p>}
     {error && <p role="alert">{error}</p>}
     {confirmDelete && treeNode && tree ? <DeleteConfirm projectId={projectId} nodes={nodes} node={treeNode} cancel={() => setConfirmDelete(false)} confirm={tree.remove} expired={expired} />
     : savedNodeId ? <div className="form-actions"><button type="button" disabled={saving} onClick={() => void retryReload()}>重試載入</button><button type="button" disabled={saving} onClick={close}>關閉</button></div> : <>
