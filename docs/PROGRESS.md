@@ -20,7 +20,7 @@
 | 最新程式 commit | `c6cac3f`（採購退貨、工單退料與流水沖銷）。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | 全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
-| 資料版本 | migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。這台未有其他機器的3338筆與產業展示資料；另一台部署未動。 |
+| 資料版本 | migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
 | 認領中 | 無。 |
 | 阻塞／待人類 | F1-RET工程無阻塞。待人類：下一步方向；另一台機器如要更新需在該機同步main後執行`deploy/start.py`（不seed）；第二台機器已於2026-10-12同步並部署0019。限制：退貨無單號／金額／原因代碼，無部分沖銷、沖銷的再沖銷、自動補貨或品質任務、批號；計畫與進度限管理角色；工單單一成品、無BOM自動扣料；採購無單價／逐列交期；Ollama未設定，LAN限制及人類試用簽核維持。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
@@ -67,7 +67,7 @@
 
 ## 2. 工作佇列（由上往下執行）
 
-- OPS-RESTORE 🔨：人類2026-10-12問本機15173專案為何變少、切換公司去哪，選擇「搬另一台的資料庫過來」。本機DB只有10-08 P1c種子（git不同步資料），公司選單需本機`deploy/.env`的`PF_SHOWCASE_MODE=true`而本機未設。原請人類手動匯出pg_dump，後人類貼上另一session的DATA-PACK交付說明，改用`deploy/demo-data`去敏資料包還原：先備份本機DB，清空本機`projectflow`資料庫後以`deploy/start.py`（不seed）建空庫並migrate到0019，再`deploy/demo_data.py import`；本機`deploy/.env`加`PF_SHOWCASE_MODE=true`。資料包不含稽核、通知、session與AI資料。
+- OPS-RESTORE ✅：人類2026-10-12問本機15173專案為何變少、切換公司去哪，選擇「搬另一台的資料庫過來」。本機DB只有10-08 P1c種子（git不同步資料），公司選單需本機`deploy/.env`的`PF_SHOWCASE_MODE=true`而本機未設。原請人類手動匯出pg_dump，後人類貼上另一session的DATA-PACK交付說明，改用`deploy/demo-data`去敏資料包還原。Claude先pg_dump本機DB（119,599 bytes，pg_restore列238項，.superpowers/f1-ret-deploy/before-restore.dump）並在本機`deploy/.env`加`PF_SHOWCASE_MODE=true`；清空資料庫被自動權限判為大量刪除而拒絕，改由人類執行：停API／web、DROP／CREATE `projectflow`、`deploy/start.py`（不seed，migrate到0019）、`deploy/demo_data.py import`。匯入27表共1758列與清單一致（逐表SHA-256核對）。Claude核對：alembic 0019、health ready、yu／demo-yu登入、左下公司選單可用（6家公司，各有專用展示管理者）、專案6家合計39（食品8、電子8、活動7、工程6、軟體6、禾沐4）、食品採購紀錄3。資料包不含稽核、通知、session與AI資料，故活動與稽核紀錄為空、AI資料區未就緒；帳號密碼皆為`demo-<帳號>`。
 
 - DATA-PACK ✅：使用者2026-10-12要求「把資料庫內容打包上傳到GIT」，經詢問選擇去敏展示資料包（repo為private）。新增`api/app/demo_pack.py`、`deploy/demo_data.py`與`deploy/demo-data/`：匯出15173的27張業務表共1758列（migration 0019），排除sessions／audit_logs／notifications並不寫密碼雜湊，還原帳號密碼為`demo-<帳號>`，只能還原到同版本的空資料庫。`test_demo_pack.py` 2pass；隔離throwaway PG（projectflow-packcheck，已down、volume保留）實測還原→再匯出27表SHA-256全同、重複還原拒絕、yu／demo-yu登入可用。輸出掃描無密碼雜湊／token／env。未另做獨立審查。上傳時遠端已有另一session的F1-RET（0019），經使用者選擇：本機未push的資料包commit rebase到origin/main（README／PROGRESS僅新增段落衝突，兩邊保留），整合後相關API 68pass、migration 23pass；先備份（.superpowers/f1-ret-local），由人類於本機執行start.py部署0019，3338列／1檔案／env保留，再以0019重新匯出（列內容不變）。發現Windows autocrlf clone會改寫JSON換行致SHA-256不符，新增`.gitattributes`令`deploy/demo-data/**`不轉換，並以新clone驗證。
 
