@@ -13,13 +13,13 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **UX-CHILD 🟢 協作者本機時程互動改善，未合併**（[成果與改善清單](ux-child-review.md)）。 |
+| 目前工作項目 | **UX-CHILD 🟢 時程互動與左側專案遮蔽修正，未合併**（[成果與改善清單](ux-child-review.md)）。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
 | 下一個動作 | 使用者檢視本機分支變更與 UI／UX 建議；本輪未授權合併、push、PR 或更新他人的運行中服務。 |
 | 分支 | `feature/ux-child-modules-navigation`，由 `063a483` 建立；`main` 保持 `063a483`。 |
 | 最新程式 commit | 本機 UX-CHILD 提交見此分支最新 git log；基準為 `063a483`，沒有合併 main。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | UX-CHILD：前端28檔298pass（單工作程序）；型別與build exit0；6公司80帳戶39專案的528組同公司新增矩陣1pass（內含4157次新增判定及2592次跨公司拒絕），既有節點／階層／時程API 76pass；1280桌面／375手機／唯讀E2E 3pass。平行測試曾有非固定等待失敗，詳見報告。沒有跑歷史全量API或真PG部署。 |
+| 測試基準 | 追加側欄：5種尺寸＋時程E2E共8pass，相關前端31pass，型別／build exit0，獨立審查無阻塞。前輪UX-CHILD：前端28檔298pass（單工作程序）；型別與build exit0；6公司80帳戶39專案的528組同公司新增矩陣1pass（內含4157次新增判定及2592次跨公司拒絕），既有節點／階層／時程API 76pass；1280桌面／375手機／唯讀E2E 3pass。平行測試曾有非固定等待失敗，詳見報告。沒有跑歷史全量API或真PG部署。 |
 | 資料版本 | LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
 | 認領中 | 無；工程驗證完成，等待使用者檢視。 |
 | 阻塞／待人類 | 本輪無工程阻塞；待使用者檢視分支及後續UI／UX建議。實際他人線上資料與部署未動，展示資料包以外帳戶／專案未測。 |
@@ -67,7 +67,7 @@
 
 ## 2. 工作佇列（由上往下執行）
 
-- UX-CHILD 🟢（2026-10-12，協作者本機，未合併）：完成時程新增／拖曳／限制原因／位置保留／觸控修正；[短計畫](superpowers/plans/2026-10-12-ux-child-modules-navigation.md)、[檢查與後續 UI／UX 清單](ux-child-review.md)。前端 298pass（單工作程序）、型別／build exit0；資料包 80帳戶×39專案的528組同公司矩陣通過，相關API 76pass，桌面／手機／唯讀E2E 3pass。獨立審查父層失效問題已修並複核。本輪不合併／push／部署，優先於歷史 D50。
+- UX-CHILD 🟢（2026-10-12，協作者本機，未合併）：追加左側專案遮蔽修正：單一捲動、長名稱換行；5尺寸＋時程E2E 8pass、相關前端31pass、build0、獨立審查無阻塞。完成時程新增／拖曳／限制原因／位置保留／觸控修正；[短計畫](superpowers/plans/2026-10-12-ux-child-modules-navigation.md)、[檢查與後續 UI／UX 清單](ux-child-review.md)。前端 298pass（單工作程序）、型別／build exit0；資料包 80帳戶×39專案的528組同公司矩陣通過，相關API 76pass，桌面／手機／唯讀E2E 3pass。獨立審查父層失效問題已修並複核。本輪不合併／push／部署，優先於歷史 D50。
 
 - LAN-SWITCH ✅：人類2026-10-12問「有辦法一個帳號就切換公司嗎」，選方案A「好，照 A 做」：把既有展示公司切換開放給`--lan`區網試用的管理員（切換後身分是該公司的展示管理者）；方案B（一個帳號屬於多家公司）未選。[短計畫](superpowers/plans/2026-10-12-lan-company-switch.md)。新增API環境變數`PF_SHOWCASE_LAN`，與`PF_SHOWCASE_MODE`都為true時展示切換與展示身分session不限本機Host；`start.py`每次強制帶值（`--lan`才true），驗收環境永遠false；AI模型設定仍只限本機，前端未改。一次唯讀獨立審查Ready（另以暫存env實測compose：shell值優先於env檔）。部署：pg_dump後`start.py --lan`，API容器重建、web／DB未重建，容器內`PF_SHOWCASE_LAN=true`；127.0.0.1與區網IP health ready；以區網Host登入yu回傳6家公司切換清單後登出。未實際在區網執行切換（避免寫入稽核）；非阻擋：選單文字仍為「切換公司（本機展示）」。
 
@@ -1205,3 +1205,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ### 2026-10-12｜Codex｜UX-CHILD 協作者本機交付
 
 完成內容、完整測試摘要、限制及後續建議見 [UI／UX 檢查結果](ux-child-review.md)。獨立分支；沒有修改 main／push／合併／部署他人服務。前端平行執行曾有非固定等待失敗，最終單工作程序 298/298 通過，詳見報告。
+
+
+### 2026-10-12｜Codex｜UX-CHILD 左側專案遮蔽追加修正
+
+使用者確認左側專案區被遮蔽。重現17px清單容不下約50px列，改整個側欄統一捲動、名稱換行。修正前兩項瀏覽器驗證失敗；修正後五尺寸＋既有時程共8pass，相關前端31pass、型別／build0。一次唯讀審查無阻塞；未實測實體手機及Tab，詳見報告。僅本機功能分支，未合併／push／部署。

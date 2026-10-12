@@ -228,8 +228,9 @@ section { border-top: 0; padding: 0; align-items: start; }
 .nav-icon { font-size: 19px; width: 18px; text-align: center; line-height: 1; }
 .group-title, .workspace-navigation aside h2 { font-family: inherit; color: var(--muted); font-size: 12px; letter-spacing: 1px; padding: 0 10px; margin: 0 0 8px; }
 .group-title span { float: right; letter-spacing: 0; }
-.workspace-navigation aside { flex: 1; min-height: 100px; }
-.sidebar-projects { overflow-y: auto; min-height: 0; display: grid; align-content: start; gap: 4px; }
+/* One navigation scroller keeps every project reachable on short screens. */
+.workspace-navigation aside { flex: 1 0 auto; min-height: 0; }
+.sidebar-projects { min-height: 0; display: grid; align-content: start; gap: 4px; }
 .sidebar-projects button { display: flex; align-items: flex-start; gap: 10px; padding: 10px; border: 0; background: transparent; border-radius: 8px; font-size: 13px; }
 .sidebar-projects button > span:last-child { min-width: 0; overflow-wrap: anywhere; }
 .project-dot { background: var(--teal); width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; margin-top: 5px; }
@@ -306,7 +307,7 @@ progress::-webkit-progress-bar { background: #E6E1D6; } progress::-webkit-progre
   .project-toolbar { justify-content: flex-start; }
 }
 
-.sidebar-projects { grid-auto-rows: max-content; flex: 1; }
+.sidebar-projects { grid-auto-rows: max-content; flex: none; }
 .workspace-content > section { position: relative; }
 
 .workspace-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-width: 0; }
@@ -338,7 +339,7 @@ progress::-webkit-progress-bar { background: #E6E1D6; } progress::-webkit-progre
 .workspace-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .workspace-main > .workspace-content { flex: 1; padding-top: 20px; }
 .workspace-navigation { gap: 18px; }
-.workspace-navigation .brand, .workspace-navigation nav { margin-bottom: 0; }
+.workspace-navigation .brand, .workspace-navigation nav { margin-bottom: 0; flex-shrink: 0; }
 .workspace-navigation nav button { color: var(--ink2); }
 .workspace-navigation nav [aria-current=page] { color: var(--ink); font-weight: 500; }
 .workspace-navigation .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
@@ -349,7 +350,7 @@ progress::-webkit-progress-bar { background: #E6E1D6; } progress::-webkit-progre
 .sidebar-projects button[aria-pressed=true] { color: var(--ink); }
 .sidebar-projects .project-dot { width: 10px; height: 10px; margin-top: 0; }
 .project-info { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; min-width: 0; }
-.project-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.project-name { font-weight: 500; white-space: normal; overflow-wrap: anywhere; }
 .project-track { display: block; height: 4px; border-radius: 2px; background: #DAD4C8; overflow: hidden; }
 .project-track > span { display: block; height: 100%; transition: width .3s; }
 .sidebar-projects .project-percent { flex-shrink: 0; font-size: 12px; color: var(--muted); }
