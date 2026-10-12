@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **LAN-TRIAL 🔨 同網域試用：本機15173開放給同網路的人測試**（[短計畫](superpowers/plans/2026-10-12-lan-trial.md)）。前一項F1-RET ✅；之後OPS-CLEAN、DATA-PACK、OPS-RESTORE也已✅ |
+| 目前工作項目 | **LAN-TRIAL ✅ 同網域試用：本機15173已用`--lan`開放同網路**（[短計畫](superpowers/plans/2026-10-12-lan-trial.md)）。之前F1-RET、OPS-CLEAN、DATA-PACK、OPS-RESTORE ✅ |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 照LAN-TRIAL短計畫：`deploy/start.py --lan`讓web綁定所有網卡（API仍只綁127.0.0.1），預設維持loopback；測試、一次獨立審查、ff-only合併、以`--lan`重啟15173並從區網IP冒煙。Windows防火牆／網路類型由人類自行設定。 |
-| 分支 | `feature/lan-trial`（從`main`開出）。 |
-| 最新程式 commit | `3c721b2`（DATA-PACK：資料包重新匯出與`.gitattributes`）；`258ca1e`新增資料包匯出／還原；F1-RET程式為`c6cac3f`。 |
+| 下一個動作 | 人類用系統管理員PowerShell開Windows防火牆15173（命令見[正式版開發](formal-development.md#同網域試用lan-trial)），再把`http://172.22.32.95:15173`給同網路的人，帳號`demo-<帳號>`。停止開放：不加`--lan`執行`python deploy/start.py`，並移除防火牆規則。之後方向待人類指示。 |
+| 分支 | `main`；LAN-TRIAL ff-only合併，`feature/lan-trial`已刪除。 |
+| 最新程式 commit | `3f05680`（區網HTTP頁面的request id改用`newId()`）；`f93e67c`新增`start.py --lan`。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | DATA-PACK（`258ca1e`）後只跑相關：test_demo_pack 2pass、整合後相關API 68pass、migration 23pass，未重跑全量。以下為F1-RET全量：全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
-| 資料版本 | migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
-| 認領中 | LAN-TRIAL｜Claude Code Opus 5.5｜2026-10-12 |
-| 阻塞／待人類 | 待人類：LAN-TRIAL的Windows防火牆／網路類型由人類自行設定（AI不改系統安全設定）；F1之後的下一步方向；另一台機器如要更新需在該機同步main後執行`deploy/start.py`（不seed）；第二台機器已於2026-10-12同步並部署0019。限制：退貨無單號／金額／原因代碼，無部分沖銷、沖銷的再沖銷、自動補貨或品質任務、批號；計畫與進度限管理角色；工單單一成品、無BOM自動扣料；採購無單價／逐列交期；Ollama未設定，LAN限制及人類試用簽核維持。 |
+| 測試基準 | LAN-TRIAL：test_deployment RED 7fail exit1→46pass exit0；新Vitest new-id RED 3fail exit1→全前端27檔292pass exit0；build exit0；未跑API全量與E2E（只改啟動腳本、compose與三處前端id產生）。DATA-PACK（`258ca1e`）後只跑相關：test_demo_pack 2pass、整合後相關API 68pass、migration 23pass，未重跑全量。以下為F1-RET全量：全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
+| 資料版本 | 2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
+| 認領中 | 無。 |
+| 阻塞／待人類 | 待人類：Windows防火牆15173由人類自行開（AI不改系統安全設定），其他電腦實際連線與區網登入由人類確認；F1之後的下一步方向；另一台機器如要更新需在該機同步main後執行`deploy/start.py`（不seed）；第二台機器已於2026-10-12同步並部署0019。限制：退貨無單號／金額／原因代碼，無部分沖銷、沖銷的再沖銷、自動補貨或品質任務、批號；計畫與進度限管理角色；工單單一成品、無BOM自動扣料；採購無單價／逐列交期；Ollama未設定，LAN限制及人類試用簽核維持。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
 
 ---
@@ -67,7 +67,7 @@
 
 ## 2. 工作佇列（由上往下執行）
 
-- LAN-TRIAL 🔨：人類2026-10-12指示「你先弄一個我本機能跑的，我要給同網域的其他人測試」，即授權本機15173對同網路開放試用（D65 §14第7點要求的LAN人類授權）。範圍只限本機試用入口：web可選擇綁定所有網卡，API與DB不對外；不含HTTPS、正式帳號管理或商業部署。[短計畫](superpowers/plans/2026-10-12-lan-trial.md)。
+- LAN-TRIAL ✅：人類2026-10-12指示「你先弄一個我本機能跑的，我要給同網域的其他人測試」，即授權本機15173對同網路開放試用（D65 §14第7點要求的LAN人類授權）。[短計畫](superpowers/plans/2026-10-12-lan-trial.md)：`deploy/start.py --lan`只讓web綁0.0.0.0，預設啟動強制127.0.0.1（不沿用殘留的WEB_BIND），API與DB不對外，`--lan`不可用於驗收環境。唯讀獨立審查第一輪No：區網`http://<IP>`不是安全情境，瀏覽器沒有`crypto.randomUUID`，庫存入帳／退貨／沖銷與模板新增節點會失效；以Plan fix補列前端檔，新增`newId()`改用`getRandomValues`備援，複核Ready。部署：pg_dump備份後`start.py --lan`，`compose port`為web `0.0.0.0:15173`、API `127.0.0.1:18000`，只重建web；127.0.0.1與172.22.32.95的`/api/health/ready`皆ready、首頁200，區網IP連18000失敗；瀏覽器在區網IP確認登入頁、`isSecureContext=false`、`randomUUID`不存在、bundle含備援。未做：HTTPS、帳號管理／改密碼、Host標頭強化；密碼為公開的`demo-<帳號>`，只限信任網路。防火牆與他機實測由人類處理。
 
 - OPS-RESTORE ✅：人類2026-10-12問本機15173專案為何變少、切換公司去哪，選擇「搬另一台的資料庫過來」。本機DB只有10-08 P1c種子（git不同步資料），公司選單需本機`deploy/.env`的`PF_SHOWCASE_MODE=true`而本機未設。原請人類手動匯出pg_dump，後人類貼上另一session的DATA-PACK交付說明，改用`deploy/demo-data`去敏資料包還原。Claude先pg_dump本機DB（119,599 bytes，pg_restore列238項，.superpowers/f1-ret-deploy/before-restore.dump）並在本機`deploy/.env`加`PF_SHOWCASE_MODE=true`；清空資料庫被自動權限判為大量刪除而拒絕，改由人類執行：停API／web、DROP／CREATE `projectflow`、`deploy/start.py`（不seed，migrate到0019）、`deploy/demo_data.py import`。匯入27表共1758列與清單一致（逐表SHA-256核對）。Claude核對：alembic 0019、health ready、yu／demo-yu登入、左下公司選單可用（6家公司，各有專用展示管理者）、專案6家合計39（食品8、電子8、活動7、工程6、軟體6、禾沐4）、食品採購紀錄3。資料包不含稽核、通知、session與AI資料，故活動與稽核紀錄為空、AI資料區未就緒；帳號密碼皆為`demo-<帳號>`。
 
@@ -1162,11 +1162,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
-### 2026-10-12｜Claude Code Opus 5.5｜看板對齊與LAN-TRIAL開工
-- **做了什麼**：/pf-status發現看板落後git：最新程式commit、目前工作項目、測試基準、W2標題、F1路線列與§7排序。已更新上述欄位，§7依本節規則只保留最近5筆（舊紀錄從git歷史查）。人類指示開放同網域試用，記為LAN-TRIAL。
-- **驗證**：只改文件；127.0.0.1:8000被另一專案占用，Demo測試頁未跑（Demo軌凍結，`c6cac3f..HEAD`沒有Demo／tests變更）。
-- **下一步**：LAN-TRIAL實作（見「▶ 現在」）。
-- **注意**：本機`.superpowers/sdd/`仍是W2 plan的ledger，下次跑SDD前依WORKFLOW §7歸檔。遠端仍有`origin/feature/p0-formal-product-plan`與已合併的`origin/feature/w2-departments`，是否刪除由人類決定。
+### 2026-10-12｜Claude Code Opus 5.5｜看板對齊與LAN-TRIAL交付
+- **做了什麼**：先對齊看板與git（最新程式commit、目前工作項目、測試基準、W2標題、F1路線列，§7只留5筆）。再依人類指示交付LAN-TRIAL：`f93e67c` `start.py --lan`與compose `WEB_BIND`；`3f05680` 區網HTTP下的request id備援與文件補充。
+- **驗證**：pytest test_deployment RED 7fail→46pass；Vitest new-id RED 3fail→全前端292pass；build exit0。一次唯讀獨立審查：第一輪No（randomUUID在非安全情境不存在），修正後複核Ready。部署後web綁0.0.0.0、API仍loopback，127.0.0.1與區網IP health ready，瀏覽器在區網IP確認登入頁與備援。
+- **沒做的事**：沒有改Windows防火牆或網路類型（系統安全設定，由人類處理）；沒有在區網IP輸入密碼登入（登入只在127.0.0.1驗證過的既有流程）；沒有跑API全量與E2E。
+- **下一步**：人類開防火牆後把網址給同網路的人；方向待人類指示。
+- **注意**：本機`.superpowers/sdd/`仍是W2 plan的ledger，下次跑SDD前依WORKFLOW §7歸檔。遠端仍有`origin/feature/p0-formal-product-plan`與已合併的`origin/feature/w2-departments`，要不要刪由人類決定。15173目前是LAN模式，下次不加`--lan`執行start.py就會回到只限本機。
 
 ### F1-RET 交接（2026-10-12）
 
