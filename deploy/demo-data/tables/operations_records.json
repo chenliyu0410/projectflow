@@ -1,0 +1,2740 @@
+[
+ {
+  "category": "partners",
+  "code": "SUP-002",
+  "created_at": "2026-10-11T14:36:22.341091+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "冷凍鮪魚"
+   },
+   {
+    "label": "交期",
+    "value": "14–21天"
+   },
+   {
+    "label": "付款",
+    "value": "月結30天"
+   }
+  ],
+  "id": "000ab6a6-840b-498f-b911-ebd9a3d46907",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "新批次待送樣",
+  "title": "澄海水產原料有限公司",
+  "updated_at": "2026-10-11T14:36:22.341093+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "YS-S01",
+  "created_at": "2026-10-11T14:36:22.421757+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "運算與物件儲存"
+   },
+   {
+    "label": "連線",
+    "value": "未串接真實雲端帳號"
+   }
+  ],
+  "id": "038daa5f-7cef-4833-8964-1e76583a5492",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "測試用服務商",
+  "title": "衡雲基礎服務",
+  "updated_at": "2026-10-11T14:36:22.421759+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "work",
+  "code": "YS-W02",
+  "created_at": "2026-10-11T14:36:22.476363+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "席位",
+    "value": "30"
+   },
+   {
+    "label": "驗收",
+    "value": "2026-11-20"
+   },
+   {
+    "label": "實際使用率",
+    "value": "尚無資料"
+   }
+  ],
+  "id": "03de0449-9a29-4821-8a4c-32633a7b603f",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待訓練與驗收",
+  "title": "澄岳物流導入驗收",
+  "updated_at": "2026-10-11T14:36:22.476365+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "MY-S05",
+  "created_at": "2026-10-11T14:36:22.290184+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "寵物門市配銷"
+   },
+   {
+    "label": "結帳",
+    "value": "月結45天"
+   }
+  ],
+  "id": "05e4b044-481f-4924-8f0f-1e5df3dcf76f",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "新通路洽談",
+  "title": "匯寵通路服務",
+  "updated_at": "2026-10-11T14:36:22.290186+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "SUP-003",
+  "created_at": "2026-10-11T14:36:22.344858+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "營養預混料、牛磺酸"
+   },
+   {
+    "label": "交期",
+    "value": "21天"
+   },
+   {
+    "label": "付款",
+    "value": "月結30天"
+   }
+  ],
+  "id": "09387028-fbb7-4cd6-b485-ed899a1bf4f7",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "合格；規格需版本確認",
+  "title": "衡益營養原料有限公司",
+  "updated_at": "2026-10-11T14:36:22.344860+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "PK-LID-085",
+  "created_at": "2026-10-11T14:36:22.388148+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-004"
+   },
+   {
+    "label": "單位",
+    "value": "個"
+   },
+   {
+    "label": "未稅參考單價",
+    "value": "0.95"
+   },
+   {
+    "label": "庫存",
+    "value": "8400"
+   }
+  ],
+  "id": "0c7cae0a-5fb8-4e64-9fbe-3d4638f04c4b",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示帳面庫存",
+  "title": "85g易開蓋",
+  "updated_at": "2026-10-11T14:36:22.388149+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "FY-S02",
+  "created_at": "2026-10-11T14:36:22.155476+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "矽膠密封圈"
+   },
+   {
+    "label": "交期",
+    "value": "21天"
+   }
+  ],
+  "id": "0ee9a681-50da-410b-a4b8-b5dc983bc284",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "樣品待驗",
+  "title": "聚楷高分子材料",
+  "updated_at": "2026-10-11T14:36:22.155478+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "ZH-R01",
+  "created_at": "2026-10-11T14:36:22.108017+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "240片"
+   },
+   {
+    "label": "單價",
+    "value": "NT$420"
+   },
+   {
+    "label": "供應商",
+    "value": "ZH-S01"
+   }
+  ],
+  "id": "0f8f1944-c326-432e-bb42-68edab888e22",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待進場",
+  "title": "輕隔間板材",
+  "updated_at": "2026-10-11T14:36:22.108018+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "GD-R02",
+  "created_at": "2026-10-11T14:36:22.236590+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "6支"
+   },
+   {
+    "label": "供應商",
+    "value": "GD-S01"
+   }
+  ],
+  "id": "125c2012-5e30-443b-8a4d-f12f10547fd7",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "預約示例",
+  "title": "無線手持麥克風",
+  "updated_at": "2026-10-11T14:36:22.236592+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "work",
+  "code": "WO-261022-01",
+  "created_at": "2026-10-11T14:36:22.408543+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "代工廠",
+    "value": "MFG-001"
+   },
+   {
+    "label": "日期",
+    "value": "2026-10-22"
+   },
+   {
+    "label": "投料",
+    "value": "180 kg"
+   },
+   {
+    "label": "目標",
+    "value": "2,000罐 × 85g＝170 kg"
+   },
+   {
+    "label": "預留耗損",
+    "value": "10 kg；實際產出待回報"
+   },
+   {
+    "label": "前置",
+    "value": "包材確認、試作審核、排程確認"
+   },
+   {
+    "label": "採購",
+    "value": "PO-261002-01、PO-260925-02"
+   }
+  ],
+  "id": "14ee8586-a235-47d3-8f07-bf0442358ce1",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "暫排，尚未放行",
+  "title": "雞肉主食罐工程試產",
+  "updated_at": "2026-10-11T14:36:22.408545+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "FY-R01",
+  "created_at": "2026-10-11T14:36:22.171933+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "庫存",
+    "value": "1,800個"
+   },
+   {
+    "label": "單價",
+    "value": "NT$18"
+   },
+   {
+    "label": "供應商",
+    "value": "FY-S01"
+   }
+  ],
+  "id": "1af80dd2-9a39-420c-932b-473d47a722ac",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示庫存",
+  "title": "C24銅合金端子",
+  "updated_at": "2026-10-11T14:36:22.171935+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "YS-S03",
+  "created_at": "2026-10-11T14:36:22.431418+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "使用者教育訓練"
+   },
+   {
+    "label": "日期",
+    "value": "2026-11-06"
+   }
+  ],
+  "id": "1d097859-f5c8-4665-9fe5-ed67c842cdf6",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "課程暫排",
+  "title": "啟程資訊培訓",
+  "updated_at": "2026-10-11T14:36:22.431419+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "FY-S03",
+  "created_at": "2026-10-11T14:36:22.160443+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "模具與塑膠射出"
+   },
+   {
+    "label": "交期",
+    "value": "依圖面確認"
+   }
+  ],
+  "id": "21989cef-afd3-4323-ba6e-863c0c97b545",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "合作廠商",
+  "title": "銓立模具工業",
+  "updated_at": "2026-10-11T14:36:22.160445+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "YS-PO03",
+  "created_at": "2026-10-11T14:36:22.466727+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "未稅月估價",
+    "value": "NT$8,600"
+   },
+   {
+    "label": "其中儲存",
+    "value": "500GB×NT$1.20＝NT$600"
+   },
+   {
+    "label": "期間",
+    "value": "2026-10-16起1個月"
+   }
+  ],
+  "id": "23804aff-8f81-45f0-85c1-1977a5fd7b00",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "尚未開通",
+  "title": "測試環境資源訂單",
+  "updated_at": "2026-10-11T14:36:22.466728+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "SUP-005",
+  "created_at": "2026-10-11T14:36:22.353030+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "彩盒、外箱、標籤"
+   },
+   {
+    "label": "交期",
+    "value": "校稿後14天"
+   },
+   {
+    "label": "付款",
+    "value": "月結30天"
+   }
+  ],
+  "id": "26140d9f-cc32-433f-a89a-50cede2fcd4a",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "新包裝打樣中",
+  "title": "采序印刷包裝有限公司",
+  "updated_at": "2026-10-11T14:36:22.353031+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "YS-R05",
+  "created_at": "2026-10-11T14:36:22.452920+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "規模",
+    "value": "10萬列虛構資料"
+   },
+   {
+    "label": "個資",
+    "value": "不使用真實客戶資料"
+   }
+  ],
+  "id": "267879b0-3d52-4b2d-8982-f48d9fb8676a",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待產生",
+  "title": "報表效能測試資料",
+  "updated_at": "2026-10-11T14:36:22.452921+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "MY-R02",
+  "created_at": "2026-10-11T14:36:22.298039+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "單位",
+    "value": "個"
+   },
+   {
+    "label": "單價",
+    "value": "NT$3.20"
+   },
+   {
+    "label": "庫存",
+    "value": "0"
+   },
+   {
+    "label": "供應商",
+    "value": "MY-S03"
+   }
+  ],
+  "id": "2a84cd55-7f44-4c51-a390-15f93c5ec64b",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "打樣中",
+  "title": "30g高阻隔袋",
+  "updated_at": "2026-10-11T14:36:22.298040+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "RM-TAU-001",
+  "created_at": "2026-10-11T14:36:22.380251+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-003"
+   },
+   {
+    "label": "單位",
+    "value": "kg"
+   },
+   {
+    "label": "未稅參考單價",
+    "value": "220"
+   },
+   {
+    "label": "庫存",
+    "value": "6"
+   }
+  ],
+  "id": "2b6811c9-5597-43d5-bc42-9dc484bfcef2",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示帳面庫存",
+  "title": "牛磺酸",
+  "updated_at": "2026-10-11T14:36:22.380252+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "orders",
+  "code": "GD-PO02",
+  "created_at": "2026-10-11T14:36:22.257156+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "未稅金額",
+    "value": "NT$96,000"
+   },
+   {
+    "label": "期間",
+    "value": "10/29佈場、10/30活動"
+   },
+   {
+    "label": "訂金",
+    "value": "30%＝NT$28,800；尚未付款"
+   }
+  ],
+  "id": "31568794-4935-4648-b038-4619ad10ce59",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "暫留",
+  "title": "場地租用",
+  "updated_at": "2026-10-11T14:36:22.257157+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "GD-C01",
+  "created_at": "2026-10-11T14:36:22.211706+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "活動",
+    "value": "秋季新品發表會"
+   },
+   {
+    "label": "人數",
+    "value": "120人"
+   },
+   {
+    "label": "預算上限",
+    "value": "NT$680,000未稅"
+   }
+  ],
+  "id": "34bbabcf-bf8c-49f7-bacb-6b40d97b8ef4",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "活動客戶",
+  "title": "沐光生活選品",
+  "updated_at": "2026-10-11T14:36:22.211707+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "MY-S04",
+  "created_at": "2026-10-11T14:36:22.285678+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "水分、微生物等送驗"
+   },
+   {
+    "label": "報告",
+    "value": "收樣後10工作天"
+   }
+  ],
+  "id": "359bdac3-2fb6-4c86-9a5a-30365d6441cf",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "合作實驗室",
+  "title": "禾析檢測服務",
+  "updated_at": "2026-10-11T14:36:22.285679+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "internal"
+ },
+ {
+  "category": "work",
+  "code": "YS-W01",
+  "created_at": "2026-10-11T14:36:22.471922+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "版本",
+    "value": "2.1.0-rc.1"
+   },
+   {
+    "label": "計畫發布",
+    "value": "2026-11-06"
+   },
+   {
+    "label": "正式部署",
+    "value": "尚未執行"
+   }
+  ],
+  "id": "37b9ddd2-e50f-421f-986e-8c21bdc5fef1",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待UAT與資源確認",
+  "title": "v2.1發布候選RC1",
+  "updated_at": "2026-10-11T14:36:22.471924+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "FY-S01",
+  "created_at": "2026-10-11T14:36:22.150629+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "銅合金端子"
+   },
+   {
+    "label": "交期",
+    "value": "14天"
+   },
+   {
+    "label": "付款",
+    "value": "月結45天"
+   }
+  ],
+  "id": "3913ebde-eab4-4c50-bad8-b1ef21d1070c",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "合格",
+  "title": "承曜精密加工",
+  "updated_at": "2026-10-11T14:36:22.150631+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "GD-S04",
+  "created_at": "2026-10-11T14:36:22.228643+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "活動茶點"
+   },
+   {
+    "label": "備餐",
+    "value": "依最終人數"
+   }
+  ],
+  "id": "393a043e-3db7-4a58-af98-8f7721c37e4f",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "菜單待確認",
+  "title": "拾味餐飲服務",
+  "updated_at": "2026-10-11T14:36:22.228645+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "ZH-R05",
+  "created_at": "2026-10-11T14:36:22.126965+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "內容",
+    "value": "絕緣量測、照度計"
+   },
+   {
+    "label": "說明",
+    "value": "實際校驗及操作資格另行確認"
+   }
+  ],
+  "id": "39d20cce-46cc-487c-ad28-2a1242658f50",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "排程中",
+  "title": "現場查驗工具",
+  "updated_at": "2026-10-11T14:36:22.126966+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "internal"
+ },
+ {
+  "category": "work",
+  "code": "FY-W02",
+  "created_at": "2026-10-11T14:36:22.207616+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "計畫",
+    "value": "IP防護／溫循／接觸電阻"
+   },
+   {
+    "label": "結果",
+    "value": "未出具，不宣稱已通過IP67"
+   }
+  ],
+  "id": "3ab31d9e-f9b3-4863-bfd2-85ea38144b89",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待樣品",
+  "title": "C24防護與可靠度驗證",
+  "updated_at": "2026-10-11T14:36:22.207617+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "RM-LIV-001",
+  "created_at": "2026-10-11T14:36:22.369361+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-001"
+   },
+   {
+    "label": "單位",
+    "value": "kg"
+   },
+   {
+    "label": "未稅參考單價",
+    "value": "62"
+   },
+   {
+    "label": "庫存",
+    "value": "48"
+   }
+  ],
+  "id": "3bc0dbde-ab5b-4371-8df4-206878b66a67",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示帳面庫存",
+  "title": "冷凍雞肝",
+  "updated_at": "2026-10-11T14:36:22.369363+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "GD-S03",
+  "created_at": "2026-10-11T14:36:22.223915+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "背板、指引與輸出"
+   },
+   {
+    "label": "交期",
+    "value": "校稿後5工作天"
+   }
+  ],
+  "id": "3ddd88c0-8d89-4bba-9c46-8bb68f0149fd",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "色樣待確認",
+  "title": "墨序設計輸出",
+  "updated_at": "2026-10-11T14:36:22.223916+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "YS-C02",
+  "created_at": "2026-10-11T14:36:22.416994+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "入口網站與報表"
+   },
+   {
+    "label": "範圍",
+    "value": "需求尚未定案"
+   }
+  ],
+  "id": "3fe0bb6c-6bfe-4a2e-ba4d-5f67ccf56364",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "需求洽談",
+  "title": "微境設計工作室",
+  "updated_at": "2026-10-11T14:36:22.416995+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "MY-S02",
+  "created_at": "2026-10-11T14:36:22.276962+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "委外凍乾與分裝"
+   },
+   {
+    "label": "最低試產量",
+    "value": "投料120kg"
+   },
+   {
+    "label": "交期",
+    "value": "確認後21天"
+   }
+  ],
+  "id": "447bdc62-95ae-4079-b0bb-406c3c7cf517",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "試產排程待確認",
+  "title": "澤昕食品加工",
+  "updated_at": "2026-10-11T14:36:22.276964+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "FY-PO02",
+  "created_at": "2026-10-11T14:36:22.196181+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "300個"
+   },
+   {
+    "label": "單價",
+    "value": "NT$6.50"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$1,950"
+   },
+   {
+    "label": "交期",
+    "value": "2026-10-19"
+   }
+  ],
+  "id": "44e90c22-2c95-4bd9-80f3-f0b6de282290",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "交期追蹤中",
+  "title": "密封圈工程批採購",
+  "updated_at": "2026-10-11T14:36:22.196183+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "restricted"
+ },
+ {
+  "category": "work",
+  "code": "FY-W01",
+  "created_at": "2026-10-11T14:36:22.203832+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "工單",
+    "value": "EVT-C24-1023"
+   },
+   {
+    "label": "目標",
+    "value": "200組"
+   },
+   {
+    "label": "暫排",
+    "value": "2026-10-23"
+   },
+   {
+    "label": "批次",
+    "value": "尚未投產"
+   }
+  ],
+  "id": "4b3a5627-e5a7-49f5-bba5-57b1419b7a20",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待密封圈與圖面確認",
+  "title": "C24工程樣機試製",
+  "updated_at": "2026-10-11T14:36:22.203833+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "YS-R03",
+  "created_at": "2026-10-11T14:36:22.445314+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "容量",
+    "value": "500GB"
+   },
+   {
+    "label": "單價",
+    "value": "NT$1.20/GB月"
+   },
+   {
+    "label": "月估價",
+    "value": "NT$600"
+   }
+  ],
+  "id": "5121454b-aa01-462d-b742-30c3858e03b1",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "估算示例",
+  "title": "備援物件儲存",
+  "updated_at": "2026-10-11T14:36:22.445316+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "ZH-R04",
+  "created_at": "2026-10-11T14:36:22.123064+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "2組"
+   },
+   {
+    "label": "供應商",
+    "value": "ZH-S03"
+   }
+  ],
+  "id": "52cd5dc8-ace2-4261-a9e3-43b32766943b",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "交期追蹤",
+  "title": "會議室空調設備",
+  "updated_at": "2026-10-11T14:36:22.123065+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "ZH-PO03",
+  "created_at": "2026-10-11T14:36:22.139006+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "2組"
+   },
+   {
+    "label": "單價",
+    "value": "NT$68,000"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$136,000"
+   },
+   {
+    "label": "交期",
+    "value": "2026-10-30"
+   }
+  ],
+  "id": "55f91028-bbe9-4e15-b175-2a4593350b89",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "交期追蹤",
+  "title": "會議室空調設備與安裝",
+  "updated_at": "2026-10-11T14:36:22.139007+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "FY-R05",
+  "created_at": "2026-10-11T14:36:22.188556+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "設備編號",
+    "value": "EQ-QA-07"
+   },
+   {
+    "label": "用途",
+    "value": "工程驗證"
+   },
+   {
+    "label": "校驗",
+    "value": "待依實際校驗紀錄確認"
+   }
+  ],
+  "id": "56710f05-2b68-4cf6-802a-daa37d9dec78",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "可預約示例",
+  "title": "接觸電阻測試台",
+  "updated_at": "2026-10-11T14:36:22.188557+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "YS-R01",
+  "created_at": "2026-10-11T14:36:22.435777+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "用途",
+    "value": "UAT"
+   },
+   {
+    "label": "資料",
+    "value": "虛構測試資料"
+   },
+   {
+    "label": "對外位址",
+    "value": "未配置"
+   }
+  ],
+  "id": "5690fc50-2b6b-473b-a3bb-42291edd7ee8",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "規劃中",
+  "title": "v2.1隔離測試環境",
+  "updated_at": "2026-10-11T14:36:22.435779+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "FY-R02",
+  "created_at": "2026-10-11T14:36:22.176217+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "庫存",
+    "value": "0"
+   },
+   {
+    "label": "單價",
+    "value": "NT$6.50"
+   },
+   {
+    "label": "供應商",
+    "value": "FY-S02"
+   }
+  ],
+  "id": "5fb306f2-5998-46c8-b2e2-0d3de5aea6ef",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待進料",
+  "title": "C24矽膠密封圈",
+  "updated_at": "2026-10-11T14:36:22.176219+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "MFG-001",
+  "created_at": "2026-10-11T14:36:22.357124+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "委託試產與量產"
+   },
+   {
+    "label": "交期",
+    "value": "確認後21天"
+   },
+   {
+    "label": "付款",
+    "value": "依合約"
+   }
+  ],
+  "id": "5fbc520f-ce19-4414-a802-18f2731cbfe1",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "試產暫排10/22",
+  "title": "沐川食品製造股份有限公司",
+  "updated_at": "2026-10-11T14:36:22.357126+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "FY-PO03",
+  "created_at": "2026-10-11T14:36:22.200148+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "未稅估價",
+    "value": "NT$48,000"
+   },
+   {
+    "label": "樣品版本",
+    "value": "REV.B"
+   },
+   {
+    "label": "預計送樣",
+    "value": "2026-10-26"
+   }
+  ],
+  "id": "62059770-fdb6-4e98-94b3-78def1a0a087",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待送樣",
+  "title": "可靠度試驗委託",
+  "updated_at": "2026-10-11T14:36:22.200149+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "YS-C01",
+  "created_at": "2026-10-11T14:36:22.413011+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "企業協作平台"
+   },
+   {
+    "label": "範圍",
+    "value": "30個使用者席位"
+   },
+   {
+    "label": "窗口",
+    "value": "虛構客戶團隊；無真實聯絡個資"
+   }
+  ],
+  "id": "64af6ff4-cea8-47c0-baf6-e80408bdd790",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "導入中",
+  "title": "澄岳物流管理",
+  "updated_at": "2026-10-11T14:36:22.413012+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "work",
+  "code": "MY-W02",
+  "created_at": "2026-10-11T14:36:22.332819+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "預計收樣",
+    "value": "2026-10-26"
+   },
+   {
+    "label": "結果",
+    "value": "尚未出具；不能當作合格證明"
+   }
+  ],
+  "id": "6e07216f-90c6-4dbf-bca2-04bcbf2b46db",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待試產樣品",
+  "title": "凍乾成品檢驗",
+  "updated_at": "2026-10-11T14:36:22.332820+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "PO-261005-03",
+  "created_at": "2026-10-11T14:36:22.404031+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-003"
+   },
+   {
+    "label": "料號",
+    "value": "RM-PMX-001"
+   },
+   {
+    "label": "數量",
+    "value": "10 kg"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$4,800"
+   },
+   {
+    "label": "預計到貨",
+    "value": "2026-10-26"
+   },
+   {
+    "label": "用途",
+    "value": "後續批次；10/22試產使用既有庫存"
+   }
+  ],
+  "id": "74e97d39-badb-4e41-9b3d-2c70fd2e20f7",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "已確認",
+  "title": "營養預混料採購",
+  "updated_at": "2026-10-11T14:36:22.404033+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "PK-CAN-085",
+  "created_at": "2026-10-11T14:36:22.384256+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-004"
+   },
+   {
+    "label": "單位",
+    "value": "個"
+   },
+   {
+    "label": "未稅參考單價",
+    "value": "2.6"
+   },
+   {
+    "label": "庫存",
+    "value": "8400"
+   }
+  ],
+  "id": "77e9c003-acb0-4bd8-9d60-fa98dc116514",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示帳面庫存",
+  "title": "85g罐身",
+  "updated_at": "2026-10-11T14:36:22.384258+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "ZH-S04",
+  "created_at": "2026-10-11T14:36:22.102870+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "LED燈具"
+   },
+   {
+    "label": "交期",
+    "value": "14天"
+   }
+  ],
+  "id": "78af9b6d-8458-4ee2-8b9b-66758dd2875a",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "報價確認",
+  "title": "曜和照明材料",
+  "updated_at": "2026-10-11T14:36:22.102871+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "PO-261002-01",
+  "created_at": "2026-10-11T14:36:22.395643+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-001"
+   },
+   {
+    "label": "料號",
+    "value": "RM-CHK-001"
+   },
+   {
+    "label": "數量",
+    "value": "200 kg"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$23,600"
+   },
+   {
+    "label": "預計到貨",
+    "value": "2026-10-15"
+   },
+   {
+    "label": "用途",
+    "value": "WO-261022-01"
+   }
+  ],
+  "id": "79c0408b-cf5e-4553-b1a1-b7690524b744",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "供應商已確認",
+  "title": "雞胸肉採購",
+  "updated_at": "2026-10-11T14:36:22.395644+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "RM-CHK-001",
+  "created_at": "2026-10-11T14:36:22.365336+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-001"
+   },
+   {
+    "label": "單位",
+    "value": "kg"
+   },
+   {
+    "label": "未稅參考單價",
+    "value": "118"
+   },
+   {
+    "label": "庫存",
+    "value": "360"
+   }
+  ],
+  "id": "7ab398d6-1b27-4377-b2f5-cccf6724303f",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示帳面庫存",
+  "title": "冷凍去皮雞胸肉",
+  "updated_at": "2026-10-11T14:36:22.365338+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "work",
+  "code": "GD-W01",
+  "created_at": "2026-10-11T14:36:22.265293+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "彩排",
+    "value": "2026-10-29"
+   },
+   {
+    "label": "重點",
+    "value": "音訊、投影、來賓動線、緊急出口"
+   }
+  ],
+  "id": "7c61a21f-be0d-48af-b3ee-96fab741feb1",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待場地及設備確認",
+  "title": "發表會場佈與總彩排",
+  "updated_at": "2026-10-11T14:36:22.265294+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "ZH-S02",
+  "created_at": "2026-10-11T14:36:22.093280+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "工項",
+    "value": "配電與弱電"
+   },
+   {
+    "label": "排程",
+    "value": "待施工界面確認"
+   }
+  ],
+  "id": "7fbb3369-5978-4fb9-b9fc-610f50f2b208",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "協力廠商",
+  "title": "澤安機電工程",
+  "updated_at": "2026-10-11T14:36:22.093282+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "FY-PO01",
+  "created_at": "2026-10-11T14:36:22.192101+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "600個"
+   },
+   {
+    "label": "單價",
+    "value": "NT$18"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$10,800"
+   },
+   {
+    "label": "交期",
+    "value": "2026-10-16"
+   }
+  ],
+  "id": "80a06229-8a02-4a83-b2ae-bee885c51358",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "已確認",
+  "title": "C24端子採購",
+  "updated_at": "2026-10-11T14:36:22.192102+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "FY-R04",
+  "created_at": "2026-10-11T14:36:22.184574+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "規格",
+    "value": "測試治具用"
+   },
+   {
+    "label": "庫存",
+    "value": "12組"
+   }
+  ],
+  "id": "8149794f-77c5-46dc-94e9-7be122d47c61",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待補料",
+  "title": "H08探針組",
+  "updated_at": "2026-10-11T14:36:22.184576+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "ZH-R02",
+  "created_at": "2026-10-11T14:36:22.113140+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "80盞"
+   },
+   {
+    "label": "單價",
+    "value": "NT$950"
+   },
+   {
+    "label": "供應商",
+    "value": "ZH-S04"
+   }
+  ],
+  "id": "81959a5d-7d66-4466-b902-f00124b71239",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待樣品確認",
+  "title": "LED平板燈",
+  "updated_at": "2026-10-11T14:36:22.113141+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "MY-R03",
+  "created_at": "2026-10-11T14:36:22.302562+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "單位",
+    "value": "個"
+   },
+   {
+    "label": "單價",
+    "value": "NT$22"
+   },
+   {
+    "label": "庫存",
+    "value": "180"
+   }
+  ],
+  "id": "824fdd25-cf53-47ac-a599-49341f004deb",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "可用示例",
+  "title": "24包外箱",
+  "updated_at": "2026-10-11T14:36:22.302563+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "SUP-004",
+  "created_at": "2026-10-11T14:36:22.348582+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "85g罐身、易開蓋"
+   },
+   {
+    "label": "交期",
+    "value": "28天"
+   },
+   {
+    "label": "付款",
+    "value": "月結45天"
+   }
+  ],
+  "id": "85756e52-a75b-4db6-9682-e5dbad670ba9",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "合格；排程較滿",
+  "title": "方禾金屬包材有限公司",
+  "updated_at": "2026-10-11T14:36:22.348583+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "MY-PO01",
+  "created_at": "2026-10-11T14:36:22.316219+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "120kg"
+   },
+   {
+    "label": "單價",
+    "value": "NT$116"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$13,920"
+   },
+   {
+    "label": "預計到貨",
+    "value": "2026-10-16"
+   }
+  ],
+  "id": "86088ebf-c403-4e18-8ac3-c112ccedaabb",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "供應商已確認",
+  "title": "雞肉試產原料採購",
+  "updated_at": "2026-10-11T14:36:22.316221+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "restricted"
+ },
+ {
+  "category": "orders",
+  "code": "ZH-PO01",
+  "created_at": "2026-10-11T14:36:22.130953+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "240片"
+   },
+   {
+    "label": "單價",
+    "value": "NT$420"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$100,800"
+   },
+   {
+    "label": "交期",
+    "value": "2026-10-16"
+   }
+  ],
+  "id": "86ab4c08-c023-457b-9226-0a56763785fd",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待進場",
+  "title": "首區輕隔間材料",
+  "updated_at": "2026-10-11T14:36:22.130954+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "ZH-S03",
+  "created_at": "2026-10-11T14:36:22.098648+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "空調主機與安裝"
+   },
+   {
+    "label": "交期",
+    "value": "28天"
+   }
+  ],
+  "id": "88b53917-8c5e-427f-8834-115bf036edfe",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "設備供應商",
+  "title": "承朗空調設備",
+  "updated_at": "2026-10-11T14:36:22.098650+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "MY-S01",
+  "created_at": "2026-10-11T14:36:22.273175+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "冷凍雞胸肉"
+   },
+   {
+    "label": "交期",
+    "value": "10天"
+   },
+   {
+    "label": "付款",
+    "value": "月結30天"
+   }
+  ],
+  "id": "8a51b02d-a172-459f-96db-ddffc824f5ce",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "合格供應商",
+  "title": "森禾禽肉原料",
+  "updated_at": "2026-10-11T14:36:22.273177+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "MY-R01",
+  "created_at": "2026-10-11T14:36:22.294011+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "單位",
+    "value": "kg"
+   },
+   {
+    "label": "單價",
+    "value": "NT$116"
+   },
+   {
+    "label": "庫存",
+    "value": "280"
+   },
+   {
+    "label": "供應商",
+    "value": "MY-S01"
+   }
+  ],
+  "id": "9316f424-9b99-48bc-a611-97c07b6e4529",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示庫存",
+  "title": "冷凍雞胸肉",
+  "updated_at": "2026-10-11T14:36:22.294013+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "PK-BOX-024",
+  "created_at": "2026-10-11T14:36:22.391845+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-005"
+   },
+   {
+    "label": "單位",
+    "value": "個"
+   },
+   {
+    "label": "未稅參考單價",
+    "value": "18"
+   },
+   {
+    "label": "庫存",
+    "value": "350"
+   }
+  ],
+  "id": "9333359e-2d37-4242-b674-6942f05ae3e7",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示帳面庫存",
+  "title": "24入運輸外箱",
+  "updated_at": "2026-10-11T14:36:22.391846+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "YS-R04",
+  "created_at": "2026-10-11T14:36:22.449105+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "範圍",
+    "value": "桌面與手機主要瀏覽器"
+   },
+   {
+    "label": "案例",
+    "value": "48項計畫案例"
+   }
+  ],
+  "id": "9363f5fb-12b5-4192-bf5f-ed1ba79971b9",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待審",
+  "title": "相容性測試矩陣",
+  "updated_at": "2026-10-11T14:36:22.449106+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "work",
+  "code": "MY-W01",
+  "created_at": "2026-10-11T14:36:22.328179+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "暫排",
+    "value": "2026-10-23"
+   },
+   {
+    "label": "投料",
+    "value": "120kg"
+   },
+   {
+    "label": "目標成品",
+    "value": "45kg＝1,500包×30g"
+   },
+   {
+    "label": "說明",
+    "value": "目標收率37.5%，實際失重與耗損待試產量測"
+   }
+  ],
+  "id": "95d7bb30-65c8-4728-87b8-28b5aac7dd9a",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "未放行",
+  "title": "凍乾新品工程試產",
+  "updated_at": "2026-10-11T14:36:22.328181+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "internal"
+ },
+ {
+  "category": "work",
+  "code": "ZH-W01",
+  "created_at": "2026-10-11T14:36:22.142839+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "暫排",
+    "value": "2026-10-23"
+   },
+   {
+    "label": "條件",
+    "value": "圖說與材料確認後施工"
+   },
+   {
+    "label": "結果",
+    "value": "未查驗，不構成驗收證明"
+   }
+  ],
+  "id": "9b9ebca0-11d0-49ac-8abe-90faabb5c2d9",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待施工與報驗",
+  "title": "首區隔間隱蔽工程查驗",
+  "updated_at": "2026-10-11T14:36:22.142841+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "FY-S04",
+  "created_at": "2026-10-11T14:36:22.164410+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "防護等級與環境試驗"
+   },
+   {
+    "label": "報告",
+    "value": "依實際測項"
+   }
+  ],
+  "id": "a0392e66-5994-4461-bf42-f4b29a852abd",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "排程待確認",
+  "title": "恆測驗證服務",
+  "updated_at": "2026-10-11T14:36:22.164412+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "ZH-R03",
+  "created_at": "2026-10-11T14:36:22.118558+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "版本",
+    "value": "E-03 REV.B"
+   },
+   {
+    "label": "用途",
+    "value": "案場查驗"
+   }
+  ],
+  "id": "a0530f3c-ac68-4bfa-b7d6-fee9e43de1df",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待審",
+  "title": "配電盤迴路標示",
+  "updated_at": "2026-10-11T14:36:22.118559+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "YS-R02",
+  "created_at": "2026-10-11T14:36:22.440168+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "30席"
+   },
+   {
+    "label": "客戶",
+    "value": "YS-C01"
+   }
+  ],
+  "id": "a50f1add-38ae-4881-be23-0dc6dbfd290a",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "規劃中",
+  "title": "客戶驗收席位",
+  "updated_at": "2026-10-11T14:36:22.440169+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "work",
+  "code": "ZH-W02",
+  "created_at": "2026-10-11T14:36:22.146692+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "暫排",
+    "value": "2026-11-06"
+   },
+   {
+    "label": "條件",
+    "value": "配電、照明與空調完成後"
+   },
+   {
+    "label": "記錄",
+    "value": "量測值待現場填寫"
+   }
+  ],
+  "id": "a7eca1a0-6a38-48e4-bddc-de46a5ffb164",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "計畫中",
+  "title": "機電設備整合驗收",
+  "updated_at": "2026-10-11T14:36:22.146694+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "ZH-C01",
+  "created_at": "2026-10-11T14:36:22.077201+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "案場",
+    "value": "180坪商辦展示案"
+   },
+   {
+    "label": "預算",
+    "value": "依核定範圍"
+   },
+   {
+    "label": "聯絡",
+    "value": "虛構專案窗口"
+   }
+  ],
+  "id": "a82e6c5e-e43d-46e6-a225-50458d455e92",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "業主",
+  "title": "青嶼商務服務",
+  "updated_at": "2026-10-11T14:36:22.077205+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "MY-S03",
+  "created_at": "2026-10-11T14:36:22.281946+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "高阻隔夾鏈袋"
+   },
+   {
+    "label": "交期",
+    "value": "21天"
+   },
+   {
+    "label": "付款",
+    "value": "月結30天"
+   }
+  ],
+  "id": "ae927e13-fdd4-4304-a404-fca02846069f",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "打樣待確認",
+  "title": "宜封包裝材料",
+  "updated_at": "2026-10-11T14:36:22.281948+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "SUP-001",
+  "created_at": "2026-10-11T14:36:22.336772+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "冷凍雞胸肉、雞肝"
+   },
+   {
+    "label": "交期",
+    "value": "7–10天"
+   },
+   {
+    "label": "付款",
+    "value": "月結30天"
+   }
+  ],
+  "id": "aea78480-39d9-45de-833e-52ebd1f9e0ba",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "合格主要供應商",
+  "title": "青原禽肉供應有限公司",
+  "updated_at": "2026-10-11T14:36:22.336774+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "FY-S05",
+  "created_at": "2026-10-11T14:36:22.168141+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "需求",
+    "value": "C24工程樣機"
+   },
+   {
+    "label": "交付",
+    "value": "驗證完成後交付"
+   }
+  ],
+  "id": "b2b11a6d-d040-44f0-9262-756eabbb3740",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "樣品客戶",
+  "title": "景衡自動化設備",
+  "updated_at": "2026-10-11T14:36:22.168143+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "GD-R05",
+  "created_at": "2026-10-11T14:36:22.249069+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "人數",
+    "value": "12位含協力人員"
+   },
+   {
+    "label": "班別",
+    "value": "10/30 08:00–18:00"
+   }
+  ],
+  "id": "b350a0bd-59c6-46b7-9823-f7ef4e37dda7",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "排班中",
+  "title": "現場工作人員",
+  "updated_at": "2026-10-11T14:36:22.249071+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "RM-TUN-001",
+  "created_at": "2026-10-11T14:36:22.372864+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-002"
+   },
+   {
+    "label": "單位",
+    "value": "kg"
+   },
+   {
+    "label": "未稅參考單價",
+    "value": "145"
+   },
+   {
+    "label": "庫存",
+    "value": "120"
+   }
+  ],
+  "id": "b43c52b9-9ec6-4fdb-b908-a51804219290",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示帳面庫存",
+  "title": "冷凍鮪魚碎肉",
+  "updated_at": "2026-10-11T14:36:22.372865+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "partners",
+  "code": "GD-S02",
+  "created_at": "2026-10-11T14:36:22.219903+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "多功能展演場地"
+   },
+   {
+    "label": "容量",
+    "value": "150人展示設定"
+   }
+  ],
+  "id": "b5178803-90ce-4773-91cc-aa79cc325461",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "檔期暫留",
+  "title": "序場空間營運",
+  "updated_at": "2026-10-11T14:36:22.219905+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "GD-S01",
+  "created_at": "2026-10-11T14:36:22.215876+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "音響、燈光、直播"
+   },
+   {
+    "label": "進場",
+    "value": "2026-10-29"
+   }
+  ],
+  "id": "bb5ccb4b-430c-4018-be69-6bfcf766893f",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "報價確認",
+  "title": "映程影音工程",
+  "updated_at": "2026-10-11T14:36:22.215878+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "YS-PO01",
+  "created_at": "2026-10-11T14:36:22.458440+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "席位",
+    "value": "30"
+   },
+   {
+    "label": "單價",
+    "value": "NT$800/席月"
+   },
+   {
+    "label": "期間",
+    "value": "12個月"
+   },
+   {
+    "label": "未稅總額",
+    "value": "NT$288,000"
+   },
+   {
+    "label": "性質",
+    "value": "客戶收入合約，非採購成本"
+   }
+  ],
+  "id": "bc0d1ed2-e8c2-4c79-b0b6-44e4bd50942f",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待驗收生效",
+  "title": "澄岳物流年度服務合約",
+  "updated_at": "2026-10-11T14:36:22.458442+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "RM-PMX-001",
+  "created_at": "2026-10-11T14:36:22.376483+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-003"
+   },
+   {
+    "label": "單位",
+    "value": "kg"
+   },
+   {
+    "label": "未稅參考單價",
+    "value": "480"
+   },
+   {
+    "label": "庫存",
+    "value": "18"
+   }
+  ],
+  "id": "bee78fad-7288-4103-9ef1-14b7bb01d971",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "展示帳面庫存",
+  "title": "貓用營養預混料",
+  "updated_at": "2026-10-11T14:36:22.376484+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "work",
+  "code": "GD-W02",
+  "created_at": "2026-10-11T14:36:22.269348+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "活動日",
+    "value": "2026-10-30"
+   },
+   {
+    "label": "預計來賓",
+    "value": "120人"
+   },
+   {
+    "label": "結案",
+    "value": "活動後彙整，不預填滿意度"
+   }
+  ],
+  "id": "c06d5a53-1f1e-4d2d-b222-a1c697603fa9",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "計畫中",
+  "title": "發表會現場執行",
+  "updated_at": "2026-10-11T14:36:22.269349+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "MY-PO03",
+  "created_at": "2026-10-11T14:36:22.323929+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "樣品",
+    "value": "凍乾成品"
+   },
+   {
+    "label": "未稅估價",
+    "value": "NT$12,800"
+   },
+   {
+    "label": "送樣",
+    "value": "試產完成後"
+   }
+  ],
+  "id": "c64f7285-0840-4624-880f-21892f06ceb0",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待送樣",
+  "title": "首輪檢驗委託",
+  "updated_at": "2026-10-11T14:36:22.323931+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "MY-R05",
+  "created_at": "2026-10-11T14:36:22.312462+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "位置",
+    "value": "RD-FD-02"
+   },
+   {
+    "label": "用途",
+    "value": "凍乾新品留樣"
+   },
+   {
+    "label": "實際樣品",
+    "value": "未入庫"
+   }
+  ],
+  "id": "ca8892fb-d510-4bf1-ae15-6eb58fe6c2cd",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "預留",
+  "title": "試產留樣位置",
+  "updated_at": "2026-10-11T14:36:22.312463+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "FY-R03",
+  "created_at": "2026-10-11T14:36:22.179864+00:00",
+  "created_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "fields": [
+   {
+    "label": "庫存",
+    "value": "220個"
+   },
+   {
+    "label": "版本",
+    "value": "REV.B"
+   },
+   {
+    "label": "供應商",
+    "value": "FY-S03"
+   }
+  ],
+  "id": "db11d9ff-57a2-4104-8a14-e1b5d3580033",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "revision": 1,
+  "source": "showcase",
+  "status": "試模件",
+  "title": "C24射出外殼",
+  "updated_at": "2026-10-11T14:36:22.179866+00:00",
+  "updated_by": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "YS-PO02",
+  "created_at": "2026-10-11T14:36:22.462424+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "未稅金額",
+    "value": "NT$36,000"
+   },
+   {
+    "label": "案例",
+    "value": "48項"
+   },
+   {
+    "label": "預計交付",
+    "value": "2026-10-23"
+   }
+  ],
+  "id": "dc75ca13-dcaa-4875-8d0f-417e341e9bb3",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待安排",
+  "title": "相容性測試委託",
+  "updated_at": "2026-10-11T14:36:22.462426+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "MY-R04",
+  "created_at": "2026-10-11T14:36:22.306271+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "單位",
+    "value": "個"
+   },
+   {
+    "label": "規格",
+    "value": "尺寸與標示待審"
+   },
+   {
+    "label": "庫存",
+    "value": "0"
+   }
+  ],
+  "id": "df3efb26-1c8f-48bc-9417-299e4402ef46",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "新版待確認",
+  "title": "120g粉包外袋",
+  "updated_at": "2026-10-11T14:36:22.306272+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "YS-S02",
+  "created_at": "2026-10-11T14:36:22.426566+00:00",
+  "created_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "fields": [
+   {
+    "label": "服務",
+    "value": "瀏覽器相容性測試"
+   },
+   {
+    "label": "交付",
+    "value": "測試報告"
+   }
+  ],
+  "id": "e02baad4-5820-447e-ba94-fe5c31dd4fe2",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "revision": 1,
+  "source": "showcase",
+  "status": "委外報價確認",
+  "title": "驗序軟體測試",
+  "updated_at": "2026-10-11T14:36:22.426567+00:00",
+  "updated_by": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "GD-R03",
+  "created_at": "2026-10-11T14:36:22.241126+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "4台"
+   },
+   {
+    "label": "用途",
+    "value": "來賓報到；未含個資"
+   }
+  ],
+  "id": "e23d5122-b0e1-4622-9964-6d6bd65a6434",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "可用示例",
+  "title": "報到平板",
+  "updated_at": "2026-10-11T14:36:22.241127+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "ZH-S01",
+  "created_at": "2026-10-11T14:36:22.088308+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "工項",
+    "value": "輕隔間與天花"
+   },
+   {
+    "label": "資格",
+    "value": "文件審核中"
+   }
+  ],
+  "id": "e26a16c2-ebac-48bc-801a-813309a2b1ec",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "協力廠商",
+  "title": "楷盛室內工程",
+  "updated_at": "2026-10-11T14:36:22.088309+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "internal"
+ },
+ {
+  "category": "partners",
+  "code": "LAB-001",
+  "created_at": "2026-10-11T14:36:22.361262+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應",
+    "value": "營養、微生物送驗"
+   },
+   {
+    "label": "交期",
+    "value": "收樣後7–12工作天"
+   },
+   {
+    "label": "付款",
+    "value": "月結30天"
+   }
+  ],
+  "id": "e712af01-7b20-4d10-b771-7ffdbe32dafb",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "合作實驗室",
+  "title": "明析食品檢測有限公司",
+  "updated_at": "2026-10-11T14:36:22.361263+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "internal"
+ },
+ {
+  "category": "resources",
+  "code": "GD-R04",
+  "created_at": "2026-10-11T14:36:22.245104+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "120份"
+   },
+   {
+    "label": "單價",
+    "value": "NT$450"
+   },
+   {
+    "label": "供應商",
+    "value": "GD-S04"
+   }
+  ],
+  "id": "e7fdbc91-f145-4dd9-a012-b7b1304d5cb9",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待人數確認",
+  "title": "活動茶點",
+  "updated_at": "2026-10-11T14:36:22.245106+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "restricted"
+ },
+ {
+  "category": "orders",
+  "code": "MY-PO02",
+  "created_at": "2026-10-11T14:36:22.320103+00:00",
+  "created_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "2,000個"
+   },
+   {
+    "label": "單價",
+    "value": "NT$3.20"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$6,400"
+   },
+   {
+    "label": "預計到貨",
+    "value": "2026-10-20"
+   }
+  ],
+  "id": "ea281eed-dbb0-4c05-8975-8680414a7e81",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "revision": 1,
+  "source": "showcase",
+  "status": "打樣待確認",
+  "title": "30g高阻隔袋採購",
+  "updated_at": "2026-10-11T14:36:22.320105+00:00",
+  "updated_by": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "visibility": "restricted"
+ },
+ {
+  "category": "orders",
+  "code": "PO-260925-02",
+  "created_at": "2026-10-11T14:36:22.399460+00:00",
+  "created_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "fields": [
+   {
+    "label": "供應商",
+    "value": "SUP-004"
+   },
+   {
+    "label": "料號",
+    "value": "PK-CAN-085、PK-LID-085"
+   },
+   {
+    "label": "數量",
+    "value": "各12,000個"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$42,600"
+   },
+   {
+    "label": "預計到貨",
+    "value": "2026-10-19"
+   },
+   {
+    "label": "用途",
+    "value": "試產與後續量產備料"
+   }
+  ],
+  "id": "ec2d2227-c344-4ad3-a755-f8e512f50e6d",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "revision": 1,
+  "source": "showcase",
+  "status": "樣品確認待完成",
+  "title": "罐身與易開蓋採購",
+  "updated_at": "2026-10-11T14:36:22.399461+00:00",
+  "updated_by": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "visibility": "restricted"
+ },
+ {
+  "category": "orders",
+  "code": "GD-PO03",
+  "created_at": "2026-10-11T14:36:22.260968+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "120份"
+   },
+   {
+    "label": "單價",
+    "value": "NT$450"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$54,000"
+   }
+  ],
+  "id": "ecf71f7d-15db-4006-add8-3f68274c406c",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "待最終人數",
+  "title": "活動茶點採購",
+  "updated_at": "2026-10-11T14:36:22.260969+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "restricted"
+ },
+ {
+  "category": "resources",
+  "code": "GD-R01",
+  "created_at": "2026-10-11T14:36:22.232484+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "尺寸",
+    "value": "6m×3m"
+   },
+   {
+    "label": "版本",
+    "value": "V3"
+   },
+   {
+    "label": "供應商",
+    "value": "GD-S03"
+   }
+  ],
+  "id": "f0892ad1-0a21-4196-b73b-fdb1548533bd",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "設計待審",
+  "title": "主舞台與背板",
+  "updated_at": "2026-10-11T14:36:22.232486+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "internal"
+ },
+ {
+  "category": "orders",
+  "code": "ZH-PO02",
+  "created_at": "2026-10-11T14:36:22.134901+00:00",
+  "created_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "fields": [
+   {
+    "label": "數量",
+    "value": "80盞"
+   },
+   {
+    "label": "單價",
+    "value": "NT$950"
+   },
+   {
+    "label": "未稅金額",
+    "value": "NT$76,000"
+   },
+   {
+    "label": "交期",
+    "value": "2026-10-23"
+   }
+  ],
+  "id": "f32b69a2-6a66-415a-a37b-22b025ac0485",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "revision": 1,
+  "source": "showcase",
+  "status": "樣品待審",
+  "title": "LED燈具採購",
+  "updated_at": "2026-10-11T14:36:22.134902+00:00",
+  "updated_by": "564129ce-2563-5198-bf97-75cfd505e414",
+  "visibility": "restricted"
+ },
+ {
+  "category": "orders",
+  "code": "GD-PO01",
+  "created_at": "2026-10-11T14:36:22.253176+00:00",
+  "created_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "fields": [
+   {
+    "label": "未稅金額",
+    "value": "NT$180,000"
+   },
+   {
+    "label": "進場",
+    "value": "2026-10-29"
+   },
+   {
+    "label": "服務日",
+    "value": "2026-10-30"
+   }
+  ],
+  "id": "f5d56de7-7b90-4b0a-9f22-d38718ffc0e7",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "revision": 1,
+  "source": "showcase",
+  "status": "檔期待確認",
+  "title": "影音設備與人員委託",
+  "updated_at": "2026-10-11T14:36:22.253178+00:00",
+  "updated_by": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "visibility": "restricted"
+ }
+]

@@ -67,6 +67,8 @@
 
 ## 2. 工作佇列（由上往下執行）
 
+- DATA-PACK ✅：使用者2026-10-12要求「把資料庫內容打包上傳到GIT」，經詢問選擇去敏展示資料包（repo為private）。新增`api/app/demo_pack.py`、`deploy/demo_data.py`與`deploy/demo-data/`：匯出15173的27張業務表共1758列（migration 0018），排除sessions／audit_logs／notifications並不寫密碼雜湊，還原帳號密碼為`demo-<帳號>`，只能還原到同版本的空資料庫。`test_demo_pack.py` 2pass；隔離throwaway PG（projectflow-packcheck，已down、volume保留）實測還原→再匯出27表SHA-256全同、重複還原拒絕、yu／demo-yu登入可用。輸出掃描無密碼雜湊／token／env。未另做獨立審查。
+
 - OPS-CLEAN ✅：人類2026-10-12看到本機15173總覽滿是「P1b E2E …」專案，選擇「只刪測試專案」：刪除10-08 P1b自動測試直接寫入本機正式庫的11個測試專案及其44節點、11關卡、36筆相關稽核（25筆連節點、11筆建立紀錄）；兩個示範專案、帳號、部門與其稽核保留。系統無刪除專案功能，以單一DB交易（範圍與剩餘數量不符即中止）執行。事前pg_dump備份（125,901 bytes，pg_restore列238項，存.superpowers/f1-ret-deploy/before-cleanup.dump）。結果：專案13→2、節點47→3、關卡11→0、稽核39→3，帳號7、部門5、組織2、模板2不變；health ready，食品公司總覽1專案、專案與稽核端點200。
 
 - F1-RET ✅：使用者2026-10-12指示「開始做退貨退料與沖銷」（同提案第3次交付）：採購退貨、工單退料、各類流水沖銷一次並連回原紀錄，原流水不改不刪；使用者同日選定退貨恢復未收等補貨、結案單據須先重開才能退貨／退料／沖銷；[短計畫](superpowers/plans/2026-10-12-f1-returns-reversals.md)。工程交付已合併main，依人類指示部署本機15173，原資料保留。

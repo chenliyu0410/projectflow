@@ -1,0 +1,1557 @@
+[
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "2522b3a2-711a-5cbe-8c03-7e423c78841a",
+     "successor_id": "4f232daa-7f4b-5dd0-a5c3-388a7f72eea2"
+    },
+    {
+     "predecessor_id": "19aa5efc-e606-5f03-8399-b5a2596fd03d",
+     "successor_id": "b31140fe-df2a-5cb2-8b04-6a5091cd3a1f"
+    }
+   ],
+   "offsets": {
+    "16f1f614-da4b-554d-9086-877a8f70a69a": {
+     "due_offset": 7,
+     "start_offset": 0
+    },
+    "19aa5efc-e606-5f03-8399-b5a2596fd03d": {
+     "due_offset": 11,
+     "start_offset": 8
+    },
+    "2522b3a2-711a-5cbe-8c03-7e423c78841a": {
+     "due_offset": 3,
+     "start_offset": 0
+    },
+    "4f232daa-7f4b-5dd0-a5c3-388a7f72eea2": {
+     "due_offset": 7,
+     "start_offset": 4
+    },
+    "b31140fe-df2a-5cb2-8b04-6a5091cd3a1f": {
+     "due_offset": 15,
+     "start_offset": 12
+    },
+    "b89f8be9-4e9d-55b8-9ace-1618f2fa3e1e": {
+     "due_offset": 15,
+     "start_offset": 8
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.297813+00:00",
+  "deleted_at": null,
+  "id": "059aa439-95ce-5da6-9d8c-bea408221eb6",
+  "kind": "workflow",
+  "name": "變更與查驗專流",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "8ed096d4-b2f4-5dd7-92a3-bc2834e25021",
+     "successor_id": "64cd27e6-de3a-5bf3-afd3-da444d130eeb"
+    },
+    {
+     "predecessor_id": "200a981c-2711-549f-a054-9857bb581afd",
+     "successor_id": "15f7d6bb-3c28-5532-994d-53fda9a4c451"
+    }
+   ],
+   "offsets": {
+    "15f7d6bb-3c28-5532-994d-53fda9a4c451": {
+     "due_offset": 15,
+     "start_offset": 12
+    },
+    "200a981c-2711-549f-a054-9857bb581afd": {
+     "due_offset": 11,
+     "start_offset": 8
+    },
+    "238f7471-4abe-5046-9971-cb4d75925d61": {
+     "due_offset": 7,
+     "start_offset": 0
+    },
+    "381fb466-7864-5fd4-9340-e26b8a4a7e26": {
+     "due_offset": 15,
+     "start_offset": 8
+    },
+    "64cd27e6-de3a-5bf3-afd3-da444d130eeb": {
+     "due_offset": 7,
+     "start_offset": 4
+    },
+    "8ed096d4-b2f4-5dd7-92a3-bc2834e25021": {
+     "due_offset": 3,
+     "start_offset": 0
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.158929+00:00",
+  "deleted_at": null,
+  "id": "0ddc283a-667b-5212-a7b8-0f4bcba98cb0",
+  "kind": "workflow",
+  "name": "整合行銷專流",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "7f9d5daf-1299-551d-91a0-fa9ea6e6db62",
+     "successor_id": "ffc517a2-dbc6-594b-8102-731d493693d5"
+    },
+    {
+     "predecessor_id": "3f575a8b-75ca-558a-a783-a6d09730ec34",
+     "successor_id": "13e14c40-b257-54c5-a209-77265138bb76"
+    },
+    {
+     "predecessor_id": "ab829208-86ff-5a99-ad06-878cb93ff55d",
+     "successor_id": "7bc0bbcd-1da5-53e8-8c91-ee985c3e18a8"
+    },
+    {
+     "predecessor_id": "630e8cb9-5293-592b-906b-612df15cb073",
+     "successor_id": "f21d0bf1-6d73-570d-95f5-e30ef364c895"
+    },
+    {
+     "predecessor_id": "69772a70-d505-5d1b-b47e-fe4d64529813",
+     "successor_id": "99920656-8698-5b15-90fc-2d99f1dccbeb"
+    }
+   ],
+   "offsets": {
+    "13e14c40-b257-54c5-a209-77265138bb76": {
+     "due_offset": 15,
+     "start_offset": 12
+    },
+    "30439e87-cc94-539b-81be-50678a6f9a39": {
+     "due_offset": 7,
+     "start_offset": 0
+    },
+    "3d8fefba-bbc9-5df5-839a-a223d317ed29": {
+     "due_offset": 15,
+     "start_offset": 8
+    },
+    "3f575a8b-75ca-558a-a783-a6d09730ec34": {
+     "due_offset": 11,
+     "start_offset": 8
+    },
+    "630e8cb9-5293-592b-906b-612df15cb073": {
+     "due_offset": 27,
+     "start_offset": 24
+    },
+    "69772a70-d505-5d1b-b47e-fe4d64529813": {
+     "due_offset": 35,
+     "start_offset": 32
+    },
+    "7bc0bbcd-1da5-53e8-8c91-ee985c3e18a8": {
+     "due_offset": 23,
+     "start_offset": 20
+    },
+    "7f9d5daf-1299-551d-91a0-fa9ea6e6db62": {
+     "due_offset": 3,
+     "start_offset": 0
+    },
+    "99920656-8698-5b15-90fc-2d99f1dccbeb": {
+     "due_offset": 39,
+     "start_offset": 36
+    },
+    "ab829208-86ff-5a99-ad06-878cb93ff55d": {
+     "due_offset": 19,
+     "start_offset": 16
+    },
+    "d4ed9a3b-dd9c-5dac-9e64-f68536071eff": {
+     "due_offset": 39,
+     "start_offset": 32
+    },
+    "d799f5d9-ff14-549c-a767-3c4398979178": {
+     "due_offset": 31,
+     "start_offset": 24
+    },
+    "dc32b38c-64ab-55c9-9a40-c1745a5c1d2a": {
+     "due_offset": 23,
+     "start_offset": 16
+    },
+    "f21d0bf1-6d73-570d-95f5-e30ef364c895": {
+     "due_offset": 31,
+     "start_offset": 28
+    },
+    "ffc517a2-dbc6-594b-8102-731d493693d5": {
+     "due_offset": 7,
+     "start_offset": 4
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.216179+00:00",
+  "deleted_at": null,
+  "id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8",
+  "kind": "workflow",
+  "name": "版本發佈專流",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [],
+   "offsets": {
+    "16033509-a54e-4ca5-8953-c1863fc60e3e": {
+     "due_offset": null,
+     "start_offset": null
+    },
+    "2379e31a-0d99-4107-8bbe-512016ce00f7": {
+     "due_offset": null,
+     "start_offset": null
+    },
+    "61096525-1125-4768-8fc5-1918ff67b17b": {
+     "due_offset": null,
+     "start_offset": null
+    },
+    "7dd3c960-b64d-4aec-8a6e-df868a199689": {
+     "due_offset": null,
+     "start_offset": null
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:36:40.312303+00:00",
+  "deleted_at": null,
+  "id": "410edce2-75f5-42d2-af59-1aa41662dccd",
+  "kind": "workflow",
+  "name": "食品新品開發 複本",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "fcac9db9-00d1-5396-b749-fac72acd71e3",
+     "successor_id": "b481b218-8e31-5e7a-820b-82739a7421eb"
+    },
+    {
+     "predecessor_id": "b481b218-8e31-5e7a-820b-82739a7421eb",
+     "successor_id": "20774ed9-d837-584b-80cf-ade5d7326c9b"
+    },
+    {
+     "predecessor_id": "20774ed9-d837-584b-80cf-ade5d7326c9b",
+     "successor_id": "6d908beb-b084-5bf9-b478-f06e447b3d00"
+    },
+    {
+     "predecessor_id": "f65237d9-3c50-5be3-8860-3ee1cd3fa524",
+     "successor_id": "72dfca5c-1bc7-5abc-9d76-0e7741261b28"
+    },
+    {
+     "predecessor_id": "72dfca5c-1bc7-5abc-9d76-0e7741261b28",
+     "successor_id": "b7e3a6ae-918a-54ad-89ff-11e4a71b260a"
+    },
+    {
+     "predecessor_id": "5f479d35-81d5-51de-8fb2-26f5a0a67878",
+     "successor_id": "198d97b8-0a42-51be-a715-a56630cf7aba"
+    },
+    {
+     "predecessor_id": "156c3fde-fd25-5213-a371-65b29e5576d2",
+     "successor_id": "3bc87379-7715-5e45-810f-14044da6bcae"
+    },
+    {
+     "predecessor_id": "3bc87379-7715-5e45-810f-14044da6bcae",
+     "successor_id": "ce0d4718-9b13-533e-9ffd-15ee68963031"
+    },
+    {
+     "predecessor_id": "97a0ec8c-f283-50d3-914f-05dadb251f14",
+     "successor_id": "565ffacf-cda8-5c5f-a3b2-200b0eb7dea7"
+    },
+    {
+     "predecessor_id": "565ffacf-cda8-5c5f-a3b2-200b0eb7dea7",
+     "successor_id": "b5bb2d90-a7ad-5bba-a7c1-15460d5fe17e"
+    },
+    {
+     "predecessor_id": "b5bb2d90-a7ad-5bba-a7c1-15460d5fe17e",
+     "successor_id": "02349ef0-8dbf-51e0-bbde-c3443707fc31"
+    }
+   ],
+   "offsets": {
+    "02349ef0-8dbf-51e0-bbde-c3443707fc31": {
+     "due_offset": 79,
+     "start_offset": 75
+    },
+    "156c3fde-fd25-5213-a371-65b29e5576d2": {
+     "due_offset": 49,
+     "start_offset": 45
+    },
+    "198d97b8-0a42-51be-a715-a56630cf7aba": {
+     "due_offset": 44,
+     "start_offset": 40
+    },
+    "1c1ddb16-0e96-53b3-bce1-c60a35b34626": {
+     "due_offset": 19,
+     "start_offset": 0
+    },
+    "20774ed9-d837-584b-80cf-ade5d7326c9b": {
+     "due_offset": 14,
+     "start_offset": 10
+    },
+    "31749cb9-444a-51ea-ae38-1ce7ced47471": {
+     "due_offset": 79,
+     "start_offset": 60
+    },
+    "3bc87379-7715-5e45-810f-14044da6bcae": {
+     "due_offset": 54,
+     "start_offset": 50
+    },
+    "4ea8e390-18fe-579d-bc7c-f74a88f37d6a": {
+     "due_offset": 34,
+     "start_offset": 20
+    },
+    "565ffacf-cda8-5c5f-a3b2-200b0eb7dea7": {
+     "due_offset": 69,
+     "start_offset": 65
+    },
+    "5f479d35-81d5-51de-8fb2-26f5a0a67878": {
+     "due_offset": 39,
+     "start_offset": 35
+    },
+    "6d908beb-b084-5bf9-b478-f06e447b3d00": {
+     "due_offset": 19,
+     "start_offset": 15
+    },
+    "72dfca5c-1bc7-5abc-9d76-0e7741261b28": {
+     "due_offset": 29,
+     "start_offset": 25
+    },
+    "8cfafce7-168a-5b51-b4cd-4fb968323127": {
+     "due_offset": 44,
+     "start_offset": 35
+    },
+    "97a0ec8c-f283-50d3-914f-05dadb251f14": {
+     "due_offset": 64,
+     "start_offset": 60
+    },
+    "b481b218-8e31-5e7a-820b-82739a7421eb": {
+     "due_offset": 9,
+     "start_offset": 5
+    },
+    "b5bb2d90-a7ad-5bba-a7c1-15460d5fe17e": {
+     "due_offset": 74,
+     "start_offset": 70
+    },
+    "b7e3a6ae-918a-54ad-89ff-11e4a71b260a": {
+     "due_offset": 34,
+     "start_offset": 30
+    },
+    "ce0d4718-9b13-533e-9ffd-15ee68963031": {
+     "due_offset": 59,
+     "start_offset": 55
+    },
+    "d27672f7-350b-51d3-a315-089f7203d956": {
+     "due_offset": 59,
+     "start_offset": 45
+    },
+    "f65237d9-3c50-5be3-8860-3ee1cd3fa524": {
+     "due_offset": 24,
+     "start_offset": 20
+    },
+    "fcac9db9-00d1-5396-b749-fac72acd71e3": {
+     "due_offset": 4,
+     "start_offset": 0
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:06.926845+00:00",
+  "deleted_at": null,
+  "id": "7aa96e43-7c45-5516-9c34-7210b578613e",
+  "kind": "workflow",
+  "name": "寵物主食罐開發專流",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "03cc7e2e-8d4c-5b3f-b6fc-ce3f21a9d0b5",
+     "successor_id": "629c5abd-a1d4-59b1-942f-bf24748a5dd7"
+    },
+    {
+     "predecessor_id": "629c5abd-a1d4-59b1-942f-bf24748a5dd7",
+     "successor_id": "33031b13-300a-5404-92da-3f66b85a4cc4"
+    },
+    {
+     "predecessor_id": "33031b13-300a-5404-92da-3f66b85a4cc4",
+     "successor_id": "13ae90a4-d78d-5564-804b-f0af574ff1a2"
+    },
+    {
+     "predecessor_id": "13ae90a4-d78d-5564-804b-f0af574ff1a2",
+     "successor_id": "b7e50009-01da-5cba-8e5c-774b2435b231"
+    },
+    {
+     "predecessor_id": "836f2611-3f3f-518c-9200-267ef8ec3a92",
+     "successor_id": "a5553160-d1ad-5a7f-972e-4e965e7fa5d4"
+    },
+    {
+     "predecessor_id": "a5553160-d1ad-5a7f-972e-4e965e7fa5d4",
+     "successor_id": "b1172e18-97c0-58f2-994d-e3f552f4d945"
+    },
+    {
+     "predecessor_id": "b1172e18-97c0-58f2-994d-e3f552f4d945",
+     "successor_id": "96b41e74-76b0-5808-9c6c-e30c65d827dd"
+    },
+    {
+     "predecessor_id": "96b41e74-76b0-5808-9c6c-e30c65d827dd",
+     "successor_id": "04caeb92-efd5-51a5-9b8f-baacca2622fb"
+    },
+    {
+     "predecessor_id": "04caeb92-efd5-51a5-9b8f-baacca2622fb",
+     "successor_id": "a8dbec09-0280-5d6c-b806-1c5bd96921fa"
+    },
+    {
+     "predecessor_id": "3bbf3f44-61c6-5ecf-be38-b35460860fbd",
+     "successor_id": "ee07fe6d-b00f-5c81-8dc5-248fa43d74dc"
+    },
+    {
+     "predecessor_id": "ee07fe6d-b00f-5c81-8dc5-248fa43d74dc",
+     "successor_id": "7959ed43-3be7-5821-99af-91db4694f677"
+    },
+    {
+     "predecessor_id": "7959ed43-3be7-5821-99af-91db4694f677",
+     "successor_id": "ab5e5efa-ab7b-5c80-9c72-578b8a63cc76"
+    },
+    {
+     "predecessor_id": "ab5e5efa-ab7b-5c80-9c72-578b8a63cc76",
+     "successor_id": "651b0329-7bce-51e5-b2ba-6f13f2588820"
+    },
+    {
+     "predecessor_id": "651b0329-7bce-51e5-b2ba-6f13f2588820",
+     "successor_id": "a40f84aa-e6b4-58e7-bb00-adc8e66e1b08"
+    },
+    {
+     "predecessor_id": "e32b22ca-2f45-5946-a030-43557f41eba5",
+     "successor_id": "82c4e30b-1e75-5d1b-9a1f-9d8581206d57"
+    },
+    {
+     "predecessor_id": "82c4e30b-1e75-5d1b-9a1f-9d8581206d57",
+     "successor_id": "e7f8fcda-0889-566b-8a99-428568eb7029"
+    },
+    {
+     "predecessor_id": "e7f8fcda-0889-566b-8a99-428568eb7029",
+     "successor_id": "3542c887-8ade-569d-adca-4d4ee13ef699"
+    },
+    {
+     "predecessor_id": "3542c887-8ade-569d-adca-4d4ee13ef699",
+     "successor_id": "3b005a09-db47-5712-93cf-8f7167fbc420"
+    },
+    {
+     "predecessor_id": "bdb373ed-3b23-5bb0-88ab-d1a4c1194105",
+     "successor_id": "03ec2834-bd87-5bce-982b-e9215dc530c8"
+    },
+    {
+     "predecessor_id": "03ec2834-bd87-5bce-982b-e9215dc530c8",
+     "successor_id": "a85f0730-3d0d-5a2f-abdc-fd0bc0b04c75"
+    },
+    {
+     "predecessor_id": "a85f0730-3d0d-5a2f-abdc-fd0bc0b04c75",
+     "successor_id": "8498ef2f-887c-5083-b599-b0563cd30c6b"
+    },
+    {
+     "predecessor_id": "8498ef2f-887c-5083-b599-b0563cd30c6b",
+     "successor_id": "9ab5e798-0282-5e15-8d17-16bd4d63f69b"
+    },
+    {
+     "predecessor_id": "90e4896e-05c6-54ac-8a1a-4578b9f86a95",
+     "successor_id": "a5ae8328-e412-5543-8841-597ad1d5f7b3"
+    },
+    {
+     "predecessor_id": "a5ae8328-e412-5543-8841-597ad1d5f7b3",
+     "successor_id": "355d2d5c-a3b4-54d8-b314-f3beea88d43a"
+    },
+    {
+     "predecessor_id": "355d2d5c-a3b4-54d8-b314-f3beea88d43a",
+     "successor_id": "94026945-3b67-54f2-9c0f-0fad75ada732"
+    },
+    {
+     "predecessor_id": "94026945-3b67-54f2-9c0f-0fad75ada732",
+     "successor_id": "662208ca-b2a0-5af1-9d79-bd6cc85524db"
+    },
+    {
+     "predecessor_id": "662208ca-b2a0-5af1-9d79-bd6cc85524db",
+     "successor_id": "29932fa7-3971-561d-8073-b24cb3cd78ee"
+    },
+    {
+     "predecessor_id": "aca8ff61-cd81-5ba2-b02d-8d28fd7daf61",
+     "successor_id": "17317d9d-43cb-5b40-ba18-77d9c23ee58d"
+    },
+    {
+     "predecessor_id": "17317d9d-43cb-5b40-ba18-77d9c23ee58d",
+     "successor_id": "1e9779bd-d875-52ab-9230-d6a89a48b057"
+    },
+    {
+     "predecessor_id": "dd934112-9e8a-53bb-8f02-eb5b4836ce8c",
+     "successor_id": "6e9b1f97-f966-5f9c-9687-9783555435ce"
+    },
+    {
+     "predecessor_id": "6e9b1f97-f966-5f9c-9687-9783555435ce",
+     "successor_id": "596e5868-0414-5987-84f1-b2bad6879e97"
+    },
+    {
+     "predecessor_id": "596e5868-0414-5987-84f1-b2bad6879e97",
+     "successor_id": "736526aa-2124-5ce8-b301-a0b349a4a265"
+    },
+    {
+     "predecessor_id": "9466c682-a383-5f18-85c6-2ec837af595d",
+     "successor_id": "534daaad-9d7d-5268-8e80-921fc1db1291"
+    },
+    {
+     "predecessor_id": "534daaad-9d7d-5268-8e80-921fc1db1291",
+     "successor_id": "46ab92b2-b893-5a5e-844a-4978448f2ebc"
+    },
+    {
+     "predecessor_id": "46ab92b2-b893-5a5e-844a-4978448f2ebc",
+     "successor_id": "5f47c578-335c-575f-93ce-5fc284999943"
+    }
+   ],
+   "offsets": {
+    "03cc7e2e-8d4c-5b3f-b6fc-ce3f21a9d0b5": {
+     "due_offset": 4,
+     "start_offset": 0
+    },
+    "03ec2834-bd87-5bce-982b-e9215dc530c8": {
+     "due_offset": 104,
+     "start_offset": 99
+    },
+    "04caeb92-efd5-51a5-9b8f-baacca2622fb": {
+     "due_offset": 45,
+     "start_offset": 41
+    },
+    "0565c3b3-6f2b-54f4-8855-6a6299375d05": {
+     "due_offset": 46,
+     "start_offset": 21
+    },
+    "13ae90a4-d78d-5564-804b-f0af574ff1a2": {
+     "due_offset": 19,
+     "start_offset": 15
+    },
+    "17317d9d-43cb-5b40-ba18-77d9c23ee58d": {
+     "due_offset": 149,
+     "start_offset": 145
+    },
+    "1e9779bd-d875-52ab-9230-d6a89a48b057": {
+     "due_offset": 150,
+     "start_offset": 150
+    },
+    "240bc821-34fe-54b9-a72a-c44d908cfeed": {
+     "due_offset": 139,
+     "start_offset": 116
+    },
+    "29932fa7-3971-561d-8073-b24cb3cd78ee": {
+     "due_offset": 139,
+     "start_offset": 139
+    },
+    "32edf050-d098-5531-b43a-5b97d85dbc02": {
+     "due_offset": 190,
+     "start_offset": 171
+    },
+    "33031b13-300a-5404-92da-3f66b85a4cc4": {
+     "due_offset": 14,
+     "start_offset": 10
+    },
+    "3542c887-8ade-569d-adca-4d4ee13ef699": {
+     "due_offset": 92,
+     "start_offset": 89
+    },
+    "355d2d5c-a3b4-54d8-b314-f3beea88d43a": {
+     "due_offset": 128,
+     "start_offset": 126
+    },
+    "3b005a09-db47-5712-93cf-8f7167fbc420": {
+     "due_offset": 93,
+     "start_offset": 93
+    },
+    "3bbf3f44-61c6-5ecf-be38-b35460860fbd": {
+     "due_offset": 52,
+     "start_offset": 47
+    },
+    "46ab92b2-b893-5a5e-844a-4978448f2ebc": {
+     "due_offset": 185,
+     "start_offset": 181
+    },
+    "534daaad-9d7d-5268-8e80-921fc1db1291": {
+     "due_offset": 180,
+     "start_offset": 176
+    },
+    "596e5868-0414-5987-84f1-b2bad6879e97": {
+     "due_offset": 165,
+     "start_offset": 161
+    },
+    "5f47c578-335c-575f-93ce-5fc284999943": {
+     "due_offset": 190,
+     "start_offset": 186
+    },
+    "629c5abd-a1d4-59b1-942f-bf24748a5dd7": {
+     "due_offset": 9,
+     "start_offset": 5
+    },
+    "651b0329-7bce-51e5-b2ba-6f13f2588820": {
+     "due_offset": 72,
+     "start_offset": 69
+    },
+    "662208ca-b2a0-5af1-9d79-bd6cc85524db": {
+     "due_offset": 138,
+     "start_offset": 134
+    },
+    "6e9b1f97-f966-5f9c-9687-9783555435ce": {
+     "due_offset": 160,
+     "start_offset": 156
+    },
+    "736526aa-2124-5ce8-b301-a0b349a4a265": {
+     "due_offset": 170,
+     "start_offset": 166
+    },
+    "7959ed43-3be7-5821-99af-91db4694f677": {
+     "due_offset": 62,
+     "start_offset": 58
+    },
+    "82c4e30b-1e75-5d1b-9a1f-9d8581206d57": {
+     "due_offset": 83,
+     "start_offset": 79
+    },
+    "836f2611-3f3f-518c-9200-267ef8ec3a92": {
+     "due_offset": 25,
+     "start_offset": 21
+    },
+    "8498ef2f-887c-5083-b599-b0563cd30c6b": {
+     "due_offset": 114,
+     "start_offset": 110
+    },
+    "84f83c4c-fb2d-5bae-906a-182a67cd4ce0": {
+     "due_offset": 20,
+     "start_offset": 0
+    },
+    "90e4896e-05c6-54ac-8a1a-4578b9f86a95": {
+     "due_offset": 120,
+     "start_offset": 116
+    },
+    "94026945-3b67-54f2-9c0f-0fad75ada732": {
+     "due_offset": 133,
+     "start_offset": 129
+    },
+    "9466c682-a383-5f18-85c6-2ec837af595d": {
+     "due_offset": 175,
+     "start_offset": 171
+    },
+    "96b41e74-76b0-5808-9c6c-e30c65d827dd": {
+     "due_offset": 40,
+     "start_offset": 36
+    },
+    "9ab5e798-0282-5e15-8d17-16bd4d63f69b": {
+     "due_offset": 115,
+     "start_offset": 115
+    },
+    "9f1092be-e816-5b7e-8c82-f2bb2969bbd2": {
+     "due_offset": 73,
+     "start_offset": 47
+    },
+    "a3151975-47cd-5484-9f03-f71cc7d07c4f": {
+     "due_offset": 150,
+     "start_offset": 140
+    },
+    "a40f84aa-e6b4-58e7-bb00-adc8e66e1b08": {
+     "due_offset": 73,
+     "start_offset": 73
+    },
+    "a5553160-d1ad-5a7f-972e-4e965e7fa5d4": {
+     "due_offset": 30,
+     "start_offset": 26
+    },
+    "a5ae8328-e412-5543-8841-597ad1d5f7b3": {
+     "due_offset": 125,
+     "start_offset": 121
+    },
+    "a85f0730-3d0d-5a2f-abdc-fd0bc0b04c75": {
+     "due_offset": 109,
+     "start_offset": 105
+    },
+    "a8dbec09-0280-5d6c-b806-1c5bd96921fa": {
+     "due_offset": 46,
+     "start_offset": 46
+    },
+    "ab5e5efa-ab7b-5c80-9c72-578b8a63cc76": {
+     "due_offset": 68,
+     "start_offset": 63
+    },
+    "aca8ff61-cd81-5ba2-b02d-8d28fd7daf61": {
+     "due_offset": 144,
+     "start_offset": 140
+    },
+    "b1172e18-97c0-58f2-994d-e3f552f4d945": {
+     "due_offset": 35,
+     "start_offset": 31
+    },
+    "b24b1e41-21d2-5b66-80d5-85a2feb3fa59": {
+     "due_offset": 115,
+     "start_offset": 94
+    },
+    "b7e50009-01da-5cba-8e5c-774b2435b231": {
+     "due_offset": 20,
+     "start_offset": 20
+    },
+    "bdb373ed-3b23-5bb0-88ab-d1a4c1194105": {
+     "due_offset": 98,
+     "start_offset": 94
+    },
+    "cf9742b9-782a-5543-b101-e1e197b679de": {
+     "due_offset": 170,
+     "start_offset": 151
+    },
+    "dd934112-9e8a-53bb-8f02-eb5b4836ce8c": {
+     "due_offset": 155,
+     "start_offset": 151
+    },
+    "e03de44c-5076-5003-b611-48f1bf56466e": {
+     "due_offset": 93,
+     "start_offset": 74
+    },
+    "e32b22ca-2f45-5946-a030-43557f41eba5": {
+     "due_offset": 78,
+     "start_offset": 74
+    },
+    "e7f8fcda-0889-566b-8a99-428568eb7029": {
+     "due_offset": 88,
+     "start_offset": 84
+    },
+    "ee07fe6d-b00f-5c81-8dc5-248fa43d74dc": {
+     "due_offset": 57,
+     "start_offset": 53
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.016720+00:00",
+  "deleted_at": null,
+  "id": "8758e894-9da4-5621-8d0d-40cbc313f78c",
+  "kind": "workflow",
+  "name": "筆電新機種專流",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "fd855a5c-0d02-5708-a171-68ca8aef231e",
+     "successor_id": "ae6a5caf-21e5-55bb-aa80-4e90f8c38126"
+    },
+    {
+     "predecessor_id": "ae6a5caf-21e5-55bb-aa80-4e90f8c38126",
+     "successor_id": "021fa1f6-fcbf-5ded-bd51-c4ef13b79516"
+    },
+    {
+     "predecessor_id": "021fa1f6-fcbf-5ded-bd51-c4ef13b79516",
+     "successor_id": "ecdae00e-f03e-564f-aef1-51defb291af9"
+    },
+    {
+     "predecessor_id": "ecdae00e-f03e-564f-aef1-51defb291af9",
+     "successor_id": "ba5bf6dc-e967-5747-aafd-fa3265d1ff98"
+    },
+    {
+     "predecessor_id": "ba5bf6dc-e967-5747-aafd-fa3265d1ff98",
+     "successor_id": "d873ef23-77bd-5e6b-a54b-4c6d7777acf0"
+    },
+    {
+     "predecessor_id": "d873ef23-77bd-5e6b-a54b-4c6d7777acf0",
+     "successor_id": "2fd3427b-1b09-558e-9063-fc0ca8d627f0"
+    },
+    {
+     "predecessor_id": "2fd3427b-1b09-558e-9063-fc0ca8d627f0",
+     "successor_id": "22ac2304-770b-52a7-9565-f76aef3e94e1"
+    },
+    {
+     "predecessor_id": "80775411-0b9c-516b-b3cd-6821909153db",
+     "successor_id": "70efb7b2-327b-5a14-97ca-a1b38a5273fc"
+    },
+    {
+     "predecessor_id": "a462ff37-ca55-5025-99d9-ef6427af9cd7",
+     "successor_id": "f382cbd0-64fa-5f16-b01a-fe4d53c19c44"
+    },
+    {
+     "predecessor_id": "f382cbd0-64fa-5f16-b01a-fe4d53c19c44",
+     "successor_id": "8d64c4c4-0081-5bfc-953a-6e1840d28e6c"
+    },
+    {
+     "predecessor_id": "8d64c4c4-0081-5bfc-953a-6e1840d28e6c",
+     "successor_id": "bdfa7f5b-7e99-531a-9052-50a9760cea92"
+    },
+    {
+     "predecessor_id": "bdfa7f5b-7e99-531a-9052-50a9760cea92",
+     "successor_id": "54b45da5-2477-58d1-b3dd-d4d8d91f1663"
+    },
+    {
+     "predecessor_id": "358660e8-066d-5bc3-ad4d-f5b78224ae1a",
+     "successor_id": "6f05502b-2c65-5c83-9c13-8f8bc5aae5f4"
+    },
+    {
+     "predecessor_id": "6f05502b-2c65-5c83-9c13-8f8bc5aae5f4",
+     "successor_id": "645cbbae-9594-5a80-9d1a-fe7b266a6df1"
+    },
+    {
+     "predecessor_id": "6ddf93b6-9eb9-547d-85be-265d88801c47",
+     "successor_id": "94353481-a759-50b0-9ca6-a8c2035b5ba6"
+    },
+    {
+     "predecessor_id": "94353481-a759-50b0-9ca6-a8c2035b5ba6",
+     "successor_id": "148262ef-3961-5419-81ca-65bf4929e4f2"
+    },
+    {
+     "predecessor_id": "148262ef-3961-5419-81ca-65bf4929e4f2",
+     "successor_id": "24c3ef1f-25f9-5493-a79c-830e83961b3c"
+    },
+    {
+     "predecessor_id": "b304cd32-2059-5f57-b082-b5ea68c5edf9",
+     "successor_id": "b205a023-e2af-5b36-96d0-84accc5fe6ef"
+    },
+    {
+     "predecessor_id": "b205a023-e2af-5b36-96d0-84accc5fe6ef",
+     "successor_id": "744014ef-4bf5-5d3b-bd3d-0e226dfa7647"
+    },
+    {
+     "predecessor_id": "5505c44b-6bda-5dd3-9034-27a72d9ca9ab",
+     "successor_id": "61f5d163-c6a4-5469-9a43-59df948638c6"
+    }
+   ],
+   "offsets": {
+    "021fa1f6-fcbf-5ded-bd51-c4ef13b79516": {
+     "due_offset": 14,
+     "start_offset": 10
+    },
+    "024d34e0-b42c-5cb1-8234-435346c2bdad": {
+     "due_offset": 110,
+     "start_offset": 106
+    },
+    "0d3e5074-3d82-550d-800e-67015bf1e818": {
+     "due_offset": 85,
+     "start_offset": 71
+    },
+    "148262ef-3961-5419-81ca-65bf4929e4f2": {
+     "due_offset": 100,
+     "start_offset": 96
+    },
+    "22ac2304-770b-52a7-9565-f76aef3e94e1": {
+     "due_offset": 35,
+     "start_offset": 35
+    },
+    "24c3ef1f-25f9-5493-a79c-830e83961b3c": {
+     "due_offset": 105,
+     "start_offset": 101
+    },
+    "26b0b93a-15bf-56c2-aa15-a73e2e0d772a": {
+     "due_offset": 105,
+     "start_offset": 86
+    },
+    "2fd3427b-1b09-558e-9063-fc0ca8d627f0": {
+     "due_offset": 34,
+     "start_offset": 30
+    },
+    "358660e8-066d-5bc3-ad4d-f5b78224ae1a": {
+     "due_offset": 75,
+     "start_offset": 71
+    },
+    "38aff4f2-e4a9-547d-8327-02f321faa326": {
+     "due_offset": 35,
+     "start_offset": 0
+    },
+    "3dfaa5dd-95af-5654-abea-3095e529717a": {
+     "due_offset": 135,
+     "start_offset": 126
+    },
+    "54b45da5-2477-58d1-b3dd-d4d8d91f1663": {
+     "due_offset": 70,
+     "start_offset": 66
+    },
+    "5505c44b-6bda-5dd3-9034-27a72d9ca9ab": {
+     "due_offset": 130,
+     "start_offset": 126
+    },
+    "5de1e775-fe31-547a-b7a5-e97e71c5e7f2": {
+     "due_offset": 70,
+     "start_offset": 46
+    },
+    "61f5d163-c6a4-5469-9a43-59df948638c6": {
+     "due_offset": 135,
+     "start_offset": 131
+    },
+    "645cbbae-9594-5a80-9d1a-fe7b266a6df1": {
+     "due_offset": 85,
+     "start_offset": 81
+    },
+    "68ed0030-caf7-5611-b931-feefaaa21bc7": {
+     "due_offset": 45,
+     "start_offset": 36
+    },
+    "6ddf93b6-9eb9-547d-85be-265d88801c47": {
+     "due_offset": 90,
+     "start_offset": 86
+    },
+    "6f05502b-2c65-5c83-9c13-8f8bc5aae5f4": {
+     "due_offset": 80,
+     "start_offset": 76
+    },
+    "70efb7b2-327b-5a14-97ca-a1b38a5273fc": {
+     "due_offset": 45,
+     "start_offset": 41
+    },
+    "744014ef-4bf5-5d3b-bd3d-0e226dfa7647": {
+     "due_offset": 125,
+     "start_offset": 121
+    },
+    "80775411-0b9c-516b-b3cd-6821909153db": {
+     "due_offset": 40,
+     "start_offset": 36
+    },
+    "8d64c4c4-0081-5bfc-953a-6e1840d28e6c": {
+     "due_offset": 60,
+     "start_offset": 56
+    },
+    "94353481-a759-50b0-9ca6-a8c2035b5ba6": {
+     "due_offset": 95,
+     "start_offset": 91
+    },
+    "a462ff37-ca55-5025-99d9-ef6427af9cd7": {
+     "due_offset": 50,
+     "start_offset": 46
+    },
+    "ae6a5caf-21e5-55bb-aa80-4e90f8c38126": {
+     "due_offset": 9,
+     "start_offset": 5
+    },
+    "b205a023-e2af-5b36-96d0-84accc5fe6ef": {
+     "due_offset": 120,
+     "start_offset": 116
+    },
+    "b304cd32-2059-5f57-b082-b5ea68c5edf9": {
+     "due_offset": 115,
+     "start_offset": 111
+    },
+    "ba5bf6dc-e967-5747-aafd-fa3265d1ff98": {
+     "due_offset": 24,
+     "start_offset": 20
+    },
+    "bdfa7f5b-7e99-531a-9052-50a9760cea92": {
+     "due_offset": 65,
+     "start_offset": 61
+    },
+    "d2fa08af-5d76-51b1-a097-4b7d11552296": {
+     "due_offset": 125,
+     "start_offset": 111
+    },
+    "d873ef23-77bd-5e6b-a54b-4c6d7777acf0": {
+     "due_offset": 29,
+     "start_offset": 25
+    },
+    "ecdae00e-f03e-564f-aef1-51defb291af9": {
+     "due_offset": 19,
+     "start_offset": 15
+    },
+    "f382cbd0-64fa-5f16-b01a-fe4d53c19c44": {
+     "due_offset": 55,
+     "start_offset": 51
+    },
+    "fcaabdff-d9ca-566b-8d87-83e03da68731": {
+     "due_offset": 110,
+     "start_offset": 106
+    },
+    "fd855a5c-0d02-5708-a171-68ca8aef231e": {
+     "due_offset": 4,
+     "start_offset": 0
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.124387+00:00",
+  "deleted_at": null,
+  "id": "ae645fec-0422-558a-938c-7ebea877e9db",
+  "kind": "workflow",
+  "name": "實體活動專流",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "b818153e-b926-51a1-8c1d-a8e317c1b42d",
+     "successor_id": "c6bf0200-80ef-5b88-8942-b012813d13f7"
+    },
+    {
+     "predecessor_id": "92abc7de-4d6c-567d-8d46-792b596cad51",
+     "successor_id": "603a6bbf-a235-50a8-9cc7-add7e38d3ac8"
+    }
+   ],
+   "offsets": {
+    "1ddf50fe-559a-5447-b477-6620998fc711": {
+     "due_offset": 7,
+     "start_offset": 0
+    },
+    "603a6bbf-a235-50a8-9cc7-add7e38d3ac8": {
+     "due_offset": 15,
+     "start_offset": 12
+    },
+    "92abc7de-4d6c-567d-8d46-792b596cad51": {
+     "due_offset": 11,
+     "start_offset": 8
+    },
+    "b818153e-b926-51a1-8c1d-a8e317c1b42d": {
+     "due_offset": 3,
+     "start_offset": 0
+    },
+    "c2d13647-bd80-55e5-82a4-a94bf0a87100": {
+     "due_offset": 15,
+     "start_offset": 8
+    },
+    "c6bf0200-80ef-5b88-8942-b012813d13f7": {
+     "due_offset": 7,
+     "start_offset": 4
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.226107+00:00",
+  "deleted_at": null,
+  "id": "c73f1034-245b-5895-a707-c33f84489569",
+  "kind": "workflow",
+  "name": "事件處理專流",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "d3951ef3-1317-55dc-8ab1-6ea732acb93b",
+     "successor_id": "7c30517e-8301-5b78-9c16-d03d7c8c38e9"
+    },
+    {
+     "predecessor_id": "7c30517e-8301-5b78-9c16-d03d7c8c38e9",
+     "successor_id": "2bf05350-f973-53d7-be9c-bb6a1ebe18d0"
+    },
+    {
+     "predecessor_id": "1fd57aca-6be5-5e1b-b619-203f96c74850",
+     "successor_id": "7d99a398-950b-51cb-aaa6-8762cbc28e1d"
+    },
+    {
+     "predecessor_id": "d34304dd-75d6-532d-a0e2-0287b626a7ae",
+     "successor_id": "e0411466-42ab-5afc-b9ff-0a037fcd6cda"
+    },
+    {
+     "predecessor_id": "e0411466-42ab-5afc-b9ff-0a037fcd6cda",
+     "successor_id": "15f9f999-0fde-58e8-85e8-ba519803ac9b"
+    },
+    {
+     "predecessor_id": "15f9f999-0fde-58e8-85e8-ba519803ac9b",
+     "successor_id": "6dd4dbc1-202e-5e28-adf7-0d8d84e1a4fa"
+    },
+    {
+     "predecessor_id": "f6c19839-bbce-53c9-9248-053b4f176ca4",
+     "successor_id": "8607b614-02b0-5322-b2b3-df86500c34dc"
+    },
+    {
+     "predecessor_id": "6c840464-e3b9-555b-9af5-2efe58acc25f",
+     "successor_id": "0f93dfb0-453b-5a5b-9382-d35a1707c1b3"
+    }
+   ],
+   "offsets": {
+    "0f93dfb0-453b-5a5b-9382-d35a1707c1b3": {
+     "due_offset": 51,
+     "start_offset": 48
+    },
+    "15f9f999-0fde-58e8-85e8-ba519803ac9b": {
+     "due_offset": 31,
+     "start_offset": 28
+    },
+    "1fd57aca-6be5-5e1b-b619-203f96c74850": {
+     "due_offset": 15,
+     "start_offset": 12
+    },
+    "219ccca4-51bc-5162-bc09-9eadb77d8435": {
+     "due_offset": 19,
+     "start_offset": 12
+    },
+    "2bf05350-f973-53d7-be9c-bb6a1ebe18d0": {
+     "due_offset": 11,
+     "start_offset": 8
+    },
+    "503234c8-74d1-5e5e-95ed-acab72c40c54": {
+     "due_offset": 11,
+     "start_offset": 0
+    },
+    "6c840464-e3b9-555b-9af5-2efe58acc25f": {
+     "due_offset": 47,
+     "start_offset": 44
+    },
+    "6dd4dbc1-202e-5e28-adf7-0d8d84e1a4fa": {
+     "due_offset": 35,
+     "start_offset": 32
+    },
+    "7c30517e-8301-5b78-9c16-d03d7c8c38e9": {
+     "due_offset": 7,
+     "start_offset": 4
+    },
+    "7d99a398-950b-51cb-aaa6-8762cbc28e1d": {
+     "due_offset": 19,
+     "start_offset": 16
+    },
+    "8607b614-02b0-5322-b2b3-df86500c34dc": {
+     "due_offset": 43,
+     "start_offset": 40
+    },
+    "b1a976f5-c874-5c60-a0ef-384827058f6a": {
+     "due_offset": 43,
+     "start_offset": 36
+    },
+    "ce93a632-949c-5cef-963f-2f2d9956e759": {
+     "due_offset": 51,
+     "start_offset": 44
+    },
+    "d34304dd-75d6-532d-a0e2-0287b626a7ae": {
+     "due_offset": 23,
+     "start_offset": 20
+    },
+    "d3951ef3-1317-55dc-8ab1-6ea732acb93b": {
+     "due_offset": 3,
+     "start_offset": 0
+    },
+    "e0411466-42ab-5afc-b9ff-0a037fcd6cda": {
+     "due_offset": 27,
+     "start_offset": 24
+    },
+    "ebd2648b-6046-5e10-9815-d9da661feb22": {
+     "due_offset": 35,
+     "start_offset": 20
+    },
+    "f6c19839-bbce-53c9-9248-053b4f176ca4": {
+     "due_offset": 39,
+     "start_offset": 36
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.285270+00:00",
+  "deleted_at": null,
+  "id": "caaf9706-3474-51c5-aecd-405ecec9aa2b",
+  "kind": "workflow",
+  "name": "裝修工程專流",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "version": 1
+ },
+ {
+  "content": {},
+  "created_at": "2026-10-08T10:32:11.549726+00:00",
+  "deleted_at": null,
+  "id": "cc377d3c-1bbf-4b41-9ce3-26f9fe7aa678",
+  "kind": "workflow",
+  "name": "電子新品開發",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "version": 1
+ },
+ {
+  "content": {},
+  "created_at": "2026-10-08T10:32:11.542792+00:00",
+  "deleted_at": null,
+  "id": "d1cbf196-240d-4cb2-bc08-0aaec56d3633",
+  "kind": "workflow",
+  "name": "食品新品開發",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "458be336-e760-57d2-8d9c-56dd83b79d29",
+     "successor_id": "7e416655-4bd5-5360-8129-6710777e932e"
+    },
+    {
+     "predecessor_id": "34eafb08-a78f-5496-9544-58fc7a9496e1",
+     "successor_id": "78933b68-aa12-5731-b5df-efd5176de446"
+    }
+   ],
+   "offsets": {
+    "34eafb08-a78f-5496-9544-58fc7a9496e1": {
+     "due_offset": 11,
+     "start_offset": 8
+    },
+    "458be336-e760-57d2-8d9c-56dd83b79d29": {
+     "due_offset": 3,
+     "start_offset": 0
+    },
+    "57be0406-0b64-5b9c-a64b-dbfdef9cac8e": {
+     "due_offset": 7,
+     "start_offset": 0
+    },
+    "76df48b1-29af-5984-bd21-ee74cd3a8195": {
+     "due_offset": 15,
+     "start_offset": 8
+    },
+    "78933b68-aa12-5731-b5df-efd5176de446": {
+     "due_offset": 15,
+     "start_offset": 12
+    },
+    "7e416655-4bd5-5360-8129-6710777e932e": {
+     "due_offset": 7,
+     "start_offset": 4
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.062564+00:00",
+  "deleted_at": null,
+  "id": "e67e5b4c-456a-5e65-b363-d488f32d384a",
+  "kind": "workflow",
+  "name": "ECN 變更專流",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "f95d73fb-c21d-5271-8c0b-7fc2dc0bf85b",
+     "successor_id": "8363cd78-c63c-5a2a-9b11-66e5479da370"
+    },
+    {
+     "predecessor_id": "8363cd78-c63c-5a2a-9b11-66e5479da370",
+     "successor_id": "e54784f5-5a10-5ad6-837f-ecaf118aa664"
+    },
+    {
+     "predecessor_id": "6f9de039-835c-5d41-a2b2-2f0180cb34e6",
+     "successor_id": "74700956-55f9-5775-a888-6411dac20a3a"
+    },
+    {
+     "predecessor_id": "74700956-55f9-5775-a888-6411dac20a3a",
+     "successor_id": "07e255cf-f4bb-5772-a752-31e6e3fe7705"
+    },
+    {
+     "predecessor_id": "8f60b13a-3908-5af6-8721-1ccf96772449",
+     "successor_id": "7fc3320c-b877-584c-b8d5-e1aea8c7659a"
+    },
+    {
+     "predecessor_id": "7fc3320c-b877-584c-b8d5-e1aea8c7659a",
+     "successor_id": "25c20402-6f70-55e1-ba08-df54506237c7"
+    },
+    {
+     "predecessor_id": "d762e4e1-898c-5944-8a7c-518cbd20cc41",
+     "successor_id": "72be1740-4fe0-55d7-9448-f57d5a3c73c6"
+    },
+    {
+     "predecessor_id": "72be1740-4fe0-55d7-9448-f57d5a3c73c6",
+     "successor_id": "842a0479-9619-55e2-85df-0f7c91173f28"
+    }
+   ],
+   "offsets": {
+    "07e255cf-f4bb-5772-a752-31e6e3fe7705": {
+     "due_offset": 23,
+     "start_offset": 20
+    },
+    "25c20402-6f70-55e1-ba08-df54506237c7": {
+     "due_offset": 35,
+     "start_offset": 32
+    },
+    "5f16e3a3-1707-579e-968a-a7b144bfc3c2": {
+     "due_offset": 35,
+     "start_offset": 24
+    },
+    "6f9de039-835c-5d41-a2b2-2f0180cb34e6": {
+     "due_offset": 15,
+     "start_offset": 12
+    },
+    "72be1740-4fe0-55d7-9448-f57d5a3c73c6": {
+     "due_offset": 43,
+     "start_offset": 40
+    },
+    "74700956-55f9-5775-a888-6411dac20a3a": {
+     "due_offset": 19,
+     "start_offset": 16
+    },
+    "7fc3320c-b877-584c-b8d5-e1aea8c7659a": {
+     "due_offset": 31,
+     "start_offset": 28
+    },
+    "8363cd78-c63c-5a2a-9b11-66e5479da370": {
+     "due_offset": 7,
+     "start_offset": 4
+    },
+    "842a0479-9619-55e2-85df-0f7c91173f28": {
+     "due_offset": 47,
+     "start_offset": 44
+    },
+    "8f60b13a-3908-5af6-8721-1ccf96772449": {
+     "due_offset": 27,
+     "start_offset": 24
+    },
+    "9c21f4fe-8d4a-5447-a10c-ade79872aae1": {
+     "due_offset": 11,
+     "start_offset": 0
+    },
+    "a57d3e50-c205-5d60-8920-b69424b6ab12": {
+     "due_offset": 47,
+     "start_offset": 36
+    },
+    "d3bcdade-b7d9-549f-9c13-a6506e2a86a6": {
+     "due_offset": 23,
+     "start_offset": 12
+    },
+    "d762e4e1-898c-5944-8a7c-518cbd20cc41": {
+     "due_offset": 39,
+     "start_offset": 36
+    },
+    "e54784f5-5a10-5ad6-837f-ecaf118aa664": {
+     "due_offset": 11,
+     "start_offset": 8
+    },
+    "f95d73fb-c21d-5271-8c0b-7fc2dc0bf85b": {
+     "due_offset": 3,
+     "start_offset": 0
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:06.945179+00:00",
+  "deleted_at": null,
+  "id": "e9a7e787-1aea-5960-89f4-a6a2947ae111",
+  "kind": "workflow",
+  "name": "供應商與原料導入專流",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "6b48fdc2-ec73-5bb7-a844-775565624000",
+     "successor_id": "bc9d5713-a8b0-56bf-b281-a228c0d34771"
+    },
+    {
+     "predecessor_id": "08c4cec6-8ea3-5805-80ec-88345176ab91",
+     "successor_id": "8fdb6651-49b0-5dbf-996d-9de38b48b410"
+    },
+    {
+     "predecessor_id": "8fdb6651-49b0-5dbf-996d-9de38b48b410",
+     "successor_id": "0b4175ba-b0a7-5a21-93aa-c8dde582e704"
+    },
+    {
+     "predecessor_id": "a5e37f99-28a6-5e46-bab2-f5b9d73b4f07",
+     "successor_id": "83596065-2b6c-5cb2-b987-d4800e78a2f0"
+    },
+    {
+     "predecessor_id": "83596065-2b6c-5cb2-b987-d4800e78a2f0",
+     "successor_id": "de2ad677-3c8d-5516-930b-2f97afb95eaa"
+    },
+    {
+     "predecessor_id": "3c46fb3d-9a3c-5d4d-a82b-097bbc2023bf",
+     "successor_id": "f7f7b54a-18a7-56b2-99a1-3aa3e4ff3629"
+    },
+    {
+     "predecessor_id": "f7f7b54a-18a7-56b2-99a1-3aa3e4ff3629",
+     "successor_id": "d28cf969-d24e-59a2-96ff-10d5e4e6c02c"
+    },
+    {
+     "predecessor_id": "d2443a49-5369-575c-a687-6e9f99fc06f6",
+     "successor_id": "ce616599-76e5-5fb0-ab14-c07437dc5352"
+    }
+   ],
+   "offsets": {
+    "08c4cec6-8ea3-5805-80ec-88345176ab91": {
+     "due_offset": 11,
+     "start_offset": 8
+    },
+    "0b4175ba-b0a7-5a21-93aa-c8dde582e704": {
+     "due_offset": 19,
+     "start_offset": 16
+    },
+    "2ea5a37f-5bb4-58ae-bf11-9e57d22f6a77": {
+     "due_offset": 31,
+     "start_offset": 20
+    },
+    "2f2e54f7-abf8-591f-9ea5-d4a375002a08": {
+     "due_offset": 7,
+     "start_offset": 0
+    },
+    "3c46fb3d-9a3c-5d4d-a82b-097bbc2023bf": {
+     "due_offset": 35,
+     "start_offset": 32
+    },
+    "6b48fdc2-ec73-5bb7-a844-775565624000": {
+     "due_offset": 3,
+     "start_offset": 0
+    },
+    "71163529-1cd8-5f1f-a996-7809761d422b": {
+     "due_offset": 43,
+     "start_offset": 32
+    },
+    "83596065-2b6c-5cb2-b987-d4800e78a2f0": {
+     "due_offset": 27,
+     "start_offset": 24
+    },
+    "8fdb6651-49b0-5dbf-996d-9de38b48b410": {
+     "due_offset": 15,
+     "start_offset": 12
+    },
+    "a413e94f-31fc-5297-b756-e078d2aca475": {
+     "due_offset": 51,
+     "start_offset": 44
+    },
+    "a5e37f99-28a6-5e46-bab2-f5b9d73b4f07": {
+     "due_offset": 23,
+     "start_offset": 20
+    },
+    "bc9d5713-a8b0-56bf-b281-a228c0d34771": {
+     "due_offset": 7,
+     "start_offset": 4
+    },
+    "ce616599-76e5-5fb0-ab14-c07437dc5352": {
+     "due_offset": 51,
+     "start_offset": 48
+    },
+    "d2443a49-5369-575c-a687-6e9f99fc06f6": {
+     "due_offset": 47,
+     "start_offset": 44
+    },
+    "d28cf969-d24e-59a2-96ff-10d5e4e6c02c": {
+     "due_offset": 43,
+     "start_offset": 40
+    },
+    "d5256a5b-631f-5ec7-95a2-b9fe6c7e8f28": {
+     "due_offset": 19,
+     "start_offset": 8
+    },
+    "de2ad677-3c8d-5516-930b-2f97afb95eaa": {
+     "due_offset": 31,
+     "start_offset": 28
+    },
+    "f7f7b54a-18a7-56b2-99a1-3aa3e4ff3629": {
+     "due_offset": 39,
+     "start_offset": 36
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.049360+00:00",
+  "deleted_at": null,
+  "id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6",
+  "kind": "workflow",
+  "name": "筆電 NPI 專流",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "version": 1
+ },
+ {
+  "content": {
+   "dependencies": [
+    {
+     "predecessor_id": "a063394f-b34a-5c67-8857-3c7bcd13f78b",
+     "successor_id": "edffb1e7-0d9f-5eba-867a-034b69edca13"
+    },
+    {
+     "predecessor_id": "b01c2ccd-f57f-551e-8730-3f569bc3787f",
+     "successor_id": "a0e453f8-9c2f-50d8-b4b9-d50bb63c6b77"
+    },
+    {
+     "predecessor_id": "16a7c0fa-c644-5594-b730-76ce14a1d719",
+     "successor_id": "ee23a94a-4697-56e0-a551-805100cb18f4"
+    },
+    {
+     "predecessor_id": "736715b3-c3f4-51fb-b293-6e7189422892",
+     "successor_id": "bf6ab174-2df3-5577-b941-c3aa91a8d641"
+    },
+    {
+     "predecessor_id": "7fd87f5b-9aac-5586-99c4-3abf57e9333e",
+     "successor_id": "ed8dd1d2-98a0-5e5a-929f-ef98cc517f5b"
+    },
+    {
+     "predecessor_id": "d419a4ca-30bb-5e75-85de-e84d7e8952ea",
+     "successor_id": "98f56be1-0542-54d8-88d3-38cdac556c8d"
+    }
+   ],
+   "offsets": {
+    "143849e5-b1c5-59c0-95c1-233c38c9d683": {
+     "due_offset": 31,
+     "start_offset": 24
+    },
+    "16a7c0fa-c644-5594-b730-76ce14a1d719": {
+     "due_offset": 19,
+     "start_offset": 16
+    },
+    "2dc3d0b3-990f-5ba1-8919-71cf93d13da6": {
+     "due_offset": 47,
+     "start_offset": 40
+    },
+    "3cdf8faa-00b1-5bfa-9a1e-d0d6346f8ff0": {
+     "due_offset": 23,
+     "start_offset": 16
+    },
+    "55276ffc-8cd8-50a1-9a32-59dea71a12dd": {
+     "due_offset": 39,
+     "start_offset": 32
+    },
+    "736715b3-c3f4-51fb-b293-6e7189422892": {
+     "due_offset": 27,
+     "start_offset": 24
+    },
+    "7fd87f5b-9aac-5586-99c4-3abf57e9333e": {
+     "due_offset": 35,
+     "start_offset": 32
+    },
+    "80439631-89db-5b12-90ee-679a37a106ca": {
+     "due_offset": 7,
+     "start_offset": 0
+    },
+    "98f56be1-0542-54d8-88d3-38cdac556c8d": {
+     "due_offset": 47,
+     "start_offset": 44
+    },
+    "a063394f-b34a-5c67-8857-3c7bcd13f78b": {
+     "due_offset": 3,
+     "start_offset": 0
+    },
+    "a0e453f8-9c2f-50d8-b4b9-d50bb63c6b77": {
+     "due_offset": 15,
+     "start_offset": 12
+    },
+    "b01c2ccd-f57f-551e-8730-3f569bc3787f": {
+     "due_offset": 11,
+     "start_offset": 8
+    },
+    "bf6ab174-2df3-5577-b941-c3aa91a8d641": {
+     "due_offset": 31,
+     "start_offset": 28
+    },
+    "d419a4ca-30bb-5e75-85de-e84d7e8952ea": {
+     "due_offset": 43,
+     "start_offset": 40
+    },
+    "dbb08abf-32b7-5495-b78c-61479e300823": {
+     "due_offset": 15,
+     "start_offset": 8
+    },
+    "ed8dd1d2-98a0-5e5a-929f-ef98cc517f5b": {
+     "due_offset": 39,
+     "start_offset": 36
+    },
+    "edffb1e7-0d9f-5eba-867a-034b69edca13": {
+     "due_offset": 7,
+     "start_offset": 4
+    },
+    "ee23a94a-4697-56e0-a551-805100cb18f4": {
+     "due_offset": 23,
+     "start_offset": 20
+    }
+   },
+   "p2c_version": 1
+  },
+  "created_at": "2026-10-09T04:53:07.146315+00:00",
+  "deleted_at": null,
+  "id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6",
+  "kind": "workflow",
+  "name": "活動執行專流",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "version": 1
+ }
+]

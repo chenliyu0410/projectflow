@@ -1,0 +1,2312 @@
+[
+ {
+  "gate_after": false,
+  "id": "021fa1f6-fcbf-5ded-bd51-c4ef13b79516",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "38aff4f2-e4a9-547d-8327-02f321faa326",
+  "sort_order": 3,
+  "title": "定義 TA",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "02349ef0-8dbf-51e0-bbde-c3443707fc31",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "31749cb9-444a-51ea-ae38-1ce7ced47471",
+  "sort_order": 20,
+  "title": "通路上架",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "024d34e0-b42c-5cb1-8234-435346c2bdad",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "fcaabdff-d9ca-566b-8d87-83e03da68731",
+  "sort_order": 28,
+  "title": "現場內容紀錄",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "03cc7e2e-8d4c-5b3f-b6fc-ce3f21a9d0b5",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "84f83c4c-fb2d-5bae-906a-182a67cd4ce0",
+  "sort_order": 1,
+  "title": "市場與競品分析",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "03ec2834-bd87-5bce-982b-e9215dc530c8",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "b24b1e41-21d2-5b66-80d5-85a2feb3fa59",
+  "sort_order": 28,
+  "title": "可靠度測試",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "04caeb92-efd5-51a5-9b8f-baacca2622fb",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "0565c3b3-6f2b-54f4-8855-6a6299375d05",
+  "sort_order": 11,
+  "title": "盤點上市地區法規",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": true,
+  "id": "0565c3b3-6f2b-54f4-8855-6a6299375d05",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 6,
+  "title": "產品定義",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "07e255cf-f4bb-5772-a752-31e6e3fe7705",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "d3bcdade-b7d9-549f-9c13-a6506e2a86a6",
+  "sort_order": 7,
+  "title": "樣品結果審查",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "08c4cec6-8ea3-5805-80ec-88345176ab91",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "d5256a5b-631f-5ec7-95a2-b9fe6c7e8f28",
+  "sort_order": 4,
+  "title": "PRD 規格書",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "0b4175ba-b0a7-5a21-93aa-c8dde582e704",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "d5256a5b-631f-5ec7-95a2-b9fe6c7e8f28",
+  "sort_order": 6,
+  "title": "法規盤點",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "0d3e5074-3d82-550d-800e-67015bf1e818",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 18,
+  "title": "宣傳策略",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "0f93dfb0-453b-5a5b-9382-d35a1707c1b3",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "ce93a632-949c-5cef-963f-2f2d9956e759",
+  "sort_order": 17,
+  "title": "保固移交",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "13ae90a4-d78d-5564-804b-f0af574ff1a2",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "84f83c4c-fb2d-5bae-906a-182a67cd4ce0",
+  "sort_order": 4,
+  "title": "Business Case 與目標成本",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "13e14c40-b257-54c5-a209-77265138bb76",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "3d8fefba-bbc9-5df5-839a-a223d317ed29",
+  "sort_order": 5,
+  "title": "前端管理頁",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": true,
+  "id": "143849e5-b1c5-59c0-95c1-233c38c9d683",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 9,
+  "title": "宣傳與報名",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "148262ef-3961-5419-81ca-65bf4929e4f2",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "26b0b93a-15bf-56c2-aa15-a73e2e0d772a",
+  "sort_order": 25,
+  "title": "特殊安全規劃",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "156c3fde-fd25-5213-a371-65b29e5576d2",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "d27672f7-350b-51d3-a315-089f7203d956",
+  "sort_order": 13,
+  "title": "營養成分送驗",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "15f7d6bb-3c28-5532-994d-53fda9a4c451",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "381fb466-7864-5fd4-9340-e26b8a4a7e26",
+  "sort_order": 5,
+  "title": "現場執行",
+  "workflow_id": "0ddc283a-667b-5212-a7b8-0f4bcba98cb0"
+ },
+ {
+  "gate_after": false,
+  "id": "15f9f999-0fde-58e8-85e8-ba519803ac9b",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "ebd2648b-6046-5e10-9815-d9da661feb22",
+  "sort_order": 10,
+  "title": "室內裝修",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "16033509-a54e-4ca5-8953-c1863fc60e3e",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "61096525-1125-4768-8fc5-1918ff67b17b",
+  "sort_order": 30,
+  "title": "配方設計",
+  "workflow_id": "410edce2-75f5-42d2-af59-1aa41662dccd"
+ },
+ {
+  "gate_after": false,
+  "id": "16a7c0fa-c644-5594-b730-76ce14a1d719",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "3cdf8faa-00b1-5bfa-9a1e-d0d6346f8ff0",
+  "sort_order": 7,
+  "title": "視聽與舞台",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": true,
+  "id": "16f1f614-da4b-554d-9086-877a8f70a69a",
+  "kind": "phase",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "評估與採購",
+  "workflow_id": "059aa439-95ce-5da6-9d8c-bea408221eb6"
+ },
+ {
+  "gate_after": false,
+  "id": "17317d9d-43cb-5b40-ba18-77d9c23ee58d",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "a3151975-47cd-5484-9f03-f71cc7d07c4f",
+  "sort_order": 41,
+  "title": "駐廠品保稽核",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "198d97b8-0a42-51be-a715-a56630cf7aba",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "8cfafce7-168a-5b51-b4cd-4fb968323127",
+  "sort_order": 11,
+  "title": "加速保存試驗",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "19aa5efc-e606-5f03-8399-b5a2596fd03d",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "b89f8be9-4e9d-55b8-9ace-1618f2fa3e1e",
+  "sort_order": 4,
+  "title": "設備安裝",
+  "workflow_id": "059aa439-95ce-5da6-9d8c-bea408221eb6"
+ },
+ {
+  "gate_after": true,
+  "id": "1c1ddb16-0e96-53b3-bce1-c60a35b34626",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "市場與配方",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": true,
+  "id": "1ddf50fe-559a-5447-b477-6620998fc711",
+  "kind": "phase",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "需求與開發",
+  "workflow_id": "c73f1034-245b-5895-a707-c33f84489569"
+ },
+ {
+  "gate_after": false,
+  "id": "1e9779bd-d875-52ab-9230-d6a89a48b057",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "a3151975-47cd-5484-9f03-f71cc7d07c4f",
+  "sort_order": 42,
+  "title": "出貨許可（G6）",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "1fd57aca-6be5-5e1b-b619-203f96c74850",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "219ccca4-51bc-5162-bc09-9eadb77d8435",
+  "sort_order": 5,
+  "title": "承包商遴選",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "200a981c-2711-549f-a054-9857bb581afd",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "381fb466-7864-5fd4-9340-e26b8a4a7e26",
+  "sort_order": 4,
+  "title": "場地確認",
+  "workflow_id": "0ddc283a-667b-5212-a7b8-0f4bcba98cb0"
+ },
+ {
+  "gate_after": false,
+  "id": "20774ed9-d837-584b-80cf-ade5d7326c9b",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "1c1ddb16-0e96-53b3-bce1-c60a35b34626",
+  "sort_order": 3,
+  "title": "配方設計",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": true,
+  "id": "219ccca4-51bc-5162-bc09-9eadb77d8435",
+  "kind": "phase",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": null,
+  "sort_order": 4,
+  "title": "採購",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "22ac2304-770b-52a7-9565-f76aef3e94e1",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "38aff4f2-e4a9-547d-8327-02f321faa326",
+  "sort_order": 8,
+  "title": "預算核准",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "2379e31a-0d99-4107-8bbe-512016ce00f7",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "7dd3c960-b64d-4aec-8a6e-df868a199689",
+  "sort_order": 40,
+  "title": "試作工單",
+  "workflow_id": "410edce2-75f5-42d2-af59-1aa41662dccd"
+ },
+ {
+  "gate_after": true,
+  "id": "238f7471-4abe-5046-9971-cb4d75925d61",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "議程與講者",
+  "workflow_id": "0ddc283a-667b-5212-a7b8-0f4bcba98cb0"
+ },
+ {
+  "gate_after": true,
+  "id": "240bc821-34fe-54b9-a72a-c44d908cfeed",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 32,
+  "title": "PVT 生產驗證",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "24c3ef1f-25f9-5493-a79c-830e83961b3c",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "26b0b93a-15bf-56c2-aa15-a73e2e0d772a",
+  "sort_order": 26,
+  "title": "前一天排演最後 Check",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "2522b3a2-711a-5cbe-8c03-7e423c78841a",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "16f1f614-da4b-554d-9086-877a8f70a69a",
+  "sort_order": 1,
+  "title": "負載評估",
+  "workflow_id": "059aa439-95ce-5da6-9d8c-bea408221eb6"
+ },
+ {
+  "gate_after": false,
+  "id": "25c20402-6f70-55e1-ba08-df54506237c7",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "5f16e3a3-1707-579e-968a-a7b144bfc3c2",
+  "sort_order": 11,
+  "title": "試作成果確認",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "26b0b93a-15bf-56c2-aa15-a73e2e0d772a",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 22,
+  "title": "Run Down",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "29932fa7-3971-561d-8073-b24cb3cd78ee",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "240bc821-34fe-54b9-a72a-c44d908cfeed",
+  "sort_order": 38,
+  "title": "量產審查（G5）",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "2bf05350-f973-53d7-be9c-bb6a1ebe18d0",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "503234c8-74d1-5e5e-95ed-acab72c40c54",
+  "sort_order": 3,
+  "title": "工程預算",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": true,
+  "id": "2dc3d0b3-990f-5ba1-8919-71cf93d13da6",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 15,
+  "title": "結案",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": true,
+  "id": "2ea5a37f-5bb4-58ae-bf11-9e57d22f6a77",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 7,
+  "title": "設計開發",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": true,
+  "id": "2f2e54f7-abf8-591f-9ea5-d4a375002a08",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "市場立案",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "2fd3427b-1b09-558e-9063-fc0ca8d627f0",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "38aff4f2-e4a9-547d-8327-02f321faa326",
+  "sort_order": 7,
+  "title": "預算規劃",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": true,
+  "id": "30439e87-cc94-539b-81be-50678a6f9a39",
+  "kind": "phase",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "需求探索",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": true,
+  "id": "31749cb9-444a-51ea-ae38-1ce7ced47471",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 16,
+  "title": "量產上市",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "32edf050-d098-5531-b43a-5b97d85dbc02",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 48,
+  "title": "售後與停產",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "33031b13-300a-5404-92da-3f66b85a4cc4",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "84f83c4c-fb2d-5bae-906a-182a67cd4ce0",
+  "sort_order": 3,
+  "title": "晶片平台 Roadmap 對齊",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "34eafb08-a78f-5496-9544-58fc7a9496e1",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "76df48b1-29af-5984-bd21-ee74cd3a8195",
+  "sort_order": 4,
+  "title": "替代料試驗",
+  "workflow_id": "e67e5b4c-456a-5e65-b363-d488f32d384a"
+ },
+ {
+  "gate_after": false,
+  "id": "3542c887-8ade-569d-adca-4d4ee13ef699",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "e03de44c-5076-5003-b611-48f1bf56466e",
+  "sort_order": 24,
+  "title": "設計修正（ECN）",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "355d2d5c-a3b4-54d8-b314-f3beea88d43a",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "240bc821-34fe-54b9-a72a-c44d908cfeed",
+  "sort_order": 35,
+  "title": "檢驗標準制定",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "358660e8-066d-5bc3-ad4d-f5b78224ae1a",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "0d3e5074-3d82-550d-800e-67015bf1e818",
+  "sort_order": 19,
+  "title": "建立報名網頁",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": true,
+  "id": "381fb466-7864-5fd4-9340-e26b8a4a7e26",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 3,
+  "title": "場地與執行",
+  "workflow_id": "0ddc283a-667b-5212-a7b8-0f4bcba98cb0"
+ },
+ {
+  "gate_after": false,
+  "id": "38aff4f2-e4a9-547d-8327-02f321faa326",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "活動策略規劃",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "39961fd5-c5b7-48fb-b3cf-32cd77d692c1",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 20,
+  "title": "試產驗證",
+  "workflow_id": "cc377d3c-1bbf-4b41-9ce3-26f9fe7aa678"
+ },
+ {
+  "gate_after": false,
+  "id": "3b005a09-db47-5712-93cf-8f7167fbc420",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "e03de44c-5076-5003-b611-48f1bf56466e",
+  "sort_order": 25,
+  "title": "EVT Exit（G3）",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "3bbf3f44-61c6-5ecf-be38-b35460860fbd",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "9f1092be-e816-5b7e-8c82-f2bb2969bbd2",
+  "sort_order": 14,
+  "title": "線路圖與 PCB Layout",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "3bc87379-7715-5e45-810f-14044da6bcae",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "d27672f7-350b-51d3-a315-089f7203d956",
+  "sort_order": 14,
+  "title": "適口性測試（雙碗試驗）",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "3c46fb3d-9a3c-5d4d-a82b-097bbc2023bf",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "71163529-1cd8-5f1f-a996-7809761d422b",
+  "sort_order": 12,
+  "title": "EVT 試產",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": true,
+  "id": "3cdf8faa-00b1-5bfa-9a1e-d0d6346f8ff0",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 6,
+  "title": "供應商製作",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": true,
+  "id": "3d8fefba-bbc9-5df5-839a-a223d317ed29",
+  "kind": "phase",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": null,
+  "sort_order": 3,
+  "title": "設計開發",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "3dfaa5dd-95af-5654-abea-3095e529717a",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 33,
+  "title": "數據分析",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "3f575a8b-75ca-558a-a783-a6d09730ec34",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "3d8fefba-bbc9-5df5-839a-a223d317ed29",
+  "sort_order": 4,
+  "title": "後端 SSO 整合",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "458be336-e760-57d2-8d9c-56dd83b79d29",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "57be0406-0b64-5b9c-a64b-dbfdef9cac8e",
+  "sort_order": 1,
+  "title": "目標成本拆解",
+  "workflow_id": "e67e5b4c-456a-5e65-b363-d488f32d384a"
+ },
+ {
+  "gate_after": false,
+  "id": "46ab92b2-b893-5a5e-844a-4978448f2ebc",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "32edf050-d098-5531-b43a-5b97d85dbc02",
+  "sort_order": 51,
+  "title": "韌體與驅動更新",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": true,
+  "id": "48b0981f-395d-4b9e-9ddd-1a6656c79d3b",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 10,
+  "title": "規格確認",
+  "workflow_id": "cc377d3c-1bbf-4b41-9ce3-26f9fe7aa678"
+ },
+ {
+  "gate_after": true,
+  "id": "4ea8e390-18fe-579d-bc7c-f74a88f37d6a",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 5,
+  "title": "小量試作",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "4f232daa-7f4b-5dd0-a5c3-388a7f72eea2",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "16f1f614-da4b-554d-9086-877a8f70a69a",
+  "sort_order": 2,
+  "title": "主機採購",
+  "workflow_id": "059aa439-95ce-5da6-9d8c-bea408221eb6"
+ },
+ {
+  "gate_after": true,
+  "id": "503234c8-74d1-5e5e-95ed-acab72c40c54",
+  "kind": "phase",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "設計",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "534daaad-9d7d-5268-8e80-921fc1db1291",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "32edf050-d098-5531-b43a-5b97d85dbc02",
+  "sort_order": 50,
+  "title": "不良分析與改善",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "54b45da5-2477-58d1-b3dd-d4d8d91f1663",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "5de1e775-fe31-547a-b7a5-e97e71c5e7f2",
+  "sort_order": 17,
+  "title": "製作宣傳素材",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "5505c44b-6bda-5dd3-9034-27a72d9ca9ab",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "3dfaa5dd-95af-5654-abea-3095e529717a",
+  "sort_order": 34,
+  "title": "KPI指標",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": true,
+  "id": "55276ffc-8cd8-50a1-9a32-59dea71a12dd",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 12,
+  "title": "彩排與活動",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "565ffacf-cda8-5c5f-a3b2-200b0eb7dea7",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "31749cb9-444a-51ea-ae38-1ce7ced47471",
+  "sort_order": 18,
+  "title": "首批量產",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": true,
+  "id": "57be0406-0b64-5b9c-a64b-dbfdef9cac8e",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "成本分析",
+  "workflow_id": "e67e5b4c-456a-5e65-b363-d488f32d384a"
+ },
+ {
+  "gate_after": false,
+  "id": "596e5868-0414-5987-84f1-b2bad6879e97",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "cf9742b9-782a-5543-b101-e1e197b679de",
+  "sort_order": 46,
+  "title": "通路鋪貨",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "5de1e775-fe31-547a-b7a5-e97e71c5e7f2",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 12,
+  "title": "活動招商與資源整合",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": true,
+  "id": "5f16e3a3-1707-579e-968a-a7b144bfc3c2",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 8,
+  "title": "試作驗證",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "5f479d35-81d5-51de-8fb2-26f5a0a67878",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "8cfafce7-168a-5b51-b4cd-4fb968323127",
+  "sort_order": 10,
+  "title": "殺菌條件驗證（F0 值）",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "5f47c578-335c-575f-93ce-5fc284999943",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "32edf050-d098-5531-b43a-5b97d85dbc02",
+  "sort_order": 52,
+  "title": "停產規劃",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "603a6bbf-a235-50a8-9cc7-add7e38d3ac8",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "c2d13647-bd80-55e5-82a4-a94bf0a87100",
+  "sort_order": 5,
+  "title": "灰度上線",
+  "workflow_id": "c73f1034-245b-5895-a707-c33f84489569"
+ },
+ {
+  "gate_after": true,
+  "id": "61096525-1125-4768-8fc5-1918ff67b17b",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 10,
+  "title": "市場與配方",
+  "workflow_id": "410edce2-75f5-42d2-af59-1aa41662dccd"
+ },
+ {
+  "gate_after": false,
+  "id": "61f5d163-c6a4-5469-9a43-59df948638c6",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "3dfaa5dd-95af-5654-abea-3095e529717a",
+  "sort_order": 35,
+  "title": "活動 ROI",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "629c5abd-a1d4-59b1-942f-bf24748a5dd7",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "84f83c4c-fb2d-5bae-906a-182a67cd4ce0",
+  "sort_order": 2,
+  "title": "產品定位",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "630e8cb9-5293-592b-906b-612df15cb073",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "d799f5d9-ff14-549c-a767-3c4398979178",
+  "sort_order": 10,
+  "title": "staging 驗證",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "645cbbae-9594-5a80-9d1a-fe7b266a6df1",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "0d3e5074-3d82-550d-800e-67015bf1e818",
+  "sort_order": 21,
+  "title": "贈品/試用品製作",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "64cd27e6-de3a-5bf3-afd3-da444d130eeb",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "238f7471-4abe-5046-9971-cb4d75925d61",
+  "sort_order": 2,
+  "title": "講者邀請",
+  "workflow_id": "0ddc283a-667b-5212-a7b8-0f4bcba98cb0"
+ },
+ {
+  "gate_after": false,
+  "id": "651b0329-7bce-51e5-b2ba-6f13f2588820",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "9f1092be-e816-5b7e-8c82-f2bb2969bbd2",
+  "sort_order": 18,
+  "title": "零件承認",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "662208ca-b2a0-5af1-9d79-bd6cc85524db",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "240bc821-34fe-54b9-a72a-c44d908cfeed",
+  "sort_order": 37,
+  "title": "量產備料",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "68ed0030-caf7-5611-b931-feefaaa21bc7",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 9,
+  "title": "場地規劃",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "69772a70-d505-5d1b-b47e-fe4d64529813",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "d4ed9a3b-dd9c-5dac-9e64-f68536071eff",
+  "sort_order": 13,
+  "title": "登入成功率監控",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "6b48fdc2-ec73-5bb7-a844-775565624000",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "2f2e54f7-abf8-591f-9ea5-d4a375002a08",
+  "sort_order": 1,
+  "title": "市場與競品分析",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "6c840464-e3b9-555b-9af5-2efe58acc25f",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "ce93a632-949c-5cef-963f-2f2d9956e759",
+  "sort_order": 16,
+  "title": "竣工點交",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "6d908beb-b084-5bf9-b478-f06e447b3d00",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "1c1ddb16-0e96-53b3-bce1-c60a35b34626",
+  "sort_order": 4,
+  "title": "供應商評估",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "6dd4dbc1-202e-5e28-adf7-0d8d84e1a4fa",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "ebd2648b-6046-5e10-9815-d9da661feb22",
+  "sort_order": 11,
+  "title": "職安巡檢",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "6ddf93b6-9eb9-547d-85be-265d88801c47",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "26b0b93a-15bf-56c2-aa15-a73e2e0d772a",
+  "sort_order": 23,
+  "title": "建立工作人員分工表",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "6e9b1f97-f966-5f9c-9687-9783555435ce",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "cf9742b9-782a-5543-b101-e1e197b679de",
+  "sort_order": 45,
+  "title": "發表會與媒體評測",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "6f05502b-2c65-5c83-9c13-8f8bc5aae5f4",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "0d3e5074-3d82-550d-800e-67015bf1e818",
+  "sort_order": 20,
+  "title": "宣傳節奏排程",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "6f459a1d-486a-4685-8e9a-0d99387eea9f",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 20,
+  "title": "小量試作",
+  "workflow_id": "d1cbf196-240d-4cb2-bc08-0aaec56d3633"
+ },
+ {
+  "gate_after": false,
+  "id": "6f9de039-835c-5d41-a2b2-2f0180cb34e6",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "d3bcdade-b7d9-549f-9c13-a6506e2a86a6",
+  "sort_order": 5,
+  "title": "安排原料送樣",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "70efb7b2-327b-5a14-97ca-a1b38a5273fc",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "68ed0030-caf7-5611-b931-feefaaa21bc7",
+  "sort_order": 11,
+  "title": "預定場地",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": true,
+  "id": "71163529-1cd8-5f1f-a996-7809761d422b",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 11,
+  "title": "試產驗證",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "72be1740-4fe0-55d7-9448-f57d5a3c73c6",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "a57d3e50-c205-5d60-8920-b69424b6ab12",
+  "sort_order": 14,
+  "title": "供應商核准",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "72dfca5c-1bc7-5abc-9d76-0e7741261b28",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "4ea8e390-18fe-579d-bc7c-f74a88f37d6a",
+  "sort_order": 7,
+  "title": "質地與外觀調整",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "736526aa-2124-5ce8-b301-a0b349a4a265",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "cf9742b9-782a-5543-b101-e1e197b679de",
+  "sort_order": 47,
+  "title": "上市開賣",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "736715b3-c3f4-51fb-b293-6e7189422892",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "143849e5-b1c5-59c0-95c1-233c38c9d683",
+  "sort_order": 10,
+  "title": "媒體宣傳",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "744014ef-4bf5-5d3b-bd3d-0e226dfa7647",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "d2fa08af-5d76-51b1-a097-4b7d11552296",
+  "sort_order": 32,
+  "title": "會員再行銷",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "74700956-55f9-5775-a888-6411dac20a3a",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "d3bcdade-b7d9-549f-9c13-a6506e2a86a6",
+  "sort_order": 6,
+  "title": "品質與安全檢驗",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": true,
+  "id": "76df48b1-29af-5984-bd21-ee74cd3a8195",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 3,
+  "title": "替代料驗證",
+  "workflow_id": "e67e5b4c-456a-5e65-b363-d488f32d384a"
+ },
+ {
+  "gate_after": false,
+  "id": "78933b68-aa12-5731-b5df-efd5176de446",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "76df48b1-29af-5984-bd21-ee74cd3a8195",
+  "sort_order": 5,
+  "title": "ECN 發行",
+  "workflow_id": "e67e5b4c-456a-5e65-b363-d488f32d384a"
+ },
+ {
+  "gate_after": false,
+  "id": "7959ed43-3be7-5821-99af-91db4694f677",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "9f1092be-e816-5b7e-8c82-f2bb2969bbd2",
+  "sort_order": 16,
+  "title": "散熱設計",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "7bc0bbcd-1da5-53e8-8c91-ee985c3e18a8",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "dc32b38c-64ab-55c9-9a40-c1745a5c1d2a",
+  "sort_order": 8,
+  "title": "滲透測試",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "7c30517e-8301-5b78-9c16-d03d7c8c38e9",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "503234c8-74d1-5e5e-95ed-acab72c40c54",
+  "sort_order": 2,
+  "title": "施工圖說",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "7d99a398-950b-51cb-aaa6-8762cbc28e1d",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "219ccca4-51bc-5162-bc09-9eadb77d8435",
+  "sort_order": 6,
+  "title": "材料核准",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "7dd3c960-b64d-4aec-8a6e-df868a199689",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 20,
+  "title": "小量試作",
+  "workflow_id": "410edce2-75f5-42d2-af59-1aa41662dccd"
+ },
+ {
+  "gate_after": false,
+  "id": "7e416655-4bd5-5360-8129-6710777e932e",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "57be0406-0b64-5b9c-a64b-dbfdef9cac8e",
+  "sort_order": 2,
+  "title": "替代料比價",
+  "workflow_id": "e67e5b4c-456a-5e65-b363-d488f32d384a"
+ },
+ {
+  "gate_after": false,
+  "id": "7f9d5daf-1299-551d-91a0-fa9ea6e6db62",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "30439e87-cc94-539b-81be-50678a6f9a39",
+  "sort_order": 1,
+  "title": "企業需求訪談",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "7fc3320c-b877-584c-b8d5-e1aea8c7659a",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "5f16e3a3-1707-579e-968a-a7b144bfc3c2",
+  "sort_order": 10,
+  "title": "配方與製程適配確認",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "7fd87f5b-9aac-5586-99c4-3abf57e9333e",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "55276ffc-8cd8-50a1-9a32-59dea71a12dd",
+  "sort_order": 13,
+  "title": "全流程彩排",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": true,
+  "id": "80439631-89db-5b12-90ee-679a37a106ca",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "策略與 brief",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "80775411-0b9c-516b-b3cd-6821909153db",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "68ed0030-caf7-5611-b931-feefaaa21bc7",
+  "sort_order": 10,
+  "title": "評估場地",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "82c4e30b-1e75-5d1b-9a1f-9d8581206d57",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "e03de44c-5076-5003-b611-48f1bf56466e",
+  "sort_order": 22,
+  "title": "開機除錯",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "83596065-2b6c-5cb2-b987-d4800e78a2f0",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "2ea5a37f-5bb4-58ae-bf11-9e57d22f6a77",
+  "sort_order": 9,
+  "title": "散熱模組",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "8363cd78-c63c-5a2a-9b11-66e5479da370",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "9c21f4fe-8d4a-5447-a10c-ade79872aae1",
+  "sort_order": 2,
+  "title": "供應商資料蒐集",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "836f2611-3f3f-518c-9200-267ef8ec3a92",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "0565c3b3-6f2b-54f4-8855-6a6299375d05",
+  "sort_order": 7,
+  "title": "撰寫 PRD 規格書",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "842a0479-9619-55e2-85df-0f7c91173f28",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "a57d3e50-c205-5d60-8920-b69424b6ab12",
+  "sort_order": 15,
+  "title": "首批採購驗收",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "8498ef2f-887c-5083-b599-b0563cd30c6b",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "b24b1e41-21d2-5b66-80d5-85a2feb3fa59",
+  "sort_order": 30,
+  "title": "認證送測",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": true,
+  "id": "84f83c4c-fb2d-5bae-906a-182a67cd4ce0",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "市場洞察",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "8607b614-02b0-5322-b2b3-df86500c34dc",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "b1a976f5-c874-5c60-a0ef-384827058f6a",
+  "sort_order": 14,
+  "title": "缺失改善",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": true,
+  "id": "8cfafce7-168a-5b51-b4cd-4fb968323127",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 9,
+  "title": "殺菌與保存",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "8d64c4c4-0081-5bfc-953a-6e1840d28e6c",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "5de1e775-fe31-547a-b7a5-e97e71c5e7f2",
+  "sort_order": 15,
+  "title": "主持人/口播/翻譯/講師邀請",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "8ed096d4-b2f4-5dd7-92a3-bc2834e25021",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "238f7471-4abe-5046-9971-cb4d75925d61",
+  "sort_order": 1,
+  "title": "議程規劃",
+  "workflow_id": "0ddc283a-667b-5212-a7b8-0f4bcba98cb0"
+ },
+ {
+  "gate_after": false,
+  "id": "8f60b13a-3908-5af6-8721-1ccf96772449",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "5f16e3a3-1707-579e-968a-a7b144bfc3c2",
+  "sort_order": 9,
+  "title": "小量試作",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "8fdb6651-49b0-5dbf-996d-9de38b48b410",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "d5256a5b-631f-5ec7-95a2-b9fe6c7e8f28",
+  "sort_order": 5,
+  "title": "工業設計",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "90e4896e-05c6-54ac-8a1a-4578b9f86a95",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "240bc821-34fe-54b9-a72a-c44d908cfeed",
+  "sort_order": 33,
+  "title": "PVT 試產",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "92abc7de-4d6c-567d-8d46-792b596cad51",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "c2d13647-bd80-55e5-82a4-a94bf0a87100",
+  "sort_order": 4,
+  "title": "跨裝置測試",
+  "workflow_id": "c73f1034-245b-5895-a707-c33f84489569"
+ },
+ {
+  "gate_after": false,
+  "id": "94026945-3b67-54f2-9c0f-0fad75ada732",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "240bc821-34fe-54b9-a72a-c44d908cfeed",
+  "sort_order": 36,
+  "title": "取得認證證書",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "94353481-a759-50b0-9ca6-a8c2035b5ba6",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "26b0b93a-15bf-56c2-aa15-a73e2e0d772a",
+  "sort_order": 24,
+  "title": "建立活動 Run Down",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "9466c682-a383-5f18-85c6-2ec837af595d",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "32edf050-d098-5531-b43a-5b97d85dbc02",
+  "sort_order": 49,
+  "title": "保固與維修",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "96b41e74-76b0-5808-9c6c-e30c65d827dd",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "0565c3b3-6f2b-54f4-8855-6a6299375d05",
+  "sort_order": 10,
+  "title": "鎖定長交期料件",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "97a0ec8c-f283-50d3-914f-05dadb251f14",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "31749cb9-444a-51ea-ae38-1ce7ced47471",
+  "sort_order": 17,
+  "title": "量產 SOP",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "98f56be1-0542-54d8-88d3-38cdac556c8d",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "2dc3d0b3-990f-5ba1-8919-71cf93d13da6",
+  "sort_order": 17,
+  "title": "結案交付",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "99920656-8698-5b15-90fc-2d99f1dccbeb",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "d4ed9a3b-dd9c-5dac-9e64-f68536071eff",
+  "sort_order": 14,
+  "title": "客戶回饋",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "9ab5e798-0282-5e15-8d17-16bd4d63f69b",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "b24b1e41-21d2-5b66-80d5-85a2feb3fa59",
+  "sort_order": 31,
+  "title": "設計凍結（G4）",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": true,
+  "id": "9c21f4fe-8d4a-5447-a10c-ade79872aae1",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 0,
+  "title": "需求與初評",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": true,
+  "id": "9f1092be-e816-5b7e-8c82-f2bb2969bbd2",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 13,
+  "title": "設計開發",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "a063394f-b34a-5c67-8857-3c7bcd13f78b",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "80439631-89db-5b12-90ee-679a37a106ca",
+  "sort_order": 1,
+  "title": "受眾與 KPI",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "a0e453f8-9c2f-50d8-b4b9-d50bb63c6b77",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "dbb08abf-32b7-5495-b78c-61479e300823",
+  "sort_order": 5,
+  "title": "場地確認",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": true,
+  "id": "a3151975-47cd-5484-9f03-f71cc7d07c4f",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 39,
+  "title": "量產",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "a40f84aa-e6b4-58e7-bb00-adc8e66e1b08",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "9f1092be-e816-5b7e-8c82-f2bb2969bbd2",
+  "sort_order": 19,
+  "title": "EVT 準備審查（G2）",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": true,
+  "id": "a413e94f-31fc-5297-b756-e078d2aca475",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 15,
+  "title": "量產上市",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "a462ff37-ca55-5025-99d9-ef6427af9cd7",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "5de1e775-fe31-547a-b7a5-e97e71c5e7f2",
+  "sort_order": 13,
+  "title": "尋找合作品牌",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "a5553160-d1ad-5a7f-972e-4e965e7fa5d4",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "0565c3b3-6f2b-54f4-8855-6a6299375d05",
+  "sort_order": 8,
+  "title": "外觀設計與 CMF",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": true,
+  "id": "a57d3e50-c205-5d60-8920-b69424b6ab12",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 12,
+  "title": "採購導入",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "a5ae8328-e412-5543-8841-597ad1d5f7b3",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "240bc821-34fe-54b9-a72a-c44d908cfeed",
+  "sort_order": 34,
+  "title": "量產 SOP 與治具",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "a5e37f99-28a6-5e46-bab2-f5b9d73b4f07",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "2ea5a37f-5bb4-58ae-bf11-9e57d22f6a77",
+  "sort_order": 8,
+  "title": "PCB 設計",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "a85f0730-3d0d-5a2f-abdc-fd0bc0b04c75",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "b24b1e41-21d2-5b66-80d5-85a2feb3fa59",
+  "sort_order": 29,
+  "title": "效能與續航驗證",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "a8dbec09-0280-5d6c-b806-1c5bd96921fa",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "0565c3b3-6f2b-54f4-8855-6a6299375d05",
+  "sort_order": 12,
+  "title": "規格凍結（G1）",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "ab5e5efa-ab7b-5c80-9c72-578b8a63cc76",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "9f1092be-e816-5b7e-8c82-f2bb2969bbd2",
+  "sort_order": 17,
+  "title": "BIOS／韌體開發",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "ab829208-86ff-5a99-ad06-878cb93ff55d",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "dc32b38c-64ab-55c9-9a40-c1745a5c1d2a",
+  "sort_order": 7,
+  "title": "自動化測試",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "aca8ff61-cd81-5ba2-b02d-8d28fd7daf61",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "a3151975-47cd-5484-9f03-f71cc7d07c4f",
+  "sort_order": 40,
+  "title": "首批量產與爬坡",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "ade9ec76-3f26-4b83-aeb1-9a374388846b",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "6f459a1d-486a-4685-8e9a-0d99387eea9f",
+  "sort_order": 40,
+  "title": "試作工單",
+  "workflow_id": "d1cbf196-240d-4cb2-bc08-0aaec56d3633"
+ },
+ {
+  "gate_after": false,
+  "id": "ae6a5caf-21e5-55bb-aa80-4e90f8c38126",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "38aff4f2-e4a9-547d-8327-02f321faa326",
+  "sort_order": 2,
+  "title": "設定目標",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "b01c2ccd-f57f-551e-8730-3f569bc3787f",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "dbb08abf-32b7-5495-b78c-61479e300823",
+  "sort_order": 4,
+  "title": "主題設計",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "b1172e18-97c0-58f2-994d-e3f552f4d945",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "0565c3b3-6f2b-54f4-8855-6a6299375d05",
+  "sort_order": 9,
+  "title": "遴選 ODM",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": true,
+  "id": "b1a976f5-c874-5c60-a0ef-384827058f6a",
+  "kind": "phase",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": null,
+  "sort_order": 12,
+  "title": "查驗",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "b205a023-e2af-5b36-96d0-84accc5fe6ef",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "d2fa08af-5d76-51b1-a097-4b7d11552296",
+  "sort_order": 31,
+  "title": "活動花絮 / 精彩影片",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": true,
+  "id": "b24b1e41-21d2-5b66-80d5-85a2feb3fa59",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 26,
+  "title": "DVT 設計驗證",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "b304cd32-2059-5f57-b082-b5ea68c5edf9",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "d2fa08af-5d76-51b1-a097-4b7d11552296",
+  "sort_order": 30,
+  "title": "活動精彩回顧",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "b31140fe-df2a-5cb2-8b04-6a5091cd3a1f",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "b89f8be9-4e9d-55b8-9ace-1618f2fa3e1e",
+  "sort_order": 5,
+  "title": "性能驗收",
+  "workflow_id": "059aa439-95ce-5da6-9d8c-bea408221eb6"
+ },
+ {
+  "gate_after": false,
+  "id": "b481b218-8e31-5e7a-820b-82739a7421eb",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "1c1ddb16-0e96-53b3-bce1-c60a35b34626",
+  "sort_order": 2,
+  "title": "營養標準比對",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "b5bb2d90-a7ad-5bba-a7c1-15460d5fe17e",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "31749cb9-444a-51ea-ae38-1ce7ced47471",
+  "sort_order": 19,
+  "title": "包材與設備確認",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "b7e3a6ae-918a-54ad-89ff-11e4a71b260a",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "4ea8e390-18fe-579d-bc7c-f74a88f37d6a",
+  "sort_order": 8,
+  "title": "原料送樣確認",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "b7e50009-01da-5cba-8e5c-774b2435b231",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "84f83c4c-fb2d-5bae-906a-182a67cd4ce0",
+  "sort_order": 5,
+  "title": "立案審查（G0）",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "b818153e-b926-51a1-8c1d-a8e317c1b42d",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "1ddf50fe-559a-5447-b477-6620998fc711",
+  "sort_order": 1,
+  "title": "通知偏好設定",
+  "workflow_id": "c73f1034-245b-5895-a707-c33f84489569"
+ },
+ {
+  "gate_after": true,
+  "id": "b89f8be9-4e9d-55b8-9ace-1618f2fa3e1e",
+  "kind": "phase",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": null,
+  "sort_order": 3,
+  "title": "施工與驗收",
+  "workflow_id": "059aa439-95ce-5da6-9d8c-bea408221eb6"
+ },
+ {
+  "gate_after": false,
+  "id": "ba5bf6dc-e967-5747-aafd-fa3265d1ff98",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "38aff4f2-e4a9-547d-8327-02f321faa326",
+  "sort_order": 5,
+  "title": "設計流程",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "bc9d5713-a8b0-56bf-b281-a228c0d34771",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "2f2e54f7-abf8-591f-9ea5-d4a375002a08",
+  "sort_order": 2,
+  "title": "Business Case 與目標成本",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "bdb373ed-3b23-5bb0-88ab-d1a4c1194105",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "b24b1e41-21d2-5b66-80d5-85a2feb3fa59",
+  "sort_order": 27,
+  "title": "DVT 試產",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "bdfa7f5b-7e99-531a-9052-50a9760cea92",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "5de1e775-fe31-547a-b7a5-e97e71c5e7f2",
+  "sort_order": 16,
+  "title": "餐點/飲品廠商",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "bf6ab174-2df3-5577-b941-c3aa91a8d641",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "143849e5-b1c5-59c0-95c1-233c38c9d683",
+  "sort_order": 11,
+  "title": "報名頁面",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": true,
+  "id": "c2d13647-bd80-55e5-82a4-a94bf0a87100",
+  "kind": "phase",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": null,
+  "sort_order": 3,
+  "title": "測試與上線",
+  "workflow_id": "c73f1034-245b-5895-a707-c33f84489569"
+ },
+ {
+  "gate_after": true,
+  "id": "c6b459f5-40a4-471b-9abd-778a10de6a88",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 10,
+  "title": "市場與配方",
+  "workflow_id": "d1cbf196-240d-4cb2-bc08-0aaec56d3633"
+ },
+ {
+  "gate_after": false,
+  "id": "c6bf0200-80ef-5b88-8942-b012813d13f7",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "1ddf50fe-559a-5447-b477-6620998fc711",
+  "sort_order": 2,
+  "title": "推播服務開發",
+  "workflow_id": "c73f1034-245b-5895-a707-c33f84489569"
+ },
+ {
+  "gate_after": false,
+  "id": "ce0d4718-9b13-533e-9ffd-15ee68963031",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "d27672f7-350b-51d3-a315-089f7203d956",
+  "sort_order": 15,
+  "title": "包裝標示審查",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "ce616599-76e5-5fb0-ab14-c07437dc5352",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "a413e94f-31fc-5297-b756-e078d2aca475",
+  "sort_order": 17,
+  "title": "通路上市",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": true,
+  "id": "ce93a632-949c-5cef-963f-2f2d9956e759",
+  "kind": "phase",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": null,
+  "sort_order": 15,
+  "title": "交付",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "cf9742b9-782a-5543-b101-e1e197b679de",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 43,
+  "title": "上市",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "d2443a49-5369-575c-a687-6e9f99fc06f6",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "a413e94f-31fc-5297-b756-e078d2aca475",
+  "sort_order": 16,
+  "title": "首批量產",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": true,
+  "id": "d27672f7-350b-51d3-a315-089f7203d956",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 12,
+  "title": "檢驗與適口性",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "d28cf969-d24e-59a2-96ff-10d5e4e6c02c",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "71163529-1cd8-5f1f-a996-7809761d422b",
+  "sort_order": 14,
+  "title": "DVT/PVT 驗證",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "d2fa08af-5d76-51b1-a097-4b7d11552296",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 29,
+  "title": "活動後再行銷",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "d34304dd-75d6-532d-a0e2-0287b626a7ae",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "ebd2648b-6046-5e10-9815-d9da661feb22",
+  "sort_order": 8,
+  "title": "拆除工程",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "d3951ef3-1317-55dc-8ab1-6ea732acb93b",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "503234c8-74d1-5e5e-95ed-acab72c40c54",
+  "sort_order": 1,
+  "title": "現場勘查",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": true,
+  "id": "d3bcdade-b7d9-549f-9c13-a6506e2a86a6",
+  "kind": "phase",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": null,
+  "sort_order": 4,
+  "title": "送樣與檢驗",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "d419a4ca-30bb-5e75-85de-e84d7e8952ea",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "2dc3d0b3-990f-5ba1-8919-71cf93d13da6",
+  "sort_order": 16,
+  "title": "成效分析",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": true,
+  "id": "d4ed9a3b-dd9c-5dac-9e64-f68536071eff",
+  "kind": "phase",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": null,
+  "sort_order": 12,
+  "title": "監控",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": true,
+  "id": "d5256a5b-631f-5ec7-95a2-b9fe6c7e8f28",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 3,
+  "title": "產品定義",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "d5d73003-faed-47d5-96a1-15e06ab015f4",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "48b0981f-395d-4b9e-9ddd-1a6656c79d3b",
+  "sort_order": 30,
+  "title": "端子規格審查",
+  "workflow_id": "cc377d3c-1bbf-4b41-9ce3-26f9fe7aa678"
+ },
+ {
+  "gate_after": false,
+  "id": "d762e4e1-898c-5944-8a7c-518cbd20cc41",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "a57d3e50-c205-5d60-8920-b69424b6ab12",
+  "sort_order": 13,
+  "title": "報價與交期確認",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": true,
+  "id": "d799f5d9-ff14-549c-a767-3c4398979178",
+  "kind": "phase",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": null,
+  "sort_order": 9,
+  "title": "發佈",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "d873ef23-77bd-5e6b-a54b-4c6d7777acf0",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "38aff4f2-e4a9-547d-8327-02f321faa326",
+  "sort_order": 6,
+  "title": "設計內容",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": true,
+  "id": "dbb08abf-32b7-5495-b78c-61479e300823",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 3,
+  "title": "創意與場地",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": true,
+  "id": "dc32b38c-64ab-55c9-9a40-c1745a5c1d2a",
+  "kind": "phase",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": null,
+  "sort_order": 6,
+  "title": "測試資安",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "dd934112-9e8a-53bb-8f02-eb5b4836ce8c",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "cf9742b9-782a-5543-b101-e1e197b679de",
+  "sort_order": 44,
+  "title": "命名與定價",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "ddbfc596-506c-4a79-8292-0576c208edfd",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "39961fd5-c5b7-48fb-b3cf-32cd77d692c1",
+  "sort_order": 40,
+  "title": "小量試產",
+  "workflow_id": "cc377d3c-1bbf-4b41-9ce3-26f9fe7aa678"
+ },
+ {
+  "gate_after": false,
+  "id": "de2ad677-3c8d-5516-930b-2f97afb95eaa",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "2ea5a37f-5bb4-58ae-bf11-9e57d22f6a77",
+  "sort_order": 10,
+  "title": "韌體開發",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": true,
+  "id": "e03de44c-5076-5003-b611-48f1bf56466e",
+  "kind": "phase",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": null,
+  "sort_order": 20,
+  "title": "EVT 工程驗證",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "e0411466-42ab-5afc-b9ff-0a037fcd6cda",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "ebd2648b-6046-5e10-9815-d9da661feb22",
+  "sort_order": 9,
+  "title": "機電配管",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "e32b22ca-2f45-5946-a030-43557f41eba5",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "e03de44c-5076-5003-b611-48f1bf56466e",
+  "sort_order": 21,
+  "title": "EVT 試產",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "e54784f5-5a10-5ad6-837f-ecaf118aa664",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "9c21f4fe-8d4a-5447-a10c-ade79872aae1",
+  "sort_order": 3,
+  "title": "初步資格評估",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "e7f8fcda-0889-566b-8a99-428568eb7029",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "e03de44c-5076-5003-b611-48f1bf56466e",
+  "sort_order": 23,
+  "title": "功能測試與問題追蹤",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": true,
+  "id": "ebd2648b-6046-5e10-9815-d9da661feb22",
+  "kind": "phase",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": null,
+  "sort_order": 7,
+  "title": "施工",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "ecdae00e-f03e-564f-aef1-51defb291af9",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "38aff4f2-e4a9-547d-8327-02f321faa326",
+  "sort_order": 4,
+  "title": "設計主題",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "ed8dd1d2-98a0-5e5a-929f-ef98cc517f5b",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "55276ffc-8cd8-50a1-9a32-59dea71a12dd",
+  "sort_order": 14,
+  "title": "活動執行",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "edffb1e7-0d9f-5eba-867a-034b69edca13",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "80439631-89db-5b12-90ee-679a37a106ca",
+  "sort_order": 2,
+  "title": "預算核准",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "ee07fe6d-b00f-5c81-8dc5-248fa43d74dc",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "9f1092be-e816-5b7e-8c82-f2bb2969bbd2",
+  "sort_order": 15,
+  "title": "機構設計與開模",
+  "workflow_id": "8758e894-9da4-5621-8d0d-40cbc313f78c"
+ },
+ {
+  "gate_after": false,
+  "id": "ee23a94a-4697-56e0-a551-805100cb18f4",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "3cdf8faa-00b1-5bfa-9a1e-d0d6346f8ff0",
+  "sort_order": 8,
+  "title": "物料製作",
+  "workflow_id": "fca21d80-90fc-5600-ac4b-6c8d0f7935e6"
+ },
+ {
+  "gate_after": false,
+  "id": "f21d0bf1-6d73-570d-95f5-e30ef364c895",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "d799f5d9-ff14-549c-a767-3c4398979178",
+  "sort_order": 11,
+  "title": "production 部署",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ },
+ {
+  "gate_after": false,
+  "id": "f2f901ed-75e1-4a6a-a1a8-01f7930668c2",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "c6b459f5-40a4-471b-9abd-778a10de6a88",
+  "sort_order": 30,
+  "title": "配方設計",
+  "workflow_id": "d1cbf196-240d-4cb2-bc08-0aaec56d3633"
+ },
+ {
+  "gate_after": false,
+  "id": "f382cbd0-64fa-5f16-b01a-fe4d53c19c44",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "5de1e775-fe31-547a-b7a5-e97e71c5e7f2",
+  "sort_order": 14,
+  "title": "製作活動合作方案",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "f65237d9-3c50-5be3-8860-3ee1cd3fa524",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "4ea8e390-18fe-579d-bc7c-f74a88f37d6a",
+  "sort_order": 6,
+  "title": "小量試作",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "f6c19839-bbce-53c9-9248-053b4f176ca4",
+  "kind": "task",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "parent_template_id": "b1a976f5-c874-5c60-a0ef-384827058f6a",
+  "sort_order": 13,
+  "title": "消防查驗",
+  "workflow_id": "caaf9706-3474-51c5-aecd-405ecec9aa2b"
+ },
+ {
+  "gate_after": false,
+  "id": "f7f7b54a-18a7-56b2-99a1-3aa3e4ff3629",
+  "kind": "task",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "parent_template_id": "71163529-1cd8-5f1f-a996-7809761d422b",
+  "sort_order": 13,
+  "title": "可靠度與認證",
+  "workflow_id": "f84b753d-caf4-5bda-8d20-774b6b12c0c6"
+ },
+ {
+  "gate_after": false,
+  "id": "f95d73fb-c21d-5271-8c0b-7fc2dc0bf85b",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "9c21f4fe-8d4a-5447-a10c-ade79872aae1",
+  "sort_order": 1,
+  "title": "原料規格與需求確認",
+  "workflow_id": "e9a7e787-1aea-5960-89f4-a6a2947ae111"
+ },
+ {
+  "gate_after": false,
+  "id": "fcaabdff-d9ca-566b-8d87-83e03da68731",
+  "kind": "phase",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": null,
+  "sort_order": 27,
+  "title": "活動執行",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "fcac9db9-00d1-5396-b749-fac72acd71e3",
+  "kind": "task",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "parent_template_id": "1c1ddb16-0e96-53b3-bce1-c60a35b34626",
+  "sort_order": 1,
+  "title": "競品分析與產品定位",
+  "workflow_id": "7aa96e43-7c45-5516-9c34-7210b578613e"
+ },
+ {
+  "gate_after": false,
+  "id": "fd855a5c-0d02-5708-a171-68ca8aef231e",
+  "kind": "task",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "parent_template_id": "38aff4f2-e4a9-547d-8327-02f321faa326",
+  "sort_order": 1,
+  "title": "市場分析",
+  "workflow_id": "ae645fec-0422-558a-938c-7ebea877e9db"
+ },
+ {
+  "gate_after": false,
+  "id": "ffc517a2-dbc6-594b-8102-731d493693d5",
+  "kind": "task",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "parent_template_id": "30439e87-cc94-539b-81be-50678a6f9a39",
+  "sort_order": 2,
+  "title": "IdP 相容性確認",
+  "workflow_id": "3a3492bf-8765-5e7c-8cf4-0a54f0fe91b8"
+ }
+]

@@ -1,0 +1,127 @@
+{
+ "alembic_revision": "20261012_0018",
+ "excluded_tables": [
+  "audit_logs",
+  "notifications",
+  "sessions"
+ ],
+ "exported_at": "2026-10-12T02:34:19+00:00",
+ "files": {},
+ "format": 1,
+ "restored_password": "demo-<username>",
+ "scrubbed_columns": {
+  "users": [
+   "password_hash"
+  ]
+ },
+ "tables": {
+  "attachment_quotas": {
+   "rows": 2,
+   "sha256": "422ffc7208d692cbc3f5f11e09b500c5d4e36cf226fe00f163b39bd460a7180d"
+  },
+  "attachments": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "collaboration_requests": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "department_members": {
+   "rows": 62,
+   "sha256": "f1a59305a00f308d89196aae638d5165dfdf7ee0184e34a39006178eaa30724e"
+  },
+  "departments": {
+   "rows": 43,
+   "sha256": "d56cfba922cf4287d4bd46289fb2123de5034859fc8993457c9bc43fe315291e"
+  },
+  "document_versions": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "documents": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "gates": {
+   "rows": 48,
+   "sha256": "90f862371fef1f6357cc340e29741600d0e849aae0260efc63f689a03fd1633c"
+  },
+  "inventory_balances": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "inventory_movements": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "node_collaborators": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "node_conditions": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "node_dependencies": {
+   "rows": 198,
+   "sha256": "6d78ee530f8a7a9a9f610ab7ca1c713c85fbb4acbd040736fe96fac1ebbbc74d"
+  },
+  "nodes": {
+   "rows": 500,
+   "sha256": "96786a7b3fdb87419d906a4b90f017ffd2fc1e465f82a328117665d600b34845"
+  },
+  "operation_links": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "operations_records": {
+   "rows": 94,
+   "sha256": "b745ddc27c1ea546e4696492d2aecbc01a83cb064d059e104ccec720b7112a7e"
+  },
+  "organizations": {
+   "rows": 6,
+   "sha256": "0c2ca32121c9bd58802c28ce47c8d217832d25150fe3057865d2b9b6624bf1fd"
+  },
+  "projects": {
+   "rows": 39,
+   "sha256": "402d48fb14c29671270906d9de05f1fbc945f3c4467b37e2ca94607ea8604d98"
+  },
+  "purchase_order_lines": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "purchase_orders": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "task_notes": {
+   "rows": 280,
+   "sha256": "30edc6c27e5d816627e6f42b99771ccf3ac6d8fc1acbff78fdb20b8daa6e7a99"
+  },
+  "task_reports": {
+   "rows": 145,
+   "sha256": "99c6289945bc4e7fb293a642715f3f828914c320554330041db322748b77a545"
+  },
+  "users": {
+   "rows": 80,
+   "sha256": "2293ff247d47962600ad26655c6077ee593abfe561a85c6a76d23b5483d7b734"
+  },
+  "work_orders": {
+   "rows": 0,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "workflow_nodes": {
+   "rows": 231,
+   "sha256": "2c4af6529d453817bfd3a0aadc15b1836a65b7f2e00fb05f866b81dd1d8fcb14"
+  },
+  "workflow_versions": {
+   "rows": 15,
+   "sha256": "ba0e15fbe35f0dc078c28bb46246585f679f4386f091122e0efc406dcd2ef0b1"
+  },
+  "workflows": {
+   "rows": 15,
+   "sha256": "f295d24d3c62eb30e0b90eb25a4687d5d2264f783153933614c8369f584eeb26"
+  }
+ }
+}

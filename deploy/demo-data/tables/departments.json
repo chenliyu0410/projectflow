@@ -1,0 +1,260 @@
+[
+ {
+  "head_user_id": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "id": "0c074b62-ce90-4fd5-9dcc-ed316865b870",
+  "name": "研發",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642"
+ },
+ {
+  "head_user_id": "d4fd964a-8836-4c55-8959-c1f3c549706d",
+  "id": "10cf03d2-b14c-41be-bc9a-b486477f0cee",
+  "name": "採購行政組",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9"
+ },
+ {
+  "head_user_id": "a0222613-ea6e-4e05-b206-613eaae109ec",
+  "id": "1e19443c-e1d3-4797-91a0-7d7e399b4a22",
+  "name": "財務行政組",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb"
+ },
+ {
+  "head_user_id": "dcb58693-a30f-4eaa-b698-10ca37ae5ce6",
+  "id": "1fc637a5-24b6-4881-b98b-d970e08063f9",
+  "name": "工務協調組",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9"
+ },
+ {
+  "head_user_id": "a2355c76-da8a-4899-b6b0-6758172584e0",
+  "id": "2685c71b-9b47-4f71-90bc-dfb9f4c2a1f7",
+  "name": "品保法規",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd"
+ },
+ {
+  "head_user_id": "7fe5a472-a6e4-49f4-8160-03879340acc2",
+  "id": "2b6f5188-b2d5-48db-8bed-1975d56e141d",
+  "name": "現場執行組",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb"
+ },
+ {
+  "head_user_id": "14d40196-5ed1-4a16-a548-ef3348c10d96",
+  "id": "2b987b22-d6a1-416e-ac59-94df6759e72d",
+  "name": "供應鏈管理組",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642"
+ },
+ {
+  "head_user_id": "f5e4475d-f681-4906-8f56-18ca35257faa",
+  "id": "2f045216-6037-4bfe-b555-540a1db489d4",
+  "name": "經營管理組",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642"
+ },
+ {
+  "head_user_id": "c3206831-7023-43d4-89d2-7cafdcf2c19c",
+  "id": "3804941a-8de4-4baf-825e-ffeca7461cf0",
+  "name": "財務行政",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd"
+ },
+ {
+  "head_user_id": "44836a03-da1a-485d-9d02-b12eab55035c",
+  "id": "4effa1a5-c0bd-4219-a4b1-1b1dbceb6746",
+  "name": "品質工程中心",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc"
+ },
+ {
+  "head_user_id": "c9985c6b-61b7-4aa5-ad11-6cb20d62465e",
+  "id": "564c072d-c50e-4cc3-b8bf-5972db6d3ddb",
+  "name": "製作品質組",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb"
+ },
+ {
+  "head_user_id": "d97fe274-060a-44ed-85a2-51f27373b8ea",
+  "id": "5bbc1547-ba89-4bf9-9a4a-9969d0c916e4",
+  "name": "生產倉儲",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd"
+ },
+ {
+  "head_user_id": "be70b23f-d418-4648-ba75-68eb5e51a983",
+  "id": "6271e8a1-8f81-48f7-aa52-645141b8a5ea",
+  "name": "經營策略組",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb"
+ },
+ {
+  "head_user_id": "62511a9d-6cd1-4805-9a8f-22ec57742722",
+  "id": "6518d206-7ac9-4879-965f-f36b9124fe28",
+  "name": "業務行銷",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd"
+ },
+ {
+  "head_user_id": "a6802ebc-9692-40bf-a50d-08a6252cf792",
+  "id": "679f6525-04c9-405b-bda1-ecc7cc2cac92",
+  "name": "客戶成功組",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795"
+ },
+ {
+  "head_user_id": "9d8024b8-a9e5-47ba-ac5c-9978a8c38170",
+  "id": "6b38ac55-12ea-473b-9c37-0009a41b7a68",
+  "name": "經營管理室",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9"
+ },
+ {
+  "head_user_id": "db3fc1ca-86df-4071-951d-3611a2ac594c",
+  "id": "727da07a-02da-4dbb-9390-b564ee476af9",
+  "name": "品保",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642"
+ },
+ {
+  "head_user_id": "f961e3e2-8f27-45fe-baf8-0f407b0db62f",
+  "id": "72f5379c-e666-4aed-a601-e90607bf6188",
+  "name": "製造供應鏈組",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc"
+ },
+ {
+  "head_user_id": "c1c83fda-4ff7-4151-b4a7-662bbc219945",
+  "id": "77bb0138-3095-40f4-8a8d-5e4a354c0196",
+  "name": "研發",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc"
+ },
+ {
+  "head_user_id": "4a94fcd5-7853-4577-b2ea-0607445d65bf",
+  "id": "7b32bdfc-2a5f-43c5-978c-588fb81a5795",
+  "name": "業主服務組",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9"
+ },
+ {
+  "head_user_id": "34b60ce3-6481-43dc-b883-987b33580e38",
+  "id": "9ce3b7b9-fa5b-4dfc-87bf-37e5ea888f08",
+  "name": "創意企劃中心",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb"
+ },
+ {
+  "head_user_id": "981e08dc-8121-4769-ac7b-26aab65d18b9",
+  "id": "9e5c687f-0487-4e52-a66e-0d7e36b0890d",
+  "name": "客戶服務組",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb"
+ },
+ {
+  "head_user_id": "0281b896-4b77-4c7c-a618-4a39cb94bf64",
+  "id": "a0298464-e0bc-4c70-8989-20be512f2f69",
+  "name": "品質法規中心",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642"
+ },
+ {
+  "head_user_id": "7f39e390-e996-450e-96f6-74c8f7e4fed0",
+  "id": "a60a4fe1-6bd2-49b3-8d21-581612857725",
+  "name": "業務專案組",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc"
+ },
+ {
+  "head_user_id": "2c0f5da9-e65b-4b32-b36b-f4c073d4cc6c",
+  "id": "ab3b3e8b-3818-40a8-b24f-cdd4e6696809",
+  "name": "設計工程中心",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9"
+ },
+ {
+  "head_user_id": "253cd38e-03bc-43b1-b504-b3b2df0e943d",
+  "id": "ac12c568-6959-4b4c-b68b-4f9ad13150df",
+  "name": "品質可靠性組",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795"
+ },
+ {
+  "head_user_id": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "id": "b09b272a-386b-4029-94dc-adcd10943a95",
+  "name": "經營產品組",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795"
+ },
+ {
+  "head_user_id": "51fc9c6a-070b-447a-8636-a28f26c587cb",
+  "id": "b2c83be6-f555-4990-a76a-6eec30bdf440",
+  "name": "配方研發中心",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642"
+ },
+ {
+  "head_user_id": "dc6fef43-e3fb-46e9-ac03-db9fac4d8e27",
+  "id": "b9ae99c4-53ad-4012-bd97-eb45d11dfa97",
+  "name": "品質安衛組",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9"
+ },
+ {
+  "head_user_id": "56cd8ea1-0920-4c76-adb1-0bb88b93fea5",
+  "id": "c2cd7bd2-7d5f-4a6c-b793-ae90242fd1a3",
+  "name": "資訊行政組",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc"
+ },
+ {
+  "head_user_id": "9c8b2911-ce46-4b66-9997-bcf15c6dd2c7",
+  "id": "cf695f97-72d4-44f3-897d-4d67b12d2c3d",
+  "name": "雲端維運組",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795"
+ },
+ {
+  "head_user_id": null,
+  "id": "d0874f06-7b87-4852-962d-f51b800efb96",
+  "name": "採購",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642"
+ },
+ {
+  "head_user_id": "3d9d9764-8671-4eee-9876-d1656b561fa3",
+  "id": "d44821eb-7ead-4d42-93f0-ab3a440e3230",
+  "name": "硬體研發中心",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc"
+ },
+ {
+  "head_user_id": "640b08a1-0a96-4074-860d-c11cad3a8a51",
+  "id": "d6e6a780-9550-4266-adb9-0de3a753e621",
+  "name": "平台研發中心",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795"
+ },
+ {
+  "head_user_id": "01daa52a-a848-4b4a-9e34-c431fdd4e46c",
+  "id": "e2ff9d09-0849-4426-87d6-18c4c2a5b68a",
+  "name": "品牌通路組",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642"
+ },
+ {
+  "head_user_id": "5ce065ac-73c2-4609-980f-f8f92b81ecfd",
+  "id": "e3d0a17d-1fc2-4e64-8dcd-d4e115a419e3",
+  "name": "經營管理處",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc"
+ },
+ {
+  "head_user_id": "e64f071f-b4ea-4e79-9b96-fbd42a175cbc",
+  "id": "e757d28e-7a18-4b28-a3d0-2a78ae54fe9a",
+  "name": "資訊",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd"
+ },
+ {
+  "head_user_id": "17641dc0-0297-4100-adec-a564dc44cba1",
+  "id": "f2b59d20-21d9-4ad8-bcb8-65afb8101ae6",
+  "name": "營運行政組",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795"
+ },
+ {
+  "head_user_id": "41a10893-a206-4c19-b427-27192bbe9354",
+  "id": "f9845e0d-a881-42ba-ab2c-545871c89d30",
+  "name": "研發",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd"
+ },
+ {
+  "head_user_id": null,
+  "id": "f9e015a1-ae02-49f6-bedc-2f7935fee74d",
+  "name": "製造",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc"
+ },
+ {
+  "head_user_id": "9a157b0a-9110-4ea1-9edd-e6a0fd8fcff8",
+  "id": "f9f3a217-a154-42f3-9c14-d05804570c80",
+  "name": "營運行政組",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642"
+ },
+ {
+  "head_user_id": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "id": "fa03e37d-2ab7-4eb2-b7ff-ec672ff9a6cc",
+  "name": "經營管理",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd"
+ },
+ {
+  "head_user_id": "43a8e07f-70b7-4cef-9c64-175f161e0ef7",
+  "id": "fe94a93d-2aef-4986-bb1f-631a5f62e339",
+  "name": "採購供應鏈",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd"
+ }
+]

@@ -1,0 +1,32 @@
+[
+ {
+  "id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "key": "software",
+  "name": "雲序軟體"
+ },
+ {
+  "id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "key": "electronics",
+  "name": "峰曜科技"
+ },
+ {
+  "id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "key": "construction",
+  "name": "築衡工程"
+ },
+ {
+  "id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "key": "hemu",
+  "name": "禾沐寵物營養股份有限公司"
+ },
+ {
+  "id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "key": "events",
+  "name": "光點企劃"
+ },
+ {
+  "id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "key": "food",
+  "name": "毛研食品"
+ }
+]

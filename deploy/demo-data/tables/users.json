@@ -1,0 +1,642 @@
+[
+ {
+  "created_at": "2026-10-11T08:20:23.561060+00:00",
+  "display_name": "高雅雯",
+  "id": "01daa52a-a848-4b4a-9e34-c431fdd4e46c",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "project_owner",
+  "username": "food_20261011_p7"
+ },
+ {
+  "created_at": "2026-10-11T08:20:23.344166+00:00",
+  "display_name": "江婉如",
+  "id": "0281b896-4b77-4c7c-a618-4a39cb94bf64",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "project_owner",
+  "username": "food_20261011_p3"
+ },
+ {
+  "created_at": "2026-10-11T08:20:23.455669+00:00",
+  "display_name": "曾柏鈞",
+  "id": "14d40196-5ed1-4a16-a548-ef3348c10d96",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "project_owner",
+  "username": "food_20261011_p5"
+ },
+ {
+  "created_at": "2026-10-11T08:20:23.282177+00:00",
+  "display_name": "賴冠廷",
+  "id": "158cbf79-d89c-4bf3-9777-276093d57d9f",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "member",
+  "username": "food_20261011_p2"
+ },
+ {
+  "created_at": "2026-10-11T08:20:25.451253+00:00",
+  "display_name": "江佩容",
+  "id": "17641dc0-0297-4100-adec-a564dc44cba1",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "member",
+  "username": "software_20261011_p9"
+ },
+ {
+  "created_at": "2026-10-11T08:09:19.063303+00:00",
+  "display_name": "李冠宇",
+  "id": "1a8c4334-a9c8-4284-9285-ed7127d418b8",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "member",
+  "username": "hemu_lee"
+ },
+ {
+  "created_at": "2026-10-11T08:20:25.189085+00:00",
+  "display_name": "陸思妤",
+  "id": "1c8d640a-1856-4bb4-bb40-2e693139784e",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "member",
+  "username": "software_20261011_p4"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.883341+00:00",
+  "display_name": "楊博鈞",
+  "id": "1cac4edb-34ec-455f-ad88-b6ac81ded2c2",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "member",
+  "username": "electronics_20261011_p8"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.704758+00:00",
+  "display_name": "方庭瑜",
+  "id": "1d9445cf-652b-4058-a553-a23e96aff496",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "member",
+  "username": "events_20261011_p6"
+ },
+ {
+  "created_at": "2026-10-11T08:20:25.139052+00:00",
+  "display_name": "張宥安",
+  "id": "253cd38e-03bc-43b1-b504-b3b2df0e943d",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "project_owner",
+  "username": "software_20261011_p3"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.471878+00:00",
+  "display_name": "蕭宇辰",
+  "id": "2888c9f6-ecb0-4443-95e8-073a5c8c3b8e",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "member",
+  "username": "events_20261011_p2"
+ },
+ {
+  "created_at": "2026-10-11T08:20:17.862404+00:00",
+  "display_name": "連柏勳",
+  "id": "2a6d6504-36af-4ec6-b4b8-05734f2e5b61",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "member",
+  "username": "construction_20261011_p4"
+ },
+ {
+  "created_at": "2026-10-11T08:09:18.888415+00:00",
+  "display_name": "黃子晴",
+  "id": "2b29fe11-82f0-4398-8a8f-6ad359466143",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "member",
+  "username": "hemu_huang"
+ },
+ {
+  "created_at": "2026-10-11T08:20:17.687766+00:00",
+  "display_name": "范雅筑",
+  "id": "2c0f5da9-e65b-4b32-b36b-f4c073d4cc6c",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "project_owner",
+  "username": "construction_20261011_p1"
+ },
+ {
+  "created_at": "2026-10-11T08:09:18.777561+00:00",
+  "display_name": "林承岳",
+  "id": "2ed4110c-f52d-4ef1-b644-c9000d0eb8ac",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "admin",
+  "username": "hemu_lin"
+ },
+ {
+  "created_at": "2026-10-11T08:20:18.096260+00:00",
+  "display_name": "龔宇翔",
+  "id": "31c6f011-2cd9-45a7-92eb-9b7b44d5acca",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "member",
+  "username": "construction_20261011_p8"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.414732+00:00",
+  "display_name": "洪郁涵",
+  "id": "34b60ce3-6481-43dc-b883-987b33580e38",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "project_owner",
+  "username": "events_20261011_p1"
+ },
+ {
+  "created_at": "2026-10-09T04:53:07.014179+00:00",
+  "display_name": "展示管理者",
+  "id": "3b1422ec-6ac6-5a26-8512-cfa744fd1f82",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "admin",
+  "username": "_showcase_demo"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.500373+00:00",
+  "display_name": "郭明哲",
+  "id": "3d9d9764-8671-4eee-9876-d1656b561fa3",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "project_owner",
+  "username": "electronics_20261011_p1"
+ },
+ {
+  "created_at": "2026-10-11T08:09:18.833850+00:00",
+  "display_name": "陳怡安",
+  "id": "41a10893-a206-4c19-b427-27192bbe9354",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "project_owner",
+  "username": "hemu_chen"
+ },
+ {
+  "created_at": "2026-10-11T08:09:19.124471+00:00",
+  "display_name": "王郁雯",
+  "id": "43a8e07f-70b7-4cef-9c64-175f161e0ef7",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "project_owner",
+  "username": "hemu_wang"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.599513+00:00",
+  "display_name": "鍾雅婷",
+  "id": "44836a03-da1a-485d-9d02-b12eab55035c",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "project_owner",
+  "username": "electronics_20261011_p3"
+ },
+ {
+  "created_at": "2026-10-11T08:20:23.503802+00:00",
+  "display_name": "姚佩芸",
+  "id": "469c90eb-5ac7-45e0-b8d3-3bdc811445bf",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "member",
+  "username": "food_20261011_p6"
+ },
+ {
+  "created_at": "2026-10-11T08:20:18.038579+00:00",
+  "display_name": "曾詠晴",
+  "id": "4a94fcd5-7853-4577-b2ea-0607445d65bf",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "project_owner",
+  "username": "construction_20261011_p7"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.768213+00:00",
+  "display_name": "盧映彤",
+  "id": "4bab4c2a-d680-40d2-918a-c1a7e34289df",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "member",
+  "username": "electronics_20261011_p6"
+ },
+ {
+  "created_at": "2026-10-11T08:09:18.712238+00:00",
+  "display_name": "禾沐展示管理者",
+  "id": "4e167b96-5ec9-5540-a8f1-b3cfb4006599",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "admin",
+  "username": "_showcase_demo"
+ },
+ {
+  "created_at": "2026-10-11T08:20:23.221566+00:00",
+  "display_name": "蘇品蓁",
+  "id": "51fc9c6a-070b-447a-8636-a28f26c587cb",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "project_owner",
+  "username": "food_20261011_p1"
+ },
+ {
+  "created_at": "2026-10-09T04:53:07.282802+00:00",
+  "display_name": "展示管理者",
+  "id": "564129ce-2563-5198-bf97-75cfd505e414",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "admin",
+  "username": "_showcase_demo"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.944170+00:00",
+  "display_name": "莊惠如",
+  "id": "56cd8ea1-0920-4c76-adb1-0bb88b93fea5",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "member",
+  "username": "electronics_20261011_p9"
+ },
+ {
+  "created_at": "2026-10-08T10:32:11.265326+00:00",
+  "display_name": "游專案",
+  "id": "577d513a-2626-4d5c-95b5-2ecb55bacb1e",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "admin",
+  "username": "yu"
+ },
+ {
+  "created_at": "2026-10-08T10:32:11.525682+00:00",
+  "display_name": "Kai",
+  "id": "5a552ace-86c9-485c-beea-b7bf7d418a12",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "member",
+  "username": "kai"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.822203+00:00",
+  "display_name": "宋哲宇",
+  "id": "5aafdfe2-a065-4dc7-a45b-cdc9a8d2c453",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "member",
+  "username": "events_20261011_p8"
+ },
+ {
+  "created_at": "2026-10-11T08:20:24.979285+00:00",
+  "display_name": "吳致謙",
+  "id": "5b1831d9-80d6-4dc3-a5e5-c11ed0688c6d",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "admin",
+  "username": "software_20261011_p0"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.444620+00:00",
+  "display_name": "徐致遠",
+  "id": "5ce065ac-73c2-4609-980f-f8f92b81ecfd",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "admin",
+  "username": "electronics_20261011_p0"
+ },
+ {
+  "created_at": "2026-10-09T05:46:20.430714+00:00",
+  "display_name": "展示執行者",
+  "id": "5f3cf2cb-874c-57c8-bcfb-97f1986a4132",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "member",
+  "username": "_showcase_worker"
+ },
+ {
+  "created_at": "2026-10-08T10:32:11.398615+00:00",
+  "display_name": "明成員",
+  "id": "6044fe32-3de5-4e9f-9ab1-89f858b1cf3d",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "member",
+  "username": "ming"
+ },
+ {
+  "created_at": "2026-10-11T08:09:19.277916+00:00",
+  "display_name": "許雅筑",
+  "id": "62511a9d-6cd1-4805-9a8f-22ec57742722",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "project_owner",
+  "username": "hemu_hsu"
+ },
+ {
+  "created_at": "2026-10-11T08:20:25.031220+00:00",
+  "display_name": "程雅萱",
+  "id": "640b08a1-0a96-4074-860d-c11cad3a8a51",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "project_owner",
+  "username": "software_20261011_p1"
+ },
+ {
+  "created_at": "2026-10-11T08:20:23.617620+00:00",
+  "display_name": "游承翰",
+  "id": "679de2ab-f5f2-4e37-b2af-050b63707fdf",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "member",
+  "username": "food_20261011_p8"
+ },
+ {
+  "created_at": "2026-10-09T05:22:28.572266+00:00",
+  "display_name": "展示執行者",
+  "id": "78cfc413-67c4-5928-b498-1c9deff8fde0",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "member",
+  "username": "_showcase_worker"
+ },
+ {
+  "created_at": "2026-10-09T05:22:28.716922+00:00",
+  "display_name": "展示執行者",
+  "id": "7b9d2fcf-b165-5d5c-8670-7a043bcb49a5",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "member",
+  "username": "_showcase_worker"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.831356+00:00",
+  "display_name": "許家瑜",
+  "id": "7f39e390-e996-450e-96f6-74c8f7e4fed0",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "project_owner",
+  "username": "electronics_20261011_p7"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.651697+00:00",
+  "display_name": "彭冠霖",
+  "id": "7fe5a472-a6e4-49f4-8160-03879340acc2",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "project_owner",
+  "username": "events_20261011_p5"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.589732+00:00",
+  "display_name": "杜柏安",
+  "id": "80b67165-8b3d-4e38-a88b-da64d640e69c",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "member",
+  "username": "events_20261011_p4"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.764282+00:00",
+  "display_name": "沈佳穎",
+  "id": "981e08dc-8121-4769-ac7b-26aab65d18b9",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "project_owner",
+  "username": "events_20261011_p7"
+ },
+ {
+  "created_at": "2026-10-11T08:20:23.668798+00:00",
+  "display_name": "邱怡君",
+  "id": "9a157b0a-9110-4ea1-9edd-e6a0fd8fcff8",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "member",
+  "username": "food_20261011_p9"
+ },
+ {
+  "created_at": "2026-10-09T04:53:07.120604+00:00",
+  "display_name": "展示管理者",
+  "id": "9a854e9a-3f37-5a5a-81c0-87c68cb3e92c",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "admin",
+  "username": "_showcase_demo"
+ },
+ {
+  "created_at": "2026-10-11T08:20:25.239483+00:00",
+  "display_name": "林柏丞",
+  "id": "9c8b2911-ce46-4b66-9997-bcf15c6dd2c7",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "project_owner",
+  "username": "software_20261011_p5"
+ },
+ {
+  "created_at": "2026-10-11T08:20:17.635222+00:00",
+  "display_name": "廖建宏",
+  "id": "9d8024b8-a9e5-47ba-ac5c-9978a8c38170",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "admin",
+  "username": "construction_20261011_p0"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.881725+00:00",
+  "display_name": "戴敏如",
+  "id": "a0222613-ea6e-4e05-b206-613eaae109ec",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "member",
+  "username": "events_20261011_p9"
+ },
+ {
+  "created_at": "2026-10-11T08:09:19.002075+00:00",
+  "display_name": "蔡佩珊",
+  "id": "a2355c76-da8a-4899-b6b0-6758172584e0",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "project_owner",
+  "username": "hemu_tsai"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.550340+00:00",
+  "display_name": "簡奕辰",
+  "id": "a2d4bc96-8078-49c7-a42e-fb71bef8ba86",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "member",
+  "username": "electronics_20261011_p2"
+ },
+ {
+  "created_at": "2026-10-11T08:20:17.986090+00:00",
+  "display_name": "柯品蓉",
+  "id": "a344e5d9-420d-4b96-9bbb-21dc7cc19825",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "member",
+  "username": "construction_20261011_p6"
+ },
+ {
+  "created_at": "2026-10-11T08:20:25.350760+00:00",
+  "display_name": "蔡若晴",
+  "id": "a6802ebc-9692-40bf-a50d-08a6252cf792",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "project_owner",
+  "username": "software_20261011_p7"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.365194+00:00",
+  "display_name": "羅子軒",
+  "id": "be70b23f-d418-4648-ba75-68eb5e51a983",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "admin",
+  "username": "events_20261011_p0"
+ },
+ {
+  "created_at": "2026-10-08T10:32:11.482800+00:00",
+  "display_name": "Elaine",
+  "id": "c1c83fda-4ff7-4151-b4a7-662bbc219945",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "admin",
+  "username": "elaine"
+ },
+ {
+  "created_at": "2026-10-11T08:09:19.327805+00:00",
+  "display_name": "周宛庭",
+  "id": "c3206831-7023-43d4-89d2-7cafdcf2c19c",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "member",
+  "username": "hemu_chou"
+ },
+ {
+  "created_at": "2026-10-11T08:20:21.535094+00:00",
+  "display_name": "梁詠晴",
+  "id": "c9985c6b-61b7-4aa5-ad11-6cb20d62465e",
+  "organization_id": "e57d3428-d0b5-4871-824c-a901855a5deb",
+  "role": "project_owner",
+  "username": "events_20261011_p3"
+ },
+ {
+  "created_at": "2026-10-09T05:46:20.907542+00:00",
+  "display_name": "展示執行者",
+  "id": "ca8526cb-8a23-5fae-a727-11523805511b",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "member",
+  "username": "_showcase_worker"
+ },
+ {
+  "created_at": "2026-10-11T08:20:18.148195+00:00",
+  "display_name": "白怡萱",
+  "id": "d4fd964a-8836-4c55-8959-c1f3c549706d",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "member",
+  "username": "construction_20261011_p9"
+ },
+ {
+  "created_at": "2026-10-11T08:20:23.398723+00:00",
+  "display_name": "潘思穎",
+  "id": "d57f7ed0-7826-47f4-99b9-adb07875124d",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "member",
+  "username": "food_20261011_p4"
+ },
+ {
+  "created_at": "2026-10-11T08:20:25.401366+00:00",
+  "display_name": "周宇軒",
+  "id": "d6839a35-0960-4941-92d9-874f7c177eeb",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "member",
+  "username": "software_20261011_p8"
+ },
+ {
+  "created_at": "2026-10-09T04:53:06.920570+00:00",
+  "display_name": "展示管理者",
+  "id": "d7dab068-c8c0-59ec-a254-ba0f4f31ba8d",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "admin",
+  "username": "_showcase_demo"
+ },
+ {
+  "created_at": "2026-10-08T10:32:11.306625+00:00",
+  "display_name": "專案負責",
+  "id": "d8a7a9f6-be66-40f9-a507-e744fa7bafea",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "project_owner",
+  "username": "owner"
+ },
+ {
+  "created_at": "2026-10-11T08:09:19.226811+00:00",
+  "display_name": "趙志豪",
+  "id": "d97fe274-060a-44ed-85a2-51f27373b8ea",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "member",
+  "username": "hemu_chao"
+ },
+ {
+  "created_at": "2026-10-08T10:32:11.354882+00:00",
+  "display_name": "陳主管",
+  "id": "db3fc1ca-86df-4071-951d-3611a2ac594c",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "reviewer",
+  "username": "chen"
+ },
+ {
+  "created_at": "2026-10-11T08:20:17.808019+00:00",
+  "display_name": "鄧惠文",
+  "id": "dc6fef43-e3fb-46e9-ac03-db9fac4d8e27",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "project_owner",
+  "username": "construction_20261011_p3"
+ },
+ {
+  "created_at": "2026-10-11T08:20:17.927078+00:00",
+  "display_name": "施志遠",
+  "id": "dcb58693-a30f-4eaa-b698-10ca37ae5ce6",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "project_owner",
+  "username": "construction_20261011_p5"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.651748+00:00",
+  "display_name": "葉承恩",
+  "id": "e0d5f2f9-8f86-4fac-8003-93cea7cf8ad1",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "member",
+  "username": "electronics_20261011_p4"
+ },
+ {
+  "created_at": "2026-10-11T08:09:19.175063+00:00",
+  "display_name": "張育誠",
+  "id": "e50fc501-e184-45dd-9778-5a7abdaf7d34",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "member",
+  "username": "hemu_chang"
+ },
+ {
+  "created_at": "2026-10-08T10:32:11.441058+00:00",
+  "display_name": "林唯讀",
+  "id": "e5e4f424-d624-4fbb-a39b-e539d97f294c",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "readonly",
+  "username": "lin"
+ },
+ {
+  "created_at": "2026-10-11T08:09:19.377493+00:00",
+  "display_name": "鄭宇翔",
+  "id": "e64f071f-b4ea-4e79-9b96-fbd42a175cbc",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "admin",
+  "username": "hemu_cheng"
+ },
+ {
+  "created_at": "2026-10-11T08:20:25.294959+00:00",
+  "display_name": "溫品妍",
+  "id": "e934bc2d-53fb-45fb-866e-cba655621ea0",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "member",
+  "username": "software_20261011_p6"
+ },
+ {
+  "created_at": "2026-10-09T04:53:07.213755+00:00",
+  "display_name": "展示管理者",
+  "id": "eae0c672-52a7-56a2-b722-2891392621bc",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "admin",
+  "username": "_showcase_demo"
+ },
+ {
+  "created_at": "2026-10-11T08:20:25.078285+00:00",
+  "display_name": "余承翰",
+  "id": "eb97ac55-2796-4738-8a7b-4fc312779934",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "member",
+  "username": "software_20261011_p2"
+ },
+ {
+  "created_at": "2026-10-11T08:20:17.754773+00:00",
+  "display_name": "唐承佑",
+  "id": "edb72652-e09b-4707-abef-b0ff30c7dc6a",
+  "organization_id": "965834df-5183-4039-8f3f-16106cd67fb9",
+  "role": "member",
+  "username": "construction_20261011_p2"
+ },
+ {
+  "created_at": "2026-10-11T08:09:18.945402+00:00",
+  "display_name": "吳柏廷",
+  "id": "f42078d2-5f00-4da5-a9ae-e3a6e390b4ac",
+  "organization_id": "c44970d1-504a-42c7-951a-f87602076ecd",
+  "role": "member",
+  "username": "hemu_wu"
+ },
+ {
+  "created_at": "2026-10-11T08:20:23.162614+00:00",
+  "display_name": "何俊廷",
+  "id": "f5e4475d-f681-4906-8f56-18ca35257faa",
+  "organization_id": "ef612fa3-149b-488f-9196-bbd3aaefa642",
+  "role": "admin",
+  "username": "food_20261011_p0"
+ },
+ {
+  "created_at": "2026-10-11T08:20:19.710617+00:00",
+  "display_name": "謝宗翰",
+  "id": "f961e3e2-8f27-45fe-baf8-0f407b0db62f",
+  "organization_id": "66187d34-8faa-4b5a-b8d8-7ced73d910bc",
+  "role": "project_owner",
+  "username": "electronics_20261011_p5"
+ },
+ {
+  "created_at": "2026-10-09T05:46:20.726894+00:00",
+  "display_name": "展示執行者",
+  "id": "fae68594-4aa0-5603-a4c8-616d736ad1a9",
+  "organization_id": "0f3072a4-c5e1-47d3-96b8-0c4cc97a1795",
+  "role": "member",
+  "username": "_showcase_worker"
+ }
+]
