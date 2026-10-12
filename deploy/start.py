@@ -80,7 +80,7 @@ def start(root: Path, *, acceptance: bool = False, seed_demo: bool = False, lan:
     except ValueError:
         valid = False
     if not valid:
-        raise RuntimeError('The trial web port must be a valid loopback address.')
+        raise RuntimeError('The trial web port is not bound to the expected address.')
     url = f'http://127.0.0.1:{parsed.port}'
     check_readiness(url, acceptance=acceptance)
     return {'project': project, 'web_url': url, 'env_file': str(env_file), 'lan': lan}

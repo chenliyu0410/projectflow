@@ -26,7 +26,7 @@ python deploy/start.py --seed-demo
 python deploy/start.py --lan
 ```
 
-成功後會印出 `Network access: http://<這台電腦的IP>:15173`，把這個網址給其他人。這台電腦照舊用 http://127.0.0.1:15173 。要停止對外開放，不加 `--lan` 再執行一次 `python deploy/start.py`，web會回到只綁127.0.0.1。`--lan` 不能和 `--acceptance` 一起用。
+成功後會印出 `Network access: http://<這台電腦的IP>:15173`，把這個網址給其他人。有VPN或多張網卡時，這個IP可能不是區網那張，請用 `ipconfig` 核對。這台電腦照舊用 http://127.0.0.1:15173 。要停止對外開放，不加 `--lan` 再執行一次 `python deploy/start.py`，web會回到只綁127.0.0.1。`--lan` 不能和 `--acceptance` 一起用。
 
 - **防火牆要自己開**：Windows預設擋外部連線，網路類型是「公用」時更是如此。用系統管理員身分開PowerShell執行下面這行，只允許同網段連入15173；停止試用時用 `Remove-NetFirewallRule -DisplayName 'ProjectFlow 15173 (LAN trial)'` 移除。如果同事在不同網段，`LocalSubnet` 要換成對方的網段。
   ```powershell
@@ -34,7 +34,8 @@ python deploy/start.py --lan
   ```
   開了還是連不到時，到「Windows Defender 防火牆→輸入規則」看有沒有封鎖 Docker Desktop Backend 的規則；封鎖規則優先於允許規則。
 - **帳號**：登入表單要填公司代碼、帳號、密碼。公司代碼是 `food`、`electronics`、`events`、`software`、`construction`、`hemu`，帳號清單在 `deploy/demo-data/tables/users.json`。資料包還原後密碼都是 `demo-<帳號>`，例如 `food`／`yu`／`demo-yu`。
-- **限制**：這些密碼寫在repo裡，同網路的任何人都能用管理員登入，只在信任的網路開放，試用完就關閉。沒有HTTPS，左下展示公司切換與AI模型設定只在本機127.0.0.1出現，區網試用者要切公司請用該公司的帳號重新登入。試用者的修改會直接寫進15173的資料庫；要回到乾淨的展示資料，照 `deploy/demo-data/README.md` 還原。
+- **限制**：這些密碼寫在repo裡，同網路的任何人都能用管理員登入，只在信任的網路開放，試用完就關閉。沒有HTTPS。左下展示公司切換與AI模型設定只在本機127.0.0.1的畫面出現，區網試用者要切公司請用該公司的帳號重新登入；但這個限制看的是Host標頭，知道管理員密碼的人可以偽造Host直接呼叫這兩個API。
+- **資料**：試用者的修改會直接寫進15173的資料庫。資料包只能匯入空的資料庫，要回到乾淨的展示資料得先清空資料庫再匯入（做法見 `deploy/demo-data/README.md` 與PROGRESS的OPS-RESTORE），清空前先備份。匯入流程會執行不加 `--lan` 的 `start.py`，完成後要再用 `--lan` 啟動一次。
 
 自動驗收使用另一個Compose專案、volume與loopback埠，避免寫入使用者試用資料：
 

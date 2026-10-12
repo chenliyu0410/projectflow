@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   api,
   ApiError,
+  newId,
   recordError,
   useRequestScope,
   useRecordMutation,
@@ -45,7 +46,7 @@ function Editor({
     setNodes((old) => [
       ...old,
       {
-        id: crypto.randomUUID(),
+        id: newId(),
         parent_id: null,
         kind,
         title: '',

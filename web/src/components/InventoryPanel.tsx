@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ApiError, KNOWN_CONFLICTS, requestJson } from '../api';
+import { ApiError, KNOWN_CONFLICTS, newId, requestJson } from '../api';
 
 type Resource = { id: string; code: string; title: string };
 /** A purchase line, or a work order's planned product, that postings count toward. */
@@ -120,7 +120,7 @@ export default function InventoryPanel({ record, expired, leaveGuard, blocked = 
   async function submit() {
     // An uncertain posting is always retried as-is; the server returns the original entry if it was saved.
     if (!resource || blocked || (!pending && (closed || overLine)) || inFlight.current) return;
-    const payload = pending ?? { request_id: crypto.randomUUID(), resource_id: resource.id, quantity, unit, reason };
+    const payload = pending ?? { request_id: newId(), resource_id: resource.id, quantity, unit, reason };
     if (!pending && !window.confirm(`確認${actionName}：${resource.code}，${quantity} ${unit}？此筆異動會永久保留。`)) return;
     setPending(payload); setNotice('');
     await run(async signal => {
@@ -145,7 +145,7 @@ export default function InventoryPanel({ record, expired, leaveGuard, blocked = 
   async function submitReversal() {
     if (!reversal || blocked || inFlight.current || !reversal.reason.trim()) return;
     if (!reversal.requestId && !window.confirm(`確認沖銷「${reversal.label}」？會新增一筆反向流水，原紀錄保留不改。`)) return;
-    const target = { ...reversal, requestId: reversal.requestId ?? crypto.randomUUID() };
+    const target = { ...reversal, requestId: reversal.requestId ?? newId() };
     setReversal(target); setNotice('');
     await run(async signal => {
       try {

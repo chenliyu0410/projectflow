@@ -30,6 +30,16 @@ export class ApiError extends Error {
   }
 }
 
+/** UUID v4 for request ids; crypto.randomUUID only exists on HTTPS or localhost, so a LAN trial over HTTP falls back. */
+export function newId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 // Fixed TP-A/TP-B conflict texts may be shown as-is; any other backend detail stays hidden.
 export const KNOWN_CONFLICTS = new Set([
   '回報欄位已變更，請重新載入', '回報欄位已變更，請重新載入並確認輸入', '只有未關閉且沒有待確認回報的葉任務可設定欄位',
