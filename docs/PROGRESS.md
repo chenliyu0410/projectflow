@@ -22,7 +22,7 @@
 | 測試基準 | 全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
 | 資料版本 | migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。這台未有其他機器的3338筆與產業展示資料；另一台部署未動。 |
 | 認領中 | 無。 |
-| 阻塞／待人類 | F1-RET工程無阻塞。待人類：下一步方向；另一台機器如要更新需在該機同步main後執行`deploy/start.py`（不seed）。限制：退貨無單號／金額／原因代碼，無部分沖銷、沖銷的再沖銷、自動補貨或品質任務、批號；計畫與進度限管理角色；工單單一成品、無BOM自動扣料；採購無單價／逐列交期；Ollama未設定，LAN限制及人類試用簽核維持。 |
+| 阻塞／待人類 | F1-RET工程無阻塞。待人類：下一步方向；另一台機器如要更新需在該機同步main後執行`deploy/start.py`（不seed）；第二台機器已於2026-10-12同步並部署0019。限制：退貨無單號／金額／原因代碼，無部分沖銷、沖銷的再沖銷、自動補貨或品質任務、批號；計畫與進度限管理角色；工單單一成品、無BOM自動扣料；採購無單價／逐列交期；Ollama未設定，LAN限制及人類試用簽核維持。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
 
 ---
@@ -67,7 +67,7 @@
 
 ## 2. 工作佇列（由上往下執行）
 
-- DATA-PACK ✅：使用者2026-10-12要求「把資料庫內容打包上傳到GIT」，經詢問選擇去敏展示資料包（repo為private）。新增`api/app/demo_pack.py`、`deploy/demo_data.py`與`deploy/demo-data/`：匯出15173的27張業務表共1758列（migration 0018），排除sessions／audit_logs／notifications並不寫密碼雜湊，還原帳號密碼為`demo-<帳號>`，只能還原到同版本的空資料庫。`test_demo_pack.py` 2pass；隔離throwaway PG（projectflow-packcheck，已down、volume保留）實測還原→再匯出27表SHA-256全同、重複還原拒絕、yu／demo-yu登入可用。輸出掃描無密碼雜湊／token／env。未另做獨立審查。
+- DATA-PACK ✅：使用者2026-10-12要求「把資料庫內容打包上傳到GIT」，經詢問選擇去敏展示資料包（repo為private）。新增`api/app/demo_pack.py`、`deploy/demo_data.py`與`deploy/demo-data/`：匯出15173的27張業務表共1758列（migration 0019），排除sessions／audit_logs／notifications並不寫密碼雜湊，還原帳號密碼為`demo-<帳號>`，只能還原到同版本的空資料庫。`test_demo_pack.py` 2pass；隔離throwaway PG（projectflow-packcheck，已down、volume保留）實測還原→再匯出27表SHA-256全同、重複還原拒絕、yu／demo-yu登入可用。輸出掃描無密碼雜湊／token／env。未另做獨立審查。上傳時遠端已有另一session的F1-RET（0019），經使用者選擇：本機未push的資料包commit rebase到origin/main（README／PROGRESS僅新增段落衝突，兩邊保留），整合後相關API 68pass、migration 23pass；先備份（.superpowers/f1-ret-local），由人類於本機執行start.py部署0019，3338列／1檔案／env保留，再以0019重新匯出（列內容不變）。發現Windows autocrlf clone會改寫JSON換行致SHA-256不符，新增`.gitattributes`令`deploy/demo-data/**`不轉換，並以新clone驗證。
 
 - OPS-CLEAN ✅：人類2026-10-12看到本機15173總覽滿是「P1b E2E …」專案，選擇「只刪測試專案」：刪除10-08 P1b自動測試直接寫入本機正式庫的11個測試專案及其44節點、11關卡、36筆相關稽核（25筆連節點、11筆建立紀錄）；兩個示範專案、帳號、部門與其稽核保留。系統無刪除專案功能，以單一DB交易（範圍與剩餘數量不符即中止）執行。事前pg_dump備份（125,901 bytes，pg_restore列238項，存.superpowers/f1-ret-deploy/before-cleanup.dump）。結果：專案13→2、節點47→3、關卡11→0、稽核39→3，帳號7、部門5、組織2、模板2不變；health ready，食品公司總覽1專案、專案與稽核端點200。
 

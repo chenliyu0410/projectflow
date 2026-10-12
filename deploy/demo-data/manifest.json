@@ -1,11 +1,11 @@
 {
- "alembic_revision": "20261012_0018",
+ "alembic_revision": "20261012_0019",
  "excluded_tables": [
   "audit_logs",
   "notifications",
   "sessions"
  ],
- "exported_at": "2026-10-12T02:34:19+00:00",
+ "exported_at": "2026-10-12T02:44:30+00:00",
  "files": {},
  "format": 1,
  "restored_password": "demo-<username>",
