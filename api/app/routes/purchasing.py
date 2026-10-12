@@ -12,6 +12,7 @@ from app.audit import log_audit
 from app.routes.operations import get_record, visible
 from app.routes.inventory import authorize, quantity
 from app.services.purchase_service import CLOSED, LABELS, classify, line_status
+from app.services.stock_service import returned_by_line
 
 router = APIRouter(tags=['purchasing'])
 STALE = '採購明細已變更，請重新載入'
@@ -61,15 +62,24 @@ def detail(db, current, order):
     key = classify(closed, len(rows), sum(line.received_milli >= line.ordered_milli for line, _, _ in rows),
         sum(line.received_milli > 0 for line, _, _ in rows))
     closer = db.scalar(select(User.display_name).where(User.organization_id == org, User.id == header.closed_by)) if closed else None
+    returned = returned_by_line(db, org, order.id)
+    used = referenced_lines(db, org, order.id)
     return {'order_id': order.id, 'revision': header.revision if header else 0, 'status': key, 'status_label': LABELS[key],
         'closed_at': header.closed_at.isoformat() if closed else None, 'closed_by': closer,
         'close_reason': header.close_reason if closed else None,
         'unlinked_receipts': db.scalar(select(func.count()).select_from(InventoryMovement).where(InventoryMovement.organization_id == org,
-            InventoryMovement.order_id == order.id, InventoryMovement.line_id.is_(None))),
+            InventoryMovement.order_id == order.id, InventoryMovement.line_id.is_(None), InventoryMovement.kind == 'receipt')),
         'lines': [{'id': line.id, 'line_no': line.line_no, 'resource_id': line.resource_id, 'resource_code': code, 'resource_title': title,
             'unit': line.unit, 'ordered': quantity(line.ordered_milli), 'received': quantity(line.received_milli),
-            'remaining': quantity(line.ordered_milli - line.received_milli), 'note': line.note,
+            'remaining': quantity(line.ordered_milli - line.received_milli), 'returned': quantity(returned.get(line.id, 0)),
+            'locked': line.id in used, 'note': line.note,
             'status': line_status(line.ordered_milli, line.received_milli)} for line, code, title in rows]}
+
+
+def referenced_lines(db, organization_id, order_id):
+    """Lines any ledger entry points at; they keep their identity even when returns bring them back to zero."""
+    return set(db.scalars(select(InventoryMovement.line_id).where(InventoryMovement.organization_id == organization_id,
+        InventoryMovement.order_id == order_id, InventoryMovement.line_id.is_not(None)).distinct()))
 
 
 def begin(db, current, order_id, expected):
@@ -134,8 +144,9 @@ def save_lines(order_id: str, payload: LinesWrite, current: CurrentUser = Depend
     if any(row.category != 'resources' for row in resources.values()):
         raise HTTPException(422, '請選擇物料／資源紀錄')
     incoming = {item.id: item for item in payload.lines if item.id}
+    used = referenced_lines(db, org, order.id)
     for line in existing.values():
-        if line.received_milli == 0:
+        if line.id not in used:
             continue
         item = incoming.get(line.id)
         if item is None or (item.resource_id, item.unit) != (line.resource_id, line.unit):
@@ -147,15 +158,15 @@ def save_lines(order_id: str, payload: LinesWrite, current: CurrentUser = Depend
     if any(stock_units.get(item.resource_id, item.unit) != item.unit for item in payload.lines):
         raise HTTPException(409, STOCK_UNIT)
     header = touch(db, current, order, header)
-    # Lines without receipts have no ledger references, so they are replaced; received lines keep their identity.
+    # Lines without ledger references are replaced; referenced lines keep their identity.
     for line in existing.values():
-        if line.received_milli == 0:
+        if line.id not in used:
             db.delete(line)
     db.flush()
     now = now_utc()
     for number, item in enumerate(payload.lines, 1):
         old = existing.get(item.id) if item.id else None
-        if old is not None and old.received_milli > 0:
+        if old is not None and old.id in used:
             old.line_no, old.ordered_milli, old.note, old.updated_at = number, int(item.quantity * 1000), item.note, now
             continue
         db.add(PurchaseOrderLine(id=str(uuid4()), organization_id=org, order_id=order.id, resource_id=item.resource_id,

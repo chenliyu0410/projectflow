@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, requestJson } from '../api';
-import InventoryPanel, { type ProgressLine } from './InventoryPanel';
+import InventoryPanel, { type IssuedMaterial, type ProgressLine } from './InventoryPanel';
 
 type Resource = { id: string; code: string; title: string };
 type Production = {
   work_id: string; revision: number; status: 'no_plan' | 'planned' | 'in_progress' | 'completed' | 'closed'; status_label: string;
   product: Resource | null; unit: string | null; planned: string | null; completed: string | null; remaining: string | null; note: string;
   closed_at: string | null; closed_by: string | null; close_reason: string | null; unlinked_completions: number;
-  issued: { resource_id: string; code: string; title: string; unit: string; quantity: string }[];
+  issued: IssuedMaterial[];
 };
 type Draft = { product: Resource | null; quantity: string; unit: string; note: string; fixedUnit: boolean; locked: boolean };
 
@@ -123,7 +123,8 @@ export default function WorkOrderPanel({ record, expired, leaveGuard, blocked = 
       {production.unlinked_completions > 0 && <p>此工單有 {production.unlinked_completions} 筆設定計畫前的完工入庫，未計入計畫進度，可在下方異動紀錄查看。</p>}
       <h4>累計領料</h4>
       {production.issued.length ? <ul className="purchase-lines" aria-label="累計領料">{production.issued.map(item => <li key={`${item.resource_id}-${item.unit}`}>
-        <strong>{item.code}｜{item.title}</strong><span>已領 {item.quantity} {item.unit}</span></li>)}</ul> : <p>尚無領料紀錄。</p>}
+        <strong>{item.code}｜{item.title}</strong><span>已領 {item.quantity} {item.unit}</span>
+        {Number(item.returned ?? 0) > 0 && <span>已退料 {item.returned} {item.unit}</span>}</li>)}</ul> : <p>尚無領料紀錄。</p>}
       {!editing && <div className="record-actions">
         {!closed && <button type="button" disabled={busy || blocked} onClick={startEdit}>{production.product ? '編輯生產計畫' : '設定生產計畫'}</button>}
         <button type="button" disabled={busy || blocked} onClick={() => open(() => setChanging(true))}>{closed ? '重新開啟工單' : '結案工單'}</button>
@@ -152,7 +153,7 @@ export default function WorkOrderPanel({ record, expired, leaveGuard, blocked = 
         <div className="record-actions"><button type="button" className="primary" disabled={!reason.trim()} onClick={() => void changeState()}>{closed ? '確認重新開啟' : '確認結案'}</button>
           <button type="button" onClick={() => { if (!reason || window.confirm('放棄尚未儲存的原因嗎？')) { setReason(''); setChanging(false); } }}>取消</button></div>
       </fieldset>}
-      {!editing && <InventoryPanel blocked={blocked || busy} record={record} lines={plan} closed={closed} onPosted={refresh} expired={expired} leaveGuard={inventoryGuard} />}
+      {!editing && <InventoryPanel blocked={blocked || busy} record={record} lines={plan} issued={production.issued} closed={closed} onPosted={refresh} expired={expired} leaveGuard={inventoryGuard} />}
     </>}
   </section>;
 }

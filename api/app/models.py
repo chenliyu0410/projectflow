@@ -116,18 +116,32 @@ class WorkOrder(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
+INVENTORY_KINDS = ("(kind = 'receipt' AND order_id IS NOT NULL AND work_id IS NULL AND delta_milli > 0)"
+    " OR (kind = 'return' AND order_id IS NOT NULL AND work_id IS NULL AND delta_milli < 0)"
+    " OR (kind = 'adjustment' AND order_id IS NULL AND work_id IS NULL AND delta_milli != 0)"
+    " OR (kind = 'issue' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli < 0)"
+    " OR (kind = 'issue_return' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli > 0)"
+    " OR (kind = 'completion' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli > 0)"
+    " OR (kind = 'reversal' AND (order_id IS NULL OR work_id IS NULL) AND delta_milli != 0)")
+
+
 class InventoryMovement(Base):
     __tablename__ = 'inventory_movements'
     __table_args__ = (
         UniqueConstraint('organization_id', 'request_id', name='uq_inventory_request'),
+        UniqueConstraint('organization_id', 'id', name='uq_inventory_org_id'),
+        # Each entry can be reversed once; NULLs (entries that reverse nothing) never collide.
+        UniqueConstraint('organization_id', 'reversal_of', name='uq_inventory_reversal'),
         ForeignKeyConstraint(['organization_id', 'resource_id'], ['operations_records.organization_id', 'operations_records.id']),
         ForeignKeyConstraint(['organization_id', 'order_id'], ['operations_records.organization_id', 'operations_records.id']),
         ForeignKeyConstraint(['organization_id', 'work_id'], ['operations_records.organization_id', 'operations_records.id'], name='fk_inventory_work'),
         ForeignKeyConstraint(['organization_id', 'line_id'], ['purchase_order_lines.organization_id', 'purchase_order_lines.id'], name='fk_inventory_line'),
+        ForeignKeyConstraint(['organization_id', 'reversal_of'], ['inventory_movements.organization_id', 'inventory_movements.id'], name='fk_inventory_reversal'),
         ForeignKeyConstraint(['organization_id', 'created_by'], ['users.organization_id', 'users.id']),
-        CheckConstraint("(kind = 'receipt' AND order_id IS NOT NULL AND work_id IS NULL AND delta_milli > 0) OR (kind = 'adjustment' AND order_id IS NULL AND work_id IS NULL AND delta_milli != 0) OR (kind = 'issue' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli < 0) OR (kind = 'completion' AND work_id IS NOT NULL AND order_id IS NULL AND delta_milli > 0)", name='ck_inventory_kind'),
-        CheckConstraint("line_id IS NULL OR kind = 'receipt'", name='ck_inventory_line'),
-        CheckConstraint("NOT counted_in_plan OR kind = 'completion'", name='ck_inventory_plan'),
+        CheckConstraint(INVENTORY_KINDS, name='ck_inventory_kind'),
+        CheckConstraint("line_id IS NULL OR kind IN ('receipt', 'return', 'reversal')", name='ck_inventory_line'),
+        CheckConstraint("NOT counted_in_plan OR kind IN ('completion', 'reversal')", name='ck_inventory_plan'),
+        CheckConstraint("(kind = 'reversal' AND reversal_of IS NOT NULL) OR (kind != 'reversal' AND reversal_of IS NULL)", name='ck_inventory_reversal'),
         CheckConstraint('before_milli >= 0 AND after_milli >= 0 AND after_milli = before_milli + delta_milli AND after_milli <= 999999999999', name='ck_inventory_movement_quantity'),
         Index('ix_inventory_resource_date', 'organization_id', 'resource_id', 'created_at'),
         Index('ix_inventory_order_date', 'organization_id', 'order_id', 'created_at'),
@@ -142,6 +156,8 @@ class InventoryMovement(Base):
     line_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     # Completions posted against a work order plan; earlier free completions stay false.
     counted_in_plan: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    # A reversal points at the entry it cancels and copies its order, work, line and plan flag.
+    reversal_of: Mapped[str | None] = mapped_column(String(36), nullable=True)
     kind: Mapped[str] = mapped_column(String(16), nullable=False)
     unit: Mapped[str] = mapped_column(String(20), nullable=False)
     delta_milli: Mapped[int] = mapped_column(BigInteger, nullable=False)

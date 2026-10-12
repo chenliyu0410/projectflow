@@ -65,7 +65,8 @@ export default function PurchaseOrderPanel({ record, expired, leaveGuard, blocke
     open(() => {
       setFound(null); setQuery('');
       setDraft(purchase!.lines.map(line => ({ id: line.id, resource_id: line.resource_id, code: line.resource_code, title: line.resource_title,
-        quantity: line.ordered, unit: line.unit, note: line.note, received: line.received, locked: Number(line.received) > 0, fixedUnit: Number(line.received) > 0 })));
+        // Lines with any receipt or return history keep their material and unit, even when returns bring them to zero.
+        quantity: line.ordered, unit: line.unit, note: line.note, received: line.received, locked: line.locked ?? Number(line.received) > 0, fixedUnit: line.locked ?? Number(line.received) > 0 })));
     });
   }
   function update(index: number, change: Partial<Draft>) { setDraft(current => current && current.map((line, i) => i === index ? { ...line, ...change } : line)); }
@@ -116,7 +117,7 @@ export default function PurchaseOrderPanel({ record, expired, leaveGuard, blocke
       {purchase.unlinked_receipts > 0 && <p>此單有 {purchase.unlinked_receipts} 筆建立明細前的收貨，未計入明細進度，可在下方異動紀錄查看。</p>}
       {draft === null && purchase.lines.length > 0 && <ul className="purchase-lines">{purchase.lines.map(line => <li key={line.id}>
         <strong>{line.line_no}. {line.resource_code}｜{line.resource_title}</strong>
-        <span>訂購 {line.ordered} {line.unit} · 已收 {line.received} · 未收 {line.remaining}</span>
+        <span>訂購 {line.ordered} {line.unit} · 已收 {line.received} · 未收 {line.remaining}{Number(line.returned ?? 0) > 0 && ` · 已退 ${line.returned}`}</span>
         <span className={`line-state is-${line.status}`}>{LINE_LABELS[line.status]}</span>
         {line.note && <span>備註：{line.note}</span>}
       </li>)}</ul>}
@@ -126,7 +127,7 @@ export default function PurchaseOrderPanel({ record, expired, leaveGuard, blocke
         <button type="button" disabled={busy || blocked} onClick={refresh}>重新載入收貨進度</button>
       </div>}
       {draft && <fieldset className="purchase-editor" disabled={busy || blocked}><legend>編輯採購明細</legend>
-        <p>每列一種物料；已有收貨的明細不能移除或改單位，訂購數量不可低於已收。實際多到貨時，先調高訂購數量再收貨。</p>
+        <p>每列一種物料；已有收貨或退貨紀錄的明細不能移除或改單位，訂購數量不可低於已收。實際多到貨時，先調高訂購數量再收貨；退貨後不補貨時，調低訂購數量或結案。</p>
         {draft.length === 0 && <p>尚無明細列，請搜尋物料加入。</p>}
         {draft.map((line, index) => <div className="purchase-draft" key={line.resource_id}>
           <strong>{index + 1}. {line.code}｜{line.title}</strong>

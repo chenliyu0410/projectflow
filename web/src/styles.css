@@ -806,6 +806,7 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .inventory-panel button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; margin: 4px; }
 .inventory-panel ul { list-style: none; padding: 0; }
 .inventory-history li { border-bottom: 1px solid #dce3ea; padding: 12px 0; }
+.inventory-history .reversed-tag { display: inline-block; margin: 4px 0; border-radius: 5px; padding: 1px 8px; background: #ECEAE6; color: #4A4741; font-size: 13px; }
 
 .inventory-shell { border: 0; padding: 0; margin: 0; min-width: 0; }
 

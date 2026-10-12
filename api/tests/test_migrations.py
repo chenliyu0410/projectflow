@@ -1008,3 +1008,46 @@ def test_work_orders_migration_preserves_ledger_and_refuses_loss(tmp_path, monke
         assert c.scalar(text('SELECT planned_milli FROM work_orders')) == 5000
         assert c.scalar(text('SELECT count(*) FROM inventory_movements')) == 1
     engine.dispose()
+
+
+def test_returns_migration_preserves_ledger_and_refuses_loss(tmp_path, monkeypatch):
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.exc import IntegrityError
+    import pytest
+    url = f'sqlite:///{tmp_path / "returns.db"}'
+    monkeypatch.setenv('DATABASE_URL', url)
+    config = Config('api/alembic.ini')
+    command.upgrade(config, '20261012_0018')
+    engine = create_engine(url)
+    columns = 'id,organization_id,request_id,resource_id,order_id,work_id,work_label,kind,unit,delta_milli,before_milli,after_milli,resource_label,order_label,reason,created_by,actor_name,created_at,counted_in_plan'
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO inventory_balances VALUES ('org','raw','kg',700)"))
+        c.execute(text(f"INSERT INTO inventory_movements ({columns}) VALUES ('old','org','req1','raw','po',NULL,NULL,'receipt','kg',1000,0,1000,'RAW','PO','receipt','user','User','2026-10-12',0)"))
+        c.execute(text(f"INSERT INTO inventory_movements ({columns}) VALUES ('use','org','req2','raw',NULL,'wo','WO','issue','kg',-300,1000,700,'RAW',NULL,'issue','user','User','2026-10-12',0)"))
+        before = [dict(row) for row in c.execute(text('SELECT * FROM inventory_movements ORDER BY id')).mappings()]
+    command.upgrade(config, 'head')
+    with engine.connect() as c:
+        after = [dict(row) for row in c.execute(text('SELECT * FROM inventory_movements ORDER BY id')).mappings()]
+        assert all(new[k] == v for old, new in zip(before, after) for k, v in old.items()) and len(after) == 2
+        assert all(row['reversal_of'] is None for row in after)
+        assert c.scalar(text('SELECT quantity_milli FROM inventory_balances')) == 700
+    command.downgrade(config, '20261012_0018')
+    command.upgrade(config, 'head')
+    reversal = f"INSERT INTO inventory_movements ({columns},reversal_of) VALUES ('rev','org','req3','raw',NULL,'wo','WO','reversal','kg',300,700,1000,'RAW',NULL,'fix','user','User','2026-10-12',0,'use')"
+    with engine.begin() as c:
+        c.execute(text(reversal))
+    # One reversal per entry, and only reversals may point at another entry.
+    with pytest.raises(IntegrityError):
+        with engine.begin() as c:
+            c.execute(text(reversal.replace("'rev','org','req3'", "'rev2','org','req4'")))
+    with pytest.raises(IntegrityError):
+        with engine.begin() as c:
+            c.execute(text(f"INSERT INTO inventory_movements ({columns},reversal_of) VALUES ('bad','org','req5','raw',NULL,'wo','WO','issue','kg',-1,1000,999,'RAW',NULL,'x','user','User','2026-10-12',0,'old')"))
+    with pytest.raises(RuntimeError, match='拒絕有損降級'):
+        command.downgrade(config, '20261012_0018')
+    with engine.connect() as c:
+        assert c.scalar(text("SELECT reversal_of FROM inventory_movements WHERE id = 'rev'")) == 'use'
+        assert c.scalar(text('SELECT count(*) FROM inventory_movements')) == 3
+    engine.dispose()

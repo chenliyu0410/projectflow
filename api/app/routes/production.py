@@ -11,6 +11,7 @@ from app.audit import log_audit
 from app.routes.operations import get_record
 from app.routes.inventory import authorize, quantity
 from app.services.work_order_service import CLOSED, LABELS, classify, started_ids
+from app.services.stock_service import issued_by_resource
 
 router = APIRouter(tags=['production'])
 STALE = '工單計畫已變更，請重新載入'
@@ -54,12 +55,8 @@ def detail(db, current, work):
     order = db.get(WorkOrder, (org, work.id))
     planned = order is not None and order.product_id is not None
     closed = order is not None and order.closed_at is not None
-    issued = db.execute(select(InventoryMovement.resource_id, InventoryMovement.unit, OperationsRecord.code, OperationsRecord.title,
-            func.sum(-InventoryMovement.delta_milli).label('total'))
-        .join(OperationsRecord, (OperationsRecord.organization_id == InventoryMovement.organization_id) & (OperationsRecord.id == InventoryMovement.resource_id))
-        .where(InventoryMovement.organization_id == org, InventoryMovement.work_id == work.id, InventoryMovement.kind == 'issue')
-        .group_by(InventoryMovement.resource_id, InventoryMovement.unit, OperationsRecord.code, OperationsRecord.title)
-        .order_by(OperationsRecord.code)).all()
+    # Net of material returns and reversals; a fully returned material stays listed at zero.
+    issued = issued_by_resource(db, org, work.id)
     unlinked = db.scalar(select(func.count()).select_from(InventoryMovement).where(InventoryMovement.organization_id == org,
         InventoryMovement.work_id == work.id, InventoryMovement.kind == 'completion', InventoryMovement.counted_in_plan.is_(False)))
     key = classify(order, bool(started_ids(db, org, [work.id])))
@@ -70,7 +67,8 @@ def detail(db, current, work):
         'remaining': quantity(order.planned_milli - order.completed_milli) if planned else None, 'note': order.note if order else '',
         'closed_at': order.closed_at.isoformat() if closed else None, 'closed_by': closer, 'close_reason': order.close_reason if closed else None,
         'unlinked_completions': unlinked,
-        'issued': [{'resource_id': row.resource_id, 'code': row.code, 'title': row.title, 'unit': row.unit, 'quantity': quantity(row.total)} for row in issued]}
+        'issued': [{'resource_id': row.resource_id, 'code': row.code, 'title': row.title, 'unit': row.unit, 'quantity': quantity(row.total),
+            'returned': quantity(row.returned)} for row in issued]}
 
 
 def begin(db, current, work_id, expected):
