@@ -15,7 +15,7 @@
 |---|---|
 | 目前工作項目 | **UX-CHILD 🟢 時程互動與左側專案遮蔽修正，未合併**（[成果與改善清單](ux-child-review.md)）。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 使用者檢視本機分支變更與 UI／UX 建議；本輪未授權合併、push、PR 或更新他人的運行中服務。 |
+| 下一個動作 | 使用者已授權推送功能分支並向 chenliyu0410/projectflow 的 main 開啟 PR；等待原作者審閱，不合併或部署。 |
 | 分支 | `feature/ux-child-modules-navigation`，由 `063a483` 建立；`main` 保持 `063a483`。 |
 | 最新程式 commit | 本機 UX-CHILD 提交見此分支最新 git log；基準為 `063a483`，沒有合併 main。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
@@ -23,7 +23,7 @@
 | 資料版本 | LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
 | 認領中 | 無；工程驗證完成，等待使用者檢視。 |
 | 阻塞／待人類 | 本輪無工程阻塞；待使用者檢視分支及後續UI／UX建議。實際他人線上資料與部署未動，展示資料包以外帳戶／專案未測。 |
-| 遠端 | 本輪只保留協作者本機分支，不依歷史 D50 自動合併或 push。 |
+| 遠端 | 2026-10-12 使用者明確授權推送 feature/ux-child-modules-navigation 並開 PR；main 維持原狀，不自動合併或部署。 |
 
 ---
 
@@ -1210,3 +1210,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ### 2026-10-12｜Codex｜UX-CHILD 左側專案遮蔽追加修正
 
 使用者確認左側專案區被遮蔽。重現17px清單容不下約50px列，改整個側欄統一捲動、名稱換行。修正前兩項瀏覽器驗證失敗；修正後五尺寸＋既有時程共8pass，相關前端31pass、型別／build0。一次唯讀審查無阻塞；未實測實體手機及Tab，詳見報告。僅本機功能分支，未合併／push／部署。
+
+### 2026-10-12｜Codex｜UX-CHILD PR 授權
+
+使用者要求「幫我開PR給原來的github帳號」。確認登入 lee851104 對 chenliyu0410/projectflow 具有 push 權限，目標 main。授權僅擴及功能分支推送與 PR 建立，原作者主分支及部署仍不修改。
