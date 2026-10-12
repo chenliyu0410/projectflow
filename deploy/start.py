@@ -34,7 +34,8 @@ def compose_prefix(root: Path, project: str, env_file: Path) -> list[str]:
 def run(args: list[str], *, acceptance: bool = False, lan: bool = False) -> str:
     try:
         environment = {**os.environ, 'PF_ACCEPTANCE_MODE': str(acceptance).lower(),
-                       'WEB_BIND': '0.0.0.0' if lan else '127.0.0.1'}
+                       'WEB_BIND': '0.0.0.0' if lan else '127.0.0.1',
+                       'PF_SHOWCASE_LAN': str(lan).lower()}
         result = subprocess.run(args, capture_output=True, text=True, encoding='utf-8', errors='replace',
                                 check=False, timeout=600, env=environment)
     except (OSError, subprocess.TimeoutExpired):

@@ -34,7 +34,8 @@ python deploy/start.py --lan
   ```
   開了還是連不到時，到「Windows Defender 防火牆→輸入規則」看有沒有封鎖 Docker Desktop Backend 的規則；封鎖規則優先於允許規則。
 - **帳號**：登入表單要填公司代碼、帳號、密碼。公司代碼是 `food`、`electronics`、`events`、`software`、`construction`、`hemu`，帳號清單在 `deploy/demo-data/tables/users.json`。資料包還原後密碼都是 `demo-<帳號>`，例如 `food`／`yu`／`demo-yu`。
-- **限制**：這些密碼寫在repo裡，同網路的任何人都能用管理員登入，只在信任的網路開放，試用完就關閉。沒有HTTPS。左下展示公司切換與AI模型設定只在本機127.0.0.1的畫面出現，區網試用者要切公司請用該公司的帳號重新登入；但這個限制看的是Host標頭，知道管理員密碼的人可以偽造Host直接呼叫這兩個API。
+- **切換公司**：`--lan` 時，管理員從區網登入後也能用左下「切換公司」在六家展示公司之間切換（例如 `food`／`yu`）；切過去的身分是該公司的「展示管理者」。非管理員看不到這個選單。前提是 `deploy/.env` 有 `PF_SHOWCASE_MODE=true`；不加 `--lan` 重啟後，區網的切換和展示身分的登入都會失效。
+- **限制**：這些密碼寫在repo裡，同網路的任何人都能用管理員登入，只在信任的網路開放，試用完就關閉。沒有HTTPS。AI模型設定只在本機127.0.0.1的畫面出現；這個限制看的是Host標頭，知道管理員密碼的人可以偽造Host直接呼叫該API。
 - **資料**：試用者的修改會直接寫進15173的資料庫。資料包只能匯入空的資料庫，要回到乾淨的展示資料得先清空資料庫再匯入（做法見 `deploy/demo-data/README.md` 與PROGRESS的OPS-RESTORE），清空前先備份。匯入流程會執行不加 `--lan` 的 `start.py`，完成後要再用 `--lan` 啟動一次。
 
 自動驗收使用另一個Compose專案、volume與loopback埠，避免寫入使用者試用資料：

@@ -100,3 +100,59 @@ def test_readonly_cannot_import_catalog(client):
     assert result['can_import'] is False
     item=result['items'][0]
     assert client.post('/workflows',json={k:item[k] for k in ['name','nodes','dependencies']}).status_code==403
+
+
+LAN = 'http://172.22.32.95:15173'
+
+
+def lan_login(client, username='yu'):
+    client.base_url = LAN
+    response = client.post('/auth/login', json={'organization_key': 'food', 'username': username, 'password': 'demo-'+username})
+    assert response.status_code == 200
+    return response
+
+
+def test_lan_switch_needs_both_flags_and_keeps_lan_session(client, engine, monkeypatch):
+    prepare(engine, monkeypatch)
+    monkeypatch.setenv('PF_SHOWCASE_LAN', 'true')
+    assert lan_login(client).json()['showcase']['active'] is False
+    response = client.post('/auth/showcase/switch', json={'organization_key': 'electronics'}, headers={'Origin': LAN})
+    assert response.status_code == 200
+    assert response.json()['organization']['key'] == 'electronics'
+    assert client.get('/auth/me').json()['showcase']['active'] is True
+    assert client.post('/auth/showcase/switch', json={'organization_key': 'events'}, headers={'Origin': LAN}).status_code == 200
+    monkeypatch.setenv('PF_SHOWCASE_LAN', 'false')
+    assert client.get('/auth/me').status_code == 401
+
+
+def test_lan_flag_alone_does_not_enable_showcase(client, monkeypatch):
+    monkeypatch.setenv('PF_SHOWCASE_LAN', 'true')
+    monkeypatch.setenv('PF_SHOWCASE_MODE', 'false')
+    lan_login(client)
+    assert 'showcase' not in client.get('/auth/me').json()
+    assert client.post('/auth/showcase/switch', json={'organization_key': 'events'}, headers={'Origin': LAN}).status_code == 404
+
+
+def test_lan_switch_without_lan_flag_stays_hidden(client, engine, monkeypatch):
+    prepare(engine, monkeypatch)
+    monkeypatch.delenv('PF_SHOWCASE_LAN', raising=False)
+    lan_login(client)
+    assert 'showcase' not in client.get('/auth/me').json()
+    assert client.post('/auth/showcase/switch', json={'organization_key': 'events'}, headers={'Origin': LAN}).status_code == 404
+
+
+@pytest.mark.parametrize("username", ["ming", "lin", "chen", "owner"])
+def test_lan_switch_still_rejects_nonadmin(client, engine, monkeypatch, username):
+    prepare(engine, monkeypatch)
+    monkeypatch.setenv('PF_SHOWCASE_LAN', 'true')
+    lan_login(client, username)
+    assert client.post('/auth/showcase/switch', json={'organization_key': 'electronics'}, headers={'Origin': LAN}).status_code == 403
+
+
+def test_lan_switch_still_rejects_cross_site(client, engine, monkeypatch):
+    prepare(engine, monkeypatch)
+    monkeypatch.setenv('PF_SHOWCASE_LAN', 'true')
+    lan_login(client)
+    assert client.post('/auth/showcase/switch', json={'organization_key': 'events'}, headers={'Origin': 'https://example.org'}).status_code == 403
+    assert client.post('/auth/showcase/switch', json={'organization_key': 'events'}, headers={'sec-fetch-site': 'cross-site'}).status_code == 403
+    assert client.get('/auth/me').status_code == 200

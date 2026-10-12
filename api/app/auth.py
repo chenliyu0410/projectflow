@@ -37,6 +37,6 @@ def require_session(request: Request, db: Session = Depends(get_session)) -> Cur
         raise HTTPException(status_code=401, detail="請先登入")
     _, user, organization = row
     from app import showcase
-    if showcase.dedicated(user, organization) and (not showcase.enabled() or not showcase.local_request(request)):
+    if showcase.dedicated(user, organization) and (not showcase.enabled() or not showcase.allowed_request(request)):
         raise HTTPException(status_code=401, detail="展示登入已失效")
     return CurrentUser(user=user, organization=organization, token=token)

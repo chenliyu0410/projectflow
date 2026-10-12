@@ -38,12 +38,17 @@ def local_request(request):
     return request.url.hostname in {'127.0.0.1', 'localhost', '::1'}
 
 
+def allowed_request(request):
+    """Local requests, or any request while start.py --lan opens the trial to this network."""
+    return local_request(request) or os.environ.get('PF_SHOWCASE_LAN') == 'true'
+
+
 def available(user, organization, request):
-    return enabled() and local_request(request) and user.role == 'admin' and organization.key in {c['key'] for c in COMPANIES}
+    return enabled() and allowed_request(request) and user.role == 'admin' and organization.key in {c['key'] for c in COMPANIES}
 
 
 def check_switch_request(request):
-    if not enabled() or not local_request(request):
+    if not enabled() or not allowed_request(request):
         raise HTTPException(404, '找不到項目')
     origin = request.headers.get('origin')
     if origin and origin != str(request.base_url).rstrip('/'):

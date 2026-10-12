@@ -147,11 +147,13 @@ def test_lan_start_binds_all_interfaces_but_checks_loopback(tmp_path, start_modu
     assert result['web_url'] == 'http://127.0.0.1:15173'
     assert result['lan'] is True
     assert calls and all(env['WEB_BIND'] == '0.0.0.0' for env in calls)
+    assert all(env['PF_SHOWCASE_LAN'] == 'true' for env in calls)
     start_module.check_readiness.assert_called_once_with('http://127.0.0.1:15173', acceptance=False)
 
 
 def test_default_start_forces_loopback_bind(tmp_path, start_module, monkeypatch):
     monkeypatch.setenv('WEB_BIND', '0.0.0.0')
+    monkeypatch.setenv('PF_SHOWCASE_LAN', 'true')
     calls = []
     def run(args, **kwargs):
         calls.append(kwargs['env'])
@@ -161,6 +163,7 @@ def test_default_start_forces_loopback_bind(tmp_path, start_module, monkeypatch)
     result = start_module.start(tmp_path)
     assert result['lan'] is False
     assert calls and all(env['WEB_BIND'] == '127.0.0.1' for env in calls)
+    assert all(env['PF_SHOWCASE_LAN'] == 'false' for env in calls)
 
 
 @pytest.mark.parametrize('address', ['127.0.0.1:15173', 'example.com:15173', '0.0.0.0:0'])
@@ -186,6 +189,7 @@ def test_compose_web_bind_defaults_to_loopback_and_api_stays_loopback():
     assert "'${WEB_BIND:-127.0.0.1}:${WEB_PORT:-15173}:80'" in compose
     assert "'127.0.0.1:${API_PORT:-18000}:8000'" in compose
     assert compose.count('WEB_BIND') == 1
+    assert 'PF_SHOWCASE_LAN: ${PF_SHOWCASE_LAN:-false}' in compose
 
 
 def test_docker_output_is_decoded_as_utf8(start_module, monkeypatch):
