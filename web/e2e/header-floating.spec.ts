@@ -58,6 +58,17 @@ for (const width of [1280,375]) test(`account, floating assistant and action dro
   await page.screenshot({path:info.outputPath('phase-cards.png')});
   const trigger=page.getByRole('button',{name:'專案操作',exact:true});
   await expect(trigger).toContainText('新增子節點');
+  const actionBox=await trigger.boundingBox();
+  const accountBox=await user.boundingBox();
+  expect(actionBox!.x + actionBox!.width).toBeLessThanOrEqual(accountBox!.x);
+  expect(Math.abs(actionBox!.y-accountBox!.y)).toBeLessThan(10);
+  const levelBox=await page.getByLabel('目前層級').boundingBox();
+  const titleBox=await page.getByRole('heading',{name:'成貓主食罐正式版',exact:true}).boundingBox();
+  expect(titleBox!.x).toBeGreaterThan(levelBox!.x + levelBox!.width);
+  expect(Math.abs((titleBox!.y+titleBox!.height/2)-(levelBox!.y+levelBox!.height/2))).toBeLessThan(4);
+  const tabsBox=await page.getByRole('tablist',{name:'節點內容'}).boundingBox();
+  expect(tabsBox!.y).toBeLessThan(width>860 ? 430 : 480);
+  await page.screenshot({path:info.outputPath('compact-header.png')});
   await expect(page.getByRole('button',{name:'新增子節點',exact:true})).toBeHidden();
   for (const name of ['另存為模板','套用模板']) {
     const menu=await openActions(page);

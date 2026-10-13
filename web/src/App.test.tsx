@@ -23,7 +23,7 @@ function stubFetch(fetcher: (path: string, init?: RequestInit) => unknown) {
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
 const detail = { ...projects.items[0], nodes: [
   { id: 'root', project_id: 'p1', parent_id: null, kind: 'project', title: '成貓主食罐正式版', status: 'todo', owner_user_id: 'u1', department_id: null, sort_order: 0 },
-  { id: 'phase', project_id: 'p1', parent_id: 'root', kind: 'phase', title: '市場與配方', status: 'todo', owner_user_id: null, department_id: null, sort_order: 10 },
+  { id: 'phase', project_id: 'p1', parent_id: 'root', kind: 'phase', title: '市場與配方', status: 'doing', owner_user_id: null, department_id: null, sort_order: 10 },
   { id: 'later', project_id: 'p1', parent_id: 'phase', kind: 'task', title: '後續任務', status: 'todo', owner_user_id: null, department_id: null, sort_order: 30, state_actions: ['todo', 'doing'] },
   { id: 'task', project_id: 'p1', parent_id: 'phase', kind: 'task', title: '殺菌條件驗證', status: 'todo', owner_user_id: 'u1', department_id: null, sort_order: 20, state_actions: ['todo', 'doing'] },
 ], gates: [] };
@@ -352,7 +352,8 @@ describe('P1b project navigation', () => {
     render(<App />);
     await openWorkspace();
     expect(await screen.findByRole('heading', { name: detail.title })).toBeInTheDocument();
-    expect(crumbs()).toHaveTextContent(detail.title);
+    expect(screen.getByRole('heading', { level: 1, name: detail.title })).toBeInTheDocument();
+    expect(screen.queryByLabelText('節點路徑')).not.toBeInTheDocument();
     // The project-kind root is not a card; its phase is the top level and its tasks are flattened in sort order.
     const cardTitles = () => within(screen.getByLabelText('看板')).getAllByRole('button').map(button => button.textContent);
     expect(within(screen.getByLabelText('開發階段與閘門')).getAllByRole('button').map(button => button.getAttribute('aria-label'))).toEqual(['進入階段：市場與配方']);
@@ -382,8 +383,8 @@ describe('P1b project navigation', () => {
     expect(screen.getByRole('heading', { level: 1, name: '殺菌條件驗證' })).toBeInTheDocument();
     fireEvent.click(projectButton(secondProject.title));
     expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
-    expect(crumbs()).toHaveTextContent(secondProject.title);
-    expect(crumbs()).not.toHaveTextContent('市場與配方');
+    expect(screen.getByRole('heading', { level: 1, name: secondProject.title })).toBeInTheDocument();
+    expect(screen.queryByLabelText('節點路徑')).not.toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '看板' })).toHaveAttribute('aria-selected', 'true');
     expect(within(screen.getByLabelText('看板')).getByText('這個專案還沒有節點。按「新增子節點」開始拆解。')).toBeInTheDocument();
     expect(projectButton(secondProject.title)).toHaveAttribute('aria-pressed', 'true');

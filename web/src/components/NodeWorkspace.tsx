@@ -264,9 +264,9 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
   return <>
     <section aria-label="節點詳情" className="node-head">
       <div className="node-head-main">
-        <nav aria-label="節點路徑" className="breadcrumbs"><button aria-current={selected ? undefined : 'location'} onClick={() => select(null)}>{project.title}</button>{crumbs.map(node => <span key={node.id}> / <button aria-current={node.id === selectedNodeId ? 'location' : undefined} onClick={() => select(node.id)}>{node.title}</button></span>)}</nav>
-        <div className="location-context"><span aria-label="目前層級">{level ? `第 ${level} 層 · ${selected?.kind === 'phase' ? '階段' : '任務'}` : '專案總覽'}</span>{selected && <button type="button" onClick={() => select(crumbs.length > 1 ? crumbs[crumbs.length - 2].id : null)}>↑ 返回上一層</button>}</div>
-        <h1 className="node-title">{selected?.title ?? project.title}</h1>
+        {selected && <nav aria-label="節點路徑" className="breadcrumbs"><button aria-current={selected ? undefined : 'location'} onClick={() => select(null)}>{project.title}</button>{crumbs.map(node => <span key={node.id}> / <button aria-current={node.id === selectedNodeId ? 'location' : undefined} onClick={() => select(node.id)}>{node.title}</button></span>)}</nav>}
+        <div className="node-title-row"><div className="location-context"><span aria-label="目前層級">{level ? `第 ${level} 層 · ${selected?.kind === 'phase' ? '階段' : '任務'}` : '專案總覽'}</span>{selected && <button type="button" onClick={() => select(crumbs.length > 1 ? crumbs[crumbs.length - 2].id : null)}>↑ 返回上一層</button>}</div>
+        <h1 className="node-title">{selected?.title ?? project.title}</h1></div>
         <div className="node-meta">
           {selected && <span>{selected.kind === 'task' ? '負責' : '負責人'}：{owner ?? '未指派'}{selected.department_name ? `・${selected.department_name}` : ''}</span>}
           <span>期間：{span.start ?? '未設定'} – {span.due ?? '未設定'}</span>
@@ -279,10 +279,10 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         </div>
         {selected?.kind === 'phase' && <p className="small muted">階段狀態為手動設定；子節點全部完成或略過後才能標為完成。</p>}
       </div>
-      <div className="head-actions">
+      {(owner || actions) && <div className="head-actions">
         {owner && <span className="avatar member" title={owner} aria-hidden="true">{owner.slice(0, 1)}</span>}
         {actions}
-      </div>
+      </div>}
     </section>
     {selected && reloadRecords && expired && <CollaborationActions key={`collaboration:${selected.id}:${recordVersion}`} node={selected} reload={reloadRecords} expired={expired}/>}
     {selected?.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`report:${selected.id}:${recordVersion}`} node={selected} userId={userId} reload={reloadRecords} expired={expired}

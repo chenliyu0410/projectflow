@@ -19,10 +19,10 @@ const LINKS: NavItem[] = [
   { page: 'audit', label: '活動與稽核紀錄', icon: 'audit' },
 ];
 
-export default function WorkspaceShell({ route, projects, busy, navigate, children, session, createAction, copilotScope, food = false, companyName = '目前公司', accountName = '使用者', previewKey }: {
+export default function WorkspaceShell({ route, projects, busy, navigate, children, session, createAction, headerActions, copilotScope, food = false, companyName = '目前公司', accountName = '使用者', previewKey }: {
   route: WorkspaceRoute; projects: ProjectSummary[]; busy: boolean;
   navigate: (route: WorkspaceRoute) => void; children: ReactNode; session?: ReactNode;
-  createAction?: ReactNode; copilotScope: string; food?: boolean; companyName?: string; accountName?: string; previewKey?: string;
+  createAction?: ReactNode; headerActions?: ReactNode; copilotScope: string; food?: boolean; companyName?: string; accountName?: string; previewKey?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
@@ -110,7 +110,9 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
     <div className="workspace-main">
       <div className="workspace-topbar">
         <button ref={toggle} className="navigation-toggle" aria-label="切換導覽" aria-expanded={expanded} aria-controls="workspace-navigation" onClick={() => setExpanded(value => !value)}>☰ 選單</button>
+        <div className="workspace-account-actions">{headerActions}
         <Dropdown className="account-menu" name="使用者選單" label={<><span className="avatar" aria-hidden="true">{accountName.slice(0, 1)}</span><span className="account-name">{accountName}</span></>}><div className="sidebar-session">{session}</div></Dropdown>
+        </div>
       </div>
       <div className="workspace-content">{children}</div>
     </div>
