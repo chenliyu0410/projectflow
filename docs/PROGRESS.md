@@ -15,15 +15,15 @@
 |---|---|
 | 目前工作項目 | **COMPACT-HEADER 🟢 專案操作頂欄、同列專案標題**（[短規格與驗收](superpowers/plans/2026-10-13-compact-header.md)）；延續 UX-CHILD 分支，未合併。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 使用者檢視本機 15177 的三項前端更新；此次先本機交付，尚未推送至既有 PR #3，不合併或部署。 |
+| 下一個動作 | 依使用者2026-10-13要求更新既有 [PR #3](https://github.com/chenliyu0410/projectflow/pull/3)，等待審閱；不合併或部署。相依圖 HTML 原型暫不採用、不納入。 |
 | 分支 | `feature/ux-child-modules-navigation`，由 `063a483` 建立；`main` 保持 `063a483`。 |
 | 最新程式 commit | 本機 UX-CHILD 提交見此分支最新 git log；基準為 `063a483`，沒有合併 main。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | PHASE-CARDS：相關單元48pass、桌面／手機端對端2pass、型別／build exit0；未重跑其他歷史測試。HEADER-FLOAT：單元全量初跑303pass／2fail（共305），修正測試等待與導覽操作後相關兩檔45pass；1280／375端對端2pass，包含唯讀權限、三操作表單取消、草稿保留與選單邊界；型別／build exit0。獨立審查發現手機選單越界，修正並複核通過。歷史端對端僅解析65項，未全量重跑。追加側欄：5種尺寸＋時程E2E共8pass，相關前端31pass，型別／build exit0，獨立審查無阻塞。前輪UX-CHILD：前端28檔298pass（單工作程序）；型別與build exit0；6公司80帳戶39專案的528組同公司新增矩陣1pass（內含4157次新增判定及2592次跨公司拒絕），既有節點／階層／時程API 76pass；1280桌面／375手機／唯讀E2E 3pass。平行測試曾有非固定等待失敗，詳見報告。沒有跑歷史全量API或真PG部署。 |
+| 測試基準 | PR交付複驗：前端30檔306pass（單工作程序，exit0）；初跑304pass／2fail，更新階段無障礙描述斷言與復原測試的非輸入欄位焦點／完成等待後全量通過，兩項測試修改經唯讀審查無實質問題。COMPACT-HEADER最近一次桌面／手機端對端2pass、型別／build exit0；本輪僅修改測試與交付文件，未重跑建置／端對端。PHASE-CARDS：相關單元48pass、桌面／手機端對端2pass、型別／build exit0；未重跑其他歷史測試。HEADER-FLOAT：單元全量初跑303pass／2fail（共305），修正測試等待與導覽操作後相關兩檔45pass；1280／375端對端2pass，包含唯讀權限、三操作表單取消、草稿保留與選單邊界；型別／build exit0。獨立審查發現手機選單越界，修正並複核通過。歷史端對端僅解析65項，未全量重跑。追加側欄：5種尺寸＋時程E2E共8pass，相關前端31pass，型別／build exit0，獨立審查無阻塞。前輪UX-CHILD：前端28檔298pass（單工作程序）；型別與build exit0；6公司80帳戶39專案的528組同公司新增矩陣1pass（內含4157次新增判定及2592次跨公司拒絕），既有節點／階層／時程API 76pass；1280桌面／375手機／唯讀E2E 3pass。平行測試曾有非固定等待失敗，詳見報告。沒有跑歷史全量API或真PG部署。 |
 | 資料版本 | LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
 | 認領中 | 無；工程驗證完成，等待使用者檢視。 |
 | 阻塞／待人類 | 本輪無工程阻塞；待使用者檢視分支及後續UI／UX建議。實際他人線上資料與部署未動，展示資料包以外帳戶／專案未測。 |
-| 遠端 | 2026-10-12 使用者明確授權推送 feature/ux-child-modules-navigation 並開 PR；main 維持原狀，不自動合併或部署。 |
+| 遠端 | 2026-10-13 使用者要求先開 PR；已有未合併 PR #3，更新同一份並推送 feature/ux-child-modules-navigation。main 維持原狀，不自動合併或部署。 |
 
 ---
 
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- PR交付（2026-10-13）：依使用者要求將本分支正式介面更新納入 [PR #3](https://github.com/chenliyu0410/projectflow/pull/3)，等待審閱。以下歷史項目的「本機／未推送」為當時狀態，以本筆交付紀錄為準。前端全量30檔306pass；更新兩項過期／焦點等待測試，獨立複核無實質問題。相依圖獨立 HTML 與登入風格試稿均在儲存庫外，暫不採用、不提交；正式相依圖維持現況。
 
 - COMPACT-HEADER 🟢（2026-10-13）：新增子節點下拉移到帳號左側，專案總覽標籤與名稱同列、根頁省略重複路徑，手機帳號縮為頭像。1280／375端對端2pass；單元三檔初跑90pass／12fail（舊階段測資仍todo及根頁路徑斷言），更新測資／斷言後App56pass，另外兩檔46pass。型別／build exit0、唯讀審查無實質問題。本機交付，未推送／合併／部署。
 

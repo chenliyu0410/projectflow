@@ -85,7 +85,7 @@ describe('TP-A progress', () => {
   it('keeps the phase button name and adds progress and gate state as its description', () => {
     workspace({ selectedNodeId: null });
     const phase = within(screen.getByLabelText('開發階段與閘門')).getByRole('button', { name: '進入階段：試作' });
-    expect(phase).toHaveAccessibleDescription('63% ● 目前階段');
+    expect(phase).toHaveAccessibleDescription('進行中 完成度63% 無閘門');
   });
 });
 

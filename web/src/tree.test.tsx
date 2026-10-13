@@ -236,6 +236,10 @@ describe('TP-B app flows', () => {
     fireEvent.click(screen.getByRole('button', { name: '↖ 升級' }));
     expect(await screen.findByText('已將「子任務二」移到「試作」底下')).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledWith('/api/nodes/a2/move', expect.objectContaining({ body: JSON.stringify({ parent_id: 'ph' }) }));
+    const editButton = screen.getByRole('button', { name: '編輯節點' });
+    await waitFor(() => expect(editButton).toBeEnabled());
+    // Ctrl+Z here represents keyboard use outside an editable field after the move settles.
+    editButton.focus();
     fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
     expect(await screen.findByText('已復原：移動「子任務二」')).toBeInTheDocument();
     fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
