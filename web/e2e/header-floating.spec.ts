@@ -42,6 +42,13 @@ for (const width of [1280,375]) test(`account, floating assistant and action dro
   await expect(phases.getByRole('button',{name:'進入階段：小量試作'})).toContainText('尚未開始');
   await expect(phases.getByRole('button',{name:'進入階段：小量試作'})).toBeDisabled();
   await expect(phases.getByRole('button',{name:'進入階段：市場與配方'})).toBeEnabled();
+  await expect(phases.locator('.phase-progress-track')).toHaveCount(await phases.getByRole('button').count());
+  const activeTrack=phases.locator('.phase-doing .phase-progress-track > span').first();
+  await expect(activeTrack).toHaveAttribute('style', /width: 68%/);
+  const activeColor=await activeTrack.evaluate(el=>getComputedStyle(el).backgroundColor);
+  const inactiveColor=await phases.locator('.phase-todo .phase-progress-track > span').first().evaluate(el=>getComputedStyle(el).backgroundColor);
+  expect(activeColor).not.toBe(inactiveColor);
+  await page.screenshot({path:info.outputPath('phase-cards.png')});
   const trigger=page.getByRole('button',{name:'專案操作',exact:true});
   await expect(trigger).toContainText('新增子節點');
   await expect(page.getByRole('button',{name:'新增子節點',exact:true})).toBeHidden();

@@ -489,21 +489,25 @@ button.danger { border-color: #E3B294; color: var(--red); }
 .status-select select { width: auto; min-height: 36px; padding: 4px 8px; font-size: 13px; }
 .status-select.compact { display: block; }
 .status-select.compact select { width: 100%; min-height: 30px; padding: 2px 6px; font-size: 12px; }
-.phases { display: flex; gap: 12px; padding: 2px; overflow-x: auto; }
-.phase { display: flex; flex: 1 0 150px; flex-direction: column; align-items: stretch; gap: 10px; min-width: 150px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); text-align: left; white-space: normal; }
-.phase-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 26px; }
-.phase-name { font-size: 15px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
-.phase-state { font-size: 12px; color: var(--muted); }
-.phase-gate { font-size: 11px; line-height: 1.5; color: var(--muted); margin-top: auto; }
-.phase-doing { border-color: var(--teal); background: var(--teal-soft); box-shadow: inset 0 0 0 1px var(--teal); }
-.phase-doing .phase-state { color: var(--teal); font-weight: 700; }
-.phase-done { background: #F0F5EF; border-color: #C7D8C3; }
-.phase-done .phase-state { color: #416C45; }
-.phase-arrow { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; width: 26px; height: 26px; background: var(--teal); color: white; font-size: 18px; }
-.phase:hover:not(:disabled) { border-color: var(--teal); }
-.phase:disabled { opacity: 1; cursor: not-allowed; }
-.phase-todo:disabled { background: #EEEDE9; color: #77756F; border-color: #DDDAD2; }
-.phase:disabled .phase-gate { color: #77756F; }
+.phases { display: flex; gap: 14px; padding: 4px 3px 12px; overflow-x: auto; }
+.phase { display: flex; flex: 1 0 150px; flex-direction: column; align-items: stretch; gap: 12px; min-width: 150px; min-height: 196px; padding: 16px; border: 2px solid #CECCC5; border-top-width: 6px; border-radius: 14px; background: #F0EFEB; box-shadow: 0 3px 8px #1C1B1910; text-align: left; white-space: normal; }
+.phase-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 30px; }
+.phase-name { font-size: 18px; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
+.phase-state { align-self: center; padding: 4px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #696760; background: #E0DED7; }
+.phase-gate { font-size: 11px; line-height: 1.5; color: #74716A; margin-top: auto; }
+.phase-progress-label { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; color: #74716A; font-size: 11px; }
+.phase-progress-label strong { font-size: 22px; line-height: 1; font-variant-numeric: tabular-nums; }
+.phase-progress-track { display: block; height: 8px; flex-shrink: 0; overflow: hidden; border-radius: 4px; background: #DCD9D2; }
+.phase-progress-track > span { display: block; height: 100%; border-radius: inherit; background: #AAA79F; }
+.phase-doing { border-color: var(--teal); background: #F0F8F5; box-shadow: 0 4px 12px #1F5F5B26; }
+.phase-doing .phase-name, .phase-doing .phase-progress-label strong { color: #174C48; }
+.phase-doing .phase-state { color: white; background: var(--teal); }
+.phase-doing .phase-progress-track { background: #D1E4DF; }
+.phase-doing .phase-progress-track > span { background: var(--teal); }
+.phase-arrow { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; width: 30px; height: 30px; background: var(--teal); color: white; font-size: 22px; font-weight: 700; }
+.phase:hover:not(:disabled) { border-color: #174C48; background: #E5F3ED; }
+.phase:disabled { opacity: 1; cursor: not-allowed; color: #74716A; }
+.phase:disabled .phase-gate { color: #74716A; }
 .gate-chip { align-self: flex-start; padding: 1px 6px; border-radius: 6px; background: #EFEBE3; color: var(--muted); font-size: 11px; white-space: nowrap; }
 .gate-chip.ok { background: var(--teal-soft); color: var(--teal); }
 .gate-inline { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }

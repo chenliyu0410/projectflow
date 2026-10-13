@@ -301,7 +301,8 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         onClick={() => select(phase.id)} aria-label={`進入階段：${phase.title}`} aria-describedby={`phase-state-${phase.id} phase-progress-${phase.id} phase-gate-${phase.id}`}>
         <span className="phase-row"><span className="phase-state" id={`phase-state-${phase.id}`}>{complete ? '✓ ' : ''}{stateText}</span>{started && <span className="phase-arrow" aria-label="進行中階段">→</span>}</span>
         <span className="phase-name">{phase.title}</span>
-        <span className="small muted" id={`phase-progress-${phase.id}`}>完成度 {value}%</span>
+        <span className="phase-progress-label" id={`phase-progress-${phase.id}`}><span>完成度</span><strong>{value}%</strong></span>
+        <span className="phase-progress-track" aria-hidden="true"><span style={{ width: `${value}%` }} /></span>
         <span className="phase-gate" id={`phase-gate-${phase.id}`}>{phase.status === 'skipped' ? '此階段已略過' : reason || (phaseGate?.status === 'pending' ? '本階段閘門待核准' : phaseGate ? '閘門已核准' : '無閘門')}</span>
       </button>;
     })}</section>}
