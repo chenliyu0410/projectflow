@@ -30,6 +30,7 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
   const [progress, setProgress] = useState<Record<string, number | null>>({});
   const toggle = useRef<HTMLButtonElement>(null);
   const copilotToggle = useRef<HTMLButtonElement>(null);
+  const restoreCopilotFocus = useRef(false);
   const projectToggle = useRef<HTMLButtonElement>(null);
   const projectPanel = useRef<HTMLElement>(null);
   const location = route.page === 'project' ? `project:${route.projectId}` : route.page;
@@ -42,7 +43,14 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
   function go(next: WorkspaceRoute) { if (expanded) toggle.current?.focus(); else if (projectsOpen) projectToggle.current?.focus(); setProjectsOpen(false); setExpanded(false); navigate(next); }
   function closeProjects() { setProjectsOpen(false); projectToggle.current?.focus(); }
   function closeNavigation() { setExpanded(false); toggle.current?.focus(); }
-  function closeCopilot() { setCopilotOpen(false); copilotToggle.current?.focus(); }
+  function closeCopilot() { restoreCopilotFocus.current = true; setCopilotOpen(false); }
+  useEffect(() => {
+    // The launcher is hidden while open; focus it only after its visible state is committed.
+    if (!copilotOpen && restoreCopilotFocus.current) {
+      restoreCopilotFocus.current = false;
+      copilotToggle.current?.focus();
+    }
+  }, [copilotOpen]);
   useEffect(() => {
     // Focus may stay on the toggle after opening, so Escape is handled page-wide while a drawer is open.
     if (!expanded && !copilotOpen && !projectsOpen) return;

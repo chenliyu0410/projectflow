@@ -911,7 +911,7 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .account-menu .sidebar-session { margin: 0; background: transparent; }
 .project-actions-menu .dropdown-trigger { min-width: 164px; }
 .project-actions-menu .dropdown-panel { min-width: 200px; }
-.copilot, .copilot.open { position: fixed; inset: auto 20px 88px auto; z-index: 55; width: 520px; max-width: calc(100vw - 40px); height: min(760px, 80dvh, calc(100dvh - 128px)); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 16px 48px #1C1B1933; transform: none; visibility: visible; overflow-y: auto; }
+.copilot, .copilot.open { position: fixed; inset: 16px 20px 16px auto; z-index: 55; width: 520px; max-width: calc(100vw - 40px); height: auto; border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 16px 48px #1C1B1933; transform: none; visibility: visible; overflow-y: auto; }
 .copilot[hidden] { display: none; }
 .copilot-close { display: inline-flex; }
 .copilot-chat { flex: 1 0 120px; }
@@ -924,6 +924,26 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
   .workspace-topbar { padding: 10px 16px; min-height: 62px; }
   .workspace-topbar .navigation-toggle { display: inline-flex; }
   .project-actions-menu { margin-left: auto; }
-  .copilot, .copilot.open { right: 12px; bottom: 80px; max-width: calc(100vw - 24px); height: min(80dvh, calc(100dvh - 120px)); padding: 14px; }
+  .copilot, .copilot.open { inset: 12px 12px 12px auto; max-width: calc(100vw - 24px); height: auto; padding: 14px; }
   .copilot-launcher { right: 16px; bottom: 16px; width: 50px; height: 50px; }
+}
+
+/* Keep the expanded panel clear of the launcher; the panel has its own close button. */
+.copilot-launcher[aria-expanded=true] { visibility: hidden; pointer-events: none; }
+.copilot-launcher[aria-expanded=false] > svg { animation: copilot-spark 6s ease-in-out infinite; }
+.copilot-launcher[aria-expanded=false]::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; animation: copilot-halo 6s ease-out infinite; }
+.copilot-launcher:hover > svg, .copilot-launcher:focus-visible > svg { animation: none; }
+.copilot-launcher:hover::after, .copilot-launcher:focus-visible::after { animation: none; }
+@keyframes copilot-spark {
+  0%, 14%, 100% { transform: translateY(0) rotate(0); }
+  5% { transform: translateY(-3px) rotate(-8deg); }
+  9% { transform: translateY(0) rotate(5deg); }
+  11% { transform: translateY(-1px) rotate(0); }
+}
+@keyframes copilot-halo {
+  0% { box-shadow: 0 0 0 0 #1F5F5B55; }
+  18%, 100% { box-shadow: 0 0 0 10px #1F5F5B00; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .copilot-launcher[aria-expanded=false] > svg, .copilot-launcher[aria-expanded=false]::after { animation: none; }
 }
