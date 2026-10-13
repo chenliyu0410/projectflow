@@ -1,4 +1,4 @@
-import { findProjectMenu, findCreateProjectButton } from './test-navigation';
+import { findCreateProjectButton, findProjectMenu, logoutButton, projectAction } from './test-navigation';
 import { beforeEach as beforeTpG } from 'vitest';
 import { api as tpGApi } from './api';
 beforeTpG(() => { vi.spyOn(tpGApi, 'reportFields').mockResolvedValue({fields:[],version:0,active:true,can_edit:true}); });
@@ -58,7 +58,7 @@ describe('P2a node editor', () => {
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '已儲存舊表單' } });
     fireEvent.click(screen.getByRole('button', { name: '儲存' }));
     await waitFor(() => expect(reads).toBe(2));
-    fireEvent.click(screen.getByRole('button', { name: mode === 'create' ? '新增子節點' : '編輯節點' }));
+    fireEvent.click(mode === 'create' ? projectAction('新增子節點') : screen.getByRole('button', { name:'編輯節點' }));
     await screen.findByRole('option', { name: '成員' });
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '新表單草稿' } });
     await act(async () => { finishReload(response(manageable)); });
@@ -97,7 +97,8 @@ describe('P2a node editor', () => {
     });
     stubFetch( fetcher); render(<App />);
     fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
-    fireEvent.click(await screen.findByRole('button', { name: '新增子節點' }));
+    await screen.findByRole('button', { name:'專案操作' });
+    fireEvent.click(projectAction('新增子節點'));
     await screen.findByRole('option', { name: '成員' });
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: task.title } });
     fireEvent.click(screen.getByRole('button', { name: '儲存' }));
@@ -124,7 +125,7 @@ describe('P2a node editor', () => {
     let finish!: (value: unknown) => void;
     const fetcher = setup(() => new Promise(resolve => { finish = resolve; })); await openEditor();
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '登出清除' } }); fireEvent.click(screen.getByRole('button', { name: '儲存' }));
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    fireEvent.click(logoutButton());
     await screen.findByRole('heading', { name: '登入專流' });
     await act(async () => { finish(response({}, 401)); });
     expect(screen.queryByLabelText('節點名稱')).not.toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { projectMenu } from './test-navigation';
+import { projectAction, projectMenu } from './test-navigation';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
@@ -264,7 +264,7 @@ describe('TP-B app flows', () => {
   it('does not offer a new child under a closed node', async () => {
     app();
     await openNode('已完成任務');
-    const add = screen.getByRole('button', { name: /新增子節點/ });
+    const add = projectAction(/新增子節點/);
     expect(add).toBeDisabled();
     expect(add).toHaveAttribute('title', '不能在已完成、待確認或已略過的節點底下新增');
   });

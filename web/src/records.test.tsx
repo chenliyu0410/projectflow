@@ -1,4 +1,4 @@
-import { findProjectMenu } from './test-navigation';
+import { findProjectMenu, logoutButton } from './test-navigation';
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
@@ -547,7 +547,7 @@ describe('record session and replacement races', () => {
     );
     await fillReport();
     fireEvent.click(screen.getByRole('button', { name: '送出回報' }));
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    fireEvent.click(logoutButton());
     await screen.findByRole('button', { name: '登入' });
     await act(async () => pending.resolve(response({}, 401)));
     expect(screen.getByRole('button', { name: '登入' })).toBeInTheDocument();

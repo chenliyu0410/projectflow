@@ -1,3 +1,4 @@
+import { openAccount } from './navigation';
 import { expect, test } from '@playwright/test';
 
 for (const width of [1280, 375]) test(`AI imported RAG and SQL journey ${width}`, async ({ page, request }, info) => {
@@ -10,7 +11,7 @@ for (const width of [1280, 375]) test(`AI imported RAG and SQL journey ${width}`
   await page.getByLabel('帳號').fill('yu'); await page.getByLabel('密碼').fill('demo-yu');
   await page.getByRole('button', { name: '登入', exact: true }).click();
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
-  if (width === 375) await page.getByRole('button', { name: '切換 AI 副手' }).click();
+  await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const ai = page.getByLabel('AI 專案副手', { exact: true });
   await expect(ai).toContainText('24 個專案');
   await ai.getByLabel('AI展示專案').selectOption('MY-AI-001');
@@ -38,9 +39,9 @@ for (const width of [1280, 375]) test(`AI imported RAG and SQL journey ${width}`
   expect(await ai.getByLabel('啟用本地模型整理回答').isChecked()).toBe(false);
   await ai.getByText('本地模型連線設定').click();
   if (width === 375) { await ai.getByRole('button', { name: '關閉 AI 副手' }).click(); await page.getByRole('button', { name: '切換導覽' }).click(); }
-  await page.getByLabel('切換公司（本機展示）').selectOption('electronics');
+  await (await openAccount(page)).getByLabel('切換公司（本機展示）').selectOption('electronics');
   await expect(page.getByLabel('目前公司')).toHaveText('峰曜科技');
-  if (width === 375) await page.getByRole('button', { name: '切換 AI 副手' }).click();
+  await page.getByRole('button', { name: '切換 AI 副手' }).click();
   await expect(ai).toContainText('峰曜科技・AI展示資料區');
   await expect(ai.locator('.copilot-message')).toHaveCount(0);
   await ai.getByLabel('AI展示專案').selectOption('FY-AI-001');

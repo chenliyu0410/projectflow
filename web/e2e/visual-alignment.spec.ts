@@ -38,9 +38,9 @@ for (const width of [1280, 375]) test(`UI1 visual alignment and navigation at ${
   await capture('overview');
   if (width === 1280) {
     expect(await page.locator('.workspace-navigation').evaluate(el => el.getBoundingClientRect().width)).toBe(252);
-    // Demo three-zone widths at 1280: side 252 | main 678 | copilot 350.
-    expect(await page.locator('.workspace-main').evaluate(el => el.getBoundingClientRect().width)).toBe(678);
-    expect(await page.getByRole('complementary', { name: 'AI 專案副手' }).evaluate(el => el.getBoundingClientRect().width)).toBe(350);
+    // Collapsed assistant leaves the full area beside the 252px navigation.
+    expect(await page.locator('.workspace-main').evaluate(el => el.getBoundingClientRect().width)).toBe(1028);
+    await expect(page.getByRole('complementary', { name: 'AI 專案副手' })).toBeHidden();
     await openProjects(page);
     // Long project names must not overlap their next sibling in the scrolling sidebar.
     expect(await page.locator('.sidebar-projects').evaluate(el => [...el.children].every((a, i, list) => i === 0 || a.getBoundingClientRect().top >= list[i-1].getBoundingClientRect().bottom))).toBe(true);
@@ -56,7 +56,7 @@ for (const width of [1280, 375]) test(`UI1 visual alignment and navigation at ${
   await menu(); await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
   await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible(); await capture('workspace');
   // UI4: Demo board is four columns (148px each at 1280 with the copilot open, 240px scrolling inside the board on phones).
-  expect(await page.locator('.kanban-column').evaluateAll(cols => cols.map(c => Math.round(c.getBoundingClientRect().width)))).toEqual(Array(4).fill(width === 1280 ? 140 : 240));
+  expect(await page.locator('.kanban-column').evaluateAll(cols => cols.map(c => Math.round(c.getBoundingClientRect().width)))).toEqual(Array(4).fill(width === 1280 ? 227 : 240));
   await page.getByRole('tab', { name: '時程', exact: true }).click(); await expect(page.getByLabel('專案時程')).toBeVisible(); await capture('timeline');
   await page.getByRole('tab', { name: '相依圖', exact: true }).click(); await expect(page.getByLabel('前置設定')).toBeVisible(); await capture('dependencies');
   await page.getByRole('tab', { name: '看板', exact: true }).click();

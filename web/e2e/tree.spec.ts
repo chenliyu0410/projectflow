@@ -1,4 +1,4 @@
-import { openProjects } from './navigation';
+import { openAccount, openProjects } from './navigation';
 import { mkdir } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
@@ -179,7 +179,7 @@ test('TP-B a task owner may promote and demote but not copy or delete (D74)', as
   const options = await (await page.request.get(`/api/projects/${created.id}/assignment-options`)).json();
   const ming = options.users.find((user: { display_name: string }) => user.display_name === '明成員').id as string;
   await seedTree(page, `${title} 樹`, ming);
-  await page.getByRole('button', { name: '登出' }).click();
+  await (await openAccount(page)).getByRole('button',{name:'登出',exact:true}).click();
   const problems = watch(page);
   await login(page, 'ming');
   await page.getByLabel('工作區導覽').getByRole('button', { name: '我的任務' }).click();

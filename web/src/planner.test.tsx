@@ -1,4 +1,4 @@
-import { projectMenu } from './test-navigation';
+import { projectAction, projectMenu } from './test-navigation';
 import { beforeEach as beforeTpG } from 'vitest';
 import { api as tpGApi } from './api';
 beforeTpG(() => { vi.spyOn(tpGApi, 'reportFields').mockResolvedValue({fields:[],version:0,active:true,can_edit:true}); });
@@ -349,8 +349,8 @@ describe('TP-A app flows', () => {
   it('TP-E enables template actions for project managers', async () => {
     app('admin');
     await openProject();
-    expect(screen.getByRole('button', { name: /另存為模板/ })).toBeEnabled();
-    expect(screen.getByRole('button', { name: /套用模板/ })).toBeEnabled();
+    expect(projectAction(/另存為模板/)).toBeEnabled();
+    expect(projectAction(/套用模板/)).toBeEnabled();
   });
 
   it('opens the task with its report form from a card ✓ 回報', async () => {

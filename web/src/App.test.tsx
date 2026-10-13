@@ -1,4 +1,4 @@
-import { findProjectMenu, projectMenu, findCreateProjectButton, createProjectButton } from './test-navigation';
+import { createProjectButton, findCreateProjectButton, findLogoutButton, findProjectMenu, logoutButton, projectMenu } from './test-navigation';
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
@@ -152,7 +152,7 @@ describe('P1b workflow creation', () => {
     await openWorkspace();
     if (stage === 'create') { await fillCreation(); fireEvent.click(screen.getByRole('button', { name: '建立專案' })); }
     else fireEvent.click(await findCreateProjectButton());
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    fireEvent.click(logoutButton());
     await screen.findByRole('heading', { name: '登入專流' });
     await act(async () => { resolveOld(response(stage === 'create' ? secondProject : workflowList)); });
     expect(screen.getByRole('heading', { name: '登入專流' })).toBeInTheDocument();
@@ -338,7 +338,7 @@ describe('P1b kanban and gates', () => {
     await screen.findByRole('heading', { name: detail.title });
     selectPhase();
     fireEvent.change(statusControl(), { target: { value: 'doing' } });
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    fireEvent.click(logoutButton());
     await screen.findByRole('heading', { name: '登入專流' });
     await act(async () => { resolveMove(response({ ...taskNode, status: 'doing' })); });
     expect(screen.getByRole('heading', { name: '登入專流' })).toBeInTheDocument();
@@ -440,7 +440,7 @@ describe('P1b project navigation', () => {
     render(<App />);
     await openWorkspace();
     await findProjectMenu();
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    fireEvent.click(logoutButton());
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
     await act(async () => { resolveDetail(response(detail)); });
     expect(screen.queryByLabelText('節點詳情')).not.toBeInTheDocument();
@@ -584,7 +584,7 @@ describe('P1b session UI', () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response(session)).mockImplementationOnce(() => new Promise(resolve => { resolveProjects = resolve; })).mockResolvedValueOnce(response(undefined, 204));
     stubFetch(fetcher);
     render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: '登出' }));
+    fireEvent.click(await findLogoutButton());
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
     expect(fetcher).toHaveBeenLastCalledWith('/api/auth/logout', expect.objectContaining({ credentials: 'include', method: 'POST' }));
     expect(fetcher.mock.calls[1][1].signal.aborted).toBe(true);
@@ -599,10 +599,10 @@ describe('P1b session UI', () => {
     await openWorkspace();
     await screen.findByRole('heading', { name: detail.title });
     selectPhase();
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    fireEvent.click(logoutButton());
     expect(await screen.findByRole('alert')).toHaveTextContent('操作失敗，請稍後再試');
     expect(document.body).not.toHaveTextContent('private-secret');
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    fireEvent.click(logoutButton());
     expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
   });
 

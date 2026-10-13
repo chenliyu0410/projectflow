@@ -1,4 +1,4 @@
-import { openProjects } from './navigation';
+import { openAccount, openProjects } from './navigation';
 import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
@@ -100,7 +100,7 @@ for (const width of [1280, 375]) {
     await page.getByLabel('待處理').getByRole('combobox', { name: '試作工單狀態' }).selectOption('doing');
     await expect(page.getByLabel('進行中').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('doing');
     await screenshot('gate-approved');
-    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出' }).click();
+    await (await openAccount(page)).getByRole('button',{name:'登出',exact:true}).click();
     await expect(page.getByRole('heading', { name: '登入專流' })).toBeVisible();
     await login('lin');
     await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();

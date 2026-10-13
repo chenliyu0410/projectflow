@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { api } from '../api';
 import type { ProjectSummary, WorkspaceRoute } from '../types';
 import CopilotPanel from './CopilotPanel';
+import Dropdown from './Dropdown';
 import NavIcon from './NavIcons';
 import type { IconName } from './NavIcons';
 
@@ -18,10 +19,10 @@ const LINKS: NavItem[] = [
   { page: 'audit', label: '活動與稽核紀錄', icon: 'audit' },
 ];
 
-export default function WorkspaceShell({ route, projects, busy, navigate, children, session, createAction, copilotScope, food = false, companyName = '目前公司', previewKey }: {
+export default function WorkspaceShell({ route, projects, busy, navigate, children, session, createAction, copilotScope, food = false, companyName = '目前公司', accountName = '使用者', previewKey }: {
   route: WorkspaceRoute; projects: ProjectSummary[]; busy: boolean;
   navigate: (route: WorkspaceRoute) => void; children: ReactNode; session?: ReactNode;
-  createAction?: ReactNode; copilotScope: string; food?: boolean; companyName?: string; previewKey?: string;
+  createAction?: ReactNode; copilotScope: string; food?: boolean; companyName?: string; accountName?: string; previewKey?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
@@ -86,7 +87,7 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
       </nav>
       <button ref={projectToggle} className="project-menu-toggle" disabled={busy} aria-label="專案" aria-expanded={projectsOpen} aria-controls="project-menu" onClick={() => setProjectsOpen(value => !value)}><NavIcon name="projects"/><span>專案</span><span className="project-menu-count">{projects.length}</span><span aria-hidden="true">›</span></button>
 
-      <div className="sidebar-session">{session}</div>
+
     </div>
       <aside ref={projectPanel} id="project-menu" className="project-menu" aria-label="專案清單" hidden={!projectsOpen}>
         <div className="project-menu-heading"><h2>專案 <span>{projects.length}</span></h2><button className="project-menu-close" aria-label="關閉專案選單" onClick={closeProjects}>×</button></div>
@@ -99,12 +100,13 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
         </button>;
       })}</div>{createAction && <div className="sidebar-create" onClick={() => { setProjectsOpen(false); setExpanded(false); }}>{createAction}</div>}</aside>
     <div className="workspace-main">
-      <div className="mobile-navigation">
+      <div className="workspace-topbar">
         <button ref={toggle} className="navigation-toggle" aria-label="切換導覽" aria-expanded={expanded} aria-controls="workspace-navigation" onClick={() => setExpanded(value => !value)}>☰ 選單</button>
-        <button ref={copilotToggle} className="copilot-toggle" aria-label="切換 AI 副手" aria-expanded={copilotOpen} aria-controls="copilot-panel" onClick={() => setCopilotOpen(value => !value)}>✦ AI 副手</button>
+        <Dropdown className="account-menu" name="使用者選單" label={<><span className="avatar" aria-hidden="true">{accountName.slice(0, 1)}</span><span className="account-name">{accountName}</span></>}><div className="sidebar-session">{session}</div></Dropdown>
       </div>
       <div className="workspace-content">{children}</div>
     </div>
+    <button ref={copilotToggle} className="copilot-launcher" aria-label="切換 AI 副手" title="AI 專案副手" aria-expanded={copilotOpen} aria-controls="copilot-panel" onClick={() => setCopilotOpen(value => !value)}><NavIcon name="ai" size={26}/><span className="sr-only">AI 專案副手</span></button>
     <CopilotPanel key={previewKey ?? location} food={food} companyName={companyName} scope={copilotScope} open={copilotOpen} close={closeCopilot} />
     {(expanded || copilotOpen) && <div className="drawer-backdrop" aria-hidden="true" onClick={() => { if (expanded) closeNavigation(); if (copilotOpen) closeCopilot(); }} />}
   </>;

@@ -1,4 +1,4 @@
-import { openProjects } from './navigation';
+import { openAccount, openActions, openProjects } from './navigation';
 import { expect, test, type Page, type APIRequestContext } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
@@ -44,7 +44,7 @@ for (const width of [1280, 375]) {
     await page.request.post('/api/auth/login', { data: { organization_key: 'food', username: 'yu', password: 'demo-yu' } });
     const departmentId = (await options.json()).departments[0].id;
     for (const [name, kind] of [['階段甲', 'phase'], ['父任務', 'task'], ['子任務', 'task']]) {
-      await page.getByRole('button', { name: '新增子節點', exact: true }).click();
+      await (await openActions(page)).getByRole('button',{name:'新增子節點',exact:true}).click();
       await page.getByLabel('節點名稱').fill(name);
       await page.getByLabel('種類', { exact: true }).selectOption(kind);
       await page.getByLabel('負責人', { exact: true }).selectOption(memberId);
@@ -67,7 +67,7 @@ for (const width of [1280, 375]) {
     expect(child.department_id).toBe(departmentId);
     expect(child.start_date).toBeNull();
     expect(child.due_date).toBe('2026-10-12');
-    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();await expect(page.getByRole('button',{name:'登入',exact:true})).toBeVisible();
+    await (await openAccount(page)).getByRole('button',{name:'登出',exact:true}).click();await expect(page.getByRole('button',{name:'登入',exact:true})).toBeVisible();
     await login(page, 'ming');
     await navigate('我的任務');
     await Promise.all([
@@ -88,7 +88,7 @@ for (const width of [1280, 375]) {
     await expect(page.getByLabel('節點詳情')).toContainText('成員更新子任務');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath(`workspace-${width}.png`), fullPage: true });
-    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出', exact: true }).click();await expect(page.getByRole('button',{name:'登入',exact:true})).toBeVisible();
+    await (await openAccount(page)).getByRole('button',{name:'登出',exact:true}).click();await expect(page.getByRole('button',{name:'登入',exact:true})).toBeVisible();
     await login(page, 'lin');
     await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
     await expect(page.getByRole('button', { name: '編輯節點', exact: true })).toHaveCount(0);

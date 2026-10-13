@@ -1,4 +1,4 @@
-import { findProjectMenu } from './test-navigation';
+import { findProjectMenu, logoutButton } from './test-navigation';
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
@@ -135,8 +135,8 @@ describe('P2a workspace navigation', () => {
       : entry === 'project breadcrumb' ? crumb(summary.title)
       : entry === 'node breadcrumb' ? crumb('階段')
       : boardButton(entry === 'board card' ? '子任務' : '略過任務');
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
-    expect(screen.getByRole('button', { name: '登出' })).toBeDisabled();
+    fireEvent.click(logoutButton());
+    expect(logoutButton()).toBeDisabled();
     fireEvent.click(target);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(current);
     const logoutRequest = fetcher.mock.calls.find(([path]) => path === '/api/auth/logout')!;
@@ -326,13 +326,14 @@ describe('UI3 Demo home pages', () => {
     vi.stubGlobal('fetch', vi.fn(async (path: string) => response(path === '/api/auth/me' ? identity : path === '/api/projects' ? { items: [] }
       : { project_count: 0, task_counts: { todo: 0, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: null, projects: [] })));
     render(<App />);
+    fireEvent.click(await screen.findByRole('button', {name:'切換 AI 副手'}));
     const copilot = within(await screen.findByRole('complementary', { name: 'AI 專案副手' }));
     expect(copilot.getByText('模型未啟用・檢索與資料查詢可用')).toBeInTheDocument();
     expect(copilot.getByText(/目前位置：所有可見專案/)).toBeInTheDocument();
     for (const button of copilot.getAllByRole('button').filter(item => item.getAttribute('aria-label') !== '關閉 AI 副手')) expect(button).toBeDisabled();
     expect(copilot.getByLabelText('詢問 AI')).toBeEnabled();
     const toggle = screen.getByRole('button', { name: '切換 AI 副手' });
-    fireEvent.click(toggle); expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(within(screen.getByRole('navigation', { name: '工作區導覽' })).getByRole('button', { name: /營運資料/ })).toBeEnabled();
