@@ -303,11 +303,14 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         {gate.status === 'pending' && <p className="small muted">尚有階段閘門待核准，後續階段可能被阻擋</p>}</div>
       {canApprove && gate.status === 'pending' && <button disabled={disabled} onClick={() => mutate('gate', gate.id)}>核准閘門</button>}
     </section>}
+    <div className="node-views">
     <div className="node-toolbar"><div role="tablist" aria-label="節點內容">{tabs.map(item => item.tab === null
       ? <button key={item.label} role="tab" aria-selected={false} disabled className="tab-unavailable">{item.label}<span className="nav-badge">尚未提供</span></button>
       : <button key={item.tab} role="tab" aria-selected={active === item.tab} disabled={tabsDisabled} onClick={() => { if (item.tab !== active) changeTab?.(item.tab!); }}>{item.label}</button>)}</div>
-      {active === 'board' && <span className="tools-hint">{canMoveAny ? '拖曳卡片改狀態；拖到另一張卡片上 = 變成它的子任務' : anyDraggable ? '拖曳卡片或用卡片上的狀態選單改狀態；點卡片標題進入下一層' : '點卡片標題進入下一層'}</span>}
+
     </div>
+    <div className="node-view-content">
+      {active === 'board' && <p className="tools-hint">{canMoveAny ? '拖曳卡片改狀態；拖到另一張卡片上 = 變成它的子任務' : anyDraggable ? '拖曳卡片或用卡片上的狀態選單改狀態；點卡片標題進入下一層' : '點卡片標題進入下一層'}</p>}
     {editor}
     {active === 'board' && <section aria-label="看板" className="board-scroll">
       {items.length === 0 && <p className="empty">{nodes.length === 0 ? '這個專案還沒有節點。按「新增子節點」開始拆解。' : '目前沒有下一層節點'}</p>}
@@ -348,5 +351,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     {active === 'people' && expired && <MemberPermissions project={project} expired={expired}/>}
     {active === 'records' && recordsEnabled && reloadRecords && expired && <RecordTimeline key={`records:${selected?.id ?? project.id}:${recordVersion}`} node={selected ?? null} projectId={project.id}
       leaf={leaf} descendantTasks={descendantTasks} userId={userId} reload={reloadRecords} expired={expired} select={select} />}
+    </div>
+    </div>
   </>;
 }

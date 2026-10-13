@@ -1,3 +1,4 @@
+import { openProjects } from './navigation';
 import { expect, test, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
@@ -38,7 +39,7 @@ for (const width of [1280, 375]) {
       await page.getByRole('button', { name: label, exact: true }).click();
     };
     const openTask = async () => {
-      if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+      await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
       await page.getByLabel('看板').getByRole('button', { name: '送審成果任務', exact: true }).click();
     };
     const submit = async (summary: string) => {

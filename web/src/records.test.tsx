@@ -1,3 +1,4 @@
+import { findProjectMenu } from './test-navigation';
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
@@ -126,7 +127,7 @@ async function setup(
   });
   vi.stubGlobal('fetch', fetcher);
   render(<App />);
-  fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: '紀錄專案' }));
+  fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: '紀錄專案' }));
   // UI4: the node tree is gone; tasks are entered from their project-board card.
   fireEvent.click(
     within(await screen.findByLabelText('看板')).getByRole('button', {

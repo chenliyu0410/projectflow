@@ -24,10 +24,13 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
   createAction?: ReactNode; copilotScope: string; food?: boolean; companyName?: string; previewKey?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [projectsOpen, setProjectsOpen] = useState(false);
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [progress, setProgress] = useState<Record<string, number | null>>({});
   const toggle = useRef<HTMLButtonElement>(null);
   const copilotToggle = useRef<HTMLButtonElement>(null);
+  const projectToggle = useRef<HTMLButtonElement>(null);
+  const projectPanel = useRef<HTMLElement>(null);
   const location = route.page === 'project' ? `project:${route.projectId}` : route.page;
   useEffect(() => {
     // Sidebar progress is decoration; pages own error and expiry handling for the same endpoint.
@@ -35,20 +38,44 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
     api.overview(request.signal).then(data => setProgress(Object.fromEntries(data.projects.map(item => [item.id, item.progress_percent ?? null]))), () => undefined);
     return () => request.abort();
   }, [projects, location]);
-  function go(next: WorkspaceRoute) { if (expanded) toggle.current?.focus(); setExpanded(false); navigate(next); }
+  function go(next: WorkspaceRoute) { if (expanded) toggle.current?.focus(); else if (projectsOpen) projectToggle.current?.focus(); setProjectsOpen(false); setExpanded(false); navigate(next); }
+  function closeProjects() { setProjectsOpen(false); projectToggle.current?.focus(); }
   function closeNavigation() { setExpanded(false); toggle.current?.focus(); }
   function closeCopilot() { setCopilotOpen(false); copilotToggle.current?.focus(); }
   useEffect(() => {
     // Focus may stay on the toggle after opening, so Escape is handled page-wide while a drawer is open.
-    if (!expanded && !copilotOpen) return;
+    if (!expanded && !copilotOpen && !projectsOpen) return;
     function onKey(event: KeyboardEvent) {
       if (event.key !== 'Escape') return;
+      if (projectsOpen) { closeProjects(); return; }
       if (expanded) closeNavigation();
       if (copilotOpen) closeCopilot();
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [expanded, copilotOpen]);
+  }, [expanded, copilotOpen, projectsOpen]);
+  useEffect(() => {
+    if (!projectsOpen) return;
+    const panel = projectPanel.current;
+    const first = panel?.querySelector<HTMLButtonElement>('.sidebar-projects button[aria-pressed=true]')
+      ?? panel?.querySelector<HTMLButtonElement>('.sidebar-projects button:not(:disabled)')
+      ?? panel?.querySelector<HTMLButtonElement>('.project-menu-close');
+    first?.focus();
+    function outside(event: Event) {
+      if (!(event.target instanceof Node) || projectPanel.current?.contains(event.target) || projectToggle.current?.contains(event.target)) return;
+      if (event.type === 'pointerdown' && projectPanel.current?.contains(document.activeElement)
+        && event.target instanceof Element && !event.target.closest('button, a[href], input, select, textarea, [tabindex], [contenteditable=true]')) {
+        // Let the browser finish its pointer focus change before restoring blank-space clicks.
+        setTimeout(() => {
+          if (document.activeElement === document.body || projectPanel.current?.contains(document.activeElement)) projectToggle.current?.focus();
+        }, 0);
+      }
+      setProjectsOpen(false);
+    }
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('focusin', outside);
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('focusin', outside); };
+  }, [projectsOpen]);
   return <>
     <div id="workspace-navigation" className={`workspace-navigation ${expanded ? 'expanded' : ''}`}>
       <div className="brand"><img src="/mark.svg" width="32" height="32" alt=""/><strong className="brand-name">專流 ProjectFlow</strong></div>
@@ -57,16 +84,20 @@ export default function WorkspaceShell({ route, projects, busy, navigate, childr
           ? <button key={item.label} disabled className="nav-unavailable"><NavIcon name={item.icon}/>{item.label}<span className="nav-badge">尚未提供</span></button>
           : <button key={item.page} disabled={busy} aria-current={route.page === item.page ? 'page' : undefined} onClick={() => go({ page: item.page! })}><NavIcon name={item.icon}/>{item.label}</button>)}
       </nav>
-      <aside aria-label="專案清單"><h2 className="group-title">專案 <span>{projects.length}</span></h2><div className="sidebar-projects">{projects.length === 0 && <p className="sidebar-empty">目前沒有專案</p>}{projects.map((item, index) => {
+      <button ref={projectToggle} className="project-menu-toggle" disabled={busy} aria-label="專案" aria-expanded={projectsOpen} aria-controls="project-menu" onClick={() => setProjectsOpen(value => !value)}><NavIcon name="projects"/><span>專案</span><span className="project-menu-count">{projects.length}</span><span aria-hidden="true">›</span></button>
+
+      <div className="sidebar-session">{session}</div>
+    </div>
+      <aside ref={projectPanel} id="project-menu" className="project-menu" aria-label="專案清單" hidden={!projectsOpen}>
+        <div className="project-menu-heading"><h2>專案 <span>{projects.length}</span></h2><button className="project-menu-close" aria-label="關閉專案選單" onClick={closeProjects}>×</button></div>
+        <div className="sidebar-projects">{projects.length === 0 && <p className="sidebar-empty">目前沒有專案</p>}{projects.map((item, index) => {
         const percent = progress[item.id];
         return <button key={item.id} disabled={busy} aria-label={item.title} aria-describedby={`project-progress-${item.id}`} aria-pressed={route.page === 'project' && item.id === route.projectId} onClick={() => go({ page: 'project', projectId: item.id, nodeId: null })}>
           <span className="project-dot" aria-hidden="true" style={{ background: projectColor(index) }}/>
           <span className="project-info"><span className="project-name">{item.title}</span><span className="project-track" aria-hidden="true"><span style={{ width: `${percent ?? 0}%`, background: projectColor(index) }}/></span></span>
           <span className="project-percent" id={`project-progress-${item.id}`}>{percent === undefined ? '' : percent === null ? '—' : `${percent}%`}</span>
         </button>;
-      })}</div>{createAction && <div className="sidebar-create" onClick={() => setExpanded(false)}>{createAction}</div>}</aside>
-      <div className="sidebar-session">{session}</div>
-    </div>
+      })}</div>{createAction && <div className="sidebar-create" onClick={() => { setProjectsOpen(false); setExpanded(false); }}>{createAction}</div>}</aside>
     <div className="workspace-main">
       <div className="mobile-navigation">
         <button ref={toggle} className="navigation-toggle" aria-label="切換導覽" aria-expanded={expanded} aria-controls="workspace-navigation" onClick={() => setExpanded(value => !value)}>☰ 選單</button>

@@ -1,3 +1,4 @@
+import { findProjectMenu, findCreateProjectButton } from './test-navigation';
 import { beforeEach as beforeTpG } from 'vitest';
 import { api as tpGApi } from './api';
 beforeTpG(() => { vi.spyOn(tpGApi, 'reportFields').mockResolvedValue({fields:[],version:0,active:true,can_edit:true}); });
@@ -20,7 +21,7 @@ const detail = { ...summary, nodes: [task], gates: [], capabilities: { create_no
 const overview = { project_count: 1, task_counts: { todo: 1, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: 0, projects: [] };
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
 async function openEditor() {
-  fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
+  fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
   // UI4: the node tree is gone; tasks are entered from their project-board card.
   const board = await screen.findByLabelText('看板');
   fireEvent.click(within(board).getByRole('button', { name: '原任務' }));
@@ -95,7 +96,7 @@ describe('P2a node editor', () => {
       throw Error('unexpected path');
     });
     stubFetch( fetcher); render(<App />);
-    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
+    fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
     fireEvent.click(await screen.findByRole('button', { name: '新增子節點' }));
     await screen.findByRole('option', { name: '成員' });
     fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: task.title } });
@@ -110,7 +111,7 @@ describe('P2a node editor', () => {
 
   it('hides editing and creation even if readonly receives historical editor capabilities', async () => {
     const fetcher = setup(undefined, 'readonly');
-    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
+    fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
     fireEvent.click(within(await screen.findByLabelText('看板')).getByRole('button', { name: '原任務' }));
     expect(await screen.findByRole('heading', { level: 1, name: '原任務' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '編輯節點' })).not.toBeInTheDocument();
@@ -192,7 +193,7 @@ describe('P2a blank project creation', () => {
       throw Error('unexpected path');
     });
     stubFetch( fetcher); render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: '建立新專案' }));
+    fireEvent.click(await findCreateProjectButton());
     fireEvent.click(await screen.findByRole('button', { name: '空白專案' }));
     fireEvent.change(screen.getByLabelText('新專案名稱'), { target: { value: ' 新空白專案 ' } });
     fireEvent.click(screen.getByRole('button', { name: '建立專案' }));

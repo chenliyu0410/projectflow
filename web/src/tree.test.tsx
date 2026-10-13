@@ -1,3 +1,4 @@
+import { projectMenu } from './test-navigation';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
@@ -182,7 +183,7 @@ describe('TP-B app flows', () => {
   }
   async function openNode(...titles: string[]) {
     await screen.findByRole('heading', { name: '所有專案總覽' });
-    fireEvent.click(within(screen.getByLabelText('專案清單')).getByRole('button', { name: '樹狀專案' }));
+    fireEvent.click(within(projectMenu()).getByRole('button', { name: '樹狀專案' }));
     await screen.findByRole('heading', { name: '樹狀專案' });
     fireEvent.click(within(screen.getByLabelText('開發階段與閘門')).getByRole('button', { name: '進入階段：試作' }));
     for (const title of titles) {

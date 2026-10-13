@@ -1,3 +1,4 @@
+import { openProjects } from './navigation';
 import { expect, test } from '@playwright/test';
 
 for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, async ({ page, request }, info) => {
@@ -18,7 +19,7 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
     await page.screenshot({ path: info.outputPath(`${name}-${width}.png`), fullPage: true });
   };
   await menu();
-  await page.getByLabel('專案清單').getByRole('button').first().click();
+  await (await openProjects(page)).locator('.sidebar-projects').getByRole('button').first().click();
   await expect(page.getByRole('tab', { name: '文件', exact: true })).toBeVisible();
   const writes: string[] = [];
   page.on('request', r => { if (!['GET', 'HEAD'].includes(r.method())) writes.push(`${r.method()} ${new URL(r.url()).pathname}`); });

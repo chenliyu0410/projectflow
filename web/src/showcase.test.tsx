@@ -1,3 +1,4 @@
+import { projectMenu, createProjectButton } from './test-navigation';
 import { fireEvent, render, screen, within, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import WorkflowCatalog from './components/WorkflowCatalog';
@@ -31,11 +32,11 @@ describe('UI2 catalog',()=>{
    return response({project_count:1,task_counts:{todo:0,doing:0,review:0,done:0,skipped:0},completion_percent:null,projects:[]});
   });vi.stubGlobal('fetch',fetcher);render(<App/>);
   const select=await screen.findByLabelText('切換公司（本機展示）');
-  fireEvent.click(screen.getByRole('button',{name:'建立新專案'}));
+  fireEvent.click(createProjectButton());
   fireEvent.change(select,{target:{value:'events'}});fireEvent.click(screen.getByRole('button',{name:'取消切換'}));
   expect(fetcher.mock.calls.some(([p])=>p==='/api/auth/showcase/switch')).toBe(false);
   fireEvent.change(select,{target:{value:'events'}});fireEvent.click(screen.getByRole('button',{name:'確認切換公司'}));
   await waitFor(()=>expect(screen.getByLabelText('目前公司')).toHaveTextContent('活動公司'));
-  expect(screen.queryByText('原公司機密專案')).not.toBeInTheDocument();expect(await within(screen.getByLabelText('專案清單')).findByText('活動專案')).toBeInTheDocument();expect(screen.getByText('展示身分 · 管理者')).toBeInTheDocument();
+  expect(screen.queryByText('原公司機密專案')).not.toBeInTheDocument();expect(await within(projectMenu()).findByText('活動專案')).toBeInTheDocument();expect(screen.getByText('展示身分 · 管理者')).toBeInTheDocument();
  });
 });

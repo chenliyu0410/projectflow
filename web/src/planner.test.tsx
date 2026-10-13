@@ -1,3 +1,4 @@
+import { projectMenu } from './test-navigation';
 import { beforeEach as beforeTpG } from 'vitest';
 import { api as tpGApi } from './api';
 beforeTpG(() => { vi.spyOn(tpGApi, 'reportFields').mockResolvedValue({fields:[],version:0,active:true,can_edit:true}); });
@@ -334,7 +335,7 @@ describe('TP-A app flows', () => {
   }
   async function openProject() {
     await screen.findByRole('heading', { name: '所有專案總覽' });
-    fireEvent.click(within(screen.getByLabelText('專案清單')).getByRole('button', { name: '規劃器專案' }));
+    fireEvent.click(within(projectMenu()).getByRole('button', { name: '規劃器專案' }));
     await screen.findByRole('heading', { name: '規劃器專案' });
   }
 

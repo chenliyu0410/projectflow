@@ -1,3 +1,4 @@
+import { openProjects } from './navigation';
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
@@ -12,7 +13,7 @@ for(const width of [1280,375]) test(`UI2 real catalog and five-company showcase 
  await page.getByLabel('產業分類').selectOption('software');await expect(page.locator('.catalog-card')).toHaveCount(2);await page.getByRole('button',{name:'預覽版本發佈專流'}).click();await expect(page.getByLabel('範本預覽')).toContainText('後端 SSO 整合');await expect(page.getByLabel('範本預覽')).toBeInViewport();await capture('preview');
  const name=`UI2 真模板 ${width} ${randomUUID()}`;await page.getByLabel('匯入模板名稱').fill(name);await page.getByRole('button',{name:'加入公司模板',exact:true}).click();await expect(page.getByLabel('模板內容')).toContainText(name);
  const workflows=await(await page.request.get('/api/workflows')).json();const wid=workflows.items.find((w:{name:string})=>w.name===name).id;
- await menu();await page.getByRole('button',{name:'建立新專案',exact:true}).click();await page.getByLabel('工作流模板').selectOption(wid);await page.getByLabel('新專案名稱').fill(name);await page.getByLabel('專案開始日').fill('2026-10-09');await page.getByRole('button',{name:'建立專案',exact:true}).click();await expect(page.getByRole('heading',{name,exact:true})).toBeVisible();
+ await menu();await openProjects(page); await page.getByRole('button', { name: '建立新專案', exact: true }).click();await page.getByLabel('工作流模板').selectOption(wid);await page.getByLabel('新專案名稱').fill(name);await page.getByLabel('專案開始日').fill('2026-10-09');await page.getByRole('button',{name:'建立專案',exact:true}).click();await expect(page.getByRole('heading',{name,exact:true})).toBeVisible();
  const projects=await(await page.request.get('/api/projects')).json();const pid=projects.items.find((p:{title:string})=>p.title===name).id;const before=await(await page.request.get(`/api/projects/${pid}`)).json();expect(before.nodes.filter((n:{kind:string})=>n.kind==='task')).toHaveLength(10);expect(before.gates.length).toBeGreaterThan(0);
  // An open editor requires explicit confirmation, cancellation preserves the form and company.
  await page.getByRole('button',{name:'新增子節點'}).click();await page.getByLabel('節點名稱').fill('尚未儲存');await menu();await page.getByLabel('切換公司（本機展示）').selectOption('events');await page.getByRole('button',{name:'取消切換'}).click();await expect(page.getByLabel('目前公司')).toHaveText('毛研食品');if(width===375){await page.keyboard.press('Escape');await expect(page.getByLabel('工作區導覽')).toBeHidden();};await expect(page.getByLabel('節點名稱')).toHaveValue('尚未儲存');

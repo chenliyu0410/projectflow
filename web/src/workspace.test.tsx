@@ -1,3 +1,4 @@
+import { findProjectMenu } from './test-navigation';
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
@@ -84,7 +85,7 @@ function setup(value = detail) {
   stubFetch(fetcher); render(<App />); return fetcher;
 }
 async function enter() {
-  fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
+  fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
   await screen.findByRole('heading', { name: summary.title });
 }
 // UI4: no main-area node tree; go down via board cards and the phase strip, up via breadcrumbs.
@@ -231,7 +232,7 @@ describe('P2a workspace navigation', () => {
       .mockResolvedValueOnce(response({ detail: 'private-secret' }, status)).mockResolvedValueOnce(response(detail));
     stubFetch(fetcher); render(<App />);
     await screen.findByRole('heading', { name: '所有專案總覽' });
-    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
+    fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
     expect(await screen.findByRole('alert')).toHaveTextContent(status === 403 ? '沒有操作權限' : '找不到項目');
     expect(document.body).not.toHaveTextContent('private-secret');
     fireEvent.click(screen.getByRole('button', { name: '重試' }));
@@ -261,7 +262,7 @@ describe('P2a workspace navigation', () => {
     let resolve!: (value: ReturnType<typeof response>) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response(identity)).mockResolvedValueOnce(response({ items: [summary] })).mockImplementationOnce(() => new Promise(done => { resolve = done; }));
     stubFetch(fetcher); render(<App />);
-    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
+    fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
     await screen.findByText('載入專案中');
     fireEvent.click(screen.getByRole('button', { name: '所有專案總覽' }));
     await act(async () => { resolve(response({}, 401)); });

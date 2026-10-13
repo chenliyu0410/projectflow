@@ -1,5 +1,7 @@
 # 專流 ProjectFlow
 
+> **2026-10-13 本機介面更新**：捲軸捲動時顯示、閒置後隱藏；左側「專案」改為右側第二層面板，選取／外部點擊／Esc可關閉；看板、時程、相依圖等選中頁籤與下方內容同底色連接。桌面／手機驗證通過，保留在 `feature/ux-child-modules-navigation`，本次更新尚未推送或部署。[短規格與計畫](docs/superpowers/plans/2026-10-13-navigation-surface.md)。
+
 > **2026-10-12 同網域試用**：執行`python deploy/start.py --lan`，同網路的人就能用`http://<這台電腦的IP>:15173`試用。只開放網頁，API與資料庫仍只在本機；管理員從區網登入後也能用左下「切換公司」。Windows防火牆要自己開；帳號、密碼與限制見[正式版開發指南](docs/formal-development.md#同網域試用lan-trial)。不加`--lan`重啟即關閉。這不是HTTPS或正式內網部署。
 
 > **2026-10-12 展示資料包**：`deploy/demo-data/`是15173資料庫的去敏匯出（虛構展示資料，1758列）。不含登入session、稽核紀錄、通知與密碼雜湊。另一台電腦執行`python deploy/start.py`建立空環境後，以`python deploy/demo_data.py import`還原，帳號密碼為`demo-<帳號>`。只還原到同版本的空資料庫。重新匯出與限制見[資料包說明](deploy/demo-data/README.md)。

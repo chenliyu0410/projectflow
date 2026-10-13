@@ -1,3 +1,4 @@
+import { openProjects } from './navigation';
 import { mkdir } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
@@ -57,7 +58,7 @@ test('TP-A drag, weighted progress through four levels, parent rule and move at 
   const title = `TP-A ${randomUUID()}`;
   const { projectId, ids } = await fourLevels(page, title);
   await page.reload();
-  await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
   await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
   await page.getByRole('button', { name: '進入階段：階段' }).click();
   await expect(card(page, '上層')).toContainText('0/1 子任務');
@@ -124,7 +125,7 @@ test('TP-A drag, weighted progress through four levels, parent rule and move at 
 
   // Everything persists after reloading the page.
   await page.reload();
-  await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
   await expect(page.getByLabel('開發階段與閘門').getByRole('button', { name: '進入階段：階段' })).toHaveAccessibleDescription('50% ● 目前階段');
   const detail = await (await page.request.get(`/api/projects/${projectId}`)).json();
   const byId = Object.fromEntries(detail.nodes.map((n: { id: string; status: string; parent_id: string }) => [n.id, n]));
@@ -143,7 +144,7 @@ test('TP-A board stays inside the page at 375px and the status menu still works'
   await fourLevels(page, title);
   await page.reload();
   await page.getByRole('button', { name: '切換導覽' }).click();
-  await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
   await page.getByRole('button', { name: '進入階段：階段' }).click();
   await expect(card(page, '上層')).toContainText('0/1 子任務');
   await card(page, '另一個').getByLabel('另一個狀態').selectOption('doing');
@@ -189,7 +190,7 @@ for (const width of [1280, 1440, 375]) test(`TP-A screenshots for Demo compariso
     await page.screenshot({ path: `${dir}/formal-${name}-${width}.png` });
   };
   if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
-  await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
   await page.getByRole('button', { name: '進入階段：小量試作' }).click();
   const parent = card(page, '小量試作與質地調整');
   await expect(parent).toContainText('1/3 子任務');
