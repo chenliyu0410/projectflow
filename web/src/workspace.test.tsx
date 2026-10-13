@@ -339,3 +339,32 @@ describe('UI3 Demo home pages', () => {
     expect(within(screen.getByRole('navigation', { name: '工作區導覽' })).getByRole('button', { name: /營運資料/ })).toBeEnabled();
   });
 });
+
+
+describe('phase status cards', () => {
+  it('distinguishes actual completion, active descendants and untouched work; only allows active cards', () => {
+    const completed = {...node('已結束', null, 'phase', 'done'), sort_order:0};
+    const active = {...node('執行階段', null, 'phase'), sort_order:1};
+    const future = {...node('下一階段', null, 'phase'), sort_order:2};
+    const project: ProjectDetail = {...detail, nodes:[completed, active, future, node('執行任務', active.id, 'task', 'doing')],
+      gates:[{id:'g',project_id:'p',node_id:active.id,status:'pending'}]};
+    const select=vi.fn();
+    const props={project, selectedNodeId:null, select, readonly:false, canApprove:true, disabled:false, mutate:vi.fn()};
+    const {rerender}=render(<NodeWorkspace {...props}/>);
+    expect(phaseButton('已結束')).toHaveTextContent('已完成');
+    expect(phaseButton('已結束')).toBeDisabled();
+    expect(phaseButton('執行階段')).toHaveTextContent('進行中');
+    expect(within(phaseButton('執行階段')).getByLabelText('進行中階段')).toHaveTextContent('→');
+    expect(phaseButton('執行階段')).toBeEnabled();
+    expect(phaseButton('下一階段')).toHaveTextContent('尚未開始');
+    expect(phaseButton('下一階段')).toBeDisabled();
+    expect(phaseButton('下一階段')).toHaveTextContent('尚未開始，暫不開放此入口');
+    fireEvent.click(phaseButton('下一階段')); expect(select).not.toHaveBeenCalled();
+    fireEvent.click(phaseButton('已結束')); expect(select).not.toHaveBeenCalled();
+    fireEvent.click(phaseButton('執行階段')); expect(select).toHaveBeenCalledWith(active.id);
+    rerender(<NodeWorkspace {...props} project={{...project,gates:[{...project.gates[0],status:'approved'}]}}/>);
+    expect(phaseButton('下一階段')).toBeDisabled();
+    expect(phaseButton('下一階段')).toHaveTextContent('尚未開始');
+    expect(within(phaseButton('下一階段')).queryByLabelText('進行中階段')).not.toBeInTheDocument();
+  });
+});

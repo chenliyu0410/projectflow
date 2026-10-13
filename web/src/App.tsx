@@ -510,12 +510,13 @@ export default function App() {
             tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { if (!canLeaveDocument()) return; begin(); closeCreation(); setProjectView(view); }}
             actions={<>
               {canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
-              {canAddNode && <Dropdown className="project-actions-menu" name="專案操作" closeOnAction label={['admin','project_owner'].includes(session.user.role) ? '另存為模板' : '新增子節點'}>
+              {canAddNode && <Dropdown className="project-actions-menu" name="專案操作" closeOnAction label="新增子節點">
+              {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen || closedParent} title={selectedNode?.milestone ? '里程碑不能有子任務，請先取消里程碑' : closedParent ? '不能在已完成、待確認或已略過的節點底下新增' : undefined} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
               {['admin','project_owner'].includes(session.user.role) && <>
                 <button disabled={busy||mutating} onClick={()=>setTemplateDialog('save')}>另存為模板</button>
                 <button disabled={busy||mutating||closedParent} onClick={()=>setTemplateDialog('apply')}>套用模板</button>
               </>}
-              {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen || closedParent} title={selectedNode?.milestone ? '里程碑不能有子任務，請先取消里程碑' : closedParent ? '不能在已完成、待確認或已略過的節點底下新增' : undefined} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
+
               </Dropdown>}
             </>}
             editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}

@@ -25,6 +25,10 @@ for (const width of [1280,375]) test(`account, floating assistant and action dro
   const icon=await launcher.boundingBox();
   expect(icon!.x + icon!.width).toBeGreaterThan(width-30); expect(icon!.y).toBeGreaterThan(620);
   await launcher.click(); await expect(assistant).toBeVisible();
+  const assistantBox=await assistant.boundingBox();
+  expect(assistantBox!.y).toBeGreaterThanOrEqual(40);
+  expect(assistantBox!.y + assistantBox!.height).toBeLessThanOrEqual(640);
+  if (width>860) expect(assistantBox!.width).toBe(520);
   await assistant.getByLabel('詢問 AI').fill('保留尚未送出的問題');
   await assistant.getByRole('button',{name:'關閉 AI 副手'}).click();
   await expect(launcher).toBeFocused();
@@ -32,12 +36,19 @@ for (const width of [1280,375]) test(`account, floating assistant and action dro
   await page.screenshot({path:info.outputPath('floating-assistant.png')});
   await page.keyboard.press('Escape'); await expect(assistant).toBeHidden();
   await (await openProjects(page)).getByRole('button',{name:'成貓主食罐正式版',exact:true}).click();
+  const phases=page.getByRole('region',{name:'開發階段與閘門'});
+  await expect(phases.getByRole('button',{name:'進入階段：市場與配方'})).toContainText('進行中');
+  await expect(phases.getByRole('button',{name:'進入階段：市場與配方'}).getByLabel('進行中階段')).toBeVisible();
+  await expect(phases.getByRole('button',{name:'進入階段：小量試作'})).toContainText('尚未開始');
+  await expect(phases.getByRole('button',{name:'進入階段：小量試作'})).toBeDisabled();
+  await expect(phases.getByRole('button',{name:'進入階段：市場與配方'})).toBeEnabled();
   const trigger=page.getByRole('button',{name:'專案操作',exact:true});
-  await expect(trigger).toContainText('另存為模板');
+  await expect(trigger).toContainText('新增子節點');
   await expect(page.getByRole('button',{name:'新增子節點',exact:true})).toBeHidden();
   for (const name of ['另存為模板','套用模板']) {
     const menu=await openActions(page);
     await expect(menu.getByRole('button')).toHaveCount(3);
+    await expect(menu.getByRole('button').first()).toContainText('新增子節點');
     await menu.getByRole('button',{name,exact:true}).click();
     const dialog=page.getByRole('dialog',{name,exact:true});
     await expect(dialog).toBeVisible();

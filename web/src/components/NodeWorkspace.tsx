@@ -121,7 +121,6 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
   const items = selected ? childrenOf(nodes, selected.id)
     : top.flatMap(node => node.kind === 'phase' ? childrenOf(nodes, node.id) : [node]);
   const phaseOf = (node: NodeItem) => !selected && node.parent_id ? phases.find(phase => phase.id === node.parent_id) : undefined;
-  const current = phases.find(phase => !CLOSED.includes(phase.status));
   const gate = selected?.kind === 'phase' ? project.gates.find(item => item.node_id === selected.id) : undefined;
   const tabs = leaf ? [TABS[6], ...TABS.slice(0, 6)] : TABS;
   const active: NodeTab = tab;
@@ -292,10 +291,18 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     {!selected && phases.length > 0 && <section className="phases" aria-label="開發階段與閘門">{phases.map(phase => {
       const phaseGate = project.gates.find(item => item.node_id === phase.id);
       const value = nodePercent(phase);
-      return <button key={phase.id} className={`phase ${current?.id === phase.id ? 'cur' : ''}`} onClick={() => select(phase.id)} aria-label={`進入階段：${phase.title}`} aria-describedby={`phase-progress-${phase.id} phase-gate-${phase.id}`}>
-        <span className="bar" aria-hidden="true"><span style={{ width: `${value}%`, background: phaseGate?.status === 'approved' ? color : '#E8A77F' }} /></span>
-        <span className="phase-row"><span className="phase-name">{phase.title}</span><span className="small muted" id={`phase-progress-${phase.id}`}>{value}%</span></span>
-        <span className={`gate-chip ${phaseGate?.status === 'approved' ? 'ok' : ''}`} id={`phase-gate-${phase.id}`}>{phaseGate?.status === 'approved' ? '✓ 閘門已核准' : current?.id === phase.id ? '● 目前階段' : phaseGate ? '○ 閘門未過' : '無閘門'}</span>
+      const complete = CLOSED.includes(phase.status);
+      const started = !complete && subtree(nodes, phase.id).some(node => node.status !== 'todo');
+      const state = complete ? 'done' : started ? 'doing' : 'todo';
+      const stateText = complete ? '已完成' : started ? '進行中' : '尚未開始';
+      const unavailable = !started;
+      const reason = complete ? '已完成階段不開放此入口' : !started ? '尚未開始，暫不開放此入口' : '';
+      return <button key={phase.id} className={`phase phase-${state}`} disabled={disabled || unavailable} title={reason || undefined}
+        onClick={() => select(phase.id)} aria-label={`進入階段：${phase.title}`} aria-describedby={`phase-state-${phase.id} phase-progress-${phase.id} phase-gate-${phase.id}`}>
+        <span className="phase-row"><span className="phase-state" id={`phase-state-${phase.id}`}>{complete ? '✓ ' : ''}{stateText}</span>{started && <span className="phase-arrow" aria-label="進行中階段">→</span>}</span>
+        <span className="phase-name">{phase.title}</span>
+        <span className="small muted" id={`phase-progress-${phase.id}`}>完成度 {value}%</span>
+        <span className="phase-gate" id={`phase-gate-${phase.id}`}>{phase.status === 'skipped' ? '此階段已略過' : reason || (phaseGate?.status === 'pending' ? '本階段閘門待核准' : phaseGate ? '閘門已核准' : '無閘門')}</span>
       </button>;
     })}</section>}
     {gate && <section className="panel gate-inline" aria-label="階段閘門">
