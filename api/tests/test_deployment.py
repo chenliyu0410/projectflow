@@ -192,6 +192,77 @@ def test_compose_web_bind_defaults_to_loopback_and_api_stays_loopback():
     assert 'PF_SHOWCASE_LAN: ${PF_SHOWCASE_LAN:-false}' in compose
 
 
+def public_runner(calls, funnel_address='127.0.0.1:15174'):
+    def run(args, **kwargs):
+        calls.append((args, kwargs['env']))
+        output = {'80': '127.0.0.1:15173\n', '81': funnel_address}.get(args[-1], '') if 'port' in args else ''
+        return subprocess.CompletedProcess(args, 0, output, '')
+    return run
+
+
+def test_public_start_adds_overlay_and_returns_loopback_funnel_target(tmp_path, start_module, monkeypatch):
+    calls = []
+    monkeypatch.setenv('WEB_BIND', '0.0.0.0')
+    monkeypatch.setattr(start_module.subprocess, 'run', public_runner(calls))
+    monkeypatch.setattr(start_module, 'check_readiness', MagicMock())
+    result = start_module.start(tmp_path, public=True)
+    overlay = str(tmp_path / 'deploy/docker-compose.public.yml')
+    assert calls and all(args[args.index(overlay) - 1] == '-f' for args, _ in calls)
+    assert all(env['WEB_BIND'] == '127.0.0.1' and env['PF_SHOWCASE_LAN'] == 'true' for _, env in calls)
+    assert [args[-3:] for args, _ in calls if 'port' in args] == [['port', 'web', '80'], ['port', 'web', '81']]
+    assert result['web_url'] == 'http://127.0.0.1:15173'
+    assert result['public_target'] == 'http://127.0.0.1:15174'
+    start_module.check_readiness.assert_called_once_with('http://127.0.0.1:15173', acceptance=False)
+
+
+@pytest.mark.parametrize('address', ['0.0.0.0:15174', 'example.com:15174', '127.0.0.1:0', 'garbage', ''])
+def test_public_start_rejects_funnel_port_off_loopback(tmp_path, start_module, monkeypatch, address):
+    monkeypatch.setattr(start_module.subprocess, 'run', public_runner([], address))
+    monkeypatch.setattr(start_module, 'check_readiness', MagicMock())
+    with pytest.raises(RuntimeError):
+        start_module.start(tmp_path, public=True)
+    start_module.check_readiness.assert_not_called()
+
+
+def test_regular_start_has_no_public_overlay_or_target(tmp_path, start_module, fake_commands):
+    result = start_module.start(tmp_path)
+    assert not any('docker-compose.public.yml' in ' '.join(args) for args in fake_commands)
+    assert not any(args[-1] == '81' for args in fake_commands)
+    assert result['public_target'] is None
+
+
+def test_public_is_refused_for_acceptance_before_any_command(tmp_path, start_module, monkeypatch):
+    runner = MagicMock()
+    monkeypatch.setattr(start_module.subprocess, 'run', runner)
+    with pytest.raises(RuntimeError):
+        start_module.start(tmp_path, acceptance=True, public=True)
+    runner.assert_not_called()
+    assert not (tmp_path / '.superpowers').exists()
+
+
+def test_public_overlay_opens_only_the_loopback_funnel_port(start_module):
+    root = Path(__file__).resolve().parents[2]
+    overlay = (root / 'deploy/docker-compose.public.yml').read_text()
+    compose = (root / 'deploy/docker-compose.yml').read_text()
+    assert f"'127.0.0.1:{start_module.PUBLIC_WEB_PORT}:81'" in overlay
+    assert "FORWARDED_ALLOW_IPS: '*'" in overlay
+    assert ':81' not in compose and 'FORWARDED_ALLOW_IPS' not in compose
+
+
+def test_nginx_funnel_port_accepts_only_tailnet_hosts_and_marks_https():
+    nginx = (Path(__file__).resolve().parents[2] / 'deploy/nginx.conf').read_text()
+    assert 'listen 80;' in nginx and 'listen 81;' in nginx
+    assert 'map "$server_port:$http_host" $pf_reject_host' in nginx
+    assert r'"~*^81:[a-z0-9-]+\.[a-z0-9-]+\.ts\.net(:[0-9]+)?$" 0;' in nginx
+    assert '"~^81:" 1;' in nginx
+    assert 'if ($pf_reject_host) {\n    return 421;\n  }' in nginx
+    server = nginx[nginx.index('server {'):]
+    # Server-level headers are inherited only by locations that set none of their own.
+    assert server.count('proxy_set_header') == 3
+    assert server.index('proxy_set_header X-Forwarded-Proto $pf_forwarded_proto;') < server.index('\n  location ')
+    assert '81 https;' in nginx and 'default http;' in nginx
+
+
 def test_docker_output_is_decoded_as_utf8(start_module, monkeypatch):
     runner = MagicMock(return_value=subprocess.CompletedProcess([], 0, 'output', ''))
     monkeypatch.setattr(start_module.subprocess, 'run', runner)

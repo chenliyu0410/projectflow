@@ -24,6 +24,17 @@
 | 認領中 | 無；工程驗證完成，等待使用者檢視。 |
 | 阻塞／待人類 | 本輪無工程阻塞；待使用者檢視分支及後續UI／UX建議。實際他人線上資料與部署未動，展示資料包以外帳戶／專案未測。 |
 | 遠端 | 2026-10-13 使用者要求先開 PR；已有未合併 PR #3，更新同一份並推送 feature/ux-child-modules-navigation。main 維持原狀，不自動合併或部署。 |
+| 目前工作項目 | **PUBLIC-TRIAL ✅ 用Tailscale Funnel開放網際網路試用＋開機自動啟動**（[短計畫](superpowers/plans/2026-10-14-public-trial.md)）。之前LAN-SWITCH ✅、LAN-TRIAL ✅、F1-RET等✅ |
+| 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
+| 下一個動作 | 人類：把`https://p215-2203-nb01.tail177cc6.ts.net:10000`與帳號給信任的測試者，並用外部網路（例如手機行動網路）實際開一次；要開機自動啟動，把根目錄`開機自動啟動-公開試用.bat`的**捷徑**放進`shell:startup`（AI未代建）。停止公開：`停止公開試用.bat`。之後方向待人類指示。 |
+| 分支 | `main`；PUBLIC-TRIAL ff-only合併，`feature/public-trial`已刪除。 |
+| 最新程式 commit | `fa49437`（啟動器找使用者目錄的Docker Desktop）；PUBLIC-TRIAL主體`b1e209b`。LAN-SWITCH為`d7443eb`，LAN-TRIAL為`f93e67c`、`3f05680`。 |
+| 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
+| 測試基準 | PUBLIC-TRIAL：test_deployment＋新test_public_trial RED 10fail／17error exit1→73pass exit0（審查後修正再跑73pass exit0）；`nginx -t` ok；暫存nginx容器實測81埠只收ts.net Host（127.0.0.1／localhost／127.0.0.1.ts.net／無Host／絕對URI＋假Host皆421），80埠不變；未跑API全量（API程式未改）。LAN-SWITCH：showcase七檔＋deployment RED 9fail exit1→81pass exit0；API全量636pass／14skip exit0（19分45秒）。LAN-TRIAL：test_deployment RED 7fail exit1→46pass exit0；新Vitest new-id RED 3fail exit1→全前端27檔292pass exit0；build exit0；未跑API全量與E2E（只改啟動腳本、compose與三處前端id產生）。DATA-PACK（`258ca1e`）後只跑相關：test_demo_pack 2pass、整合後相關API 68pass、migration 23pass，未重跑全量。以下為F1-RET全量：全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
+| 資料版本 | PUBLIC-TRIAL無migration：部署前pg_dump存.superpowers/public-trial/before-public.dump；啟動器重建web（nginx 81）、API帶`PF_SHOWCASE_LAN=true`與`FORWARDED_ALLOW_IPS=*`重建，DB容器`d43b3c315aa0`未重建，6公司／80帳號／39專案／500節點／0019部署前後一致。LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
+| 認領中 | 無。 |
+| 阻塞／待人類 | 待人類：PUBLIC-TRIAL外部網路實測與開機捷徑；公開試用期間密碼`demo-<帳號>`可推得（人類選Funnel時已提醒），用完請停止。待人類：Windows防火牆15173由人類自行開（AI不改系統安全設定），其他電腦實際連線與區網登入由人類確認；F1之後的下一步方向；另一台機器如要更新需在該機同步main後執行`deploy/start.py`（不seed）；第二台機器已於2026-10-12同步並部署0019。限制：退貨無單號／金額／原因代碼，無部分沖銷、沖銷的再沖銷、自動補貨或品質任務、批號；計畫與進度限管理角色；工單單一成品、無BOM自動扣料；採購無單價／逐列交期；Ollama未設定，LAN限制及人類試用簽核維持。 |
+| 遠端 | 依D50發布main，push後核對遠端SHA；不force。 |
 
 ---
 
@@ -78,6 +89,7 @@
 - NAV-SURFACE 🟢（2026-10-13）：依使用者指示在目前分支調整自動隱藏捲軸、右側專案第二層面板、頁籤與內容連接底色；[短規格與計畫](superpowers/plans/2026-10-13-navigation-surface.md)。僅前端，本輪不推送／合併／部署。
 
 - UX-CHILD 🟢（2026-10-12，協作者本機，未合併）：追加左側專案遮蔽修正：單一捲動、長名稱換行；5尺寸＋時程E2E 8pass、相關前端31pass、build0、獨立審查無阻塞。完成時程新增／拖曳／限制原因／位置保留／觸控修正；[短計畫](superpowers/plans/2026-10-12-ux-child-modules-navigation.md)、[檢查與後續 UI／UX 清單](ux-child-review.md)。前端 298pass（單工作程序）、型別／build exit0；資料包 80帳戶×39專案的528組同公司矩陣通過，相關API 76pass，桌面／手機／唯讀E2E 3pass。獨立審查父層失效問題已修並複核。本輪不合併／push／部署，優先於歷史 D50。
+- PUBLIC-TRIAL ✅：人類2026-10-14指示「給我本地開伺服器，讓別人能測試projectflow的方法」並附LH／PowerQueryTW的開機自動啟動.bat；被問開放範圍選「網際網路（Funnel）」、啟動方式選「開機自動啟動 .bat」，即授權本機15173經Tailscale Funnel對網際網路開放試用（D65 §14第7點）。[短計畫](superpowers/plans/2026-10-14-public-trial.md)：Funnel 10000→web新增的loopback 15174（nginx 81只收`*.ts.net` Host、對API帶`X-Forwarded-Proto: https`，公開疊加檔讓uvicorn採用），`deploy/public_trial.py`等Docker／Tailscale後發布並健檢，不覆蓋別人的10000；`--stop`只關自己的Funnel並回到本機模式；根目錄兩個ASCII／CRLF .bat。一次唯讀獨立審查Ready；非阻擋第1點（使用者目錄的Docker Desktop）已修，其他見§7。部署：`public_trial.py`與兩個.bat經cmd實跑皆exit0，本機與公開health 200；Funnel 443／8443未動；區網IP連15173／15174皆拒；公開網址帶偽造`Host: 127.0.0.1`／`localhost`回421；經15174以ts.net Host登入yu得6家切換清單，https Origin通過同源檢查（未知公司404、未實際切換），http Origin 403，AI模型設定403；之後登出。限制：內建瀏覽器擋公開網址的JS／CSS（ERR_BLOCKED_BY_CLIENT，curl取得200且本機同bundle正常），外部網路實際畫面待人類確認；密碼`demo-<帳號>`可推得；無帳號管理／改密碼／登入限流。
 
 - LAN-SWITCH ✅：人類2026-10-12問「有辦法一個帳號就切換公司嗎」，選方案A「好，照 A 做」：把既有展示公司切換開放給`--lan`區網試用的管理員（切換後身分是該公司的展示管理者）；方案B（一個帳號屬於多家公司）未選。[短計畫](superpowers/plans/2026-10-12-lan-company-switch.md)。新增API環境變數`PF_SHOWCASE_LAN`，與`PF_SHOWCASE_MODE`都為true時展示切換與展示身分session不限本機Host；`start.py`每次強制帶值（`--lan`才true），驗收環境永遠false；AI模型設定仍只限本機，前端未改。一次唯讀獨立審查Ready（另以暫存env實測compose：shell值優先於env檔）。部署：pg_dump後`start.py --lan`，API容器重建、web／DB未重建，容器內`PF_SHOWCASE_LAN=true`；127.0.0.1與區網IP health ready；以區網Host登入yu回傳6家公司切換清單後登出。未實際在區網執行切換（避免寫入稽核）；非阻擋：選單文字仍為「切換公司（本機展示）」。
 
@@ -1175,6 +1187,13 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-14｜Claude Code Opus 5.5｜PUBLIC-TRIAL交付
+- **做了什麼**：`de8a547`短計畫；`b1e209b` Funnel 10000→nginx 81（只收ts.net Host、標https）、`deploy/docker-compose.public.yml`、`start.py public`、`deploy/public_trial.py`、根目錄`開機自動啟動-公開試用.bat`／`停止公開試用.bat`、`.gitattributes`固定.bat為CRLF；`fa49437`找使用者目錄的Docker Desktop。
+- **驗證**：RED 10fail／17error→73pass exit0；nginx暫存容器與正式部署實測Host過濾；兩個.bat經cmd實跑exit0；公開health 200；資料列數一致、DB容器未重建。唯讀獨立審查Ready。
+- **沒做的事**：沒有替人類把捷徑放進`shell:startup`（持續性系統設定）；沒有在公開網址輸入密碼；內建瀏覽器擋公開網址的JS／CSS，未能親眼看到公開畫面；未跑API全量（API程式未改）。
+- **下一步**：人類用外部網路開公開網址確認畫面與登入，決定是否放開機捷徑；方向待人類指示。
+- **注意**：15173目前是公開模式（Funnel 10000 開著、`PF_SHOWCASE_LAN=true`）。直接執行`deploy/start.py`（含`--lan`）會拿掉15174，公開網址回502；要恢復就再跑啟動器。審查非阻擋：15174被占用時啟動器失敗後要手動`start.py`；X-Forwarded-For覆寫成nginx看到的位址（目前無功能使用訪客IP）。備份在`.superpowers/public-trial/`。
 
 ### 2026-10-12｜Claude Code Opus 5.5｜看板對齊、LAN-TRIAL與LAN-SWITCH交付
 - **做了什麼**：先對齊看板與git（§7只留5筆）。LAN-TRIAL：`f93e67c` `start.py --lan`與compose `WEB_BIND`；`3f05680` 區網HTTP下request id改用`newId()`備援。LAN-SWITCH：`d7443eb` `PF_SHOWCASE_LAN`讓區網管理員也能切換展示公司。

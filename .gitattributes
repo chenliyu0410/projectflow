@@ -1,2 +1,4 @@
 # The demo data pack is verified by SHA-256 on restore, so Git must keep its bytes unchanged.
 deploy/demo-data/** -text
+# cmd.exe needs CRLF batch files; a clone must not turn them into LF.
+*.bat text eol=crlf

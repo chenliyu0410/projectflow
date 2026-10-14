@@ -1,0 +1,11 @@
+# Added on top of docker-compose.yml only by deploy/public_trial.py (start.py public=True).
+# Opens the loopback port Tailscale Funnel forwards to; nginx port 81 accepts only *.ts.net hosts
+# and tells the API the visitor used HTTPS. The API port itself stays on 127.0.0.1, so trusting
+# forwarded headers from any address only trusts nginx and local processes.
+services:
+  api:
+    environment:
+      FORWARDED_ALLOW_IPS: '*'
+  web:
+    ports:
+      - '127.0.0.1:15174:81'
