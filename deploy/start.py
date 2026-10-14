@@ -11,6 +11,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+# Loopback port that deploy/docker-compose.public.yml opens for Tailscale Funnel (nginx port 81).
+PUBLIC_WEB_PORT = 15174
+
 
 def initialize_env(path: Path, web_port: int, api_port: int, acceptance: bool) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -26,16 +29,17 @@ def initialize_env(path: Path, web_port: int, api_port: int, acceptance: bool) -
         return
 
 
-def compose_prefix(root: Path, project: str, env_file: Path) -> list[str]:
-    return ['docker', 'compose', '--project-name', project, '--env-file', str(env_file),
-            '-f', str(root / 'deploy/docker-compose.yml')]
+def compose_prefix(root: Path, project: str, env_file: Path, *, public: bool = False) -> list[str]:
+    prefix = ['docker', 'compose', '--project-name', project, '--env-file', str(env_file),
+              '-f', str(root / 'deploy/docker-compose.yml')]
+    return prefix + ['-f', str(root / 'deploy/docker-compose.public.yml')] if public else prefix
 
 
-def run(args: list[str], *, acceptance: bool = False, lan: bool = False) -> str:
+def run(args: list[str], *, acceptance: bool = False, lan: bool = False, public: bool = False) -> str:
     try:
         environment = {**os.environ, 'PF_ACCEPTANCE_MODE': str(acceptance).lower(),
                        'WEB_BIND': '0.0.0.0' if lan else '127.0.0.1',
-                       'PF_SHOWCASE_LAN': str(lan).lower()}
+                       'PF_SHOWCASE_LAN': str(lan or public).lower()}
         result = subprocess.run(args, capture_output=True, text=True, encoding='utf-8', errors='replace',
                                 check=False, timeout=600, env=environment)
     except (OSError, subprocess.TimeoutExpired):
@@ -59,32 +63,42 @@ def check_readiness(url: str, *, acceptance: bool) -> None:
             raise RuntimeError('The application did not confirm trial readiness.')
 
 
-def start(root: Path, *, acceptance: bool = False, seed_demo: bool = False, lan: bool = False) -> dict:
-    if lan and acceptance:
-        raise RuntimeError('The acceptance stack must stay on loopback.')
-    root = root.resolve()
-    project = 'projectflow-acceptance' if acceptance else 'projectflow-formal'
-    env_file = root / ('.superpowers/p1c/acceptance.env' if acceptance else 'deploy/.env')
-    initialize_env(env_file, 15175 if acceptance else 15173, 18002 if acceptance else 18000, acceptance)
-    prefix = compose_prefix(root, project, env_file)
-    run(prefix + ['config', '--quiet'], acceptance=acceptance, lan=lan)
-    run(prefix + ['up', '-d', '--build', '--wait'], acceptance=acceptance, lan=lan)
-    run(prefix + ['exec', '-T', 'api', 'python', '-m', 'alembic', 'upgrade', 'head'], acceptance=acceptance, lan=lan)
-    if seed_demo:
-        run(prefix + ['exec', '-T', 'api', 'python', '-m', 'app.seed'], acceptance=acceptance, lan=lan)
-    address = run(prefix + ['port', 'web', '80'], acceptance=acceptance, lan=lan)
+def published_port(address: str, host: str) -> int:
     try:
         parsed = urllib.parse.urlsplit('http://' + address)
-        valid = (parsed.hostname == ('0.0.0.0' if lan else '127.0.0.1') and parsed.port is not None
+        valid = (parsed.hostname == host and parsed.port is not None
                  and 0 < parsed.port <= 65535 and not parsed.path and not parsed.query
                  and not parsed.fragment and parsed.username is None and parsed.password is None)
     except ValueError:
         valid = False
     if not valid:
         raise RuntimeError('The trial web port is not bound to the expected address.')
-    url = f'http://127.0.0.1:{parsed.port}'
+    return parsed.port
+
+
+def start(root: Path, *, acceptance: bool = False, seed_demo: bool = False, lan: bool = False,
+          public: bool = False) -> dict:
+    """public=True also opens the loopback port Tailscale Funnel forwards to; deploy/public_trial.py owns Funnel."""
+    if acceptance and (lan or public):
+        raise RuntimeError('The acceptance stack must stay on loopback.')
+    root = root.resolve()
+    project = 'projectflow-acceptance' if acceptance else 'projectflow-formal'
+    env_file = root / ('.superpowers/p1c/acceptance.env' if acceptance else 'deploy/.env')
+    initialize_env(env_file, 15175 if acceptance else 15173, 18002 if acceptance else 18000, acceptance)
+    prefix = compose_prefix(root, project, env_file, public=public)
+    options = {'acceptance': acceptance, 'lan': lan, 'public': public}
+    run(prefix + ['config', '--quiet'], **options)
+    run(prefix + ['up', '-d', '--build', '--wait'], **options)
+    run(prefix + ['exec', '-T', 'api', 'python', '-m', 'alembic', 'upgrade', 'head'], **options)
+    if seed_demo:
+        run(prefix + ['exec', '-T', 'api', 'python', '-m', 'app.seed'], **options)
+    port = published_port(run(prefix + ['port', 'web', '80'], **options), '0.0.0.0' if lan else '127.0.0.1')
+    public_target = None
+    if public:
+        public_target = f"http://127.0.0.1:{published_port(run(prefix + ['port', 'web', '81'], **options), '127.0.0.1')}"
+    url = f'http://127.0.0.1:{port}'
     check_readiness(url, acceptance=acceptance)
-    return {'project': project, 'web_url': url, 'env_file': str(env_file), 'lan': lan}
+    return {'project': project, 'web_url': url, 'env_file': str(env_file), 'lan': lan, 'public_target': public_target}
 
 
 def lan_address() -> str | None:
