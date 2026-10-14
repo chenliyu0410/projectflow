@@ -1,5 +1,7 @@
 # 專流 ProjectFlow
 
+> **2026-10-14 網際網路試用**：不在同一個網路的人也能試用。雙擊根目錄的`開機自動啟動-公開試用.bat`（或執行`python deploy/public_trial.py`），它會等Docker與Tailscale、啟動15173並用Tailscale Funnel發布`https://<這台電腦>.<tailnet>.ts.net:10000`；把它的捷徑放進`shell:startup`就會在登入時自動啟動。停止用`停止公開試用.bat`。公開入口只接受ts.net網址，不會被當成本機；AI模型設定仍只限本機。密碼是repo裡的`demo-<帳號>`，只給信任的測試者、用完就停。細節見[正式版開發指南](docs/formal-development.md#網際網路試用public-trial)。
+
 > **2026-10-14 專案待辦與相依追蹤**：左側專案固定獨立捲動，點選開啟本人負責／協作的未完成待辦抽屜；相依圖滑入追蹤前後流程、點擊固定、空白／Esc取消；藍色返回按鈕固定在內容頂端並保留分頁。前端31檔309項、桌面／手機9項、型別與建置通過，更新 [PR #3](https://github.com/chenliyu0410/projectflow/pull/3)，尚未合併或部署。[範圍](docs/superpowers/plans/2026-10-14-project-drawer.md)。獨立 HTML 展示版及其模擬資料不納入。
 
 > **2026-10-13 送交審閱**：正式工作區介面、專案導覽與時程子任務操作更新至 [PR #3](https://github.com/chenliyu0410/projectflow/pull/3)，尚未合併或部署。前端全量30檔306項通過。相依圖獨立 HTML 原型暫不採用，不包含於本 PR。
