@@ -113,7 +113,7 @@ def test_docker_desktop_is_launched_once_while_waiting(launcher, monkeypatch, tm
     monkeypatch.setattr(launcher, 'docker_ready', lambda: next(answers))
     desktop = tmp_path / 'Docker Desktop.exe'
     desktop.write_bytes(b'')
-    monkeypatch.setattr(launcher, 'DOCKER_DESKTOP', desktop)
+    monkeypatch.setattr(launcher, 'DOCKER_DESKTOPS', [tmp_path / 'missing.exe', desktop])
     popen = MagicMock()
     monkeypatch.setattr(launcher.subprocess, 'Popen', popen)
     assert launcher.wait_for_docker(timeout_s=60) is True

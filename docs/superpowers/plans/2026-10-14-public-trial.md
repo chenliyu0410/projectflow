@@ -27,7 +27,7 @@
   - 81 對 API 帶 `X-Forwarded-Proto: https`，80 帶 `http`，並且覆寫用戶端自己送來的同名標頭。另外也覆寫 `X-Forwarded-For`。
   - `proxy_set_header` 移到 server 層級，讓各個 location 繼承。
 - 新增 `deploy/docker-compose.public.yml`，只在公開模式疊加：
-  - web 多一個 `127.0.0.1:${WEB_PUBLIC_PORT:-15174}:81`，只綁 loopback。
+  - web 多一個 `127.0.0.1:15174:81`，只綁 loopback。埠號寫死，和 `start.PUBLIC_WEB_PORT` 一致（Plan fix：原寫 `${WEB_PUBLIC_PORT:-15174}`）。
   - API 加 `FORWARDED_ALLOW_IPS: '*'`，讓 uvicorn 採用 nginx 送來的 https。API 埠本來就只綁 127.0.0.1。
 - `deploy/start.py`：
   - `start(..., public=False)` 為 True 時：疊加上面那份 compose；`PF_SHOWCASE_LAN=true`，讓公開的管理員能切換展示公司，比照 LAN-SWITCH；web 仍然綁 127.0.0.1。

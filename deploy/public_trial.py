@@ -27,7 +27,10 @@ FUNNEL_PORT = 10000
 PUBLIC_TARGET = f'http://127.0.0.1:{trial.PUBLIC_WEB_PORT}'
 PROGRAM_FILES = Path(os.environ.get('ProgramFiles', r'C:\Program Files'))
 TAILSCALE = PROGRAM_FILES / 'Tailscale' / 'tailscale.exe'
-DOCKER_DESKTOP = PROGRAM_FILES / 'Docker' / 'Docker' / 'Docker Desktop.exe'
+# Machine-wide install first, then the per-user install this machine uses.
+DOCKER_DESKTOPS = [PROGRAM_FILES / 'Docker' / 'Docker' / 'Docker Desktop.exe']
+if os.environ.get('LOCALAPPDATA'):
+    DOCKER_DESKTOPS.append(Path(os.environ['LOCALAPPDATA']) / 'Programs' / 'DockerDesktop' / 'Docker Desktop.exe')
 LINE = '=' * 64
 
 
@@ -61,14 +64,14 @@ def docker_ready():
 def wait_for_docker(timeout_s=300):
     """Right after logon Docker Desktop may still be starting; launch it once and wait for the engine."""
     deadline = time.monotonic() + timeout_s
-    launched = False
+    desktop = next((path for path in DOCKER_DESKTOPS if path.exists()), None)
     while not docker_ready():
-        if not launched and DOCKER_DESKTOP.exists():
-            launched = True
+        if desktop:
             try:
-                subprocess.Popen([str(DOCKER_DESKTOP)])
+                subprocess.Popen([str(desktop)])
             except OSError:
                 pass
+            desktop = None
         if time.monotonic() >= deadline:
             return False
         pause(3)
