@@ -37,6 +37,7 @@ it('shows plan progress and issued totals, and completes only the planned produc
   expect(screen.getByRole('alert')).toHaveTextContent('超過計畫剩餘產量');
   expect(screen.getByRole('button', { name: '確認完工入庫' })).toBeDisabled();
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '60' } });
+  await waitFor(() => expect(screen.getByRole('button', { name: '確認完工入庫' })).toBeEnabled());
   state.current = production({ status: 'completed', status_label: '已達計畫產量', completed: '100.000', remaining: '0.000' });
   fireEvent.click(screen.getByRole('button', { name: '確認完工入庫' }));
   await screen.findByText('已入帳，庫存與異動紀錄已保存。');

@@ -1,0 +1,28 @@
+import {expect,test} from '@playwright/test';
+import {openProjects,closeProjectDrawer} from './navigation';
+for(const width of [1280,375])test(`personal drawer, graph tracing and visible parent navigation ${width}`,async({page,request},info)=>{
+ expect(await (await request.get('/api/health/acceptance')).json()).toEqual({acceptance:true});
+ await page.setViewportSize({width,height:720});await page.goto('/');
+ await page.getByLabel('帳號',{exact:true}).fill('yu');await page.getByLabel('密碼',{exact:true}).fill('demo-yu');await page.getByRole('button',{name:'登入',exact:true}).click();
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ const panel=await openProjects(page);const title='成貓主食罐正式版';
+ const projects=(await (await page.request.get('/api/projects')).json()).items;const project=projects.find((p:any)=>p.title===title);
+ const mine=(await (await page.request.get('/api/workspace/my-tasks')).json()).items.filter((n:any)=>n.project_id===project.id&&n.kind==='task'&&!['done','skipped'].includes(n.status)&&n.relations.some((r:string)=>r==='owned'||r==='collaborating'));
+ await panel.getByRole('button',{name:title,exact:true}).click();const drawer=page.getByRole('dialog',{name:'專案我的待辦'});
+ await expect(drawer).toBeVisible();await expect(drawer.locator('.project-task-item')).toHaveCount(mine.length);expect(mine.length).toBeGreaterThan(0);
+ await page.screenshot({path:info.outputPath('personal-tasks.png')});await drawer.locator('.project-task-item').first().click();
+ const back=page.getByRole('button',{name:'返回上一層',exact:true});await expect(back).toBeFocused();await page.getByRole('tab',{name:'時程',exact:true}).click();
+ await page.locator('.workspace-content').evaluate(e=>e.scrollTop=e.scrollHeight);await expect(back).toBeInViewport();await expect(back).toHaveCSS('background-color','rgb(37, 99, 235)');
+ await back.click();await expect(page.getByRole('tab',{name:'時程',exact:true})).toHaveAttribute('aria-selected','true');
+ await (await openProjects(page)).getByRole('button',{name:title,exact:true}).click();await closeProjectDrawer(page);
+ await page.getByRole('tab',{name:'相依圖',exact:true}).click();const deps=await (await page.request.get('/api/projects/'+project.id+'/dependencies')).json();const edge=deps.items[0];
+ const node=page.locator('.gnode[data-node-id="'+edge.predecessor_id+'"]');await node.hover();await expect(page.locator('.edge-highlight')).not.toHaveCount(0);
+ await node.click();await page.getByRole('tab',{name:'相依圖',exact:true}).hover();await expect(node).toHaveAttribute('aria-pressed','true');
+ const handle=node.locator('xpath=following-sibling::button[contains(@class,"dependency-handle")]').first();
+ await expect(handle).toBeVisible();await handle.scrollIntoViewIfNeeded();
+ expect(await handle.evaluate(e=>{const r=e.getBoundingClientRect();return document.elementFromPoint(r.left+3,r.top+r.height/2)===e})).toBe(true);
+ await handle.dispatchEvent('pointerdown',{button:0});await expect(page.locator('.graph-canvas line[stroke-dasharray]')).toHaveCount(1);await page.keyboard.press('Escape');
+ await page.screenshot({path:info.outputPath('graph-trace.png')});await page.locator('.graph-canvas').click({position:{x:8,y:8}});await expect(page.locator('.edge-highlight')).toHaveCount(0);
+ await node.focus();await page.keyboard.press('Enter');await expect(node).toHaveAttribute('aria-pressed','true');await page.keyboard.press('Escape');await expect(node).toHaveAttribute('aria-pressed','false');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
+});

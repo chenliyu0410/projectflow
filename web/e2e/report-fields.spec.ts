@@ -1,4 +1,4 @@
-import { openAccount, openProjects } from './navigation';
+import { closeProjectDrawer, openAccount, openProjects } from './navigation';
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
@@ -14,7 +14,7 @@ for (const width of [1280,375]) test(`TP-G field lifecycle and template at ${wid
   const project=await request.post('/api/projects',{data:{title}});expect(project.status()).toBe(201);const pid=(await project.json()).id;
   const made=await request.post(`/api/projects/${pid}/nodes`,{data:{title:'自訂回報驗證',kind:'task',owner_user_id:member}});expect(made.status()).toBe(201);const nid=(await made.json()).id;
   async function login(user:string){await page.goto('/');await page.getByLabel('帳號',{exact:true}).fill(user);await page.getByLabel('密碼',{exact:true}).fill(`demo-${user}`);await page.getByRole('button',{name:'登入',exact:true}).click();await expect(page.getByLabel('可見任務完成率',{exact:true})).toBeVisible();}
-  async function open(){await (await openProjects(page)).getByRole('button',{name:title,exact:true}).click();await page.getByLabel('看板').getByRole('button',{name:'自訂回報驗證',exact:true}).click();}
+  async function open(){await (await openProjects(page)).getByRole('button',{name:title,exact:true}).click();await closeProjectDrawer(page);await page.getByLabel('看板').getByRole('button',{name:'自訂回報驗證',exact:true}).click();}
   async function logout(){await (await openAccount(page)).getByRole('button',{name:'登出',exact:true}).click();await expect(page.getByRole('heading',{name:'登入專流',exact:true})).toBeVisible();}
   await login('ming');await open();await page.getByRole('button',{name:'編輯節點',exact:true}).click();
   const editor=page.getByRole('region',{name:'自訂回報欄位設定'});

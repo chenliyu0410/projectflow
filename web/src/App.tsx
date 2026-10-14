@@ -508,7 +508,7 @@ export default function App() {
             target={selectedNode&&selectedNode.kind!=='project'?`/nodes/${selectedNode.id}`:`/projects/${project.id}`} title={selectedNode?.title??project.title} projectTarget={!selectedNode||selectedNode.kind==='project'}
             close={()=>setTemplateDialog(null)} expired={expireSession} saved={()=>{setWorkflows(null);setMessage('已儲存模板，可至模板庫查看版本');}}
             applied={async (result,signal)=>{setLastUndo({id:result.undo_id,label:'套用模板'});await reloadRecords(signal);if(signal.aborted)return;announce(`已套用模板，新增 ${result.created_count} 個節點`,true);}}/>}
-          {state === 'ready' && route.page === 'project' && project && <NodeWorkspace key={project.id} project={project} selectedNodeId={selectedNodeId} select={selectNode}
+          {state === 'ready' && route.page === 'project' && project && <NodeWorkspace key={project.id} project={project} selectedNodeId={selectedNodeId} select={(id, preserveTab) => selectNode(id, preserveTab ? projectView : undefined)}
             userId={session.user.id} userName={session.user.display_name} roleLabel={ROLE_LABELS[session.user.role] ?? session.user.role}
             reloadRecords={reloadRecords} expired={expireSession} recordVersion={recordVersion} recordsEnabled={!busy && !editor && !creationOpen}
             readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)}

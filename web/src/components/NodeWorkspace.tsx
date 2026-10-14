@@ -101,7 +101,7 @@ function Progress({ value, color }: { value: number | null; color?: string }) {
 }
 
 export default function NodeWorkspace({ project, selectedNodeId, select, readonly, canApprove, disabled, mutate, move, openReport, reportIntent = null, notify, userId = '', userName = '', roleLabel = '', reloadRecords, expired, recordVersion = 0, recordsEnabled = true, tab = 'board', tabsDisabled = false, changeTab, actions, editor, timeline, graph, preview, color = 'var(--teal)' }: {
-  project: ProjectDetail; selectedNodeId: string | null; select: (id: string | null) => void;
+  project: ProjectDetail; selectedNodeId: string | null; select: (id: string | null, preserveTab?: boolean) => void;
   readonly: boolean; canApprove: boolean; disabled: boolean;
   userId?: string; userName?: string; roleLabel?: string; reloadRecords?: RecordReload; expired?: () => void; recordVersion?: number; recordsEnabled?: boolean;
   mutate: (action: 'status' | 'gate', id: string, status?: NodeStatus) => void;
@@ -262,10 +262,13 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
   const level = selected ? levelOf(nodes, selected.id) : 0;
   const descendantTasks = (selected ? subtree(nodes, selected.id).filter(node => node.id !== selected.id) : nodes).filter(node => node.kind === 'task').length;
   return <>
+    {selected && <section className="level-navigation" aria-label="層級導覽">
+      <button type="button" className="level-back" aria-label="返回上一層" title={`返回：${crumbs.length > 1 ? crumbs[crumbs.length - 2].title : project.title}`} onClick={() => select(crumbs.length > 1 ? crumbs[crumbs.length - 2].id : null, true)}><span aria-hidden="true">←</span> 返回上一層</button>
+      <nav aria-label="節點路徑" className="breadcrumbs"><button onClick={() => select(null, true)}>{project.title}</button>{crumbs.map(node => <span key={node.id}> / <button aria-current={node.id === selectedNodeId ? 'location' : undefined} onClick={() => select(node.id, true)}>{node.title}</button></span>)}</nav>
+    </section>}
     <section aria-label="節點詳情" className="node-head">
       <div className="node-head-main">
-        {selected && <nav aria-label="節點路徑" className="breadcrumbs"><button aria-current={selected ? undefined : 'location'} onClick={() => select(null)}>{project.title}</button>{crumbs.map(node => <span key={node.id}> / <button aria-current={node.id === selectedNodeId ? 'location' : undefined} onClick={() => select(node.id)}>{node.title}</button></span>)}</nav>}
-        <div className="node-title-row"><div className="location-context"><span aria-label="目前層級">{level ? `第 ${level} 層 · ${selected?.kind === 'phase' ? '階段' : '任務'}` : '專案總覽'}</span>{selected && <button type="button" onClick={() => select(crumbs.length > 1 ? crumbs[crumbs.length - 2].id : null)}>↑ 返回上一層</button>}</div>
+        <div className="node-title-row"><div className="location-context"><span aria-label="目前層級">{level ? `第 ${level} 層 · ${selected?.kind === 'phase' ? '階段' : '任務'}` : '專案總覽'}</span></div>
         <h1 className="node-title">{selected?.title ?? project.title}</h1></div>
         <div className="node-meta">
           {selected && <span>{selected.kind === 'task' ? '負責' : '負責人'}：{owner ?? '未指派'}{selected.department_name ? `・${selected.department_name}` : ''}</span>}

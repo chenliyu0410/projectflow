@@ -1,4 +1,4 @@
-import { openProjects } from './navigation';
+import { closeProjectDrawer, openProjects } from './navigation';
 import { expect, test, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
@@ -32,7 +32,7 @@ async function arrange(page: Page) {
   expect((await page.request.patch('/api/nodes/' + closed + '/status', { data: { status: 'done' } })).status()).toBe(200);
   await page.reload();
   if (page.viewportSize()!.width < 720) await page.getByRole('button', { name: '切換導覽' }).click();
-  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
+  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
   await page.getByRole('tab', { name: '時程', exact: true }).click();
   return { id, title, a };
 }
@@ -118,7 +118,7 @@ test('touch can enter a leaf timeline and return; plus stays usable at 375px', a
 test('readonly account sees explanations and cannot create by button or API', async ({ page }) => {
   await login(page, 'lin');
   const first = (await openProjects(page)).locator('.sidebar-projects').getByRole('button').first();
-  await first.click(); await page.getByRole('tab', { name: '時程', exact: true }).click();
+  await first.click(); await closeProjectDrawer(page); await page.getByRole('tab', { name: '時程', exact: true }).click();
   const buttons = page.getByRole('button', { name: /^新增子任務：/ });
   expect(await buttons.count()).toBeGreaterThan(0);
   for (const button of await buttons.all()) await expect(button).toBeDisabled();

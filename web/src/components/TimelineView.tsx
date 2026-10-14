@@ -259,9 +259,7 @@ export default function TimelineView({
     <section className="timeline-view" aria-label="專案時程">
       <div className="tl-tools">
         {root ? (
-          <button type="button" className="tl-up" onClick={() => up?.(parent && parent.kind !== 'project' ? parent.id : null)}>
-            ↑ 上一層：{parent?.title ?? project.title}
-          </button>
+          <span className="tag">目前範圍：{root.title}</span>
         ) : (
           <span className="tag">總覽圖</span>
         )}

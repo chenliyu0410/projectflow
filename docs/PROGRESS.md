@@ -13,13 +13,13 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **COMPACT-HEADER 🟢 專案操作頂欄、同列專案標題**（[短規格與驗收](superpowers/plans/2026-10-13-compact-header.md)）；延續 UX-CHILD 分支，未合併。 |
+| 目前工作項目 | **PROJECT-DRAWER 🟢 固定專案清單、我的待辦、相依追蹤與固定返回**（[範圍與驗收](superpowers/plans/2026-10-14-project-drawer.md)），延續 UX-CHILD 分支。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 依使用者2026-10-13要求更新既有 [PR #3](https://github.com/chenliyu0410/projectflow/pull/3)，等待審閱；不合併或部署。相依圖 HTML 原型暫不採用、不納入。 |
-| 分支 | `feature/ux-child-modules-navigation`，由 `063a483` 建立；`main` 保持 `063a483`。 |
+| 下一個動作 | 依使用者2026-10-14「開PR推上去」更新既有 [PR #3](https://github.com/chenliyu0410/projectflow/pull/3)，等待審閱；不合併或部署。離線 HTML 與模擬資料不納入。 |
+| 分支 | `feature/ux-child-modules-navigation`，基準 `063a483`；本機 main 未動。2026-10-14取得 origin/main=`ed530e5`（另有試用部署更新），本輪未合併 main。 |
 | 最新程式 commit | 本機 UX-CHILD 提交見此分支最新 git log；基準為 `063a483`，沒有合併 main。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | PR交付複驗：前端30檔306pass（單工作程序，exit0）；初跑304pass／2fail，更新階段無障礙描述斷言與復原測試的非輸入欄位焦點／完成等待後全量通過，兩項測試修改經唯讀審查無實質問題。COMPACT-HEADER最近一次桌面／手機端對端2pass、型別／build exit0；本輪僅修改測試與交付文件，未重跑建置／端對端。PHASE-CARDS：相關單元48pass、桌面／手機端對端2pass、型別／build exit0；未重跑其他歷史測試。HEADER-FLOAT：單元全量初跑303pass／2fail（共305），修正測試等待與導覽操作後相關兩檔45pass；1280／375端對端2pass，包含唯讀權限、三操作表單取消、草稿保留與選單邊界；型別／build exit0。獨立審查發現手機選單越界，修正並複核通過。歷史端對端僅解析65項，未全量重跑。追加側欄：5種尺寸＋時程E2E共8pass，相關前端31pass，型別／build exit0，獨立審查無阻塞。前輪UX-CHILD：前端28檔298pass（單工作程序）；型別與build exit0；6公司80帳戶39專案的528組同公司新增矩陣1pass（內含4157次新增判定及2592次跨公司拒絕），既有節點／階層／時程API 76pass；1280桌面／375手機／唯讀E2E 3pass。平行測試曾有非固定等待失敗，詳見報告。沒有跑歷史全量API或真PG部署。 |
+| 測試基準 | PROJECT-DRAWER：完整前端31檔309pass；桌面／手機專案抽屜、相依追蹤、返回、頂欄與五尺寸側欄共9pass；型別與build exit0。獨立審查發現高亮節點遮住拖線按鈕，已修正層級並以左側命中及pointerdown回歸。初跑單元306pass／3fail（2項旧導覽斷言、1項既有入庫測試等待），修正後全量通過；初跑瀏覽器5pass／4fail為手機測試定位忽略隱藏元素，修正後9pass。歷史端對端僅載入檢查，未全量執行；本輪未改後端、未重跑歷史API與部署測試。保留既有產物大於500kB警告。 |
 | 資料版本 | LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
 | 認領中 | 無；工程驗證完成，等待使用者檢視。 |
 | 阻塞／待人類 | 本輪無工程阻塞；待使用者檢視分支及後續UI／UX建議。實際他人線上資料與部署未動，展示資料包以外帳戶／專案未測。 |
@@ -1232,3 +1232,9 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 驗證：首次完整前端 298pass／4fail（4項為舊導航定位）；更新後受影響兩檔 61pass，其餘原先通過；最終焦點修正再驗5pass，型別／build exit0。三尺寸1280×720、375×667、844×390端對端3pass，含全部專案可點／長名不溢位、選單焦點、三個視圖底色與零間隔、捲軸閒置隱藏與寬度穩定。63項／27檔既有端對端可載入（只列出，未執行全量）。一次獨立唯讀審查發現外部空白點擊焦點缺口，真瀏覽器先重現、修正後通過，複核無新阻塞。build保留單一產物大於500kB的提示，未擴大做切包重構。
 
 截圖與執行紀錄：`.superpowers/ux-check/navigation-*.log`、`web/test-results/project-sidebar-*/`。本機預覽保留15177→18010。人類視覺驗收待確認；此輪不推送、合併或部署。
+
+### 2026-10-14｜Codex｜PROJECT-DRAWER PR 更新
+
+使用者確認我的待辦範圍為指派本人或參與協作的未完成任務，並要求開 PR 推送；將已確認互動整合正式前端，沿用 PR #3。資料仍由既有帳號／公司 API 授權，無後端或資料庫變更。固定左側專案區、原生待辦抽屜、相依路徑高亮固定與清除、固定藍色返回及分頁保留已交付。離線 HTML 不納入儲存庫。
+
+驗證與初跑修正見上方測試基準；一次獨立只讀審查與拖線修正複核。紀錄位於 `.superpowers/ux-check/drawer-*.log`，截圖位於 `web/test-results/`。只推送功能分支及更新 PR，不合併 main、不部署。

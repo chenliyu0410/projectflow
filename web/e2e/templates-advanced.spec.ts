@@ -1,4 +1,4 @@
-import { openActions, openProjects } from './navigation';
+import { closeProjectDrawer, openActions, openProjects } from './navigation';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 import {mkdir} from 'node:fs/promises';
@@ -12,7 +12,7 @@ test('TP-E save, historical version, additive apply, undo and delete on desktop/
   const title=`TP-E ${randomUUID()}`;const made=await page.request.post('/api/projects',{data:{title}});expect(made.status()).toBe(201);const pid=(await made.json()).id;
   const root=(await(await page.request.get(`/api/projects/${pid}`)).json()).nodes[0].id;
   const created=await page.request.post(`/api/projects/${pid}/nodes`,{data:{title:'模板來源',kind:'task',parent_id:root}});expect(created.status()).toBe(201);const nid=(await created.json()).id;
-  await page.reload();await (await openProjects(page)).getByRole('button',{name:title,exact:true}).click();
+  await page.reload();await (await openProjects(page)).getByRole('button',{name:title,exact:true}).click();await closeProjectDrawer(page);
   await page.getByRole('button',{name:'模板來源',exact:true}).click();
   await (await openActions(page)).getByRole('button',{name:'另存為模板',exact:true}).click();
   let dialog=page.getByRole('dialog',{name:'另存為模板',exact:true});const templateName=`模板 ${randomUUID()}`;

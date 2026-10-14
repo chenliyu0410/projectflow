@@ -1,4 +1,4 @@
-import { findProjectMenu, logoutButton } from './test-navigation';
+import { closeProjectDrawer, findProjectMenu, logoutButton } from './test-navigation';
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
@@ -86,6 +86,7 @@ function setup(value = detail) {
 }
 async function enter() {
   fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
   await screen.findByRole('heading', { name: summary.title });
 }
 // UI4: no main-area node tree; go down via board cards and the phase strip, up via breadcrumbs.
@@ -191,7 +192,8 @@ describe('P2a workspace navigation', () => {
     expect(screen.getByRole('tab', { name: '紀錄' })).toHaveAttribute('aria-selected', 'true');
     fireEvent.click(crumb('階段'));
     expect(screen.getByLabelText('節點路徑')).not.toHaveTextContent('父任務');
-    expect(screen.getByRole('tab', { name: '看板' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: '紀錄' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(screen.getByRole('tab', { name: '看板' }));
     expect(cardTitles()).toEqual(['父任務']);
   });
 
@@ -204,9 +206,9 @@ describe('P2a workspace navigation', () => {
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('子任務');
     expect(within(screen.getByRole('tablist', { name: '節點內容' })).getAllByRole('tab')[0]).toHaveTextContent('紀錄');
     fireEvent.click(crumb('父任務'));
-    expect(select).toHaveBeenLastCalledWith('父任務');
+    expect(select).toHaveBeenLastCalledWith('父任務', true);
     fireEvent.click(crumb(summary.title));
-    expect(select).toHaveBeenLastCalledWith(null);
+    expect(select).toHaveBeenLastCalledWith(null, true);
   });
 
   it('bounds cyclic legacy trees and paths without losing visible nodes', () => {
@@ -233,6 +235,7 @@ describe('P2a workspace navigation', () => {
     stubFetch(fetcher); render(<App />);
     await screen.findByRole('heading', { name: '所有專案總覽' });
     fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
     expect(await screen.findByRole('alert')).toHaveTextContent(status === 403 ? '沒有操作權限' : '找不到項目');
     expect(document.body).not.toHaveTextContent('private-secret');
     fireEvent.click(screen.getByRole('button', { name: '重試' }));
@@ -263,6 +266,7 @@ describe('P2a workspace navigation', () => {
     const fetcher = vi.fn().mockResolvedValueOnce(response(identity)).mockResolvedValueOnce(response({ items: [summary] })).mockImplementationOnce(() => new Promise(done => { resolve = done; }));
     stubFetch(fetcher); render(<App />);
     fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
     await screen.findByText('載入專案中');
     fireEvent.click(screen.getByRole('button', { name: '所有專案總覽' }));
     await act(async () => { resolve(response({}, 401)); });

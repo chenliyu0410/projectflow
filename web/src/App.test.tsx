@@ -1,4 +1,4 @@
-import { createProjectButton, findCreateProjectButton, findLogoutButton, findProjectMenu, logoutButton, projectMenu } from './test-navigation';
+import { closeProjectDrawer, createProjectButton, findCreateProjectButton, findLogoutButton, findProjectMenu, logoutButton, projectMenu } from './test-navigation';
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
@@ -40,6 +40,7 @@ const workflowList = { items: [{ id: 'w1', name: '食品新品開發' }] };
 async function openWorkspace() {
   await screen.findByRole('heading', { name: '所有專案總覽' });
   fireEvent.click(projectButton());
+    closeProjectDrawer();
 }
 // UI4: the main-area node tree is gone; phases are entered from the project-level phase strip.
 function selectPhase() {
@@ -295,6 +296,7 @@ describe('P1b kanban and gates', () => {
     selectPhase();
     fireEvent.change(statusControl(), { target: { value: 'doing' } });
     fireEvent.click(projectButton(secondProject.title));
+    closeProjectDrawer();
     await screen.findByRole('heading', { name: secondProject.title });
     await act(async () => { resolveMove(response(status === 200 ? { ...taskNode, status: 'doing' } : {}, status)); });
     expect(screen.getByRole('heading', { name: secondProject.title })).toBeInTheDocument();
@@ -312,6 +314,7 @@ describe('P1b kanban and gates', () => {
     fireEvent.click(await screen.findByRole('button', { name: '進入階段：市場與配方' }));
     fireEvent.click(screen.getByRole('button', { name: '核准閘門' }));
     fireEvent.click(projectButton(secondProject.title));
+    closeProjectDrawer();
     await screen.findByRole('heading', { name: secondProject.title });
     await act(async () => { resolveGate(response({ ...pendingGate, status: 'approved' })); });
     expect(screen.getByRole('heading', { name: secondProject.title })).toBeInTheDocument();
@@ -382,6 +385,7 @@ describe('P1b project navigation', () => {
     fireEvent.click(boardButton('殺菌條件驗證'));
     expect(screen.getByRole('heading', { level: 1, name: '殺菌條件驗證' })).toBeInTheDocument();
     fireEvent.click(projectButton(secondProject.title));
+    closeProjectDrawer();
     expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: secondProject.title })).toBeInTheDocument();
     expect(screen.queryByLabelText('節點路徑')).not.toBeInTheDocument();
@@ -425,6 +429,7 @@ describe('P1b project navigation', () => {
     render(<App />);
     await openWorkspace();
     fireEvent.click(projectButton(secondProject.title));
+    closeProjectDrawer();
     expect(await screen.findByRole('heading', { name: secondProject.title })).toBeInTheDocument();
     expect(fetcher.mock.calls[2][1].signal.aborted).toBe(true);
     await act(async () => { resolveDetail(response(status === 200 ? detail : {}, status)); });

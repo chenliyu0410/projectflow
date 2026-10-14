@@ -1,18 +1,19 @@
 import { expect, type Page } from '@playwright/test';
 
+export async function closeProjectDrawer(page: Page) {
+ const drawer=page.getByRole('dialog',{name:'專案我的待辦'});
+ if(await drawer.isVisible())await drawer.getByRole('button',{name:'關閉工作項目'}).click();
+}
 export async function openProjects(page: Page) {
-  await page.locator('.project-menu-toggle').waitFor({state:'attached'});
-  const trigger = page.getByRole('button', { name: '專案', exact: true });
-  if (!await trigger.isVisible()) await page.getByRole('button', { name: '切換導覽', exact: true }).click();
-  await expect(trigger).toBeVisible();
-  if (await trigger.getAttribute('aria-expanded') !== 'true') await trigger.click();
-  const panel = page.getByLabel('專案清單', { exact: true });
-  await expect(panel).toBeVisible();
-  return panel;
+ await closeProjectDrawer(page);
+ const panel=page.locator('.fixed-projects');
+ await panel.waitFor({state:'attached'});
+ if(!await panel.isVisible())await page.getByRole('button',{name:'切換導覽',exact:true}).click();
+ await expect(panel).toBeVisible();return panel;
 }
 
 export async function openAccount(page: Page) {
-  if (await page.getByLabel('專案清單',{exact:true}).isVisible()) await page.keyboard.press('Escape');
+  await closeProjectDrawer(page);
   if (await page.locator('.navigation-toggle').getAttribute('aria-expanded') === 'true') await page.keyboard.press('Escape');
   const assistant = page.getByRole('complementary',{name:'AI 專案副手'});
   if (await assistant.isVisible()) await assistant.getByRole('button',{name:'關閉 AI 副手'}).click();

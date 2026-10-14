@@ -1,4 +1,4 @@
-import { openProjects } from './navigation';
+import { closeProjectDrawer, openProjects } from './navigation';
 import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
@@ -46,14 +46,14 @@ for (const width of [1280, 375]) test(`UI1 visual alignment and navigation at ${
     expect(await page.locator('.sidebar-projects').evaluate(el => [...el.children].every((a, i, list) => i === 0 || a.getBoundingClientRect().top >= list[i-1].getBoundingClientRect().bottom))).toBe(true);
     await page.getByRole('button', { name: '關閉專案選單' }).click();
   } else {
-    await openProjects(page); await expect(page.getByLabel('專案清單')).toBeVisible(); await page.screenshot({ path: `${dir}/formal-navigation-${width}.png` });
+    await openProjects(page); await expect(page.getByRole('region',{name:'固定專案清單'})).toBeVisible(); await page.screenshot({ path: `${dir}/formal-navigation-${width}.png` });
     // Escape works from sidebar content and returns focus to its trigger.
     await page.getByRole('button', { name: '所有專案總覽', exact: true }).focus(); await page.keyboard.press('Escape');
     await expect(page.getByRole('button', { name: '切換導覽' })).toBeFocused();
   }
   await nav('我的任務'); await expect(page.getByRole('heading', { name: '我的任務', exact: true })).toBeVisible();
   await page.getByLabel('搜尋任務').fill(title); await expect(page.locator('.task-group tbody tr')).toHaveCount(3); await capture('tasks');
-  await menu(); await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
+  await menu(); await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
   await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible(); await capture('workspace');
   // UI4: Demo board is four columns (148px each at 1280 with the copilot open, 240px scrolling inside the board on phones).
   expect(await page.locator('.kanban-column').evaluateAll(cols => cols.map(c => Math.round(c.getBoundingClientRect().width)))).toEqual(Array(4).fill(width === 1280 ? 227 : 240));

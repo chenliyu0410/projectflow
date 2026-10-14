@@ -30,7 +30,7 @@ it('drag opens a draft only and cancel never sends a write',async()=>{
   const fetch=vi.fn().mockResolvedValue(response(data));vi.stubGlobal('fetch',fetch);
   render(<DependencyPanel projectId="p" select={vi.fn()} reload={vi.fn()} expired={vi.fn()}/>);
   const handle=await screen.findByRole('button',{name:'拖線建立前置：A'});
-  fireEvent.pointerDown(handle,{button:0});fireEvent.pointerUp(screen.getByRole('button',{name:'開啟任務：B'}));
+  fireEvent.pointerDown(handle,{button:0});fireEvent.pointerUp(screen.getByRole('button',{name:'追蹤相依：B'}));
   await waitFor(()=>expect(screen.getByLabelText('前置任務')).toHaveValue('a'));
   expect(screen.getByLabelText('後續任務')).toHaveValue('b');
   fireEvent.click(screen.getByRole('button',{name:'取消'}));

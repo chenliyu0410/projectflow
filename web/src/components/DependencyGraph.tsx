@@ -31,6 +31,18 @@ export default function DependencyGraph({
   const drag = useRef<string | null>(null);
   const [pointer, setPointer] = useState<{x:number;y:number} | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [pinned, setPinned] = useState<string | null>(null);
+  const clearHighlight = () => { setHovered(null); setPinned(null); };
+  useEffect(() => {
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Element && !event.target.closest('.gnode, .graph-selection-bar, .dependency-handle')) clearHighlight();
+    };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') clearHighlight(); };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+  }, []);
   useEffect(() => {
     if (!dragging) return;
     const cancel = () => {drag.current = null; setDragging(null);};
@@ -45,6 +57,25 @@ export default function DependencyGraph({
   const edges = data.items.filter(
     (e) => ids.has(e.predecessor_id) && ids.has(e.successor_id),
   );
+  const validPinned = pinned && ids.has(pinned) ? pinned : null;
+  const active = validPinned ?? (hovered && ids.has(hovered) ? hovered : null);
+  const relatedNodes = new Set<string>(active ? [active] : []);
+  const relatedEdges = new Set<string>();
+  if (active) {
+    for (const upstream of [true, false]) {
+      const visited = new Set<string>(); const pending = [active];
+      while (pending.length) {
+        const id = pending.pop()!;
+        if (visited.has(id)) continue;
+        visited.add(id);
+        for (const edge of edges) {
+          if ((upstream ? edge.successor_id : edge.predecessor_id) !== id) continue;
+          const next = upstream ? edge.predecessor_id : edge.successor_id;
+          relatedNodes.add(next); relatedEdges.add(edge.id); pending.push(next);
+        }
+      }
+    }
+  }
   const levels = new Map(data.nodes.map((n) => [n.id, 0]));
   const incoming = new Map(
     data.nodes.map((n) => [
@@ -91,6 +122,10 @@ export default function DependencyGraph({
   const status = new Map(data.nodes.map((n) => [n.id, n.status]));
   return (
     <section aria-label="可見任務相依圖" className="graph-section">
+      <div className="graph-selection-bar">
+        <span className="graph-selection-text" role="status">{active ? `${validPinned ? '已固定' : '預覽'}：${data.nodes.find(n => n.id === active)?.title} · ${relatedEdges.size} 條相依連線` : '滑鼠移入查看前後流程 · 點擊固定 · 點空白處取消'}</span>
+        {validPinned && <><button className="graph-open-task" onClick={() => select(validPinned)}>開啟任務 →</button><button onClick={clearHighlight} aria-label="取消固定高亮">取消固定</button></>}
+      </div>
       {data.nodes.length === 0 ? (
         <p className="empty">沒有可顯示的任務。</p>
       ) : (
@@ -107,6 +142,7 @@ export default function DependencyGraph({
               <defs>
                 <marker id={`${marker}-ok`} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#9A958B" /></marker>
                 <marker id={`${marker}-wait`} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#D9824F" /></marker>
+                <marker id={`${marker}-highlight`} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#2563eb" /></marker>
               </defs>
               {dragging && pointer && positions.has(dragging) && <line x1={positions.get(dragging)!.x+GW} y1={positions.get(dragging)!.y+GH/2} x2={pointer.x} y2={pointer.y} stroke="#1F5F5B" strokeDasharray="4 3"/>}
               {edges.map((e) => {
@@ -120,12 +156,14 @@ export default function DependencyGraph({
                 return (
                   <path
                     key={e.id}
+                    data-edge-id={e.id}
+                    className={active ? relatedEdges.has(e.id) ? 'edge-highlight' : 'edge-dimmed' : undefined}
                     d={orthoPath(points)}
                     fill="none"
                     stroke={met ? '#9A958B' : '#D9824F'}
                     strokeWidth="1.6"
                     strokeDasharray={met ? undefined : '5 4'}
-                    markerEnd={`url(#${marker}-${met ? 'ok' : 'wait'})`}
+                    markerEnd={`url(#${marker}-${active && relatedEdges.has(e.id) ? 'highlight' : met ? 'ok' : 'wait'})`}
                   ><title>{dependencyLabel(e)}：{met ? '已滿足' : '未滿足'}</title></path>
                 );
               })}
@@ -137,12 +175,18 @@ export default function DependencyGraph({
               return (
                 <div key={n.id}>
                 <button
-                  className={`gnode ${closed(n.status) ? 'done' : ''}`}
+                  className={`gnode ${closed(n.status) ? 'done' : ''} ${active === n.id ? 'is-focus' : active ? relatedNodes.has(n.id) ? 'is-related' : 'is-dimmed' : ''}`}
+                  data-node-id={n.id}
                   style={{ left: p.x, top: p.y }}
-                  aria-label={`開啟任務：${n.title}`}
+                  aria-label={`追蹤相依：${n.title}`}
+                  aria-pressed={validPinned === n.id}
+                  onPointerEnter={event => { if (event.pointerType !== 'touch') setHovered(n.id); }}
+                  onPointerLeave={() => setHovered(null)}
+                  onFocus={() => setHovered(n.id)}
+                  onBlur={() => setHovered(null)}
                   title={`${trail ? `${trail} › ` : ''}${n.title}${n.blocked ? '：尚有未完成的前置任務' : ''}`}
                   onPointerUp={e => { if(drag.current && connect) {e.preventDefault(); e.stopPropagation(); suppressClick.current = true; const from = drag.current; drag.current = null; setDragging(null); if(from !== n.id) connect(from, n.id); } }}
-                  onClick={() => {if(suppressClick.current) {suppressClick.current = false; return;} if(!dragging) select(n.id);}}
+                  onClick={() => {if(suppressClick.current) {suppressClick.current = false; return;} if(!dragging) {setPinned(n.id);setHovered(null);}}}
                 >
                   <span className="gmeta">
                     <span className={`dot ${n.status}`} aria-hidden="true" />
@@ -159,7 +203,7 @@ export default function DependencyGraph({
           </div>
         </div>
       )}
-      <p className="small muted">由左到右依前後順序排列，箭頭只往右推進。灰色實線＝前置已滿足；橘色虛線＝尚未滿足（軟性僅警示、FF限制完成）。管理者可從＋拖到任務方塊，或用上方表單建立連線。點方塊進入任務。</p>
+      <p className="small muted">藍色節點為目前追蹤的任務；亮起其前置與後續流程，其餘淡化。點方塊固定，再按「開啟任務」查看內容；點空白處或按 Esc 取消。灰色實線＝前置已滿足；橘色虛線＝尚未滿足。</p>
     </section>
   );
 }

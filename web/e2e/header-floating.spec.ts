@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openAccount, openActions, openProjects } from './navigation';
+import { closeProjectDrawer, openAccount, openActions, openProjects } from './navigation';
 
 for (const width of [1280,375]) test(`account, floating assistant and action dropdown ${width}`, async ({page, request}, info) => {
   expect(await (await request.get('/api/health/acceptance')).json()).toEqual({acceptance:true});
@@ -42,7 +42,7 @@ for (const width of [1280,375]) test(`account, floating assistant and action dro
   await launcher.click(); await expect(assistant.getByLabel('詢問 AI')).toHaveValue('保留尚未送出的問題');
   await page.screenshot({path:info.outputPath('floating-assistant.png')});
   await page.keyboard.press('Escape'); await expect(assistant).toBeHidden();
-  await (await openProjects(page)).getByRole('button',{name:'成貓主食罐正式版',exact:true}).click();
+  await (await openProjects(page)).getByRole('button',{name:'成貓主食罐正式版',exact:true}).click();await closeProjectDrawer(page);
   const phases=page.getByRole('region',{name:'開發階段與閘門'});
   await expect(phases.getByRole('button',{name:'進入階段：市場與配方'})).toContainText('進行中');
   await expect(phases.getByRole('button',{name:'進入階段：市場與配方'}).getByLabel('進行中階段')).toBeVisible();
@@ -97,7 +97,7 @@ for (const width of [1280,375]) test(`account, floating assistant and action dro
   await page.getByLabel('帳號',{exact:true}).fill('lin');
   await page.getByLabel('密碼',{exact:true}).fill('demo-lin');
   await page.getByRole('button',{name:'登入',exact:true}).click();
-  await (await openProjects(page)).getByRole('button',{name:'成貓主食罐正式版',exact:true}).click();
+  await (await openProjects(page)).getByRole('button',{name:'成貓主食罐正式版',exact:true}).click();await closeProjectDrawer(page);
   await expect(page.getByRole('heading',{name:'成貓主食罐正式版',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'專案操作',exact:true})).toHaveCount(0);
 });

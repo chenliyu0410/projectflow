@@ -1,13 +1,10 @@
 import { fireEvent, screen } from '@testing-library/react';
 
-export function projectMenu() {
-  const trigger = screen.getByRole('button', { name: '專案' });
-  if (trigger.getAttribute('aria-expanded') !== 'true') fireEvent.click(trigger);
-  return screen.getByLabelText('專案清單');
-}
-export async function findProjectMenu() {
-  await screen.findByRole('button', { name: '專案' });
-  return projectMenu();
+export function projectMenu() { return screen.getByRole('region', { name: '固定專案清單' }); }
+export async function findProjectMenu() { return screen.findByRole('region', { name: '固定專案清單' }); }
+export function closeProjectDrawer() {
+ const close = screen.queryByRole('button', { name: '關閉工作項目' });
+ if (close) fireEvent.click(close);
 }
 export function createProjectButton() {
   projectMenu();

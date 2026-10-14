@@ -1,4 +1,4 @@
-import { openProjects } from './navigation';
+import { closeProjectDrawer, openProjects } from './navigation';
 import { mkdir } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
@@ -29,7 +29,7 @@ async function setup(page: Page) {
   }
   for (const [a, b] of [['A', 'B'], ['B', 'C']]) expect((await page.request.post(`/api/projects/${pid}/dependencies`, { data: { predecessor_id: ids[a], successor_id: ids[b] } })).status()).toBe(201);
   await page.reload();
-  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
+  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
   await page.getByRole('tab', { name: '時程', exact: true }).click();
   await expect(page.getByLabel('專案時程')).toBeVisible();
   return { pid, ids, root, title };

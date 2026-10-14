@@ -1,4 +1,4 @@
-import { openAccount, openActions, openProjects } from './navigation';
+import { closeProjectDrawer, openAccount, openActions, openProjects } from './navigation';
 import { expect, test, type Page, type APIRequestContext } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
@@ -90,7 +90,7 @@ for (const width of [1280, 375]) {
     await page.screenshot({ path: info.outputPath(`workspace-${width}.png`), fullPage: true });
     await (await openAccount(page)).getByRole('button',{name:'登出',exact:true}).click();await expect(page.getByRole('button',{name:'登入',exact:true})).toBeVisible();
     await login(page, 'lin');
-    await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();
+    await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
     await expect(page.getByRole('button', { name: '編輯節點', exact: true })).toHaveCount(0);
     expect((await page.request.patch(`/api/nodes/${child.id}`, { data: { title: '拒絕' } })).status()).toBe(403);
     const after = await page.request.get(`/api/projects/${projectId}`);

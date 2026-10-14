@@ -1,4 +1,4 @@
-import { findCreateProjectButton, findProjectMenu, logoutButton, projectAction } from './test-navigation';
+import { closeProjectDrawer, findCreateProjectButton, findProjectMenu, logoutButton, projectAction } from './test-navigation';
 import { beforeEach as beforeTpG } from 'vitest';
 import { api as tpGApi } from './api';
 beforeTpG(() => { vi.spyOn(tpGApi, 'reportFields').mockResolvedValue({fields:[],version:0,active:true,can_edit:true}); });
@@ -22,6 +22,7 @@ const overview = { project_count: 1, task_counts: { todo: 1, doing: 0, review: 0
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
 async function openEditor() {
   fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
   // UI4: the node tree is gone; tasks are entered from their project-board card.
   const board = await screen.findByLabelText('看板');
   fireEvent.click(within(board).getByRole('button', { name: '原任務' }));
@@ -97,6 +98,7 @@ describe('P2a node editor', () => {
     });
     stubFetch( fetcher); render(<App />);
     fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
     await screen.findByRole('button', { name:'專案操作' });
     fireEvent.click(projectAction('新增子節點'));
     await screen.findByRole('option', { name: '成員' });
@@ -113,6 +115,7 @@ describe('P2a node editor', () => {
   it('hides editing and creation even if readonly receives historical editor capabilities', async () => {
     const fetcher = setup(undefined, 'readonly');
     fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
     fireEvent.click(within(await screen.findByLabelText('看板')).getByRole('button', { name: '原任務' }));
     expect(await screen.findByRole('heading', { level: 1, name: '原任務' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '編輯節點' })).not.toBeInTheDocument();

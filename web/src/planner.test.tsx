@@ -1,4 +1,4 @@
-import { projectAction, projectMenu } from './test-navigation';
+import { closeProjectDrawer, projectAction, projectMenu } from './test-navigation';
 import { beforeEach as beforeTpG } from 'vitest';
 import { api as tpGApi } from './api';
 beforeTpG(() => { vi.spyOn(tpGApi, 'reportFields').mockResolvedValue({fields:[],version:0,active:true,can_edit:true}); });
@@ -220,16 +220,14 @@ describe('TP-A node-scoped tabs', () => {
     expect(screen.getByText('展開圖・子任務（4）')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '展開 上層任務' }));
     expect(screen.getByRole('button', { name: '時程任務：上層任務' }).parentElement).toHaveAttribute('title', expect.stringContaining('進度 50%（涵蓋所有子任務）'));
-    fireEvent.click(screen.getByRole('button', { name: '↑ 上一層：試作' }));
-    expect(up).toHaveBeenCalledWith('ph');
+    expect(screen.getByText('目前範圍：上層任務')).toBeInTheDocument();
   });
 
   it('treats a blank project root as the project level', () => {
     const rooted = { ...dated, nodes: [node('root', '規劃器專案', null, 'project', 'todo', 0), ...dated.nodes.map(n => n.id === 'ph' ? { ...n, parent_id: 'root' } : n)] };
     const up = vi.fn();
     const { unmount } = render(<TimelineView project={rooted} scopeId="ph" select={vi.fn()} up={up} reload={vi.fn()} expired={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: '↑ 上一層：規劃器專案' }));
-    expect(up).toHaveBeenCalledWith(null);
+    expect(screen.getByText('目前範圍：試作')).toBeInTheDocument();
     unmount();
     render(<TimelineView project={rooted} scopeId="root" select={vi.fn()} reload={vi.fn()} expired={vi.fn()} />);
     expect(screen.getByText('總覽圖・任務（9）')).toBeInTheDocument();
@@ -248,9 +246,9 @@ describe('TP-A node-scoped tabs', () => {
     const { unmount } = render(<DependencyPanel projectId="p" project={project} scopeId="a" select={vi.fn()} reload={vi.fn()} expired={vi.fn()} />);
     const graph = await screen.findByLabelText('可見任務相依圖');
     expect(within(graph).getAllByRole('button').map(b => b.getAttribute('aria-label'))).toEqual(
-      expect.arrayContaining(['開啟任務：子任務一', '開啟任務：子任務二', '開啟任務：孫任務', '開啟任務：曾孫任務']));
-    expect(within(graph).queryByRole('button', { name: '開啟任務：另一個任務' })).not.toBeInTheDocument();
-    expect(within(graph).queryByRole('button', { name: '開啟任務：上層任務' })).not.toBeInTheDocument();
+      expect.arrayContaining(['追蹤相依：子任務一', '追蹤相依：子任務二', '追蹤相依：孫任務', '追蹤相依：曾孫任務']));
+    expect(within(graph).queryByRole('button', { name: '追蹤相依：另一個任務' })).not.toBeInTheDocument();
+    expect(within(graph).queryByRole('button', { name: '追蹤相依：上層任務' })).not.toBeInTheDocument();
     expect(screen.getByText('連線清單（2）')).toBeInTheDocument();
     unmount();
     render(<DependencyPanel projectId="p" project={project} scopeId="c" select={vi.fn()} reload={vi.fn()} expired={vi.fn()} />);
@@ -336,6 +334,7 @@ describe('TP-A app flows', () => {
   async function openProject() {
     await screen.findByRole('heading', { name: '所有專案總覽' });
     fireEvent.click(within(projectMenu()).getByRole('button', { name: '規劃器專案' }));
+    closeProjectDrawer();
     await screen.findByRole('heading', { name: '規劃器專案' });
   }
 

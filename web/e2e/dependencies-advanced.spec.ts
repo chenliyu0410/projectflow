@@ -1,4 +1,4 @@
-import { openProjects } from './navigation';
+import { closeProjectDrawer, openProjects } from './navigation';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 import {mkdir} from 'node:fs/promises';
@@ -12,8 +12,8 @@ test('TP-D drag draft, advanced settings, manual confirmation and mobile form',a
   const root=(await(await page.request.get(`/api/projects/${pid}`)).json()).nodes[0].id;
   const ids:Record<string,string>={};
   for(const name of ['A','B','C']) {const r=await page.request.post(`/api/projects/${pid}/nodes`,{data:{title:name,kind:'task',parent_id:root}});expect(r.status()).toBe(201);ids[name]=(await r.json()).id;}
-  await page.reload();await (await openProjects(page)).getByRole('button',{name:title,exact:true}).click();await page.getByRole('tab',{name:'相依圖',exact:true}).click();
-  const from=page.getByRole('button',{name:'拖線建立前置：A'}),to=page.getByRole('button',{name:'開啟任務：B'});
+  await page.reload();await (await openProjects(page)).getByRole('button',{name:title,exact:true}).click();await closeProjectDrawer(page);await page.getByRole('tab',{name:'相依圖',exact:true}).click();
+  const from=page.getByRole('button',{name:'拖線建立前置：A'}),to=page.getByRole('button',{name:'追蹤相依：B'});
   const a=(await from.boundingBox())!,b=(await to.boundingBox())!;
   await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:8});await page.mouse.up();
   await expect(page.getByLabel('前置任務',{exact:true})).toHaveValue(ids.A);await expect(page.getByLabel('後續任務',{exact:true})).toHaveValue(ids.B);

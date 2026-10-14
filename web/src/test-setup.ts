@@ -12,3 +12,8 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
 });
+
+// jsdom does not implement the native dialog methods; browser tests verify modal focus.
+if (!HTMLDialogElement.prototype.showModal) HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+if (!HTMLDialogElement.prototype.close) HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+if (!window.matchMedia) window.matchMedia = (query: string) => ({matches:false,media:query,onchange:null,addListener() {},removeListener() {},addEventListener() {},removeEventListener() {},dispatchEvent:()=>true});

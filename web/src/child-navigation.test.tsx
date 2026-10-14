@@ -1,4 +1,4 @@
-import { findProjectMenu } from './test-navigation';
+import { closeProjectDrawer, findProjectMenu } from './test-navigation';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import TimelineView from './components/TimelineView';
@@ -46,6 +46,7 @@ describe('child creation and navigation', () => {
  it('keeps the timeline on leaf drill-down and breadcrumbs back up', async () => {
  stub(); render(<App />);
  fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: '測試專案' }));
+    closeProjectDrawer();
  fireEvent.click(await screen.findByRole('tab', { name: '時程' }));
  fireEvent.click(await screen.findByRole('button', { name: 'child' }));
  expect(screen.getByRole('tab', { name: '時程' })).toHaveAttribute('aria-selected', 'true');
