@@ -182,7 +182,7 @@ export default function DependencyPanel({
               </form>
             )
           )}
-          <DependencyGraph data={graphData!} select={select} nodes={project?.nodes} connect={data.capabilities.manage && !mutation.busy && !mutation.saved ? (a, b) => { setPre(a); setPost(b); setEditing(null); setSettings({relation_type: 'FS', lag_days: 0, enforcement: 'hard'}); setFormOpen(true); } : undefined} />
+          <DependencyGraph key={scopeId ?? 'project'} data={graphData!} select={select} nodes={project?.nodes} connect={data.capabilities.manage && !mutation.busy && !mutation.saved ? (a, b) => { setPre(a); setPost(b); setEditing(null); setSettings({relation_type: 'FS', lag_days: 0, enforcement: 'hard'}); setFormOpen(true); } : undefined} />
           <details className="panel dependency-list">
             <summary>連線清單（{listed.length}）</summary>
             <h3>可見前置連線</h3>

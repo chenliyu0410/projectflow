@@ -1,3 +1,4 @@
+import { closeProjectDrawer, openProjects } from './navigation';
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
@@ -11,7 +12,7 @@ for (const width of [1280, 375]) test(`persistent documents ${width}`, async ({ 
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
   async function enter() {
     if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
-    await page.getByLabel('專案清單').getByRole('button').first().click();
+    await (await openProjects(page)).locator('.sidebar-projects').getByRole('button').first().click();await closeProjectDrawer(page);
     await page.getByRole('tab', { name: '文件', exact: true }).click();
   }
   await enter();

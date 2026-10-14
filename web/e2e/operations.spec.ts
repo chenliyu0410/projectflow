@@ -1,3 +1,4 @@
+import { openProjects } from './navigation';
 import { test, expect } from '@playwright/test';
 
 for (const width of [1280, 375]) test(`persistent operations ${width}`, async ({ page, request }, info) => {
@@ -48,7 +49,7 @@ for (const width of [1280, 375]) test(`persistent operations ${width}`, async ({
   await page.getByRole('button', { name: '編輯營運資料' }).click();
   if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
   page.once('dialog', dialog => dialog.accept());
-  await page.getByRole('button', { name: '建立新專案', exact: true }).click();
+  await openProjects(page); await page.getByRole('button', { name: '建立新專案', exact: true }).click();
   await expect(page.getByLabel('正式營運資料', { exact: true })).toHaveCount(0);
   expect(errors).toEqual([]);
 });

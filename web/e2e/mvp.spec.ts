@@ -1,3 +1,4 @@
+import { closeProjectDrawer, openProjects } from './navigation';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
@@ -40,8 +41,8 @@ for (const width of [1280, 375]) {
       await page.getByRole('button', { name: '登入', exact: true }).click();
       await page.getByRole('heading', { name: '所有專案總覽', exact: true }).waitFor();
       if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
-      if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await expect(page.getByLabel('專案清單')).toBeVisible();
-      if (width === 375) { await page.keyboard.press('Escape'); await expect(page.getByLabel('專案清單')).toBeHidden(); }
+      await openProjects(page);await expect(page.getByRole('region',{name:'固定專案清單'})).toBeVisible();
+      if (width === 375) { await page.keyboard.press('Escape'); await expect(page.getByRole('region',{name:'固定專案清單'})).toBeHidden(); }
       return page;
     };
     const snapshot = async (page: Page, name: string) => {
@@ -49,7 +50,7 @@ for (const width of [1280, 375]) {
       await page.screenshot({ path: testInfo.outputPath(`p1c-${width}-${name}.png`), fullPage: true });
     };
     const openSeed = async (page: Page) => {
-      if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();
+      await (await openProjects(page)).getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();await closeProjectDrawer(page);
       await expect(page.getByRole('heading', { name: '成貓主食罐正式版', exact: true })).toBeVisible();
     };
     let yu: Page | undefined;
@@ -105,8 +106,7 @@ for (const width of [1280, 375]) {
       await snapshot(ming, 'ming');
 
       const title = `P1c E2E ${width} ${randomUUID()}`;
-      if (!await yu.getByRole('button', { name: '建立新專案' }).isVisible()) await yu.getByRole('button', { name: '切換導覽' }).click();
-      await yu.getByRole('button', { name: '建立新專案' }).click();
+      await openProjects(yu); await yu.getByRole('button', { name: '建立新專案', exact: true }).click();
       await yu.getByLabel('工作流模板').selectOption({ label: '食品新品開發' });
       await yu.getByLabel('新專案名稱').fill(title);
       const createdPromise = yu.waitForResponse(r => new URL(r.url()).pathname === '/api/projects/from-workflow' && r.request().method() === 'POST');
@@ -135,7 +135,7 @@ for (const width of [1280, 375]) {
       await expect(yu.getByLabel('進行中').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('doing');
       await snapshot(yu, 'yu');
       const readonly = await role('lin');
-      if (!await readonly.getByLabel('專案清單').isVisible()) await readonly.getByRole('button', {name:'切換導覽'}).click();await readonly.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+      await (await openProjects(readonly)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(readonly);
       await expect(readonly.getByRole('heading', { name: title, exact: true })).toBeVisible();
       await expect(readonly.getByLabel('看板').getByRole('combobox')).toHaveCount(0);
       await expect(readonly.getByRole('button', { name: '建立新專案' })).toHaveCount(0);

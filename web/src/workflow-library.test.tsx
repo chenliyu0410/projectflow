@@ -1,3 +1,4 @@
+import { findCreateProjectButton } from './test-navigation';
 import {
   act,
   fireEvent,
@@ -242,7 +243,7 @@ describe('workflow library', () => {
     );
     vi.stubGlobal('fetch', fetcher);
     render(<App />);
-    fireEvent.click(await screen.findByRole('button', { name: '建立新專案' }));
+    fireEvent.click(await findCreateProjectButton());
     fireEvent.change(await screen.findByLabelText('工作流模板'), {
       target: { value: 'w' },
     });

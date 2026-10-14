@@ -1,3 +1,4 @@
+import { closeProjectDrawer, openProjects } from './navigation';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 import {mkdir} from 'node:fs/promises';
@@ -16,7 +17,7 @@ test('TP-F application, approval, restore, departments and notification desktop/
  await memberPage.getByRole('button',{name:'跳過／覆寫申請',exact:true}).click();await memberPage.getByLabel('申請理由').fill('範圍調整');await memberPage.getByRole('button',{name:'送出申請',exact:true}).click();
  await expect.poll(async()=> (await(await memberPage.request.get('/api/workspace/requests')).json()).items.some((r:{node_id:string})=>r.node_id===nid)).toBe(true);
  await page.getByRole('button',{name:'審核中心',exact:true}).click();const card=page.locator('article').filter({has:page.getByRole('heading',{name:taskTitle,exact:true})});await card.getByRole('button',{name:'核准申請'}).click();await expect(card).toHaveCount(0);
- await page.reload();await page.getByLabel('專案清單').getByRole('button',{name:title,exact:true}).click();await page.getByRole('button',{name:taskTitle,exact:true}).click();await page.getByRole('button',{name:'恢復任務',exact:true}).click();await page.getByLabel('操作理由').fill('恢復工作');await page.getByRole('button',{name:'確認恢復',exact:true}).click();
+ await page.reload();await (await openProjects(page)).getByRole('button',{name:title,exact:true}).click();await closeProjectDrawer(page);await page.getByRole('button',{name:taskTitle,exact:true}).click();await page.getByRole('button',{name:'恢復任務',exact:true}).click();await page.getByLabel('操作理由').fill('恢復工作');await page.getByRole('button',{name:'確認恢復',exact:true}).click();
  await expect.poll(async()=> (await(await page.request.get(`/api/projects/${pid}`)).json()).nodes.find((n:{id:string})=>n.id===nid).status).toBe('todo');
  await page.getByRole('tab',{name:'成員與權限',exact:true}).click();await expect(page.getByRole('heading',{name:'專案成員與權限'})).toBeVisible();
  await page.getByRole('button',{name:'新增部門',exact:true}).click();await page.getByLabel('部門名稱').fill('TP-F '+randomUUID());await page.getByRole('button',{name:'儲存部門',exact:true}).click();await expect(page.getByLabel('部門名稱')).toHaveCount(0);

@@ -32,7 +32,7 @@ describe('visible dependency editing', () => {
         expired={vi.fn()}
       />,
     );
-    const entry = await screen.findByRole('button', { name: '開啟任務：後項' });
+    const entry = await screen.findByRole('button', { name: '追蹤相依：後項' });
     expect(screen.getAllByText(/尚有未完成的前置任務/).length).toBeGreaterThan(
       0,
     );
@@ -41,7 +41,7 @@ describe('visible dependency editing', () => {
       expect.stringContaining('：尚有未完成的前置任務'),
     );
     expect(
-      screen.getByRole('button', { name: '開啟任務：前項' }),
+      screen.getByRole('button', { name: '追蹤相依：前項' }),
     ).not.toHaveAttribute('title', expect.stringContaining('尚有未完成'));
     // UI4：方塊改為原生 HTML button，可用 Tab 聚焦、Enter／Space 由瀏覽器觸發 click。
     // jsdom 不會把 keyDown 轉成 click，因此驗證它是可聚焦的原生按鈕後以 click 代表啟用。
@@ -51,6 +51,8 @@ describe('visible dependency editing', () => {
     entry.focus();
     expect(entry).toHaveFocus();
     fireEvent.click(entry);
+    expect(select).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '開啟任務 →' }));
     expect(select).toHaveBeenCalledTimes(1);
     expect(select).toHaveBeenCalledWith('b');
     expect(screen.queryByText('hidden')).not.toBeInTheDocument();

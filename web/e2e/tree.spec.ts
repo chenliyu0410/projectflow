@@ -1,3 +1,4 @@
+import { closeProjectDrawer, openAccount, openProjects } from './navigation';
 import { mkdir } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
@@ -69,7 +70,7 @@ test('TP-B promote, delete, Ctrl+Z, copy, timeline undo and move-to at 1280px', 
   const title = `TP-B ${randomUUID()}`;
   const { projectId, ids } = await seedTree(page, title);
   await page.reload();
-  await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
   await page.getByRole('button', { name: '進入階段：階段' }).click();
   await expect(card(page, '後續')).toContainText('等待：子一');
 
@@ -137,7 +138,7 @@ test('TP-B promote, delete, Ctrl+Z, copy, timeline undo and move-to at 1280px', 
 
   // Everything persists after reloading.
   await page.reload();
-  await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
   await page.getByRole('button', { name: '進入階段：階段' }).click();
   await expect(card(page, '上層')).toContainText('0/2 子任務');
   await expect(card(page, '另一個')).toContainText('0/1 子任務');
@@ -155,7 +156,7 @@ for (const width of [1440, 375]) test(`TP-B editor and delete confirmation fit a
   await seedTree(page, title);
   await page.reload();
   if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
-  await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+  await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
   await page.getByRole('button', { name: '進入階段：階段' }).click();
   await card(page, '上層').getByRole('button', { name: '上層', exact: true }).click();
   await page.getByRole('button', { name: '編輯節點' }).click();
@@ -178,7 +179,7 @@ test('TP-B a task owner may promote and demote but not copy or delete (D74)', as
   const options = await (await page.request.get(`/api/projects/${created.id}/assignment-options`)).json();
   const ming = options.users.find((user: { display_name: string }) => user.display_name === '明成員').id as string;
   await seedTree(page, `${title} 樹`, ming);
-  await page.getByRole('button', { name: '登出' }).click();
+  await (await openAccount(page)).getByRole('button',{name:'登出',exact:true}).click();
   const problems = watch(page);
   await login(page, 'ming');
   await page.getByLabel('工作區導覽').getByRole('button', { name: '我的任務' }).click();

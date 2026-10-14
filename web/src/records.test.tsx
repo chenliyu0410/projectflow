@@ -1,3 +1,4 @@
+import { closeProjectDrawer, findProjectMenu, logoutButton } from './test-navigation';
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
@@ -126,7 +127,8 @@ async function setup(
   });
   vi.stubGlobal('fetch', fetcher);
   render(<App />);
-  fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: '紀錄專案' }));
+  fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: '紀錄專案' }));
+    closeProjectDrawer();
   // UI4: the node tree is gone; tasks are entered from their project-board card.
   fireEvent.click(
     within(await screen.findByLabelText('看板')).getByRole('button', {
@@ -546,7 +548,7 @@ describe('record session and replacement races', () => {
     );
     await fillReport();
     fireEvent.click(screen.getByRole('button', { name: '送出回報' }));
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
+    fireEvent.click(logoutButton());
     await screen.findByRole('button', { name: '登入' });
     await act(async () => pending.resolve(response({}, 401)));
     expect(screen.getByRole('button', { name: '登入' })).toBeInTheDocument();

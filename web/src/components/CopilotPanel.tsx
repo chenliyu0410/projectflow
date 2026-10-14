@@ -25,6 +25,8 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
   const docController = useRef<AbortController | null>(null);
   const nextId = useRef(0);
   const chat = useRef<HTMLDivElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => { if (open) closeButton.current?.focus(); }, [open]);
   useEffect(() => {
     const request = new AbortController();
     ai.status(request.signal).then(value => { if (!request.signal.aborted) { setStatus(value); setError(''); } }).catch(() => { if (!request.signal.aborted) setError('無法載入 AI 資料，請稍後重試。'); });
@@ -51,8 +53,8 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
     finally { if (!request.signal.aborted) setLoadingDocument(false); }
   }
   const quick = mode === 'rag' ? ['現行交付需要幾張截圖？', '風險原因與處理方式', '採購追蹤紀錄'] : ['各部門逾期未完成數', '超支專案及金額', '各專案加權不良率'];
-  return <aside id="copilot-panel" className={`copilot ${open ? 'open' : ''}`} aria-label="AI 專案副手">
-    <div className="copilot-head"><span className="copilot-avatar"><NavIcon name="ai" /></span><div><strong className="brand-name">AI 專案副手</strong><small>目前位置：{scope}</small></div><button className="copilot-close" aria-label="關閉 AI 副手" onClick={close}>✕</button></div>
+  return <aside id="copilot-panel" className={`copilot ${open ? 'open' : ''}`} aria-label="AI 專案副手" hidden={!open}>
+    <div className="copilot-head"><span className="copilot-avatar"><NavIcon name="ai" /></span><div><strong className="brand-name">AI 專案副手</strong><small>目前位置：{scope}</small></div><button ref={closeButton} className="copilot-close" aria-label="關閉 AI 副手" onClick={close}>✕</button></div>
     <p className="copilot-policy">{status?.model_enabled ? `本地模型：${status.model_name}` : '模型未啟用・檢索與資料查詢可用'}</p>
     <p className="copilot-example-note">{companyName}・AI展示資料區<br />{status?.ready ? `${status.counts.projects} 個專案／${status.counts.documents} 份可見文件・基準日 ${status.as_of}` : '資料尚未就緒'}。虛構延伸案，與目前正式任務分開；查詢不修改任務。</p>
     <div className="ai-controls">

@@ -1,3 +1,4 @@
+import { closeProjectDrawer, findProjectMenu, logoutButton } from './test-navigation';
 import { beforeEach as beforeTpF } from 'vitest';
 import { api as tpFApi } from './api';
 beforeTpF(()=>{
@@ -84,7 +85,8 @@ function setup(value = detail) {
   stubFetch(fetcher); render(<App />); return fetcher;
 }
 async function enter() {
-  fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
+  fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
   await screen.findByRole('heading', { name: summary.title });
 }
 // UI4: no main-area node tree; go down via board cards and the phase strip, up via breadcrumbs.
@@ -134,8 +136,8 @@ describe('P2a workspace navigation', () => {
       : entry === 'project breadcrumb' ? crumb(summary.title)
       : entry === 'node breadcrumb' ? crumb('階段')
       : boardButton(entry === 'board card' ? '子任務' : '略過任務');
-    fireEvent.click(screen.getByRole('button', { name: '登出' }));
-    expect(screen.getByRole('button', { name: '登出' })).toBeDisabled();
+    fireEvent.click(logoutButton());
+    expect(logoutButton()).toBeDisabled();
     fireEvent.click(target);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(current);
     const logoutRequest = fetcher.mock.calls.find(([path]) => path === '/api/auth/logout')!;
@@ -190,7 +192,8 @@ describe('P2a workspace navigation', () => {
     expect(screen.getByRole('tab', { name: '紀錄' })).toHaveAttribute('aria-selected', 'true');
     fireEvent.click(crumb('階段'));
     expect(screen.getByLabelText('節點路徑')).not.toHaveTextContent('父任務');
-    expect(screen.getByRole('tab', { name: '看板' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: '紀錄' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(screen.getByRole('tab', { name: '看板' }));
     expect(cardTitles()).toEqual(['父任務']);
   });
 
@@ -203,9 +206,9 @@ describe('P2a workspace navigation', () => {
     expect(screen.getByLabelText('節點詳情')).toHaveTextContent('子任務');
     expect(within(screen.getByRole('tablist', { name: '節點內容' })).getAllByRole('tab')[0]).toHaveTextContent('紀錄');
     fireEvent.click(crumb('父任務'));
-    expect(select).toHaveBeenLastCalledWith('父任務');
+    expect(select).toHaveBeenLastCalledWith('父任務', true);
     fireEvent.click(crumb(summary.title));
-    expect(select).toHaveBeenLastCalledWith(null);
+    expect(select).toHaveBeenLastCalledWith(null, true);
   });
 
   it('bounds cyclic legacy trees and paths without losing visible nodes', () => {
@@ -231,7 +234,8 @@ describe('P2a workspace navigation', () => {
       .mockResolvedValueOnce(response({ detail: 'private-secret' }, status)).mockResolvedValueOnce(response(detail));
     stubFetch(fetcher); render(<App />);
     await screen.findByRole('heading', { name: '所有專案總覽' });
-    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
+    fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
     expect(await screen.findByRole('alert')).toHaveTextContent(status === 403 ? '沒有操作權限' : '找不到項目');
     expect(document.body).not.toHaveTextContent('private-secret');
     fireEvent.click(screen.getByRole('button', { name: '重試' }));
@@ -261,7 +265,8 @@ describe('P2a workspace navigation', () => {
     let resolve!: (value: ReturnType<typeof response>) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response(identity)).mockResolvedValueOnce(response({ items: [summary] })).mockImplementationOnce(() => new Promise(done => { resolve = done; }));
     stubFetch(fetcher); render(<App />);
-    fireEvent.click(await within(await screen.findByLabelText('專案清單')).findByRole('button', { name: summary.title }));
+    fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
     await screen.findByText('載入專案中');
     fireEvent.click(screen.getByRole('button', { name: '所有專案總覽' }));
     await act(async () => { resolve(response({}, 401)); });
@@ -325,15 +330,45 @@ describe('UI3 Demo home pages', () => {
     vi.stubGlobal('fetch', vi.fn(async (path: string) => response(path === '/api/auth/me' ? identity : path === '/api/projects' ? { items: [] }
       : { project_count: 0, task_counts: { todo: 0, doing: 0, review: 0, done: 0, skipped: 0 }, completion_percent: null, projects: [] })));
     render(<App />);
+    fireEvent.click(await screen.findByRole('button', {name:'切換 AI 副手'}));
     const copilot = within(await screen.findByRole('complementary', { name: 'AI 專案副手' }));
     expect(copilot.getByText('模型未啟用・檢索與資料查詢可用')).toBeInTheDocument();
     expect(copilot.getByText(/目前位置：所有可見專案/)).toBeInTheDocument();
     for (const button of copilot.getAllByRole('button').filter(item => item.getAttribute('aria-label') !== '關閉 AI 副手')) expect(button).toBeDisabled();
     expect(copilot.getByLabelText('詢問 AI')).toBeEnabled();
     const toggle = screen.getByRole('button', { name: '切換 AI 副手' });
-    fireEvent.click(toggle); expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(within(screen.getByRole('navigation', { name: '工作區導覽' })).getByRole('button', { name: /營運資料/ })).toBeEnabled();
+  });
+});
+
+
+describe('phase status cards', () => {
+  it('distinguishes actual completion, active descendants and untouched work; only allows active cards', () => {
+    const completed = {...node('已結束', null, 'phase', 'done'), sort_order:0};
+    const active = {...node('執行階段', null, 'phase'), sort_order:1};
+    const future = {...node('下一階段', null, 'phase'), sort_order:2};
+    const project: ProjectDetail = {...detail, nodes:[completed, active, future, node('執行任務', active.id, 'task', 'doing')],
+      gates:[{id:'g',project_id:'p',node_id:active.id,status:'pending'}]};
+    const select=vi.fn();
+    const props={project, selectedNodeId:null, select, readonly:false, canApprove:true, disabled:false, mutate:vi.fn()};
+    const {rerender}=render(<NodeWorkspace {...props}/>);
+    expect(phaseButton('已結束')).toHaveTextContent('已完成');
+    expect(phaseButton('已結束')).toBeDisabled();
+    expect(phaseButton('執行階段')).toHaveTextContent('進行中');
+    expect(within(phaseButton('執行階段')).getByLabelText('進行中階段')).toHaveTextContent('→');
+    expect(phaseButton('執行階段')).toBeEnabled();
+    expect(phaseButton('下一階段')).toHaveTextContent('尚未開始');
+    expect(phaseButton('下一階段')).toBeDisabled();
+    expect(phaseButton('下一階段')).toHaveTextContent('尚未開始，暫不開放此入口');
+    fireEvent.click(phaseButton('下一階段')); expect(select).not.toHaveBeenCalled();
+    fireEvent.click(phaseButton('已結束')); expect(select).not.toHaveBeenCalled();
+    fireEvent.click(phaseButton('執行階段')); expect(select).toHaveBeenCalledWith(active.id);
+    rerender(<NodeWorkspace {...props} project={{...project,gates:[{...project.gates[0],status:'approved'}]}}/>);
+    expect(phaseButton('下一階段')).toBeDisabled();
+    expect(phaseButton('下一階段')).toHaveTextContent('尚未開始');
+    expect(within(phaseButton('下一階段')).queryByLabelText('進行中階段')).not.toBeInTheDocument();
   });
 });

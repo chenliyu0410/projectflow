@@ -1,3 +1,4 @@
+import { closeProjectDrawer, openAccount, openProjects } from './navigation';
 import { expect, test } from '@playwright/test';
 
 for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, async ({ page, request }, info) => {
@@ -11,14 +12,14 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   await page.getByRole('button', { name: '登入', exact: true }).click();
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
   const menu = async () => { if (width === 375 && !await page.getByLabel('工作區導覽').isVisible()) await page.getByRole('button', { name: '切換導覽' }).click(); };
-  const nav = async (name: string) => { await menu(); await page.getByRole('button', { name, exact: true }).click(); };
+  const nav = async (name: string) => { if (name === '登出') await openAccount(page); else await menu(); await page.getByRole('button', { name, exact: true }).click(); };
   const capture = async (name: string) => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(await page.locator('.workspace-content').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath(`${name}-${width}.png`), fullPage: true });
   };
   await menu();
-  await page.getByLabel('專案清單').getByRole('button').first().click();
+  await (await openProjects(page)).locator('.sidebar-projects').getByRole('button').first().click();await closeProjectDrawer(page);
   await expect(page.getByRole('tab', { name: '文件', exact: true })).toBeVisible();
   const writes: string[] = [];
   page.on('request', r => { if (!['GET', 'HEAD'].includes(r.method())) writes.push(`${r.method()} ${new URL(r.url()).pathname}`); });
@@ -51,7 +52,7 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   await page.getByLabel('預覽政策').selectOption('混合');
   await page.getByText('查看示例送出內容', { exact: true }).click();
   await capture('governance');
-  if (width === 375) await page.getByRole('button', { name: '切換 AI 副手' }).click();
+  await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const ai = page.getByLabel('AI 專案副手', { exact: true });
   await ai.getByLabel('AI展示專案').selectOption('MY-AI-001');
   await ai.getByRole('button', { name: '現行交付需要幾張截圖？' }).click();
@@ -72,14 +73,14 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   await page.getByLabel('文件文字').fill('切公司前暫存');
   await page.getByRole('button', { name: '套用至預覽', exact: true }).click();
   await menu();
-  await page.getByLabel('切換公司（本機展示）').selectOption('electronics');
+  await (await openAccount(page)).getByLabel('切換公司（本機展示）').selectOption('electronics');
   await expect(page.getByLabel('目前公司')).not.toContainText('毛研食品');
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
   await nav('營運資料');
   await page.getByRole('button', { name: '查看原展示示例', exact: true }).click();
   await expect(page.getByRole('heading', { name: '峰曜科技', exact: true })).toBeVisible();
   await expect(page.getByText(/青禾原料/)).toHaveCount(0);
-  await menu(); await page.getByLabel('切換公司（本機展示）').selectOption('food');
+  await menu(); await (await openAccount(page)).getByLabel('切換公司（本機展示）').selectOption('food');
   await expect(page.getByLabel('目前公司')).toContainText('毛研食品');
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
   await nav('營運資料');

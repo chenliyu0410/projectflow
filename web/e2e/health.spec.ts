@@ -1,3 +1,4 @@
+import { closeProjectDrawer, openAccount, openProjects } from './navigation';
 import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
@@ -44,7 +45,7 @@ for (const width of [1280, 375]) {
       await page.getByRole('button', { name: '登入', exact: true }).click();
       await page.getByRole('heading', { name: '所有專案總覽', exact: true }).waitFor();
       if (width === 375) await page.getByRole('button', { name: '切換導覽' }).click();
-      if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await expect(page.getByLabel('專案清單')).toBeVisible();
+      await openProjects(page);await expect(page.getByRole('region',{name:'固定專案清單'})).toBeVisible();
       await expect(page.getByRole('status')).toHaveCount(0);
     };
     await page.setViewportSize({ width, height: 900 });
@@ -52,7 +53,7 @@ for (const width of [1280, 375]) {
     await expect(page.getByRole('heading', { name: '登入專流' })).toBeVisible();
     await screenshot('login');
     await login('yu');
-    if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();
+    await (await openProjects(page)).getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();await closeProjectDrawer(page);
     await expect(page.getByRole('heading', { name: '成貓主食罐正式版', exact: true })).toBeVisible();
     await expect(page.getByLabel('開發階段與閘門')).toContainText('市場與配方');
     await expect(page.getByLabel('看板')).toContainText('殺菌條件驗證');
@@ -63,8 +64,7 @@ for (const width of [1280, 375]) {
     expect(seedBefore.status()).toBe(200);
     const seedNodes = (await seedBefore.json()).nodes;
     const title = `P1b E2E ${width} ${randomUUID()}`;
-    if (!await page.getByRole('button', { name: '建立新專案' }).isVisible()) await page.getByRole('button', { name: '切換導覽' }).click();
-    await page.getByRole('button', { name: '建立新專案' }).click();
+    await openProjects(page); await page.getByRole('button', { name: '建立新專案', exact: true }).click();
     await page.getByLabel('工作流模板').selectOption({ label: '食品新品開發' });
     await page.getByLabel('新專案名稱').fill(title);
     await screenshot('create');
@@ -100,10 +100,10 @@ for (const width of [1280, 375]) {
     await page.getByLabel('待處理').getByRole('combobox', { name: '試作工單狀態' }).selectOption('doing');
     await expect(page.getByLabel('進行中').getByRole('combobox', { name: '試作工單狀態' })).toHaveValue('doing');
     await screenshot('gate-approved');
-    if (!await page.getByRole('button', {name:'登出',exact:true}).isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByRole('button', { name: '登出' }).click();
+    await (await openAccount(page)).getByRole('button',{name:'登出',exact:true}).click();
     await expect(page.getByRole('heading', { name: '登入專流' })).toBeVisible();
     await login('lin');
-    if (!await page.getByLabel('專案清單').isVisible()) await page.getByRole('button', {name:'切換導覽'}).click();await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+    await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
     await page.getByRole('button', { name: `進入階段：${phaseTitle}`, exact: true }).click();
     await expect(page.getByLabel('進行中')).toContainText('試作工單');

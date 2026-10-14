@@ -13,6 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
+| 目前工作項目 | **PROJECT-DRAWER 🟢 固定專案清單、我的待辦、相依追蹤與固定返回**（[範圍與驗收](superpowers/plans/2026-10-14-project-drawer.md)），延續 UX-CHILD 分支。 |
+| 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
+| 下一個動作 | 依使用者2026-10-14「開PR推上去」更新既有 [PR #3](https://github.com/chenliyu0410/projectflow/pull/3)，等待審閱；不合併或部署。離線 HTML 與模擬資料不納入。 |
+| 分支 | `feature/ux-child-modules-navigation`，基準 `063a483`；本機 main 未動。2026-10-14取得 origin/main=`ed530e5`（另有試用部署更新），本輪未合併 main。 |
+| 最新程式 commit | 本機 UX-CHILD 提交見此分支最新 git log；基準為 `063a483`，沒有合併 main。 |
+| 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
+| 測試基準 | PROJECT-DRAWER：完整前端31檔309pass；桌面／手機專案抽屜、相依追蹤、返回、頂欄與五尺寸側欄共9pass；型別與build exit0。獨立審查發現高亮節點遮住拖線按鈕，已修正層級並以左側命中及pointerdown回歸。初跑單元306pass／3fail（2項旧導覽斷言、1項既有入庫測試等待），修正後全量通過；初跑瀏覽器5pass／4fail為手機測試定位忽略隱藏元素，修正後9pass。歷史端對端僅載入檢查，未全量執行；本輪未改後端、未重跑歷史API與部署測試。保留既有產物大於500kB警告。 |
+| 資料版本 | LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
+| 認領中 | 無；工程驗證完成，等待使用者檢視。 |
+| 阻塞／待人類 | 本輪無工程阻塞；待使用者檢視分支及後續UI／UX建議。實際他人線上資料與部署未動，展示資料包以外帳戶／專案未測。 |
+| 遠端 | 2026-10-13 使用者要求先開 PR；已有未合併 PR #3，更新同一份並推送 feature/ux-child-modules-navigation。main 維持原狀，不自動合併或部署。 |
 | 目前工作項目 | **PUBLIC-TRIAL ✅ 用Tailscale Funnel開放網際網路試用＋開機自動啟動**（[短計畫](superpowers/plans/2026-10-14-public-trial.md)）。之前LAN-SWITCH ✅、LAN-TRIAL ✅、F1-RET等✅ |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
 | 下一個動作 | 人類：把`https://p215-2203-nb01.tail177cc6.ts.net:10000`與帳號給信任的測試者，並用外部網路（例如手機行動網路）實際開一次；要開機自動啟動，把根目錄`開機自動啟動-公開試用.bat`的**捷徑**放進`shell:startup`（AI未代建）。停止公開：`停止公開試用.bat`。之後方向待人類指示。 |
@@ -67,6 +78,17 @@
 
 ## 2. 工作佇列（由上往下執行）
 
+- PR交付（2026-10-13）：依使用者要求將本分支正式介面更新納入 [PR #3](https://github.com/chenliyu0410/projectflow/pull/3)，等待審閱。以下歷史項目的「本機／未推送」為當時狀態，以本筆交付紀錄為準。前端全量30檔306pass；更新兩項過期／焦點等待測試，獨立複核無實質問題。相依圖獨立 HTML 與登入風格試稿均在儲存庫外，暫不採用、不提交；正式相依圖維持現況。
+
+- COMPACT-HEADER 🟢（2026-10-13）：新增子節點下拉移到帳號左側，專案總覽標籤與名稱同列、根頁省略重複路徑，手機帳號縮為頭像。1280／375端對端2pass；單元三檔初跑90pass／12fail（舊階段測資仍todo及根頁路徑斷言），更新測資／斷言後App56pass，另外兩檔46pass。型別／build exit0、唯讀審查無實質問題。本機交付，未推送／合併／部署。
+
+- PHASE-CARDS 🟢（2026-10-13）：副手追加改為桌面上下16px／手機12px留白，圖示每6秒微動／光暈，展開及減少動態時停用。隱藏入口造成關閉焦點回復失敗已修；工作區單元26pass、桌面／手機端對端2pass、型別／build0。追加恢復所有階段進度條（進行中主色、其餘反灰），加強卡片外框／頂邊／標題／狀態標籤；追加桌面與手機端對端2pass、型別／build exit0、唯讀複核無實質問題。新增子節點為首項、階段三狀態卡片與進行箭頭、放大浮動副手並保留上下留白。使用者已選只有進行中可點，其餘卡片停用。相關單元48pass、桌面1280／手機375端對端2pass、型別／build exit0，獨立唯讀審查無實質問題。僅本機交付，未推送／合併／部署。
+
+- HEADER-FLOAT 🟢（2026-10-13）：使用者右上角、副手右下角浮動入口、專案操作下拉；[短規格與計畫](superpowers/plans/2026-10-13-header-floating-actions.md)。桌面／手機端對端2pass、修正後相關單元45pass、型別／build0、獨立審查複核通過。全量單元初跑303pass／2個測試時序問題已修，其他歷史端對端未重跑。延續現有分支，僅本機交付，未推送／合併／部署。
+
+- NAV-SURFACE 🟢（2026-10-13）：依使用者指示在目前分支調整自動隱藏捲軸、右側專案第二層面板、頁籤與內容連接底色；[短規格與計畫](superpowers/plans/2026-10-13-navigation-surface.md)。僅前端，本輪不推送／合併／部署。
+
+- UX-CHILD 🟢（2026-10-12，協作者本機，未合併）：追加左側專案遮蔽修正：單一捲動、長名稱換行；5尺寸＋時程E2E 8pass、相關前端31pass、build0、獨立審查無阻塞。完成時程新增／拖曳／限制原因／位置保留／觸控修正；[短計畫](superpowers/plans/2026-10-12-ux-child-modules-navigation.md)、[檢查與後續 UI／UX 清單](ux-child-review.md)。前端 298pass（單工作程序）、型別／build exit0；資料包 80帳戶×39專案的528組同公司矩陣通過，相關API 76pass，桌面／手機／唯讀E2E 3pass。獨立審查父層失效問題已修並複核。本輪不合併／push／部署，優先於歷史 D50。
 - PUBLIC-TRIAL ✅：人類2026-10-14指示「給我本地開伺服器，讓別人能測試projectflow的方法」並附LH／PowerQueryTW的開機自動啟動.bat；被問開放範圍選「網際網路（Funnel）」、啟動方式選「開機自動啟動 .bat」，即授權本機15173經Tailscale Funnel對網際網路開放試用（D65 §14第7點）。[短計畫](superpowers/plans/2026-10-14-public-trial.md)：Funnel 10000→web新增的loopback 15174（nginx 81只收`*.ts.net` Host、對API帶`X-Forwarded-Proto: https`，公開疊加檔讓uvicorn採用），`deploy/public_trial.py`等Docker／Tailscale後發布並健檢，不覆蓋別人的10000；`--stop`只關自己的Funnel並回到本機模式；根目錄兩個ASCII／CRLF .bat。一次唯讀獨立審查Ready；非阻擋第1點（使用者目錄的Docker Desktop）已修，其他見§7。部署：`public_trial.py`與兩個.bat經cmd實跑皆exit0，本機與公開health 200；Funnel 443／8443未動；區網IP連15173／15174皆拒；公開網址帶偽造`Host: 127.0.0.1`／`localhost`回421；經15174以ts.net Host登入yu得6家切換清單，https Origin通過同源檢查（未知公司404、未實際切換），http Origin 403，AI模型設定403；之後登出。限制：內建瀏覽器擋公開網址的JS／CSS（ERR_BLOCKED_BY_CLIENT，curl取得200且本機同bundle正常），外部網路實際畫面待人類確認；密碼`demo-<帳號>`可推得；無帳號管理／改密碼／登入限流。
 
 - LAN-SWITCH ✅：人類2026-10-12問「有辦法一個帳號就切換公司嗎」，選方案A「好，照 A 做」：把既有展示公司切換開放給`--lan`區網試用的管理員（切換後身分是該公司的展示管理者）；方案B（一個帳號屬於多家公司）未選。[短計畫](superpowers/plans/2026-10-12-lan-company-switch.md)。新增API環境變數`PF_SHOWCASE_LAN`，與`PF_SHOWCASE_MODE`都為true時展示切換與展示身分session不限本機Host；`start.py`每次強制帶值（`--lan`才true），驗收環境永遠false；AI模型設定仍只限本機，前端未改。一次唯讀獨立審查Ready（另以暫存env實測compose：shell值優先於env檔）。部署：pg_dump後`start.py --lan`，API容器重建、web／DB未重建，容器內`PF_SHOWCASE_LAN=true`；127.0.0.1與區網IP health ready；以區網Host登入yu回傳6家公司切換清單後登出。未實際在區網執行切換（避免寫入稽核）；非阻擋：選單文字仍為「切換公司（本機展示）」。
@@ -1204,3 +1226,34 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 部署：自動權限把`deploy/start.py`判為正式部署而拒絕，由人類於本機執行完成（不seed）。部署前pg_dump／files／列指紋備份；部署後alembic 0017、DB容器未重建、3338列／1檔案／env保留、新表空、採購端點唯讀冒煙與web bundle核對通過。依D50 ff-only合併、push核對SHA；人類試用未代簽。
 
+### F1-WORK 交接（2026-10-12）
+
+依使用者指示完成工單領料／完工入庫，沿用原子庫存帳，公司鎖、正數輸入轉方向、管理角色與同公司分類驗證。流水加work來源快照，UUID比對包含操作種類與工單，工單與物料均可查；既有收貨與人工調整維持。0016保留舊列，有工單帳拒降級；新migration測試亦保留舊流水與餘額。前端模式切換可取消保留草稿，pending／busy／父層blocked保護維持。相關API68pass10skip、新migration1pass、全前端277pass、build0、1280／375共6E2Epass含真PG競爭與重送；唯讀獨立審查Ready。正式DB/files備份、遷移、health與流水端點冒煙通過，原3338列／files／env核對保留；無正式測試帳、無seed。成品沿用resources，尚無BOM／退料／批號／成本及自動結案。依D50 ff-only、push核對SHA，人類试用不代簽。
+
+
+### 2026-10-12｜Codex｜UX-CHILD 協作者本機交付
+
+完成內容、完整測試摘要、限制及後續建議見 [UI／UX 檢查結果](ux-child-review.md)。獨立分支；沒有修改 main／push／合併／部署他人服務。前端平行執行曾有非固定等待失敗，最終單工作程序 298/298 通過，詳見報告。
+
+
+### 2026-10-12｜Codex｜UX-CHILD 左側專案遮蔽追加修正
+
+使用者確認左側專案區被遮蔽。重現17px清單容不下約50px列，改整個側欄統一捲動、名稱換行。修正前兩項瀏覽器驗證失敗；修正後五尺寸＋既有時程共8pass，相關前端31pass、型別／build0。一次唯讀審查無阻塞；未實測實體手機及Tab，詳見報告。僅本機功能分支，未合併／push／部署。
+
+### 2026-10-12｜Codex｜UX-CHILD PR 授權
+
+使用者要求「幫我開PR給原來的github帳號」。確認登入 lee851104 對 chenliyu0410/projectflow 具有 push 權限，目標 main。授權僅擴及功能分支推送與 PR 建立，原作者主分支及部署仍不修改。
+
+### 2026-10-13｜Codex｜NAV-SURFACE 交付
+
+使用者確認右側第二層面板，完成原生捲軸活動顯示／900ms 閒置隱藏、專案次層面板（選取／外部／Escape 關閉，手機適配）、選中頁籤與內容白底連接。原生捲動與資料權限不變；同步既有前端與端對端測試入口。未修改業務資料、後端或部署。
+
+驗證：首次完整前端 298pass／4fail（4項為舊導航定位）；更新後受影響兩檔 61pass，其餘原先通過；最終焦點修正再驗5pass，型別／build exit0。三尺寸1280×720、375×667、844×390端對端3pass，含全部專案可點／長名不溢位、選單焦點、三個視圖底色與零間隔、捲軸閒置隱藏與寬度穩定。63項／27檔既有端對端可載入（只列出，未執行全量）。一次獨立唯讀審查發現外部空白點擊焦點缺口，真瀏覽器先重現、修正後通過，複核無新阻塞。build保留單一產物大於500kB的提示，未擴大做切包重構。
+
+截圖與執行紀錄：`.superpowers/ux-check/navigation-*.log`、`web/test-results/project-sidebar-*/`。本機預覽保留15177→18010。人類視覺驗收待確認；此輪不推送、合併或部署。
+
+### 2026-10-14｜Codex｜PROJECT-DRAWER PR 更新
+
+使用者確認我的待辦範圍為指派本人或參與協作的未完成任務，並要求開 PR 推送；將已確認互動整合正式前端，沿用 PR #3。資料仍由既有帳號／公司 API 授權，無後端或資料庫變更。固定左側專案區、原生待辦抽屜、相依路徑高亮固定與清除、固定藍色返回及分頁保留已交付。離線 HTML 不納入儲存庫。
+
+驗證與初跑修正見上方測試基準；一次獨立只讀審查與拖線修正複核。紀錄位於 `.superpowers/ux-check/drawer-*.log`，截圖位於 `web/test-results/`。只推送功能分支及更新 PR，不合併 main、不部署。

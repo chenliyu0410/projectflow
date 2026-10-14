@@ -1,3 +1,4 @@
+import { closeProjectDrawer, openProjects } from './navigation';
 import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
@@ -37,23 +38,25 @@ for (const width of [1280, 375]) test(`UI1 visual alignment and navigation at ${
   await capture('overview');
   if (width === 1280) {
     expect(await page.locator('.workspace-navigation').evaluate(el => el.getBoundingClientRect().width)).toBe(252);
-    // Demo three-zone widths at 1280: side 252 | main 678 | copilot 350.
-    expect(await page.locator('.workspace-main').evaluate(el => el.getBoundingClientRect().width)).toBe(678);
-    expect(await page.getByRole('complementary', { name: 'AI 專案副手' }).evaluate(el => el.getBoundingClientRect().width)).toBe(350);
+    // Collapsed assistant leaves the full area beside the 252px navigation.
+    expect(await page.locator('.workspace-main').evaluate(el => el.getBoundingClientRect().width)).toBe(1028);
+    await expect(page.getByRole('complementary', { name: 'AI 專案副手' })).toBeHidden();
+    await openProjects(page);
     // Long project names must not overlap their next sibling in the scrolling sidebar.
     expect(await page.locator('.sidebar-projects').evaluate(el => [...el.children].every((a, i, list) => i === 0 || a.getBoundingClientRect().top >= list[i-1].getBoundingClientRect().bottom))).toBe(true);
+    await page.getByRole('button', { name: '關閉專案選單' }).click();
   } else {
-    await menu(); await expect(page.getByLabel('專案清單')).toBeVisible(); await page.screenshot({ path: `${dir}/formal-navigation-${width}.png` });
+    await openProjects(page); await expect(page.getByRole('region',{name:'固定專案清單'})).toBeVisible(); await page.screenshot({ path: `${dir}/formal-navigation-${width}.png` });
     // Escape works from sidebar content and returns focus to its trigger.
     await page.getByRole('button', { name: '所有專案總覽', exact: true }).focus(); await page.keyboard.press('Escape');
     await expect(page.getByRole('button', { name: '切換導覽' })).toBeFocused();
   }
   await nav('我的任務'); await expect(page.getByRole('heading', { name: '我的任務', exact: true })).toBeVisible();
   await page.getByLabel('搜尋任務').fill(title); await expect(page.locator('.task-group tbody tr')).toHaveCount(3); await capture('tasks');
-  await menu(); await page.getByLabel('專案清單').getByRole('button', { name: title, exact: true }).click();
+  await menu(); await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
   await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible(); await capture('workspace');
   // UI4: Demo board is four columns (148px each at 1280 with the copilot open, 240px scrolling inside the board on phones).
-  expect(await page.locator('.kanban-column').evaluateAll(cols => cols.map(c => Math.round(c.getBoundingClientRect().width)))).toEqual(Array(4).fill(width === 1280 ? 148 : 240));
+  expect(await page.locator('.kanban-column').evaluateAll(cols => cols.map(c => Math.round(c.getBoundingClientRect().width)))).toEqual(Array(4).fill(width === 1280 ? 227 : 240));
   await page.getByRole('tab', { name: '時程', exact: true }).click(); await expect(page.getByLabel('專案時程')).toBeVisible(); await capture('timeline');
   await page.getByRole('tab', { name: '相依圖', exact: true }).click(); await expect(page.getByLabel('前置設定')).toBeVisible(); await capture('dependencies');
   await page.getByRole('tab', { name: '看板', exact: true }).click();
