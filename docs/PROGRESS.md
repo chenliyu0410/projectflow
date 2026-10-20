@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **RAG-STARTER 🟢 隔離測試版已交付**：人類要求將新RAG資料改用現有公司並接續匯入；已改為毛研食品／峰曜科技，新增starter-v1及副手資料集切換、PDF文字解析、歷史版本、來源引用與完整未完成工單。Docker仍錯誤，人類明確選擇「先交付隔離測試版」，正式環境未部署。 |
+| 目前工作項目 | **AI-GATEWAY-LOCAL 🟢 隔離版已交付**：人類要求後續工作繼續完成；已串接本地AI閘道、既有文件分級、內容預覽與無正文稽核。沿用隔離測試版，雲端固定關閉；RAG-STARTER已交付保留。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 人類試用 http://127.0.0.1:15175 （全新隔離SQLite）。選AI副手→入門文件；操作與啟動器在repo外 ../output/rag-starter-acceptance/。Docker恢復後先備份，再整合／部署並匯入正式ai_data；不重設原資料。原公開網址及開機試用確認仍保留待辦。 |
+| 下一個動作 | 人類可在15175的AI副手試用「預覽提供給模型的資料」與「資料處理紀錄」。後續開發仍有正式附件索引／權限、完整分級繼承、遮罩、雲端政策及真模型品質；先持續隔離驗證。Docker恢復後才備份與另做正式部署，原公開網址／開機試用待辦仍保留。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
-| 最新程式 commit | `fb9640e`（RAG-STARTER程式／測資／操作文件）；之前正式程式為`28dbecb`。 |
+| 最新程式 commit | `c964f97`（本地AI閘道與權限範圍內的資料預覽）；前階段`fb9640e`為RAG-STARTER。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | RAG-STARTER：相關新舊API最終17pass；前端31檔全量311pass，最後小幅工單UI修改後相關9pass；Node24.15下tsc/build exit0（保留既有>500kB警告）；真Edge桌面1280／手機375各1條E2E，共2pass，含登入→資料集→現行／歷史檢索→引用→完整工單→切換清除。32題權限／版本32pass，有指定來源29題全部找到；不是LLM答案評測，Q31明確使用工單模式。6份PDF完整中文擷取及目視通過；已提交Git匯出的27項manifest SHA-256一致。獨立唯讀審查與修正後複核通過。併發匯入測試RED1fail→GREEN；前端新功能RED2fail/6pass→最終9pass。首次API及全前端曾因沙箱TEMP/socketpair失敗，改用本機授權環境後通過，不將環境錯誤當產品RED。初次E2E匹配到提及MTG-003的其他文件，改為引用標題定位後2pass。未跑歷史全API、正式PG或真模型。 |
+| 測試基準 | AI-GATEWAY-LOCAL：相關新舊AI API25pass；前端31檔全量314pass，最後預覽捲動／勾選框小改後相關11pass；Node24.15下tsc/build exit0（保留既有>500kB警告）；真Edge桌面1280／手機375共2pass，含預覽零生成、內部／機密等級、現行／歷史引用、完整工單、切換清除、預覽標題在視窗內、無水平溢位／pageerror。32題權限／版本32pass、指定來源29/29；不是模型答案評測。獨立唯讀審查及小改複核無實質問題。新API RED8fail（另有3個pytest.fail觸發TestClient關閉錯誤）→GREEN；前端RED2fail/9pass→11pass。初次E2E把新版正文提及MTG-002誤當舊版來源，改為summary精確比對後通過。兩公司教材SQLite SHA-256前後一致；健康200。未跑歷史全API、正式PG或真模型。 |
 | 資料版本 | 正式PostgreSQL、Docker volumes與舊dataset-v1未修改；無migration。repo外 output/rag-starter-local-ai/starter-v1已匯入24文件（food23/electronics1），現行23／歷史1；food管理者可見23、一般成員22。隔離preview是新建SQLite與原seed_demo_data的2公司7帳號，僅15175/18005回環；不是正式資料庫。人資限定文件現階段只限admin，未新增hr角色。Python3.12.14／Node24.15隔離驗證，Docker目標Python3.13尚待部署驗證。 |
-| 認領中 | 無；隔離服務留供人類試用，PID與啟動器存output/rag-starter-acceptance。 |
-| 阻塞／待人類 | 正式部署等待Docker Desktop恢復：啟動日誌為sailor-ingest.sock無法存取，改名與唯讀reparse查詢均遭Windows拒絕；未刪除／修改socket或Docker資料。人類已選先交付隔離版。AI閘道、OCR、正式附件索引、向量檢索與真模型品質驗收仍未完成。 |
+| 認領中 | 無；隔離API已載入本輪程式，15175／18005服務留供試用。PID、啟動器、試用說明與閘道驗證結果在output/rag-starter-acceptance。 |
+| 阻塞／待人類 | 正式部署等待Docker Desktop恢復：先前啟動日誌為sailor-ingest.sock無法存取，人類已選先交付隔離版，本輪未再修改Docker。閘道第一版只實作教材分級與全本地出口；完整分級繼承、遮罩／還原、雲端供應商與政策、稽核查詢／匯出、OCR、正式附件索引、向量檢索與真模型品質驗收仍待完成。 |
 | 遠端 | 本輪僅本機commit，未push／PR／合併／正式部署；保留feature分支。 |
 
 ---
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- AI-GATEWAY-LOCAL 🟢 隔離交付（2026-10-20）：人類授權繼續後續工作，按[本地閘道短計畫](superpowers/plans/2026-10-20-ai-gateway-local.md)完成模型統一出口、教材分級、零模型預覽與摘要稽核，程式`c964f97`。API25pass、前端全量314pass／最後相關11pass、tsc/build及桌面／手機2pass、32題來源／權限評測無退步，獨立審查與複核無實質問題。只隔離交付，正式繼承／遮罩／雲端／向量索引留後續。
 
 - RAG-STARTER 🟢 隔離交付（2026-10-20）：人類授權接續匯入後續工作，並指定假資料改用現有公司。依[短規格／計畫](superpowers/plans/2026-10-20-rag-starter-import.md)，改成毛研食品／峰曜科技，新增獨立starter-v1資料集、PDF文字解析、搜尋與來源、新舊版本及完整工單查詢。舊AI資料與正式DB保留；人資限定資料暫限admin。已在repo外獨立AI區匯入24份並完成17項API、前端全量311及最後相關9項、桌面／手機2項驗證；32題來源／權限驗證通過，模型答案品質未測。使用者確認Docker仍出錯，先交付15175隔離SQLite版；未匯入正式環境、未push／合併。
 
@@ -1187,6 +1189,13 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-20｜Codex｜AI-GATEWAY-LOCAL隔離版
+
+- **做了什麼**：依人類要求接續AI後續工作，`c964f97`加入本地閘道、教材分級、內容預覽、結果摘要稽核；RAG與SQL辨識統一出口。設定直接改檔仍擋公開IP／cloud模型。一般成員不能預覽人資預算；未知分級從嚴，正式節點分級尚未實作。
+- **驗證**：相關API25pass、前端31檔314pass，最後捲動／勾選框調整後11pass與tsc/build重驗，真Edge1280／375兩條E2E2pass。32題版本／權限通過、29來源29找到；教材SQLite兩公司hash前後不變、入口健康200。獨立唯讀審查及小改複核無實質問題；不是實際LLM品質驗收。
+- **限制**：雲端固定關閉；無遮罩、完整繼承、正式附件索引、向量檢索或真模型。預覽不呼叫模型，只呈現業務資料，不含固定系統指令；正式送出重新查權限。查詢後稽核不記正文，未做送出前持久化或稽核管理頁。Docker仍按先前阻塞處理，未動正式環境。
+- **交付／下一步**：15175／18005保留試用，啟動器與更新說明在`../output/rag-starter-acceptance/`；新證據`閘道驗證結果.json`、`gateway-retrieval-evaluation.json`、`gateway-browser-delivery/`。維持feature分支、本機commit，未merge／push；後續依▶現在繼續。
 
 ### 2026-10-20｜Codex｜RAG-STARTER隔離版
 
