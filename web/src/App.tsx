@@ -1,6 +1,5 @@
 import { childCreationReason } from './child-creation';
 import LinkedOperations from './components/LinkedOperations';
-import PreviewBoundary from './components/PreviewBoundary';
 import DocumentManager from './components/DocumentManager';
 import OperationsManager from './components/OperationsManager';
 import TemplateDialogs from './components/TemplateDialogs';
@@ -10,7 +9,7 @@ import TimelineView from './components/TimelineView';
 import DependencyPanel from './components/DependencyPanel';
 import ReviewCenter from './components/ReviewCenter';
 import AuditLogView from './components/AuditLogView';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError, KNOWN_CONFLICTS } from './api';
 import type { NodeStatus, ProjectDetail, ProjectSummary, SessionInfo, WorkflowSummary, WorkspaceRoute } from './types';
@@ -24,6 +23,9 @@ import NavIcon from './components/NavIcons';
 import { canLeaveAll } from './leave-guard';
 import type { LeaveGuards } from './leave-guard';
 
+// 展示預覽（含各公司示例資料）只在預覽頁用到，分開載入以免拖大主程式。
+const PreviewBoundary = lazy(() => import('./components/PreviewBoundary'));
+const previewLoading = <p role="status">載入展示預覽中</p>;
 const ROLE_LABELS: Record<string, string> = { admin: '系統管理員', project_owner: '專案負責人', reviewer: '階段審核人', member: '成員', readonly: '唯讀' };
 const PAGE_SCOPES: Record<string, string> = { overview: '所有可見專案', 'my-tasks': '我的任務', reviews: '審核中心', workflows: '模板庫', audit: '活動與稽核紀錄', operations: '公司營運資料', governance: 'AI 政策展示預覽' };
 
@@ -504,7 +506,7 @@ export default function App() {
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
           {state === 'ready' && !creationOpen && route.page === 'operations' && !operationsPreview && <OperationsManager key={session.organization.id} expired={expireSession} leaveGuard={documentLeaveGuard} preview={() => setOperationsPreview(true)} />}
-          {state === 'ready' && (route.page === 'governance' || (route.page === 'operations' && operationsPreview)) && <PreviewBoundary initialPage={route.page as 'operations' | 'governance'} companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => route.page === 'operations' ? setOperationsPreview(false) : navigate({ page: 'overview' })} />}
+          {state === 'ready' && (route.page === 'governance' || (route.page === 'operations' && operationsPreview)) && <Suspense fallback={previewLoading}><PreviewBoundary initialPage={route.page as 'operations' | 'governance'} companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => route.page === 'operations' ? setOperationsPreview(false) : navigate({ page: 'overview' })} /></Suspense>}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview showAssignHint={canCreate} openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} createProject={canCreate ? id => void openCreation(id) : undefined} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
@@ -520,7 +522,7 @@ export default function App() {
             readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)}
             move={(id, parentId) => void moveNode(id, parentId)} openReport={openReport} reportIntent={reportIntent} notify={setMessage}
             color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))}
-            preview={projectView === 'documents' ? <DocumentManager key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} /> : projectView === 'data' && <LinkedOperations key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} preview={<PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage="data" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} />} />}
+            preview={projectView === 'documents' ? <DocumentManager key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} /> : projectView === 'data' && <LinkedOperations key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} preview={<Suspense fallback={previewLoading}><PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage="data" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} /></Suspense>} />}
             tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { if (!canLeaveDocument()) return; begin(); closeCreation(); setProjectView(view); }}
             actions={canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
             editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}

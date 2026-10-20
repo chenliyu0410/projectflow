@@ -2,10 +2,10 @@ import { fireEvent, render, screen, cleanup } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import PreviewBoundary from './components/PreviewBoundary';
 afterEach(cleanup);
-it('shows the complete company dataset and isolated purchase/document previews', () => {
+it('shows the complete company dataset and isolated purchase/document previews', async () => {
   const props = { initialPage: 'operations' as const, food: false, companyName: '禾沐', companyKey: 'hemu', exit: vi.fn() };
   const { unmount } = render(<PreviewBoundary {...props} />);
-  expect(screen.getByText('禾沐寵物營養股份有限公司')).toBeInTheDocument();
+  expect(await screen.findByText('禾沐寵物營養股份有限公司')).toBeInTheDocument();
   expect(screen.getByText('黃子晴｜食品研發專員')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: '採購' }));
   fireEvent.click(screen.getByRole('button', { name: /PO-261002-01/ }));
