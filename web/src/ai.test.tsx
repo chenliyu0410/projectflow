@@ -10,7 +10,7 @@ beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(st
 
 const gateway = { policy: 'local_only' as const, cloud_enabled: false as const, function: 'rag', classification: 'confidential' as const, classification_reason: 'source_level', route: 'none' as const, reason: 'model_disabled', outcome: 'not_sent' as const, source_count: 1, model: '' };
 
-it('updates isolated formal index and queries its own sources without synthetic/history controls', async () => {
+it('updates isolated formal index and defaults to current sources', async () => {
   const index = { counts: { indexed: 1, pending: 1, skipped: 1 }, updated_at: '2026-10-20T12:00:00Z', can_refresh: true, items: [{ source_id: 'x', title: '圖片.png', source_type: 'attachment', version: 1, state: 'skipped', reason: '不支援此格式' }] };
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
   vi.mocked(ai.refreshIndex).mockResolvedValue(index);
@@ -19,7 +19,7 @@ it('updates isolated formal index and queries its own sources without synthetic/
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, index, can_sql: false });
   fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
   await screen.findByText(/已索引 1／待更新 1／略過 1/);
-  expect(screen.queryByLabelText('包含歷史版本')).toBeNull();
+  expect(screen.getByLabelText('包含歷史版本')).not.toBeChecked();
   expect(screen.getByRole('option', { name: 'Text-to-SQL 資料分析' })).toBeDisabled();
   expect(screen.queryByText(/虛構延伸案/)).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: '更新文件索引' }));
@@ -32,6 +32,58 @@ it('updates isolated formal index and queries its own sources without synthetic/
   fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
   await screen.findByText('原文截圖4張');
   expect(ai.document).toHaveBeenCalledWith('D1', expect.any(AbortSignal), 'formal-v1');
+});
+
+it('opts into formal history for ask, preview and citations and clears on opt-out', async () => {
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
+  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, sources: [{ ...retrieved.sources[0], is_current: false, version: 1 }] });
+  vi.mocked(ai.preview).mockResolvedValue({ gateway, content: { question: '原訂', sources: [] } });
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
+  fireEvent.click(screen.getByLabelText('包含歷史版本'));
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '原訂報到地點' } });
+  await waitFor(() => expect(screen.getByRole('button', { name: '預覽提供給模型的資料' })).toBeEnabled());
+  fireEvent.click(screen.getByRole('button', { name: '預覽提供給模型的資料' }));
+  await screen.findByLabelText('模型資料預覽');
+  expect(ai.preview).toHaveBeenLastCalledWith(expect.objectContaining({ dataset: 'formal-v1', include_history: true }), expect.any(AbortSignal));
+  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  await screen.findByText('D1 · 交付規範（歷史版本）');
+  fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
+  await screen.findByLabelText('引用原文');
+  expect(ai.document).toHaveBeenLastCalledWith('D1', expect.any(AbortSignal), 'formal-v1', true);
+  fireEvent.click(screen.getByLabelText('包含歷史版本'));
+  expect(screen.queryByLabelText('引用原文')).toBeNull();
+  expect(screen.queryByText('檢索原文')).toBeNull();
+});
+
+it('polls formal status while open and cancels polling when closed', async () => {
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
+  const view = render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
+  await waitFor(() => expect(ai.status).toHaveBeenLastCalledWith(expect.any(AbortSignal), 'formal-v1'));
+  vi.useFakeTimers();
+  try {
+    // Re-enter the effect with fake timers.
+    view.rerender(<CopilotPanel scope="總覽" open={false} close={vi.fn()} />);
+    view.rerender(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+    await act(async () => {});
+    const before = vi.mocked(ai.status).mock.calls.length;
+    await act(async () => { await vi.advanceTimersByTimeAsync(10000); });
+    expect(ai.status).toHaveBeenCalledTimes(before + 1);
+    expect(ai.ask).not.toHaveBeenCalled();
+    const signal = vi.mocked(ai.status).mock.calls.at(-1)![0]!;
+    view.rerender(<CopilotPanel scope="總覽" open={false} close={vi.fn()} />);
+    expect(signal.aborted).toBe(true);
+    await act(async () => {});
+    const closed = vi.mocked(ai.status).mock.calls.length;
+    await act(async () => { await vi.advanceTimersByTimeAsync(20000); });
+    expect(ai.status).toHaveBeenCalledTimes(closed);
+  } finally {
+    view.unmount();
+    vi.useRealTimers();
+  }
 });
 
 it('keeps formal refresh controls out of member view', async () => {

@@ -78,5 +78,5 @@ def answer_documents(company, role, question, documents, base, *, include_histor
             return dict(base,kind='rag',engine='model',answer=generated['answer'],citations=generated['citations'])
         except Exception:
             base['warning']='模型連線或引用驗證失敗，改顯示可核對的檢索原文。'
-    label = '文件段落' if not base['synthetic'] else '文件（含歷史版本，請核對日期）' if include_history else '現行文件'
+    label = ('文件段落' if not base['synthetic'] else '文件') + ('（含歷史版本，請核對日期）' if include_history else '（現行版本）')
     return dict(base,kind='retrieval',engine='retrieval',answer=f'找到{len(documents)}份相關{label}。'+('模型尚未啟用，以下提供檢索原文；不是模型生成的答案。' if prepared.info['reason'] == 'model_disabled' else '請開啟引用查看原文。'))

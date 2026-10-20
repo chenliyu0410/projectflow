@@ -44,7 +44,7 @@ for (const width of [1280, 375]) test(`isolated operational documents and attach
   const updated = await page.request.post(`/api/documents/${doc.document_id}/text`, { data: { expected_version: 1, content: '全部虛構。新人報到改到五樓，請攜帶識別證。' } });
   expect(updated.status()).toBe(201);
   const beforeRefresh = await page.request.post('/api/ai/ask', { data: { dataset: 'formal-v1', question: '新人報到', project_id: project.id } });
-  expect((await beforeRefresh.json()).sources.some((source: { title: string }) => source.title === '新人報到指南.txt')).toBe(false);
+  expect((await beforeRefresh.json()).sources.some((source: { title: string; version: number }) => source.title === '新人報到指南.txt' && source.version === 1)).toBe(false);
   await panel.getByRole('button', { name: '更新文件索引' }).click();
   await expect(panel.getByRole('button', { name: '更新文件索引' })).toBeEnabled();
   await panel.getByLabel('詢問 AI').fill('新人報到');

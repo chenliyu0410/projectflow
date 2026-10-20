@@ -94,6 +94,8 @@ def test_only_health_routes_exist():
         '/documents/{document_id}/versions/{version}/download',
         "/ai/status",
         "/ai/ask",
+        "/ai/preview",
+        "/ai/index/refresh",
         "/ai/documents/{document_id}",
         "/ai/model",
         "/ai/model/test",

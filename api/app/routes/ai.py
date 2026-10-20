@@ -100,9 +100,9 @@ def evaluate(payload,current,db,*,preview):
 
 
 @router.get('/documents/{document_id}')
-def document(document_id:str,dataset:Dataset='dataset-v1',current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+def document(document_id:str,dataset:Dataset='dataset-v1',include_history:bool=False,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
     if dataset == 'formal-v1':
-        return formal_index.document(db,current,document_id)
+        return formal_index.document(db,current,document_id,include_history=include_history)
     with closing(connection(current, dataset)) as db:
         row=db.execute('SELECT * FROM documents WHERE document_id=? AND EXISTS (SELECT 1 FROM json_each(roles) WHERE value=?)',(document_id,current.user.role)).fetchone()
         if row is None: raise HTTPException(404,'找不到文件')

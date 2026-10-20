@@ -24,12 +24,14 @@ def database_ready() -> bool:
 def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application):
+        from app.ai.index_worker import running
         if os.environ.get("PF_ATTACHMENT_ROOT"):
             from app.services.attachment_store import storage_root, runtime_lock
-            with runtime_lock(storage_root()):
+            with runtime_lock(storage_root()), running():
                 yield
         else:
-            yield
+            with running():
+                yield
 
     application = FastAPI(title="ProjectFlow API", lifespan=lifespan)
     application.include_router(ai.router)

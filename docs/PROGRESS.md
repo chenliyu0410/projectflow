@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **FORMAL-INDEX 🟢 隔離交付**：正式文件最新版本與附件的手動分段索引、即時權限、來源預覽及副手入口已完成；仍只用複製的隔離版，不影響原資料。 |
+| 目前工作項目 | **INDEX-AUTO-HISTORY 🟢 隔離交付**：服務運行中每10秒檢查文件變動、明確選入歷史版本、版本警語與即時權限已完成；原DB／檔案保留。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 人類可在15175選「正式文件與附件（隔離）」、選隔離索引展示專案，試問新人報到／設備申請；上傳文件後由管理者更新索引。後續為自動更新、歷史文件、OCR、向量檢索、完整分級繼承、遮罩及真模型品質。Docker恢復後才備份與另做正式部署，原公開網址／開機試用待辦仍保留。 |
+| 下一個動作 | 人類可在15175選「正式文件與附件（隔離）」及「自動索引與版本展示」專案，試問新人報到：預設第2版五樓，勾選歷史可查第1版三樓。上傳後等待背景自動更新，管理者仍可手動更新。後續為OCR、向量檢索、完整分級繼承、遮罩、真模型品質、增量／大量資料佇列。Docker恢復後才另做正式部署。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
 | 最新程式 commit | `9a3801a`（正式文件與附件隔離索引）；前階段`c964f97`為本地AI閘道、`fb9640e`為RAG-STARTER。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | FORMAL-INDEX：核心API RED5fail→GREEN；新舊AI／文件／附件相關API79pass，獨立審查發現XLSX重複字串展開上限，新增測試RED1fail→修正後相關8pass；前端31檔316pass，Node24.15下tsc/build exit0（既有>500kB警告）；Edge桌面1280／手機375、新舊資料集共4pass，含最新版本／附件引用／機密預覽／切換清除／無水平溢位或pageerror，截圖目視確認。獨立審查及修正複核無剩餘問題。原隔離DB與教材SQLite雜湊不變、複製版保留30表81筆原資料；健康200。未跑歷史全API、正式PG或真模型。 |
-| 資料版本 | 正式PostgreSQL、Docker volumes與舊dataset-v1未修改；無migration。原acceptance.sqlite完整保留，另複製formal-index.sqlite並使用formal-index-files；新增虛構展示專案、文件與附件，formal-v1只存衍生索引。starter-v1仍24文件（food23/electronics1）、現行23／歷史1，管理者可見23／一般成員22。隔離環境沿用2公司7帳號，僅15175/18005回環；不是正式六家公司完整副本。Python3.12.14／Node24.15驗證，Docker目標Python3.13待部署驗證。 |
-| 認領中 | 無；FORMAL-INDEX已隔離交付，保留feature分支與試用服務。 |
-| 阻塞／待人類 | 正式部署等待Docker Desktop恢復：先前啟動日誌為sailor-ingest.sock無法存取，本輪未重試或修改Docker。完整分級繼承、遮罩／還原、雲端政策與供應商、稽核查詢／匯出、OCR、向量檢索、自動／歷史索引與真模型品質驗收仍待完成。 |
+| 測試基準 | INDEX-AUTO-HISTORY：新核心RED4fail→12pass；相關API回歸96pass／1個既有健康路由清單過期（base已存在preview／refresh），補齊後健康13pass；審查發現暫時讀檔重試缺口，RED1fail→修正後索引13pass。前端全量317pass／1個新測試未等ready，修正後相關15pass；最終相關15pass及tsc/build exit0（既有>500kB警告）。Edge桌面1280／手機375自動／歷史及教材4pass、手動索引2pass；引用捲動追加桌面通過，手機99.92%可見的子像素容差修正後1pass，最終截圖已目視確認。獨立審查P2已修並複核，最後scroll/ref複核無問題。原DB／檔案／教材hash不變，副本原資料及新增容量核對通過；健康200。未跑全歷史API、正式PG、多worker或真模型品質。 |
+| 資料版本 | 正式PostgreSQL、Docker volumes與舊dataset-v1未修改；無migration。另複製auto-history.sqlite與auto-history-files，原formal-index.sqlite／formal-index-files／acceptance.sqlite均保留且hash不變。核對30表134筆原資料；副本僅容量統計因新增虛構上傳增加，差額精確符合新增文件及附件。formal-v1依DB身分另建衍生索引。starter-v1仍24文件、hash不變。隔離環境2公司7帳號，僅15175/18005回環；不是正式六家公司完整副本。Python3.12.14／Node24.15驗證，Docker目標Python3.13待驗。 |
+| 認領中 | 無；保留feature分支與隔離試用服務。 |
+| 阻塞／待人類 | 正式部署等待Docker Desktop恢復：先前啟動日誌為sailor-ingest.sock無法存取，本輪未重試或修改Docker。完整分級繼承、遮罩／還原、雲端政策與供應商、稽核查詢／匯出、OCR、向量檢索、增量索引／大量資料佇列與真模型品質驗收仍待完成。 |
 | 遠端 | 本輪僅本機commit，未push／PR／合併／正式部署；保留feature分支。 |
 
 ---
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- INDEX-AUTO-HISTORY 🟢 隔離交付（2026-10-20）：依[短計畫](superpowers/plans/2026-10-20-index-auto-history.md)完成10秒背景變動檢查、無變動不重建、失敗保留／重試、現行／歷史選項、引用與模型資料版本警語、即時權限。新auto-history隔離副本，原DB／檔案hash不變。相關API／前端／Edge證據見▶現在；獨立審查P2已修並複核。不push／合併／正式部署。
 
 - FORMAL-INDEX 🟢 隔離交付（2026-10-20）：依[短規格／計畫](superpowers/plans/2026-10-20-formal-document-index.md)完成正式文件／附件手動索引、TXT／CSV／文字PDF／DOCX／XLSX解析、最新版本／即時權限、分段引用與機密預覽。另複製隔離DB及獨立檔案區，原資料hash與30表81筆原資料核對保留。API79pass及審查修正後相關8pass、前端316pass、build與新舊資料集Edge4pass；獨立審查P2已修並複核。僅本機分支交付，未合併／推送／正式部署。
 
@@ -1191,6 +1193,13 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-20｜Codex｜INDEX-AUTO-HISTORY隔離版
+
+- **做了什麼**：FastAPI lifespan管理單程序10秒背景檢查，獨立Session只讀來源、變動才原子重建；手動更新保留。DocumentVersion各版本納入，預設現行、歷史明確選入，引用與預覽重新驗權限並標示版本。介面自動更新狀態、切換清理及引用定位。
+- **驗證**：相關API96pass／路由清單1fail後修正健康13pass；暫時讀檔P2先RED再修，索引13pass。前端全量317pass／測試等待1fail後相關15pass，最終tsc/build0；Edge自動／歷史與教材4pass、手動索引2pass，引用捲動另驗。獨立審查及局部複核通過。原DB／檔案／教材hash相同；30表134筆原資料核對，副本quota增加與新增上傳精確相符。
+- **限制／偏離**：三開關與SQLite限定；單程序、500來源版本、變動後全量重建，無PG／多worker／增量或真模型品質驗證。沒有admin公司不自動建置；自動檢查紀錄只在記憶體。健康測試只補前階段漏列的兩個路由，沒有新增路由。手機可見性採99%容差處理子像素誤差。
+- **交付／下一步**：15175／18005使用auto-history.sqlite／auto-history-files；原正式環境及前兩階段隔離資料都保留。repo外試用說明／啟動器、auto-history-preservation.json、verify_auto_history_preservation.py及自動索引與歷史版本驗證結果.json。保留feature分支，本機commit，未merge／push；後續見▶現在。
 
 ### 2026-10-20｜Codex｜FORMAL-INDEX隔離版
 

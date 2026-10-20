@@ -40,7 +40,7 @@ def index_path(db, current):
     return store.root() / DATASET / (key + ".sqlite")
 
 
-def inventory(db, current, project_id=None):
+def inventory(db, current, project_id=None, *, include_history=False):
     require_enabled(db)
     context = load_policy_context(db, current)
     projects = {p.id: p for p in db.scalars(select(Project).where(Project.organization_id == current.organization.id))
@@ -51,22 +51,24 @@ def inventory(db, current, project_id=None):
              if n.project_id in projects and can_view_node(current, n, context=context)}
     descriptors = {}
 
-    def add(kind, source_id, node_id, pid, version, filename, key, digest, size):
+    def add(kind, source_id, node_id, pid, version, filename, key, digest, size, is_current=True):
         if pid not in projects or (project_id and pid != project_id) or (node_id and node_id not in nodes):
             return
         value = dict(source_id=f"{kind}-{source_id}", source_type="document" if kind == "doc" else "attachment",
                      node_id=node_id, project_id=pid, version=version, title=filename,
                      storage_key=key, sha256=digest, size=size)
         value["fingerprint"] = hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+        value["is_current"] = is_current
         descriptors[value["source_id"]] = value
 
     rows = db.execute(select(Document, DocumentVersion).join(DocumentVersion, DocumentVersion.document_id == Document.id)
                       .where(Document.organization_id == current.organization.id,
-                             DocumentVersion.organization_id == current.organization.id,
-                             DocumentVersion.version == Document.current_version))
+                             DocumentVersion.organization_id == current.organization.id))
     for doc, version in rows:
-        add("doc", doc.id, doc.node_id, doc.project_id, version.version, version.filename,
-            version.storage_key, version.sha256, version.size_bytes)
+        is_current = version.version == doc.current_version
+        if include_history or is_current:
+            add("doc", f"{doc.id}-v{version.version}", doc.node_id, doc.project_id, version.version, version.filename,
+                version.storage_key, version.sha256, version.size_bytes, is_current)
     for row in db.scalars(select(Attachment).where(Attachment.organization_id == current.organization.id,
                          Attachment.state == "ready", Attachment.deleted_at.is_(None))):
         node = nodes.get(row.node_id)
@@ -102,7 +104,7 @@ def connect(path):
 
 
 def status(db, current):
-    sources, projects = inventory(db, current)
+    sources, projects = inventory(db, current, include_history=True)
     path = index_path(db, current)
     entries, updated = {}, None
     if path.exists():
@@ -123,12 +125,26 @@ def status(db, current):
                 state, reason = "pending", "來源檔案暫時不可用"
         counts[state] += 1
         items.append(dict(source_id=sid, title=source["title"], source_type=source["source_type"],
-                          version=source["version"], state=state, reason=reason))
+                          version=source["version"], is_current=source["is_current"], state=state, reason=reason))
+    from app.ai import index_worker
     return dict(counts=counts, items=items, updated_at=updated, projects=projects,
-                can_refresh=current.user.role == "admin")
+                can_refresh=current.user.role == "admin", automatic=index_worker.status(path))
 
 
-def refresh(db, current):
+def snapshot(sources):
+    """Metadata plus file state; never stores raw content in the change detector."""
+    values = []
+    for sid, source in sorted(sources.items()):
+        try:
+            stat = source_path(source).stat()
+            file_state = (stat.st_size, stat.st_mtime_ns)
+        except (OSError, HTTPException):
+            file_state = None
+        values.append((sid, source["fingerprint"], source["is_current"], file_state))
+    return hashlib.sha256(json.dumps(["history-v1", values]).encode()).hexdigest()
+
+
+def refresh(db, current, *, only_if_changed=False):
     path = index_path(db, current)
     if current.user.role != "admin":
         raise HTTPException(403, "只有管理者可更新文件索引")
@@ -138,9 +154,17 @@ def refresh(db, current):
         raise HTTPException(409, "文件索引更新中，請稍後")
     temporary = None
     try:
-        sources, _ = inventory(db, current)
+        sources, _ = inventory(db, current, include_history=True)
+        signature = snapshot(sources)
+        if only_if_changed and path.exists():
+            try:
+                with closing(connect(path)) as existing:
+                    if existing.execute("SELECT snapshot_hash FROM info").fetchone()[0] == signature:
+                        return None
+            except sqlite3.Error:
+                pass  # Older/corrupt derived indexes are rebuilt; sources stay unchanged.
         if len(sources) > 500:
-            raise HTTPException(422, "隔離版每公司最多500份來源，請另規劃批次索引")
+            raise HTTPException(422, "隔離版每公司最多500個來源版本，請另規劃批次索引")
         path.parent.mkdir(parents=True, exist_ok=True)
         fd, temporary = tempfile.mkstemp(prefix=".index-", suffix=".sqlite", dir=path.parent)
         os.close(fd)
@@ -149,7 +173,7 @@ def refresh(db, current):
                 CREATE TABLE entries(source_id TEXT PRIMARY KEY, fingerprint TEXT, state TEXT, reason TEXT);
                 CREATE TABLE chunks(document_id TEXT PRIMARY KEY, source_id TEXT, section INTEGER, body TEXT);
                 CREATE VIRTUAL TABLE search USING fts5(document_id UNINDEXED, words);
-                CREATE TABLE info(updated_at TEXT);
+                CREATE TABLE info(updated_at TEXT, snapshot_hash TEXT);
             """)
             for sid, source in sources.items():
                 state, reason = "indexed", ""
@@ -163,14 +187,16 @@ def refresh(db, current):
                         raise extractors.ExtractionError("檔案完整性不符，請確認原始文件")
                     text = extractors.extract(data, source["title"])
                     for section, body in enumerate(extractors.chunks(text), 1):
-                        cid = f"{sid}-v{source['version']}-c{section}"
+                        cid = f"{sid}-c{section}"
                         index.execute("INSERT INTO chunks VALUES (?,?,?,?)", (cid, sid, section, body))
                         index.execute("INSERT INTO search VALUES (?,?)", (cid, " ".join(store.tokens(source["title"] + " " + body))))
-                except (extractors.ExtractionError, OSError, HTTPException) as exc:
+                except HTTPException as exc:
+                    raise OSError("Source storage unavailable") from exc
+                except extractors.ExtractionError as exc:
                     state = "skipped"
-                    reason = str(exc) if isinstance(exc, extractors.ExtractionError) else "來源檔案暫時不可用"
+                    reason = str(exc)
                 index.execute("INSERT INTO entries VALUES (?,?,?,?)", (sid, source["fingerprint"], state, reason))
-            index.execute("INSERT INTO info VALUES (?)", (datetime.now(timezone.utc).isoformat(),))
+            index.execute("INSERT INTO info VALUES (?,?)", (datetime.now(timezone.utc).isoformat(), signature))
             index.commit()
             if index.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise OSError("Invalid index")
@@ -192,15 +218,17 @@ def valid_sources(index, sources):
 
 def as_document(row, source, current):
     metadata = dict(company_id=current.organization.key, classification="confidential",
-                    version=source["version"], is_current=True)
+                    version=source["version"], is_current=source["is_current"])
+    label = "現行版本" if source["is_current"] else "歷史版本，請勿當作現行規定"
+    row = dict(row, body=f"來源：{source['title']}／第{source['version']}版（{label}）\n{row['body']}")
     # The role assertion is produced only after checking current operational ACLs.
     return dict(row, title=source["title"], project_id=source["project_id"],
                 node_id=source["node_id"], source_type=source["source_type"], version=source["version"],
-                current=1, roles=json.dumps([current.user.role]), metadata=json.dumps(metadata))
+                current=int(source["is_current"]), roles=json.dumps([current.user.role]), metadata=json.dumps(metadata))
 
 
-def search(db, current, question, project_id=None):
-    sources, _ = inventory(db, current, project_id)
+def search(db, current, question, project_id=None, *, include_history=False):
+    sources, _ = inventory(db, current, project_id, include_history=include_history)
     path = index_path(db, current)
     if not path.exists():
         return []
@@ -232,8 +260,8 @@ def search(db, current, question, project_id=None):
         raise HTTPException(503, "索引暫時無法讀取，請管理者更新") from None
 
 
-def document(db, current, document_id):
-    sources, _ = inventory(db, current)
+def document(db, current, document_id, *, include_history=False):
+    sources, _ = inventory(db, current, include_history=include_history)
     path = index_path(db, current)
     if path.exists():
         with closing(connect(path)) as index:
@@ -242,15 +270,15 @@ def document(db, current, document_id):
                 source = valid_sources(index, sources).get(row["source_id"])
                 if source and file_present(source, verify_digest=True):
                     return dict(document_id=document_id, title=source["title"], text=row["body"],
-                                version=source["version"], is_current=True, section=row["section"])
-    raise HTTPException(404, "找不到可讀的現行索引段落，請更新索引")
+                                version=source["version"], is_current=source["is_current"], section=row["section"])
+    raise HTTPException(404, "找不到符合版本選項與權限的索引段落，請確認索引狀態")
 
 
 def ask(db, current, payload, *, preview=False):
-    if payload.mode != "rag" or payload.include_history or payload.query_id:
-        raise HTTPException(422, "正式文件索引僅支援現行文件問答")
-    documents = search(db, current, payload.question, payload.project_id)
+    if payload.mode != "rag" or payload.query_id:
+        raise HTTPException(422, "正式文件索引僅支援文件問答")
+    documents = search(db, current, payload.question, payload.project_id, include_history=payload.include_history)
     base = dict(as_of=datetime.now(timezone.utc).date().isoformat(), synthetic=False,
                 project_id=payload.project_id, sources=[], analysis=None, warning=None)
     return service.answer_documents(current.organization.key, current.user.role, payload.question,
-                                    documents, base, preview=preview)
+                                    documents, base, include_history=payload.include_history, preview=preview)
