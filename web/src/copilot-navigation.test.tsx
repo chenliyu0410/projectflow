@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { ai } from './ai';
 import type { AIResult, AIStatus } from './ai';
+import { ApiError } from './api';
 
 const response = (body: unknown, status = 200) => ({ ok: status < 400, status, json: async () => body });
 const identity = { user: { id: 'u', display_name: '成員', role: 'member' }, organization: { id: 'o', key: 'electronics', name: '公司' } };
@@ -53,4 +54,11 @@ describe('copilot across navigation', () => {
     expect(within(screen.getByRole('complementary', { name: 'AI 專案副手', hidden: true })).queryByText('保留的回答')).not.toBeInTheDocument();
   });
 
+
+  it('expires the session when a question returns 401', async () => {
+    vi.spyOn(ai, 'ask').mockRejectedValue(new ApiError(401, '登入已失效，請重新登入'));
+    const copilot = await openCopilot();
+    fireEvent.click(copilot.getByRole('button', { name: '風險原因與處理方式' }));
+    expect(await screen.findByRole('heading', { name: '登入專流' })).toBeInTheDocument();
+  });
 });
