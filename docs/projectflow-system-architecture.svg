@@ -1,39 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1350" viewBox="0 0 2400 1350" role="img" aria-labelledby="title desc">
   <title id="title">ProjectFlow 系統架構</title>
-  <desc id="desc">ProjectFlow 展示版與正式版建置規劃架構圖。</desc>
+  <desc id="desc">ProjectFlow 正式版現況架構圖：使用者經本機、區網或 Tailscale 試用進入 Docker Compose 主機上的 web、api、db 三個容器；AI 閘道、內網 HTTPS、備份與 ERP／AD 整合尚未完成。</desc>
   <defs>
     <style>
       .bg{fill:#fbfdff}
-      .ink{fill:#0b2a5b}
-      .muted{fill:#465f82}
-      .demoFill{fill:#d7fbf5}
-      .demoStroke{stroke:#12bfb7}
-      .todoFill{fill:#fff5dc}
-      .todoStroke{stroke:#e69a00}
-      .externalFill{fill:#f7fbff}
-      .externalStroke{stroke:#4e729b;stroke-dasharray:12 10}
-      .box{stroke-width:3}
-      .thin{stroke-width:2}
+      .host{fill:#f4f8fd;stroke:#9db3cc;stroke-width:2}
+      .user{fill:#f7fbff;stroke:#0b4a82;stroke-width:3}
+      .done{fill:#d7fbf5;stroke:#12bfb7;stroke-width:3}
+      .partial{fill:#fff5dc;stroke:#e69a00;stroke-width:3}
+      .todo{fill:#ffffff;stroke:#e8743b;stroke-width:3;stroke-dasharray:14 9}
+      .ext{fill:#eef3f9;stroke:#4e729b;stroke-width:3;stroke-dasharray:5 8}
+      .chip{fill:#ffffff;stroke:#12bfb7;stroke-width:2}
+      .chipPartial{fill:#ffffff;stroke:#e69a00;stroke-width:2}
+      .chipTodo{fill:#ffffff;stroke:#e8743b;stroke-width:2;stroke-dasharray:8 6}
       .line{stroke:#0b4a82;stroke-width:4;fill:none;marker-end:url(#arrow)}
-      .dashLine{stroke:#4e729b;stroke-width:4;fill:none;stroke-dasharray:12 10;marker-end:url(#arrowMuted)}
-      .demoLine{stroke:#12bfb7;stroke-width:4;fill:none;stroke-dasharray:12 8;marker-end:url(#arrowDemo)}
-      .title{font:700 66px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#071f4d}
-      .subtitle{font:700 38px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#123969}
-      .h1{font:700 34px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#08275c}
-      .h2{font:700 28px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#08275c}
-      .body{font:500 25px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#173b68}
-      .small{font:500 21px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#465f82}
-      .tag{font:700 22px "Microsoft JhengHei","PingFang TC",Arial,sans-serif;fill:#08275c}
-      .tagFill{fill:#ffc44d}
+      .bus{stroke:#0b4a82;stroke-width:4;fill:none}
+      .busTodo{stroke:#e8743b;stroke-width:4;fill:none;stroke-dasharray:12 9}
+      .partialLine{stroke:#e69a00;stroke-width:4;fill:none;marker-end:url(#arrowPartial)}
+      .todoLine{stroke:#e8743b;stroke-width:4;fill:none;stroke-dasharray:12 9;marker-end:url(#arrowTodo)}
+      .extLine{stroke:#4e729b;stroke-width:4;fill:none;stroke-dasharray:5 8;marker-end:url(#arrowExt)}
+      .title{font:700 66px "Microsoft JhengHei","PingFang TC","Noto Sans TC",Arial,sans-serif;fill:#071f4d}
+      .subtitle{font:700 38px "Microsoft JhengHei","PingFang TC","Noto Sans TC",Arial,sans-serif;fill:#123969}
+      .h1{font:700 34px "Microsoft JhengHei","PingFang TC","Noto Sans TC",Arial,sans-serif;fill:#08275c}
+      .h2{font:700 28px "Microsoft JhengHei","PingFang TC","Noto Sans TC",Arial,sans-serif;fill:#08275c}
+      .body{font:500 25px "Microsoft JhengHei","PingFang TC","Noto Sans TC",Arial,sans-serif;fill:#173b68}
+      .small{font:500 21px "Microsoft JhengHei","PingFang TC","Noto Sans TC",Arial,sans-serif;fill:#465f82}
+      .c{text-anchor:middle}
+      .end{text-anchor:end}
     </style>
-    <marker id="arrow" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto">
-      <path d="M1,1 L14,8 L1,15 Z" fill="#0b4a82"/>
+    <marker id="arrow" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="24" refX="20" refY="12" orient="auto">
+      <path d="M2,3 L22,12 L2,21 Z" fill="#0b4a82"/>
     </marker>
-    <marker id="arrowMuted" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto">
-      <path d="M1,1 L14,8 L1,15 Z" fill="#4e729b"/>
+    <marker id="arrowPartial" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="24" refX="20" refY="12" orient="auto">
+      <path d="M2,3 L22,12 L2,21 Z" fill="#e69a00"/>
     </marker>
-    <marker id="arrowDemo" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto">
-      <path d="M1,1 L14,8 L1,15 Z" fill="#12bfb7"/>
+    <marker id="arrowTodo" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="24" refX="20" refY="12" orient="auto">
+      <path d="M2,3 L22,12 L2,21 Z" fill="#e8743b"/>
+    </marker>
+    <marker id="arrowExt" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="24" refX="20" refY="12" orient="auto">
+      <path d="M2,3 L22,12 L2,21 Z" fill="#4e729b"/>
     </marker>
     <filter id="softShadow" x="-5%" y="-8%" width="110%" height="122%">
       <feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#0b2a5b" flood-opacity=".12"/>
@@ -43,127 +48,161 @@
   <rect class="bg" width="2400" height="1350"/>
 
   <text class="title" x="70" y="92">ProjectFlow 系統架構</text>
-  <text class="subtitle" x="72" y="145">目前展示版與正式版建置規劃</text>
+  <text class="subtitle" x="72" y="145">正式版現況（2026-10-20）</text>
 
   <!-- Legend -->
-  <rect class="demoFill demoStroke box" x="1460" y="70" width="56" height="42" rx="8"/>
-  <text class="body" x="1532" y="101">已完成展示版</text>
-  <rect class="todoFill todoStroke box" x="1740" y="70" width="56" height="42" rx="8"/>
-  <text class="body" x="1812" y="101">正式版待建置</text>
-  <rect class="externalFill externalStroke box" x="2040" y="70" width="56" height="42" rx="8"/>
-  <text class="body" x="2112" y="101">外部整合目標</text>
+  <rect class="done" x="1250" y="70" width="56" height="42" rx="8"/>
+  <text class="body" x="1320" y="101">已完成</text>
+  <rect class="partial" x="1450" y="70" width="56" height="42" rx="8"/>
+  <text class="body" x="1520" y="101">試用級／部分完成</text>
+  <rect class="todo" x="1790" y="70" width="56" height="42" rx="8"/>
+  <text class="body" x="1860" y="101">待建置</text>
+  <rect class="ext" x="2000" y="70" width="56" height="42" rx="8"/>
+  <text class="body" x="2070" y="101">外部整合目標</text>
 
-  <!-- Deployment boundary -->
-  <rect class="externalFill externalStroke box" x="420" y="205" width="1935" height="940" rx="24"/>
-  <text class="h2" x="458" y="253">公司內網部署規劃</text>
-  <text class="small" x="1690" y="253">（同一份 Docker Compose；正式版部署於公司內網主機）</text>
+  <!-- Docker Compose host -->
+  <rect class="host" x="430" y="200" width="1400" height="950" rx="24"/>
+  <text class="h2" x="465" y="250">Docker Compose 主機（projectflow-formal）</text>
+  <text class="small end" x="1795" y="250">python deploy/start.py 一鍵啟動</text>
 
-  <!-- User -->
-  <rect class="externalFill" stroke="#0b4a82" stroke-width="3" x="40" y="595" width="260" height="180" rx="14" filter="url(#softShadow)"/>
-  <text class="h1" x="112" y="662">使用者</text>
-  <text class="body" x="66" y="707">員工、專案經理、主管</text>
-  <text class="body" x="96" y="746">管理者、老闆</text>
+  <!-- Users and access paths -->
+  <rect class="user" x="40" y="230" width="320" height="160" rx="14" filter="url(#softShadow)"/>
+  <text class="h1 c" x="200" y="292">使用者</text>
+  <text class="body c" x="200" y="336">員工、專案經理、主管</text>
+  <text class="body c" x="200" y="372">管理者、外部試用者</text>
+  <path class="line" d="M200 390 V454"/>
+  <text class="h2" x="40" y="436">存取方式</text>
 
-  <path class="line" d="M300 685 H420"/>
-  <text class="h2" x="322" y="664">HTTPS</text>
+  <rect class="done" x="40" y="460" width="320" height="105" rx="14"/>
+  <text class="h2 c" x="200" y="505">本機</text>
+  <text class="small c" x="200" y="543">127.0.0.1:15173</text>
 
-  <!-- Web -->
-  <rect class="todoFill todoStroke box" x="470" y="560" width="365" height="230" rx="14" filter="url(#softShadow)"/>
-  <text class="h1" x="565" y="623">網頁前端 Web</text>
-  <text class="body" x="570" y="670">React 正式版</text>
-  <text class="body" x="500" y="710">待建置；目前由展示版代替</text>
-  <rect class="tagFill" x="580" y="735" width="150" height="42" rx="18"/>
-  <text class="tag" x="623" y="764">待建置</text>
+  <rect class="partial" x="40" y="585" width="320" height="105" rx="14"/>
+  <text class="h2 c" x="200" y="630">區網試用（HTTP）</text>
+  <text class="small c" x="200" y="668">start.py --lan</text>
 
-  <path class="line" d="M835 680 H925"/>
-  <text class="h2" x="858" y="660">/api</text>
+  <rect class="partial" x="40" y="710" width="320" height="105" rx="14"/>
+  <text class="h2 c" x="200" y="755">網際網路試用</text>
+  <text class="small c" x="200" y="793">Tailscale Funnel（HTTPS）</text>
 
-  <!-- Demo completed -->
-  <rect class="demoFill demoStroke box" x="470" y="295" width="510" height="140" rx="14" filter="url(#softShadow)"/>
-  <text class="h2" x="515" y="342">目前已完成｜展示版</text>
-  <text class="body" x="515" y="382">projectflow-full-demo.html</text>
-  <text class="body" x="515" y="417">localStorage / IndexedDB</text>
-  <path class="demoLine" d="M625 435 C650 500 695 520 710 560"/>
-  <text class="h2" x="685" y="498" fill="#12bfb7">現有展示範圍</text>
+  <rect class="todo" x="40" y="835" width="320" height="105" rx="14"/>
+  <text class="h2 c" x="200" y="880">內網正式部署</text>
+  <text class="small c" x="200" y="918">內部 HTTPS（待建置）</text>
 
-  <!-- API -->
-  <rect class="todoFill todoStroke box" x="930" y="475" width="355" height="370" rx="14" filter="url(#softShadow)"/>
-  <text class="h1" x="980" y="545">ProjectFlow API</text>
-  <text class="body" x="1012" y="592">FastAPI 正式版</text>
-  <text class="body" x="990" y="635">專案、節點、權限</text>
-  <text class="body" x="990" y="672">工作流、Gate、前置</text>
-  <text class="body" x="990" y="709">文件、稽核、AI 編排</text>
-  <rect class="tagFill" x="1030" y="745" width="150" height="42" rx="18"/>
-  <text class="tag" x="1073" y="774">待建置</text>
+  <path class="bus" d="M360 512 H400 M360 637 H400 M360 762 H400 M400 512 V762"/>
+  <path class="busTodo" d="M360 887 H400 V762"/>
+  <path class="line" d="M400 600 H468"/>
 
-  <!-- DB -->
-  <rect class="todoFill todoStroke box" x="1460" y="445" width="430" height="355" rx="14" filter="url(#softShadow)"/>
-  <text class="h1" x="1585" y="500">PostgreSQL</text>
-  <rect class="todoFill todoStroke thin" x="1490" y="535" width="370" height="58" rx="9"/>
-  <text class="body" x="1560" y="573">ProjectFlow 資料表</text>
-  <rect class="todoFill todoStroke thin" x="1490" y="608" width="370" height="58" rx="9"/>
-  <text class="body" x="1562" y="646">AI View（唯讀）</text>
-  <rect class="todoFill todoStroke thin" x="1490" y="681" width="370" height="58" rx="9"/>
-  <text class="body" x="1538" y="719">文件段落 + pgvector</text>
-  <rect class="tagFill" x="1515" y="748" width="250" height="42" rx="18"/>
-  <text class="tag" x="1566" y="777">正式版資料庫待建置</text>
+  <!-- Single-file demo kept for reference -->
+  <rect class="done" x="40" y="990" width="360" height="150" rx="14"/>
+  <text class="h2 c" x="220" y="1035">單檔 Demo（保留參照）</text>
+  <text class="small c" x="220" y="1075">projectflow-full-demo.html</text>
+  <text class="small c" x="220" y="1108">localStorage／IndexedDB</text>
 
-  <path class="line" d="M1285 555 H1460"/>
-  <text class="h2" x="1335" y="535">存取</text>
-  <path class="line" d="M1285 635 H1460"/>
-  <text class="h2" x="1318" y="616">唯讀查詢</text>
-  <path class="line" d="M1285 715 H1460"/>
-  <text class="h2" x="1328" y="696">找段落</text>
+  <!-- web -->
+  <rect class="done" x="470" y="430" width="320" height="340" rx="14" filter="url(#softShadow)"/>
+  <text class="h1 c" x="630" y="490">web 容器</text>
+  <text class="body c" x="630" y="540">nginx＋React 19</text>
+  <text class="body c" x="630" y="577">TypeScript 單頁應用</text>
+  <text class="small c" x="630" y="640">15173：本機／區網</text>
+  <text class="small c" x="630" y="675">15174：公開試用</text>
+  <text class="small c" x="630" y="708">只收 *.ts.net 主機名</text>
 
-  <!-- Ollama -->
-  <path class="line" d="M1108 475 V315 H1960"/>
-  <text class="h2" x="1450" y="290">算向量 / 本地推理</text>
-  <rect class="todoFill todoStroke box" x="1960" y="250" width="335" height="180" rx="14" filter="url(#softShadow)"/>
-  <text class="h1" x="2060" y="313">Ollama</text>
-  <text class="body" x="2000" y="358">向量嵌入 Embedding</text>
-  <text class="body" x="2025" y="395">大型語言模型 LLM</text>
-  <rect class="tagFill" x="2070" y="400" width="145" height="42" rx="18"/>
-  <text class="tag" x="2100" y="429">待建置</text>
+  <path class="line" d="M790 600 H858"/>
+  <text class="small c" x="824" y="588">/api/</text>
 
-  <!-- AI gateway -->
-  <rect class="todoFill todoStroke box" x="1960" y="542" width="335" height="365" rx="14" filter="url(#softShadow)"/>
-  <text class="h1" x="2012" y="602">人工智慧閘道</text>
-  <text class="h1" x="2045" y="642">AI Gateway</text>
-  <rect class="todoFill todoStroke thin" x="2000" y="675" width="255" height="58" rx="9"/>
-  <text class="body" x="2074" y="713">資料分級</text>
-  <rect class="todoFill todoStroke thin" x="2000" y="748" width="255" height="58" rx="9"/>
-  <text class="body" x="2064" y="786">遮罩還原</text>
-  <rect class="todoFill todoStroke thin" x="2000" y="821" width="255" height="58" rx="9"/>
-  <text class="body" x="2054" y="859">雲端 AI 可關閉</text>
-  <rect class="tagFill" x="2070" y="870" width="145" height="42" rx="18"/>
-  <text class="tag" x="2100" y="899">待建置</text>
+  <!-- api -->
+  <rect class="done" x="860" y="290" width="520" height="550" rx="14" filter="url(#softShadow)"/>
+  <text class="h1 c" x="1120" y="345">api 容器</text>
+  <text class="body c" x="1120" y="388">FastAPI＋Uvicorn（Python 3.13）</text>
 
-  <path class="line" d="M1285 795 H1960"/>
-  <text class="h2" x="1500" y="833">週報 / 風險 / 文件問答</text>
+  <rect class="chip" x="885" y="412" width="225" height="48" rx="9"/>
+  <text class="small c" x="997" y="443">登入／公司隔離</text>
+  <rect class="chip" x="1130" y="412" width="225" height="48" rx="9"/>
+  <text class="small c" x="1242" y="443">權限／部門／協作</text>
+  <rect class="chip" x="885" y="470" width="225" height="48" rx="9"/>
+  <text class="small c" x="997" y="501">專案與任務樹</text>
+  <rect class="chip" x="1130" y="470" width="225" height="48" rx="9"/>
+  <text class="small c" x="1242" y="501">時程／相依／閘門</text>
+  <rect class="chip" x="885" y="528" width="225" height="48" rx="9"/>
+  <text class="small c" x="997" y="559">模板／工作流</text>
+  <rect class="chip" x="1130" y="528" width="225" height="48" rx="9"/>
+  <text class="small c" x="1242" y="559">回報／筆記／通知</text>
+  <rect class="chip" x="885" y="586" width="225" height="48" rx="9"/>
+  <text class="small c" x="997" y="617">文件／附件</text>
+  <rect class="chip" x="1130" y="586" width="225" height="48" rx="9"/>
+  <text class="small c" x="1242" y="617">營運資料／任務關聯</text>
+  <rect class="chip" x="885" y="644" width="225" height="48" rx="9"/>
+  <text class="small c" x="997" y="675">採購／庫存／工單</text>
+  <rect class="chip" x="1130" y="644" width="225" height="48" rx="9"/>
+  <text class="small c" x="1242" y="675">稽核紀錄</text>
+  <rect class="chipPartial" x="885" y="702" width="470" height="48" rx="9"/>
+  <text class="small c" x="1120" y="733">AI 副手：文件問答＋受控 Text-to-SQL</text>
+  <text class="small c" x="1120" y="800">權限與商業規則都在後端・寫入與稽核同一個交易</text>
 
-  <!-- File storage -->
-  <path class="line" d="M1108 845 V965"/>
-  <text class="h2" x="1135" y="905">存文件</text>
-  <rect class="todoFill todoStroke box" x="930" y="965" width="800" height="160" rx="14" filter="url(#softShadow)"/>
-  <text class="h1" x="1158" y="1018">MinIO / NAS / 檔案儲存</text>
-  <text class="body" x="1080" y="1060">附件、文件版本、Excel 匯入</text>
-  <rect class="tagFill" x="1250" y="1080" width="145" height="42" rx="18"/>
-  <text class="tag" x="1280" y="1109">待建置</text>
+  <!-- db -->
+  <path class="line" d="M1380 440 H1438"/>
+  <text class="small c" x="1410" y="428">讀寫</text>
+  <rect class="done" x="1440" y="290" width="350" height="290" rx="14" filter="url(#softShadow)"/>
+  <text class="h1 c" x="1615" y="345">db 容器</text>
+  <text class="body c" x="1615" y="390">PostgreSQL 17</text>
+  <text class="body c" x="1615" y="428">約 30 張資料表</text>
+  <text class="small c" x="1615" y="465">19 個 Alembic migration</text>
+  <text class="small c" x="1615" y="497">pgdata volume・不對外開埠</text>
+  <rect class="chipTodo" x="1465" y="515" width="300" height="46" rx="9"/>
+  <text class="small c" x="1615" y="545">pgvector 向量（待建置）</text>
 
-  <!-- Company systems -->
-  <rect class="externalFill externalStroke box" x="1960" y="965" width="335" height="160" rx="14" filter="url(#softShadow)"/>
-  <text class="h1" x="2072" y="1025">公司系統</text>
-  <text class="body" x="2045" y="1068">ERP / AD / LDAP</text>
-  <text class="body" x="2055" y="1105">外部整合目標</text>
-  <path class="dashLine" d="M1730 1045 H1960"/>
-  <text class="h2" x="1772" y="1018">同步 / 登入</text>
+  <!-- volumes -->
+  <path class="line" d="M1380 690 H1438"/>
+  <rect class="done" x="1440" y="650" width="350" height="80" rx="14"/>
+  <text class="body c" x="1615" y="699">files：附件、文件版本</text>
+  <path class="line" d="M1380 790 H1438"/>
+  <rect class="done" x="1440" y="750" width="350" height="80" rx="14"/>
+  <text class="body c" x="1615" y="799">ai_data：AI 展示資料</text>
 
-  <!-- Return loop -->
-  <path class="line" d="M2295 715 H2348 V1210 H150"/>
-  <path class="line" d="M150 1210 V775"/>
-  <text class="h2" x="630" y="1195">結果回傳介面：看板、甘特圖、工作流、風險警示、文件問答、任務更新、管理儀表板</text>
+  <!-- AI gateway (to build) -->
+  <path class="todoLine" d="M1000 840 V918"/>
+  <rect class="todo" x="860" y="920" width="930" height="200" rx="14"/>
+  <text class="h1 c" x="1325" y="972">AI 閘道（待建置）</text>
+  <rect class="chipTodo" x="895" y="995" width="200" height="50" rx="9"/>
+  <text class="small c" x="995" y="1027">資料分級</text>
+  <rect class="chipTodo" x="1115" y="995" width="200" height="50" rx="9"/>
+  <text class="small c" x="1215" y="1027">遮罩與還原</text>
+  <rect class="chipTodo" x="1335" y="995" width="200" height="50" rx="9"/>
+  <text class="small c" x="1435" y="1027">依功能路由</text>
+  <rect class="chipTodo" x="1555" y="995" width="200" height="50" rx="9"/>
+  <text class="small c" x="1655" y="1027">雲端可一鍵關閉</text>
+  <text class="small c" x="1325" y="1090">建好後所有 AI 請求都先經過這裡；機密資料只送本地模型</text>
+
+  <!-- Current direct call to Ollama -->
+  <path class="partialLine" d="M1300 840 V880 H1860 V970 H1938"/>
+  <text class="small c" x="1580" y="870">目前：api 直接呼叫 Ollama（只接受私有 IP）</text>
+
+  <!-- External targets -->
+  <path class="extLine" d="M1790 380 H1938"/>
+  <rect class="ext" x="1940" y="290" width="420" height="180" rx="14"/>
+  <text class="h2 c" x="2150" y="345">備份主機／NAS（待建置）</text>
+  <text class="small c" x="2150" y="390">目前部署前手動 pg_dump</text>
+  <text class="small c" x="2150" y="425">每日排程備份與還原演練</text>
+
+  <path class="extLine" d="M1380 625 H1938"/>
+  <text class="small c" x="1615" y="614">同步／登入（待整合）</text>
+  <rect class="ext" x="1940" y="530" width="420" height="190" rx="14"/>
+  <text class="h2 c" x="2150" y="590">公司系統（待整合）</text>
+  <text class="body c" x="2150" y="635">ERP 營運資料同步</text>
+  <text class="body c" x="2150" y="675">AD／LDAP 帳號登入</text>
+
+  <rect class="partial" x="1940" y="905" width="420" height="130" rx="14"/>
+  <text class="h2 c" x="2150" y="950">Ollama（選用）</text>
+  <text class="small c" x="2150" y="985">內網另一台機器；連線設定已提供</text>
+  <text class="small c" x="2150" y="1017">模型尚未部署與評估</text>
+
+  <path class="todoLine" d="M1790 1100 H1938"/>
+  <rect class="ext" x="1940" y="1060" width="420" height="120" rx="14"/>
+  <text class="h2 c" x="2150" y="1110">雲端 LLM（選用）</text>
+  <text class="small c" x="2150" y="1150">預設不使用；只送遮罩後內容</text>
 
   <!-- Footer -->
-  <text class="small" x="70" y="1300">部署：同一份 Docker Compose；正式版部署於公司內網主機。現有展示版為單檔 HTML，可直接於瀏覽器開啟。</text>
-  <text class="small" x="1400" y="1300">API：應用程式介面　AI：人工智慧　LLM：大型語言模型　NAS：網路附加儲存</text>
+  <text class="small" x="70" y="1250">部署：Docker Compose 三個容器（db、api、web），一行 python deploy/start.py 啟動；資料庫用 Alembic 逐版升級，既有資料保留。</text>
+  <text class="small" x="70" y="1290">縮寫：API 應用程式介面｜RAG 檢索增強生成｜LLM 大型語言模型｜NAS 網路附加儲存｜ERP 企業資源規劃｜AD／LDAP 公司帳號目錄</text>
 </svg>

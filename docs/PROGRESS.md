@@ -13,13 +13,13 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **OPS-PUBLIC ✅ 恢復公開網址並加開機捷徑**：人類2026-10-15回報別人點網址打不開。8443是repo外`Desktop\projectflow-local`本地共用版，其`start.bat`用`tailscale serve`（只限tailnet，且會移除8443既有Funnel）；10000正式版因開機後沒有人啟動Docker堆疊而停。已改Funnel、重啟試用並加`shell:startup`捷徑。之前OPS-SYNC ✅（PR #3合併`28dbecb`）、PUBLIC-TRIAL ✅等。 |
+| 目前工作項目 | **DOCS-CLEAN ✅ README精簡與架構圖更新**：人類2026-10-20指示「先同步git，然後把目前本地的內容整理，已經完成的進度從readme.md中移除，把readme弄乾淨一點…projectflow-system-architecture.svg依照目前的進度更新一次，等我確認好以後推上去」。README只留目前狀態、快速開始、正式版功能總覽、規格與尚未完成的路線圖（D82）；架構圖改畫正式版現況；一併提交人類本機的`docs/technical-roadmap.md`。之前OPS-PUBLIC ✅ 恢復公開網址並加開機捷徑：人類2026-10-15回報別人點網址打不開。8443是repo外`Desktop\projectflow-local`本地共用版，其`start.bat`用`tailscale serve`（只限tailnet，且會移除8443既有Funnel）；10000正式版因開機後沒有人啟動Docker堆疊而停。已改Funnel、重啟試用並加`shell:startup`捷徑。之前OPS-SYNC ✅（PR #3合併`28dbecb`）、PUBLIC-TRIAL ✅等。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 人類：用外部網路（例如手機行動網路）開`https://p215-2203-nb01.tail177cc6.ts.net:10000`確認新介面與登入，`:8443`確認本地共用版；下次開機時確認捷徑開出的視窗顯示本機與公開都是200 OK。停止公開：`停止公開試用.bat`（若也要停止開機自動公開，請刪除`shell:startup\ProjectFlow 公開試用.lnk`）。之後方向待人類指示。 |
+| 下一個動作 | 方向待人類指示。仍待人類：用外部網路（例如手機行動網路）開`https://p215-2203-nb01.tail177cc6.ts.net:10000`確認新介面與登入，`:8443`確認本地共用版；下次開機時確認捷徑開出的視窗顯示本機與公開都是200 OK。停止公開：`停止公開試用.bat`（若也要停止開機自動公開，請刪除`shell:startup\ProjectFlow 公開試用.lnk`）。 |
 | 分支 | `main`；無feature分支。`origin/feature/ux-child-modules-navigation`是PR #3已合併的遠端分支，未刪除。 |
 | 最新程式 commit | `28dbecb`（PR #3合併）；PUBLIC-TRIAL為`b1e209b`、`fa49437`。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | OPS-PUBLIC只做營運，沒有改程式也沒有跑測試；以公網DoH解析出的Funnel中繼IP 103.84.155.153／.217用`--resolve`直連，8443首頁與`/api/version`、10000 `/api/health/ready`皆200。OPS-SYNC只部署，未重跑測試（PR #3只改web與文件、另加一個API測試檔，API程式未改）；合併時docs衝突已由人類解決，本機只修正看板與README。PROJECT-DRAWER（PR #3）：PROJECT-DRAWER：完整前端31檔309pass；桌面／手機專案抽屜、相依追蹤、返回、頂欄與五尺寸側欄共9pass；型別與build exit0。獨立審查發現高亮節點遮住拖線按鈕，已修正層級並以左側命中及pointerdown回歸。初跑單元306pass／3fail（2項旧導覽斷言、1項既有入庫測試等待），修正後全量通過；初跑瀏覽器5pass／4fail為手機測試定位忽略隱藏元素，修正後9pass。歷史端對端僅載入檢查，未全量執行；本輪未改後端、未重跑歷史API與部署測試。保留既有產物大於500kB警告。 PUBLIC-TRIAL：PUBLIC-TRIAL：test_deployment＋新test_public_trial RED 10fail／17error exit1→73pass exit0（審查後修正再跑73pass exit0）；`nginx -t` ok；暫存nginx容器實測81埠只收ts.net Host（127.0.0.1／localhost／127.0.0.1.ts.net／無Host／絕對URI＋假Host皆421），80埠不變；未跑API全量（API程式未改）。LAN-SWITCH：showcase七檔＋deployment RED 9fail exit1→81pass exit0；API全量636pass／14skip exit0（19分45秒）。LAN-TRIAL：test_deployment RED 7fail exit1→46pass exit0；新Vitest new-id RED 3fail exit1→全前端27檔292pass exit0；build exit0；未跑API全量與E2E（只改啟動腳本、compose與三處前端id產生）。DATA-PACK（`258ca1e`）後只跑相關：test_demo_pack 2pass、整合後相關API 68pass、migration 23pass，未重跑全量。以下為F1-RET全量：全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
+| 測試基準 | DOCS-CLEAN只改文件，沒有跑產品測試：SVG以XML解析通過，並用headless Edge以2400×1350渲染目視檢查文字與箭頭；README內連結的文件與錨點逐一核對存在。OPS-PUBLIC只做營運，沒有改程式也沒有跑測試；以公網DoH解析出的Funnel中繼IP 103.84.155.153／.217用`--resolve`直連，8443首頁與`/api/version`、10000 `/api/health/ready`皆200。OPS-SYNC只部署，未重跑測試（PR #3只改web與文件、另加一個API測試檔，API程式未改）；合併時docs衝突已由人類解決，本機只修正看板與README。PROJECT-DRAWER（PR #3）：PROJECT-DRAWER：完整前端31檔309pass；桌面／手機專案抽屜、相依追蹤、返回、頂欄與五尺寸側欄共9pass；型別與build exit0。獨立審查發現高亮節點遮住拖線按鈕，已修正層級並以左側命中及pointerdown回歸。初跑單元306pass／3fail（2項旧導覽斷言、1項既有入庫測試等待），修正後全量通過；初跑瀏覽器5pass／4fail為手機測試定位忽略隱藏元素，修正後9pass。歷史端對端僅載入檢查，未全量執行；本輪未改後端、未重跑歷史API與部署測試。保留既有產物大於500kB警告。 PUBLIC-TRIAL：PUBLIC-TRIAL：test_deployment＋新test_public_trial RED 10fail／17error exit1→73pass exit0（審查後修正再跑73pass exit0）；`nginx -t` ok；暫存nginx容器實測81埠只收ts.net Host（127.0.0.1／localhost／127.0.0.1.ts.net／無Host／絕對URI＋假Host皆421），80埠不變；未跑API全量（API程式未改）。LAN-SWITCH：showcase七檔＋deployment RED 9fail exit1→81pass exit0；API全量636pass／14skip exit0（19分45秒）。LAN-TRIAL：test_deployment RED 7fail exit1→46pass exit0；新Vitest new-id RED 3fail exit1→全前端27檔292pass exit0；build exit0；未跑API全量與E2E（只改啟動腳本、compose與三處前端id產生）。DATA-PACK（`258ca1e`）後只跑相關：test_demo_pack 2pass、整合後相關API 68pass、migration 23pass，未重跑全量。以下為F1-RET全量：全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
 | 資料版本 | OPS-PUBLIC無migration：`public_trial.py`只啟動既有容器（web `9df836f2145c`、API `e60becf4b227`、DB `d43b3c315aa0`與10-14相同，未重建、不seed）。OPS-SYNC無migration：`public_trial.py`只重建web（映像`78be54ef96bd`、容器`9df836f2145c`，bundle `index-wScy0RyV.js`含PR新樣式），API `e60becf4b227`與DB `d43b3c315aa0`未重建；本機與公開health 200，127.0.0.1以yu登入看到新專案總覽與「選擇專案，查看我的待辦」，主控台只有登入前的401，之後登出。PUBLIC-TRIAL無migration：部署前pg_dump存.superpowers/public-trial/before-public.dump；啟動器重建web（nginx 81）、API帶`PF_SHOWCASE_LAN=true`與`FORWARDED_ALLOW_IPS=*`重建，DB容器`d43b3c315aa0`未重建，6公司／80帳號／39專案／500節點／0019部署前後一致。LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
 | 認領中 | 無。 |
 | 阻塞／待人類 | 待人類：外部網路實測兩個公開網址；公開試用期間密碼`demo-<帳號>`可推得，用完請停止；8443本地共用版沒有登入，任何拿到網址的人都能修改或重置資料；PR #3列出的後續UI／UX建議待人類檢視。 |
@@ -50,7 +50,7 @@
 2. **兩條軌道**
    - **Demo 驗證軌（保留參照）**：單檔 `projectflow-full-demo.html` 的F1–F11及W6已完成Demo驗證，P0不修改。
    - **正式產品軌（D51／D52已啟動）**：React + TS、FastAPI + PostgreSQL、內網部署；本輪到P1c。
-     - README §8 的勾選框只用來追蹤正式版。Demo 已經做出來的功能**不能**拿去勾階段 1–9。
+     - README §8 只列正式版還沒做的項目（D82）。Demo 已經做出來的功能**不能**當成正式版已完成。
      - 何時啟動由人類決定（D11）。啟動後第一個工作項目是 P0。
 3. **目前里程碑**：依序完成 W1 → W2 → W3（精簡版，D31／D42），讓 Demo 具備可自行新增、編輯、套用工作流的功能架構。2026-10-05 起依 D42，個別工作流內容之後由使用者自行添加；D41 的兩份現有專流只作內建範例與測試素材。
    - **Demo歷史展示模式**（D30，2026-10-05）：當時範圍僅Demo，W4取消、W5精簡；2026-10-08 D51／D52已另授權正式P0至P1c，正式軌恢復完整審查與安全標準。Demo歷史minor不自動擴張目前plan。
@@ -58,7 +58,7 @@
    - [x] W1、W2、W3（精簡版）都是 ✅
    - [x] W5 ✅：README §1 快速開始、§2 功能總覽反映 full demo 的現況
    - [x] 用 W3 的工作流架構新增／編輯／套用一套工作流，並以 yu、chen、ming 各走一次主要流程，桌面和 375px 都沒有水平捲動，console 沒有錯誤（2026-10-05 Claude 在 `cfd5f72` 上實測：it 新增、編輯、複製工作流；yu 用「筆電新機種專流」建立專案（9 階段、44 個任務），第二階段任務被 G0 擋下，覆寫閘門後可開始；yu、chen、ming 的看板、時程、成員、我的任務、模板庫在 1280 與 375px 都沒有 `undefined`／`NaN`／「? —」、沒有水平捲動，console 沒有錯誤。小問題記成 §5 DEMO-A-m1–m4，D43 待人類）
-   - [ ] 人類確認可以拿來展示（README §8 階段 0 的驗收：「能用 Demo 向他人完整說明產品概念」）
+   - [ ] 人類確認可以拿來展示（原 README 階段 0 的驗收：「能用 Demo 向他人完整說明產品概念」）
    - 原本的「W4 全部 FIXED」「D4–D8 都有結論並執行」兩項，2026-10-05 依 D30 移除（W4 取消，D4–D8 維持現狀）。
 
    全部達成後，AI 在 §7 寫一份「Demo 軌結案摘要」（完成項目、遺留問題、建議的 P0 和 P1 範圍），並把 D11 標成「待人類（可決定）」。
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- DOCS-CLEAN ✅：人類2026-10-20指示同步git、整理本地內容、把已完成的進度從README移除並精簡、依目前進度更新架構圖，確認後再push。fetch後origin沒有新commit，本機main領先1個（`d3fc44e` OPS-PUBLIC紀錄）。README（1045→約810行）刪除頂部逐次交付公告、協作者分支段、目前進度表與UI／TP逐段說明、Demo功能總覽；改為目前狀態、快速開始（本機／給別人試用／自動驗收／單檔Demo）、正式版功能總覽、§8只列正式版還沒做的項目；§3–§5規格保留，§9「已決定」修正前端（實際未用dnd-kit／React Flow）與文件編輯兩列。架構圖改為正式版現況：web／api／db容器、files與ai_data volume已完成，區網與Tailscale試用、AI副手與Ollama為試用級，內網HTTPS、AI閘道、pgvector待建置，備份／NAS、ERP／AD、雲端LLM為外部目標。AGENTS.md文件地圖的README列同步更新。`docs/technical-roadmap.md`（人類本機2026-10-19的技術路線圖，原未追蹤）一併提交，只把一句對話用語改成中性說法。
 
 - OPS-PUBLIC ✅：人類2026-10-15回報「今天開啟又不能用了，別人點網址打不開」，並貼上`Desktop\projectflow-local\start.bat`（repo外的本地共用版：uvicorn 8001、經Tailscale分享8443）的啟動畫面。排查：本機8001回200；`tailscale funnel status`顯示8443為tailnet only。實測`tailscale serve --bg --https=8443`會印出「Removing Funnel for …:8443」並把8443移出AllowFunnel，而舊`start.bat`把輸出丟到nul，所以每次啟動都會關掉公開，對外顯示的卻是「已轉發」。另外10000正式版：Docker引擎正常但沒有容器在跑（restart=no），`shell:startup`裡沒有本repo捷徑，08:08開機後沒有人啟動。人類選「改成公開」與「一起啟動」：開啟8443 Funnel；repo外`start.bat`改用`tailscale funnel`，失敗時顯示提示，並更新其README；`python deploy/public_trial.py` exit0，本機與公開health 200。之後人類指示加捷徑：`shell:startup\ProjectFlow 公開試用.lnk`→`開機自動啟動-公開試用.bat`（工作目錄為repo根目錄、可見視窗），已讀回確認目標存在，未實際登出重登測試。驗證見▶現在的測試基準。8443本地共用版沒有登入，公開後任何人都能修改或重置資料；projectflow-local不在git。
 
@@ -1095,6 +1097,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | ID | 來源 | 問題 | 預設／建議 | 狀態 |
 |---|---|---|---|---|
+| D82 | DOCS-CLEAN | README 要不要繼續放每次交付的紀錄 | README只留目前狀態、快速開始、正式版功能總覽、規格與尚未完成的路線圖；交付紀錄、測試數字與決策只寫PROGRESS。D50的「每階段更新README」改為更新這幾處（完成的項目從§8移除、必要時調整§2） | 已決定2026-10-20：人類「已經完成的進度從readme.md中移除，把readme弄乾淨一點，現在東西太多了」 |
 | D81 | 展示目標收斂 | 避免為不影響展示的完整性耗時 | UI5一次交付、一個完整案例、其他產業最小示例、相關測試與一次展示走查；保留資料及基本安全，F1／F2後續另定 | 已決定2026-10-11：人類要求「重新檢查整個進度與專案…主要是要能夠展示的版本」；依此收斂執行，無需重問方向 |
 | D80 | UI5短計畫 | 三批範圍與示例隔離 | 按[短計畫](superpowers/plans/2026-10-11-ui5-remaining-screens.md)：A文件資料、B營運、C副手治理；靜態fixture與記憶體預覽、零正式寫入，各公司對應示例；UI5三批＋展示走查為可展示版本完成點，F1另補正式功能 | 已決定2026-10-11：人類「把這個規劃推上git，讓下一個讀到的ai能自動接手」；授權下一AI直接開始UI5-A並依序B／C與展示修整 |
 | D79 | TP-G短規格 | 欄位修改時機、歷史保存與模板帶入規則 | 按[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md)：四種類型，未關閉且無待審回報的葉任務由既有編輯者設定；送出驗版本及保存快照；模板／複製只帶定義，舊資料不改；上限與延後項目見計畫 | 已決定2026-10-10：人類「照此計畫實作」，核准D79及短計畫 |
@@ -1181,6 +1184,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
+### 2026-10-20｜Claude Code Opus 5.5｜DOCS-CLEAN README精簡與架構圖更新
+- **做了什麼**：同步git（origin無新commit）；README移除交付紀錄並重整為目前狀態／快速開始／功能總覽／規格／未完成路線圖（D82）；重畫`docs/projectflow-system-architecture.svg`為正式版現況；更新AGENTS.md文件地圖；提交人類本機的`docs/technical-roadmap.md`。
+- **驗證**：只改文件。SVG XML解析通過，headless Edge渲染2400×1350目視無重疊；README連結與錨點核對。未跑產品測試。
+- **沒做的事**：§3–§5規格內容未改寫，只修F11儲存位置註記與§5開頭說明；`docs/formal-feature-roadmap.md`等其他文件的歷史段落未整理。
+- **下一步**：方向待人類指示；外部網路實測公開網址仍待人類。
+
 ### 2026-10-15｜Claude Code Opus 5.5｜OPS-PUBLIC恢復公開網址
 - **做了什麼**：查出8443（repo外projectflow-local）打不開，是因為`tailscale serve`只限tailnet，而且會移除既有Funnel；已改為Funnel，並修改該資料夾的`start.bat`和README。用`public_trial.py`重新啟動10000正式版試用（容器未重建）；依人類指示在`shell:startup`加入`ProjectFlow 公開試用.lnk`。
 - **驗證**：用公網DoH解析出的Funnel中繼IP直連，8443與10000皆200；用cmd實跑修改後的`start.bat` Tailscale段，exit0且AllowFunnel含8443；捷徑讀回後目標存在。
@@ -1205,11 +1214,3 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 使用者確認我的待辦範圍為指派本人或參與協作的未完成任務，並要求開 PR 推送；將已確認互動整合正式前端，沿用 PR #3。資料仍由既有帳號／公司 API 授權，無後端或資料庫變更。固定左側專案區、原生待辦抽屜、相依路徑高亮固定與清除、固定藍色返回及分頁保留已交付。離線 HTML 不納入儲存庫。
 
 驗證與初跑修正見上方測試基準；一次獨立只讀審查與拖線修正複核。紀錄位於 `.superpowers/ux-check/drawer-*.log`，截圖位於 `web/test-results/`。只推送功能分支及更新 PR，不合併 main、不部署。
-
-### 2026-10-13｜Codex｜NAV-SURFACE 交付
-
-使用者確認右側第二層面板，完成原生捲軸活動顯示／900ms 閒置隱藏、專案次層面板（選取／外部／Escape 關閉，手機適配）、選中頁籤與內容白底連接。原生捲動與資料權限不變；同步既有前端與端對端測試入口。未修改業務資料、後端或部署。
-
-驗證：首次完整前端 298pass／4fail（4項為舊導航定位）；更新後受影響兩檔 61pass，其餘原先通過；最終焦點修正再驗5pass，型別／build exit0。三尺寸1280×720、375×667、844×390端對端3pass，含全部專案可點／長名不溢位、選單焦點、三個視圖底色與零間隔、捲軸閒置隱藏與寬度穩定。63項／27檔既有端對端可載入（只列出，未執行全量）。一次獨立唯讀審查發現外部空白點擊焦點缺口，真瀏覽器先重現、修正後通過，複核無新阻塞。build保留單一產物大於500kB的提示，未擴大做切包重構。
-
-截圖與執行紀錄：`.superpowers/ux-check/navigation-*.log`、`web/test-results/project-sidebar-*/`。本機預覽保留15177→18010。人類視覺驗收待確認；此輪不推送、合併或部署。

@@ -105,7 +105,7 @@
 |---|---|
 | [docs/PROGRESS.md](docs/PROGRESS.md) | **進度看板**：現在在做什麼、工作佇列、各 Task 狀態、驗收清單、待處理問題、待人類決定、交接紀錄 |
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | 流程：生命週期關卡、Task 迴圈、審查清單與提示範本、測試程序、Git 規則、何時停下來、中斷復原 |
-| [README.md](README.md) | §4 產品規格 F1–F11、§5 資料模型、§6 架構、§9 待決定事項，這幾節都有效。**§1 快速開始、§2 功能總覽、§7 專案結構還是階段 0（petfood）的內容，W5 完成前不要拿來判斷現況。** §8 的勾選框只追蹤正式產品軌 |
+| [README.md](README.md) | 產品說明與目前狀態：§1 快速開始、§2 正式版功能總覽、§4 產品規格 F1–F11、§5 資料模型、§6 架構、§8 正式版尚未完成的路線圖、§9 待決定事項。不放交付紀錄（D82），進度以 PROGRESS 為準 |
 | `docs/superpowers/specs/` | 各工作項目的設計規格 |
 | `docs/superpowers/plans/` | 各工作項目的實作計畫（逐 Task 寫，附程式片段與測試） |
 | `tests/records.html`、`tests/*.test.js` | 瀏覽器測試頁：用 iframe 載入 Demo，在 Demo 的全域環境裡執行測試 |
