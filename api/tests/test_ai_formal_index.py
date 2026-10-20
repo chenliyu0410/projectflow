@@ -130,6 +130,7 @@ def test_default_off_and_failed_refresh_keeps_index(client, engine, isolated, mo
     refresh(client)
     from app.ai import formal_index
     original = ask(client).json()["sources"]
+    upload_doc(client, nid, "新增文件觸發發布".encode())
     monkeypatch.setattr(formal_index.os, "replace", lambda *args: (_ for _ in ()).throw(OSError("disk failure")))
     assert client.post("/ai/index/refresh").status_code == 503
     assert ask(client).json()["sources"] == original

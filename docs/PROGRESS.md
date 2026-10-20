@@ -13,16 +13,16 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **INDEX-AUTO-HISTORY 🟢 隔離交付**：服務運行中每10秒檢查文件變動、明確選入歷史版本、版本警語與即時權限已完成；原DB／檔案保留。 |
+| 目前工作項目 | **INDEX-INCREMENTAL 🟢 隔離交付**：只解析新增／變動來源，沿用未變文字與FTS列，刪除來源只清除對應索引；原資料保留。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 人類可在15175選「正式文件與附件（隔離）」及「自動索引與版本展示」專案，試問新人報到：預設第2版五樓，勾選歷史可查第1版三樓。上傳後等待背景自動更新，管理者仍可手動更新。後續為OCR、向量檢索、完整分級繼承、遮罩、真模型品質、增量／大量資料佇列。Docker恢復後才另做正式部署。 |
+| 下一個動作 | 人類可在15175選「正式文件與附件（隔離）」及「增量索引展示」專案，查看管理者索引狀態的處理／沿用／移除數量。自動檢查仍每10秒，新版只處理新版，歷史選項保留。後續為OCR、向量檢索、完整分級繼承、遮罩、真模型品質及大量資料佇列；正式部署另驗。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
 | 最新程式 commit | `449ddf1`（隔離自動索引與歷史版本）；前階段`9a3801a`為正式文件索引、`c964f97`為本地閘道、`fb9640e`為RAG-STARTER。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | INDEX-AUTO-HISTORY：新核心RED4fail→12pass；相關API回歸96pass／1個既有健康路由清單過期（base已存在preview／refresh），補齊後健康13pass；審查發現暫時讀檔重試缺口，RED1fail→修正後索引13pass。前端全量317pass／1個新測試未等ready，修正後相關15pass；最終相關15pass及tsc/build exit0（既有>500kB警告）。Edge桌面1280／手機375自動／歷史及教材4pass、手動索引2pass；引用捲動追加桌面通過，手機99.92%可見的子像素容差修正後1pass，最終截圖已目視確認。獨立審查P2已修並複核，最後scroll/ref複核無問題。原DB／檔案／教材hash不變，副本原資料及新增容量核對通過；健康200。未跑全歷史API、正式PG、多worker或真模型品質。 |
-| 資料版本 | 正式PostgreSQL、Docker volumes與舊dataset-v1未修改；無migration。另複製auto-history.sqlite與auto-history-files，原formal-index.sqlite／formal-index-files／acceptance.sqlite均保留且hash不變。核對30表134筆原資料；副本僅容量統計因新增虛構上傳增加，差額精確符合新增文件及附件。formal-v1依DB身分另建衍生索引。starter-v1仍24文件、hash不變。隔離環境2公司7帳號，僅15175/18005回環；不是正式六家公司完整副本。Python3.12.14／Node24.15驗證，Docker目標Python3.13待驗。 |
-| 認領中 | 無；保留feature分支與隔離試用服務。 |
-| 阻塞／待人類 | 正式部署等待Docker Desktop恢復：先前啟動日誌為sailor-ingest.sock無法存取，本輪未重試或修改Docker。完整分級繼承、遮罩／還原、雲端政策與供應商、稽核查詢／匯出、OCR、向量檢索、增量索引／大量資料佇列與真模型品質驗收仍待完成。 |
+| 測試基準 | INDEX-INCREMENTAL：新測試初跑5fail（含舊schema測資未關閉SQLite連線）；實作後16pass／2個測資問題（PNG缺檔頭、無變動不再觸發發布），修正後相關AI／索引／歷史／權限API43pass。前端相關15pass、tsc/build exit0（既有>500kB警告）；Edge桌面1280／手機375增量與教材4pass、無水平溢位或pageerror，截圖目視確認處理1／沿用其餘。驗證未變FTS列保留、新版只解析1份、刪除零解析、無變動不改索引bytes、舊schema一次建置、失敗保留／重試。獨立唯讀審查無實質問題。原DB／27檔記錄／教材hash不變，30表411筆原資料及副本新增容量核對通過；健康200。未跑全歷史API、正式PG、多worker或真模型。 |
+| 資料版本 | 正式PostgreSQL、Docker volumes與舊dataset-v1未修改；無migration。新增incremental.sqlite／incremental-files副本，原auto-history.sqlite／auto-history-files及更早隔離資料皆保留且hash一致。30表411筆原資料核對，副本quota增量精確符合新增虛構文件。衍生索引user_version=1，首次／舊格式一次建置，其後差異更新；發布仍複製SQLite暫存檔。starter-v1保持24文件及原hash；隔離2公司7帳號、15175／18005回環，非正式六家公司完整副本。 |
+| 認領中 | 無；保留feature分支與增量隔離試用服務。 |
+| 阻塞／待人類 | 正式部署仍待Docker Desktop恢復；本輪未重試或修改Docker。完整分級繼承、遮罩／還原、雲端政策、稽核查詢／匯出、OCR、向量檢索、大量資料佇列及真模型品質驗收尚待完成。 |
 | 遠端 | 本輪僅本機commit，未push／PR／合併／正式部署；保留feature分支。 |
 
 ---
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- INDEX-INCREMENTAL 🟢 隔離交付（2026-10-21）：依[短計畫](superpowers/plans/2026-10-20-incremental-index.md)完成逐來源變動判斷、未變文字與FTS沿用、刪除清理、無變動零發布、舊格式一次建置及管理者統計。API43pass、前端15pass、build與Edge桌面／手機4pass；獨立審查無實質問題。新incremental副本，原DB／檔案hash不變、30表411筆核對保留。未push／合併／正式部署。
 
 - INDEX-AUTO-HISTORY 🟢 隔離交付（2026-10-20）：依[短計畫](superpowers/plans/2026-10-20-index-auto-history.md)完成10秒背景變動檢查、無變動不重建、失敗保留／重試、現行／歷史選項、引用與模型資料版本警語、即時權限。新auto-history隔離副本，原DB／檔案hash不變。相關API／前端／Edge證據見▶現在；獨立審查P2已修並複核。不push／合併／正式部署。
 
@@ -1193,6 +1195,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-21｜Codex｜INDEX-INCREMENTAL隔離版
+
+- **做了什麼**：來源版本signature包含metadata及檔案狀態；相容索引先backup到暫存副本，只修改changed／removed來源列，未變chunk與FTS沿用。新版本不重解析舊版，無變動不發布；管理者可看上次處理／沿用／移除數。首次及舊格式一次建置，只動衍生索引。
+- **驗證**：相關API43pass、前端15pass、tsc/build0、Edge1280／375增量與教材4pass；獨立唯讀審查及純記憶體FTS差異probe無問題。RED與測資調整見▶現在。原auto-history及更早DB／檔案／教材hash不變，原30表411筆核對保留，副本新增quota差額符合新增測試檔。健康200，啟動器沿用正常。
+- **限制**：仍單程序／SQLite／500來源版本，背景掃描metadata，發布前仍複製SQLite檔；不是零複製或大量資料佇列。現行與歷史權限／SHA-256查詢保護不變。未部署正式PG或測真模型。
+- **交付／下一步**：15175／18005使用incremental.sqlite及incremental-files；原資料完整保留。repo外試用說明、啟動器、incremental-preservation.json、verify_incremental_preservation.py、增量索引驗證結果.json及incremental-browser截圖。保留feature分支、本機commit，未push／合併；後續見▶現在。
+
 
 ### 2026-10-20｜Codex｜INDEX-AUTO-HISTORY隔離版
 

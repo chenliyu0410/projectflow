@@ -19,6 +19,8 @@ from app.services import attachment_store as files
 from app.services.record_policy import load_policy_context
 
 DATASET = "formal-v1"
+# Bump when extraction, chunking or tokenization rules change.
+INDEX_VERSION = 1
 _locks = {}
 _locks_guard = threading.Lock()
 
@@ -106,12 +108,14 @@ def connect(path):
 def status(db, current):
     sources, projects = inventory(db, current, include_history=True)
     path = index_path(db, current)
-    entries, updated = {}, None
+    entries, updated, last_update = {}, None, None
     if path.exists():
         try:
             with closing(connect(path)) as index:
                 entries = {r["source_id"]: dict(r) for r in index.execute("SELECT * FROM entries")}
                 updated = index.execute("SELECT updated_at FROM info").fetchone()[0]
+                if current.user.role == "admin" and index.execute("PRAGMA user_version").fetchone()[0] == INDEX_VERSION:
+                    last_update = json.loads(index.execute("SELECT changes FROM info").fetchone()[0])
         except sqlite3.Error:
             raise HTTPException(503, "索引暫時無法讀取，請管理者更新") from None
     counts = dict(indexed=0, pending=0, skipped=0)
@@ -128,20 +132,25 @@ def status(db, current):
                           version=source["version"], is_current=source["is_current"], state=state, reason=reason))
     from app.ai import index_worker
     return dict(counts=counts, items=items, updated_at=updated, projects=projects,
-                can_refresh=current.user.role == "admin", automatic=index_worker.status(path))
+                can_refresh=current.user.role == "admin", automatic=index_worker.status(path), last_update=last_update)
 
 
-def snapshot(sources):
-    """Metadata plus file state; never stores raw content in the change detector."""
-    values = []
+def source_signatures(sources):
+    """Do not include current/history: changing that label must not reparse text."""
+    values = {}
     for sid, source in sorted(sources.items()):
         try:
             stat = source_path(source).stat()
-            file_state = (stat.st_size, stat.st_mtime_ns)
+            file_state = (stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
         except (OSError, HTTPException):
             file_state = None
-        values.append((sid, source["fingerprint"], source["is_current"], file_state))
-    return hashlib.sha256(json.dumps(["history-v1", values]).encode()).hexdigest()
+        values[sid] = hashlib.sha256(json.dumps([INDEX_VERSION, source["fingerprint"], file_state]).encode()).hexdigest()
+    return values
+
+
+def snapshot(sources, signatures):
+    values = [(sid, signatures[sid], source["is_current"]) for sid, source in sorted(sources.items())]
+    return hashlib.sha256(json.dumps([INDEX_VERSION, values]).encode()).hexdigest()
 
 
 def refresh(db, current, *, only_if_changed=False):
@@ -155,27 +164,45 @@ def refresh(db, current, *, only_if_changed=False):
     temporary = None
     try:
         sources, _ = inventory(db, current, include_history=True)
-        signature = snapshot(sources)
-        if only_if_changed and path.exists():
+        signatures = source_signatures(sources)
+        signature = snapshot(sources, signatures)
+        previous, compatible = {}, False
+        if path.exists():
             try:
                 with closing(connect(path)) as existing:
-                    if existing.execute("SELECT snapshot_hash FROM info").fetchone()[0] == signature:
-                        return None
+                    if existing.execute("PRAGMA user_version").fetchone()[0] == INDEX_VERSION:
+                        previous = {r["source_id"]: r["source_signature"] for r in existing.execute("SELECT source_id,source_signature FROM entries")}
+                        compatible = True
+                        if existing.execute("SELECT snapshot_hash FROM info").fetchone()[0] == signature:
+                            return None if only_if_changed else status(db, current)
             except sqlite3.Error:
-                pass  # Older/corrupt derived indexes are rebuilt; sources stay unchanged.
+                previous, compatible = {}, False
         if len(sources) > 500:
             raise HTTPException(422, "隔離版每公司最多500個來源版本，請另規劃批次索引")
         path.parent.mkdir(parents=True, exist_ok=True)
         fd, temporary = tempfile.mkstemp(prefix=".index-", suffix=".sqlite", dir=path.parent)
         os.close(fd)
         with closing(sqlite3.connect(temporary)) as index:
-            index.executescript("""
-                CREATE TABLE entries(source_id TEXT PRIMARY KEY, fingerprint TEXT, state TEXT, reason TEXT);
-                CREATE TABLE chunks(document_id TEXT PRIMARY KEY, source_id TEXT, section INTEGER, body TEXT);
-                CREATE VIRTUAL TABLE search USING fts5(document_id UNINDEXED, words);
-                CREATE TABLE info(updated_at TEXT, snapshot_hash TEXT);
-            """)
+            if compatible:
+                with closing(connect(path)) as existing:
+                    existing.backup(index)
+            else:
+                index.executescript("""
+                    CREATE TABLE entries(source_id TEXT PRIMARY KEY, fingerprint TEXT, state TEXT, reason TEXT, source_signature TEXT);
+                    CREATE TABLE chunks(document_id TEXT PRIMARY KEY, source_id TEXT, section INTEGER, body TEXT);
+                    CREATE VIRTUAL TABLE search USING fts5(document_id UNINDEXED, words);
+                    CREATE TABLE info(updated_at TEXT, snapshot_hash TEXT, changes TEXT);
+                """)
+                index.execute(f"PRAGMA user_version={INDEX_VERSION}")
+            changed = {sid for sid in sources if previous.get(sid) != signatures[sid]}
+            removed = set(previous) - set(sources)
+            for sid in changed | removed:
+                index.execute("DELETE FROM search WHERE document_id IN (SELECT document_id FROM chunks WHERE source_id=?)", (sid,))
+                index.execute("DELETE FROM chunks WHERE source_id=?", (sid,))
+                index.execute("DELETE FROM entries WHERE source_id=?", (sid,))
             for sid, source in sources.items():
+                if sid not in changed:
+                    continue
                 state, reason = "indexed", ""
                 try:
                     path_to_source = source_path(source)
@@ -195,8 +222,11 @@ def refresh(db, current, *, only_if_changed=False):
                 except extractors.ExtractionError as exc:
                     state = "skipped"
                     reason = str(exc)
-                index.execute("INSERT INTO entries VALUES (?,?,?,?)", (sid, source["fingerprint"], state, reason))
-            index.execute("INSERT INTO info VALUES (?,?)", (datetime.now(timezone.utc).isoformat(), signature))
+                index.execute("INSERT INTO entries VALUES (?,?,?,?,?)", (sid, source["fingerprint"], state, reason, signatures[sid]))
+            changes = dict(mode="incremental" if compatible else "initial", processed=len(changed),
+                           reused=len(sources) - len(changed), removed=len(removed))
+            index.execute("DELETE FROM info")
+            index.execute("INSERT INTO info VALUES (?,?,?)", (datetime.now(timezone.utc).isoformat(), signature, json.dumps(changes)))
             index.commit()
             if index.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise OSError("Invalid index")

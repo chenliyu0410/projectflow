@@ -11,7 +11,7 @@ beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(st
 const gateway = { policy: 'local_only' as const, cloud_enabled: false as const, function: 'rag', classification: 'confidential' as const, classification_reason: 'source_level', route: 'none' as const, reason: 'model_disabled', outcome: 'not_sent' as const, source_count: 1, model: '' };
 
 it('updates isolated formal index and defaults to current sources', async () => {
-  const index = { counts: { indexed: 1, pending: 1, skipped: 1 }, updated_at: '2026-10-20T12:00:00Z', can_refresh: true, items: [{ source_id: 'x', title: '圖片.png', source_type: 'attachment', version: 1, state: 'skipped', reason: '不支援此格式' }] };
+  const index = { last_update: { mode: 'incremental' as const, processed: 1, reused: 2, removed: 0 }, counts: { indexed: 1, pending: 1, skipped: 1 }, updated_at: '2026-10-20T12:00:00Z', can_refresh: true, items: [{ source_id: 'x', title: '圖片.png', source_type: 'attachment', version: 1, state: 'skipped', reason: '不支援此格式' }] };
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
   vi.mocked(ai.refreshIndex).mockResolvedValue(index);
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
@@ -19,6 +19,7 @@ it('updates isolated formal index and defaults to current sources', async () => 
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, index, can_sql: false });
   fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
   await screen.findByText(/已索引 1／待更新 1／略過 1/);
+  expect(screen.getByText('最近一次增量更新：處理 1／沿用 2／移除 0 個來源版本。')).toBeInTheDocument();
   expect(screen.getByLabelText('包含歷史版本')).not.toBeChecked();
   expect(screen.getByRole('option', { name: 'Text-to-SQL 資料分析' })).toBeDisabled();
   expect(screen.queryByText(/虛構延伸案/)).toBeNull();

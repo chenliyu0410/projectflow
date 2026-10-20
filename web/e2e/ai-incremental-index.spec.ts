@@ -1,0 +1,65 @@
+import { expect, test } from '@playwright/test';
+
+test.use(process.platform === 'win32' ? { channel: 'msedge' } : {});
+
+for (const width of [1280, 375]) test(`incremental index reuses unchanged versions ${width}`, async ({ page }, info) => {
+  test.setTimeout(90000);
+  expect(await (await page.request.get('/api/health/acceptance')).json()).toEqual({ acceptance: true });
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(String(error)));
+  await page.setViewportSize({ width, height: 900 });
+  await page.goto('/');
+  await page.getByLabel('帳號').fill('yu');
+  await page.getByLabel('密碼').fill('demo-yu');
+  await page.getByRole('button', { name: '登入', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
+  const status = async () => (await (await page.request.get('/api/ai/status?dataset=formal-v1')).json()).index;
+  expect((await status()).automatic.enabled).toBe(true);
+  await expect.poll(async () => (await status()).last_update != null, { timeout: 30000 }).toBe(true);
+  const created = await page.request.post('/api/projects', { data: { title: `增量索引展示 ${width} ${Date.now()}` } });
+  expect(created.status()).toBe(201);
+  const project = await created.json();
+  const upload = async (name: string, content: string) => {
+    const response = await page.request.post(`/api/projects/${project.id}/documents?filename=${encodeURIComponent(name)}`, { data: Buffer.from(content), headers: { 'Content-Type': 'application/octet-stream' } });
+    expect(response.status()).toBe(201);
+    return response.json();
+  };
+  const doc = await upload('增量報到說明.txt', '全部虛構。新人報到原訂在三樓。');
+  await upload('沿用教育清單.txt', '全部虛構。新人報到教育訓練要帶筆電，這份內容維持不變。');
+  const sources = async (include_history = false) => {
+    const response = await page.request.post('/api/ai/ask', { data: { dataset: 'formal-v1', project_id: project.id, question: '新人報到', include_history } });
+    expect(response.status()).toBe(200);
+    return (await response.json()).sources as { version: number; title: string }[];
+  };
+  await expect.poll(async () => (await sources()).length, { timeout: 30000, intervals: [1000] }).toBe(2);
+  const edited = await page.request.post(`/api/documents/${doc.document_id}/text`, { data: { expected_version: 1, content: '全部虛構。新人報到改在五樓。' } });
+  expect(edited.status()).toBe(201);
+  await expect.poll(async () => (await sources()).some(s => s.version === 2), { timeout: 30000, intervals: [1000] }).toBe(true);
+  const changed = await status();
+  expect(changed.last_update.mode).toBe('incremental');
+  expect(changed.last_update.processed).toBe(1);
+  expect(changed.last_update.reused).toBeGreaterThanOrEqual(2);
+  expect(changed.last_update.removed).toBe(0);
+  const manual = await page.request.post('/api/ai/index/refresh');
+  expect(manual.status()).toBe(200);
+  expect((await manual.json()).updated_at).toBe(changed.updated_at);
+  await page.getByRole('button', { name: '切換 AI 副手' }).click();
+  const panel = page.getByLabel('AI 專案副手', { exact: true });
+  await panel.getByLabel('AI資料集').selectOption('formal-v1');
+  await panel.getByLabel('查詢專案').selectOption(project.id);
+  await panel.getByText('查看索引狀態', { exact: true }).click();
+  await expect(panel.getByText(/最近一次增量更新：處理 1／沿用/)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await panel.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath(`incremental-${width}.png`), fullPage: true });
+  await panel.getByText('查看索引狀態', { exact: true }).click();
+  await panel.getByLabel('包含歷史版本').check();
+  await panel.getByLabel('詢問 AI').fill('新人報到');
+  await panel.getByRole('button', { name: '送出 AI 問題' }).click();
+  await expect(panel.locator('.ai-sources')).toContainText('第2版');
+  await expect(panel.locator('.ai-sources')).toContainText('歷史版本');
+  await expect(panel.locator('.ai-sources')).toContainText('沿用教育清單.txt');
+  await panel.getByLabel('AI資料集').selectOption('starter-v1');
+  await expect(panel).toContainText('23 份可見文件');
+  expect(errors).toEqual([]);
+});
