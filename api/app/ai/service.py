@@ -60,12 +60,16 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
         base['analysis']=result
         return dict(base,kind='sql',engine=engine,answer=f'查詢：{result["label"]}。找到{len(result["rows"])}列結果'+('（已截取前200列）。' if result['truncated'] else '。')+'以下為資料庫實際計算；未執行任意模型SQL。')
     documents=store.search(db,question,role,project_id,include_history)
-    prepared = gateway.prepare(company, role, mode, question, documents, use_model=bool(documents), reason=None if documents else 'no_sources')
+    return answer_documents(company, role, question, documents, base, include_history=include_history, preview=preview)
+
+
+def answer_documents(company, role, question, documents, base, *, include_history=False, preview=False):
+    prepared = gateway.prepare(company, role, 'rag', question, documents, use_model=bool(documents), reason=None if documents else 'no_sources')
     if preview: return prepared.preview()
     base['gateway'] = prepared.info
     if not documents:
-        return dict(base,kind='no_sources',engine='retrieval',answer='在目前公司、專案與權限範圍內找不到可引用資料。請換個關鍵詞或選擇其他AI展示專案。')
-    base['sources']=[dict(document_id=d['document_id'],title=d['title'],project_id=d['project_id'],excerpt=d['body'][:1200],is_current=bool(d['current'])) for d in documents]
+        return dict(base,kind='no_sources',engine='retrieval',answer='在目前公司、專案與權限範圍內找不到可引用資料。請換個關鍵詞、選擇其他專案，或確認文件索引已更新。')
+    base['sources']=[dict(document_id=d['document_id'],title=d['title'],project_id=d['project_id'],excerpt=d['body'][:1200],is_current=bool(d['current']),**{k:d[k] for k in ('source_type','node_id','version','section') if k in d}) for d in documents]
     if prepared.info['route'] == 'blocked':
         base['warning'] = 'AI閘道拒絕目前模型設定；未送出內容，改顯示可核對的檢索原文。'
     if prepared.info['route'] == 'local':
@@ -74,5 +78,5 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
             return dict(base,kind='rag',engine='model',answer=generated['answer'],citations=generated['citations'])
         except Exception:
             base['warning']='模型連線或引用驗證失敗，改顯示可核對的檢索原文。'
-    label = '文件（含歷史版本，請核對日期）' if include_history else '現行文件'
+    label = '文件段落' if not base['synthetic'] else '文件（含歷史版本，請核對日期）' if include_history else '現行文件'
     return dict(base,kind='retrieval',engine='retrieval',answer=f'找到{len(documents)}份相關{label}。'+('模型尚未啟用，以下提供檢索原文；不是模型生成的答案。' if prepared.info['reason'] == 'model_disabled' else '請開啟引用查看原文。'))

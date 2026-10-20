@@ -3,12 +3,45 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import CopilotPanel from './components/CopilotPanel';
 import { ai } from './ai';
 import type { AIResult, AIStatus } from './ai';
-vi.mock('./ai', () => ({ ai: { status: vi.fn(), ask: vi.fn(), preview: vi.fn(), document: vi.fn(), config: vi.fn(), save: vi.fn(), test: vi.fn() } }));
+vi.mock('./ai', () => ({ ai: { status: vi.fn(), ask: vi.fn(), preview: vi.fn(), refreshIndex: vi.fn(), document: vi.fn(), config: vi.fn(), save: vi.fn(), test: vi.fn() } }));
 const status: AIStatus = { ready: true, as_of: '2026-10-11', company_name: '食品', model_enabled: false, model_name: '', can_configure: true, can_sql: true, projects: [{ project_id: 'P1', title: '展示案' }], queries: [{ query_id: 'q02', label: '各部門逾期未完成數' }], counts: { projects: 1, documents: 2 } };
 const retrieved: AIResult = { kind: 'retrieval', engine: 'retrieval', answer: '檢索原文', warning: null, sources: [{ document_id: 'D1', title: '交付規範', project_id: 'P1', excerpt: '<script>文字</script> 截圖4張' }], analysis: null };
 beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(status); vi.mocked(ai.ask).mockResolvedValue(retrieved); vi.mocked(ai.document).mockResolvedValue({ title: '交付規範', text: '原文截圖4張' }); vi.mocked(ai.config).mockResolvedValue({ enabled: false, base_url: '', model: '' }); });
 
 const gateway = { policy: 'local_only' as const, cloud_enabled: false as const, function: 'rag', classification: 'confidential' as const, classification_reason: 'source_level', route: 'none' as const, reason: 'model_disabled', outcome: 'not_sent' as const, source_count: 1, model: '' };
+
+it('updates isolated formal index and queries its own sources without synthetic/history controls', async () => {
+  const index = { counts: { indexed: 1, pending: 1, skipped: 1 }, updated_at: '2026-10-20T12:00:00Z', can_refresh: true, items: [{ source_id: 'x', title: '圖片.png', source_type: 'attachment', version: 1, state: 'skipped', reason: '不支援此格式' }] };
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
+  vi.mocked(ai.refreshIndex).mockResolvedValue(index);
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, index, can_sql: false });
+  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
+  await screen.findByText(/已索引 1／待更新 1／略過 1/);
+  expect(screen.queryByLabelText('包含歷史版本')).toBeNull();
+  expect(screen.getByRole('option', { name: 'Text-to-SQL 資料分析' })).toBeDisabled();
+  expect(screen.queryByText(/虛構延伸案/)).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: '更新文件索引' }));
+  await waitFor(() => expect(ai.refreshIndex).toHaveBeenCalledOnce());
+  await screen.findByRole('button', { name: '更新文件索引' });
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '新人報到' } });
+  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  await screen.findByText('檢索原文');
+  expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ dataset: 'formal-v1', include_history: false }), expect.any(AbortSignal));
+  fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
+  await screen.findByText('原文截圖4張');
+  expect(ai.document).toHaveBeenCalledWith('D1', expect.any(AbortSignal), 'formal-v1');
+});
+
+it('keeps formal refresh controls out of member view', async () => {
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, index: { counts: { indexed: 0, pending: 1, skipped: 0 }, items: [], updated_at: null, can_refresh: false } });
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
+  await screen.findByText(/已索引 0／待更新 1／略過 0/);
+  expect(screen.queryByRole('button', { name: '更新文件索引' })).toBeNull();
+});
 
 it('previews scoped data without asking and clears the preview when input changes', async () => {
   vi.mocked(ai.preview).mockResolvedValue({ gateway, content: { question: '預算', sources: [{ document_id: 'PDF-006', text: '<script>機密預算</script>' }] } });

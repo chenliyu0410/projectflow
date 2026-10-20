@@ -1,0 +1,128 @@
+"""Bounded text extraction; never runs Office programs or follows external links."""
+import io
+from pathlib import Path
+import zipfile
+from xml.etree import ElementTree as ET
+
+from pypdf import PdfReader
+
+MAX_TEXT = 200_000
+MAX_BYTES = 10_000_000
+
+
+class ExtractionError(ValueError):
+    pass
+
+
+def checked(text):
+    if len(text) > MAX_TEXT:
+        raise ExtractionError("文字超過20萬字，請拆成較小文件")
+    if not text.strip():
+        raise ExtractionError("無可索引文字；圖片或掃描文件需OCR")
+    return text.strip()
+
+
+def extract(data, filename):
+    extension = Path(filename).suffix.lower()
+    if extension not in {".txt", ".csv", ".pdf", ".docx", ".xlsx"}:
+        raise ExtractionError("不支援此格式；圖片、掃描文件需OCR")
+    if not data or len(data) > MAX_BYTES:
+        raise ExtractionError("檔案為空或超過10MB")
+    try:
+        if extension in {".txt", ".csv"}:
+            return checked(data.decode("utf-8-sig"))
+        if extension == ".pdf":
+            reader = PdfReader(io.BytesIO(data))
+            if reader.is_encrypted or len(reader.pages) > 30:
+                raise ExtractionError("PDF加密或超過30頁")
+            pages = []
+            for number, page in enumerate(reader.pages, 1):
+                text = page.extract_text() or ""
+                if text.strip():
+                    pages.append(f"第{number}頁\n{text}")
+                if sum(map(len, pages)) > MAX_TEXT:
+                    raise ExtractionError("文字超過20萬字，請拆成較小文件")
+            return checked("\n\n".join(pages))
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            entries = archive.infolist()
+            if len(entries) > 1000 or sum(e.file_size for e in entries) > 12_000_000:
+                raise ExtractionError("Office解壓後內容過大")
+            if len({e.filename for e in entries}) != len(entries):
+                raise ExtractionError("Office內部檔名重複")
+
+            def xml(name):
+                item = archive.getinfo(name)
+                if item.file_size > 4_000_000 or item.flag_bits & 1:
+                    raise ExtractionError("Office XML過大或加密")
+                with archive.open(item) as stream:
+                    value = stream.read(4_000_001)
+                if len(value) > 4_000_000 or b"\x00" in value or b"<!DOCTYPE" in value.upper() or b"<!ENTITY" in value.upper():
+                    raise ExtractionError("不允許XML宣告或內容過大")
+                return ET.fromstring(value)
+
+            if extension == ".docx":
+                ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+                body = xml("word/document.xml")
+                return checked("\n".join("".join(p.itertext()) for p in body.findall(".//w:p", ns)))
+            ns = {"s": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+            names = {e.filename for e in entries}
+            shared = []
+            if "xl/sharedStrings.xml" in names:
+                shared = ["".join(t.text or "" for t in item.findall(".//s:t", ns))
+                          for item in xml("xl/sharedStrings.xml").findall("s:si", ns)]
+            sheets = sorted(n for n in names if n.startswith("xl/worksheets/") and n.endswith(".xml") and n.count("/") == 2)
+            output = []
+            text_length = 0
+
+            def reserve(length):
+                nonlocal text_length
+                if text_length + length > MAX_TEXT:
+                    raise ExtractionError("文字超過20萬字，請拆成較小文件")
+                text_length += length
+
+            for name in sheets:
+                header = f"工作表：{Path(name).stem}（儲存值；公式不重新計算）"
+                reserve(len(header) + (1 if output else 0))
+                output.append(header)
+                for row in xml(name).findall(".//s:sheetData/s:row", ns):
+                    cells = []
+                    for cell in row.findall("s:c", ns):
+                        value = cell.findtext("s:v", "", ns)
+                        if cell.get("t") == "s":
+                            index = int(value)
+                            if not 0 <= index < len(shared):
+                                raise ExtractionError("Excel共用字串索引無效")
+                            value = shared[index]
+                        elif cell.get("t") == "inlineStr":
+                            value = "".join(t.text or "" for t in cell.findall(".//s:t", ns))
+                        formula = cell.findtext("s:f", None, ns)
+                        coordinate = cell.get("r", "?")
+                        if formula is not None:
+                            value_length = len("公式=；儲存值=") + len(formula) + len(value or "無")
+                        else:
+                            value_length = len(value)
+                        if value or formula is not None:
+                            # Account for the row newline or cell separator before
+                            # copying shared strings into rendered cell text.
+                            reserve((3 if cells else 1) + len(coordinate) + 1 + value_length)
+                        if formula is not None:
+                            value = f"公式={formula}；儲存值={value or '無'}"
+                        if value:
+                            cells.append(f"{coordinate}={value}")
+                    if cells:
+                        output.append(" | ".join(cells))
+            # Empty worksheets are not counted as successfully extracted content.
+            if not any("=" in line for line in output):
+                raise ExtractionError("Excel沒有可索引的儲存格內容")
+            return checked("\n".join(output))
+    except ExtractionError:
+        raise
+    except Exception:
+        raise ExtractionError("檔案無法解析；請確認格式或重新上傳") from None
+
+
+def chunks(text, size=1200, overlap=150):
+    for start in range(0, len(text), size - overlap):
+        yield text[start:start + size]
+        if start + size >= len(text):
+            break

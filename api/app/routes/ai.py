@@ -9,10 +9,10 @@ from sqlalchemy.orm import Session
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.audit import log_audit
-from app.ai import store, service, model, starter
+from app.ai import store, service, model, starter, formal_index
 
 router=APIRouter(prefix='/ai',tags=['ai'])
-Dataset = Literal['dataset-v1', 'starter-v1']
+Dataset = Literal['dataset-v1', 'starter-v1', 'formal-v1']
 
 
 class Ask(BaseModel):
@@ -45,7 +45,7 @@ def local_admin(request,current):
 
 
 @router.get('/status')
-def status(request:Request,dataset:Dataset='dataset-v1',current:CurrentUser=Depends(require_session)):
+def status(request:Request,dataset:Dataset='dataset-v1',current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
     try:
         config=model.settings(current.organization.key)
         model.validate_config(config)
@@ -54,6 +54,13 @@ def status(request:Request,dataset:Dataset='dataset-v1',current:CurrentUser=Depe
     result=dict(ready=False,as_of=store.AS_OF,company_name=current.organization.name,model_enabled=config['enabled'],model_name=config['model'] if config['enabled'] else '',can_configure=current.user.role=='admin' and request.url.hostname in {'localhost','127.0.0.1','::1'},can_sql=current.user.role in {'admin','project_owner'},projects=[],queries=[],counts={})
     result['dataset'] = dataset
     result['gateway'] = dict(policy='local_only', cloud_enabled=False)
+    result['formal_available'] = formal_index.enabled() and db.bind.dialect.name == 'sqlite'
+    if dataset == 'formal-v1':
+        index = formal_index.status(db,current)
+        result.update(ready=True,as_of=index['updated_at'],can_sql=False,projects=index.pop('projects'),
+                      counts={'documents':index['counts']['indexed']},index=index)
+        result['counts']['projects'] = len(result['projects'])
+        return result
     if dataset == 'starter-v1':
         result.update(as_of=starter.AS_OF, can_sql=False)
     try:
@@ -76,25 +83,39 @@ def preview(payload:Ask,current:CurrentUser=Depends(require_session),db:Session=
 
 def evaluate(payload,current,db,*,preview):
     if not payload.question.strip(): raise HTTPException(422,'請輸入問題')
-    with closing(connection(current, payload.dataset)) as data:
-        if payload.project_id:
-            visible = {p['project_id'] for p in starter.visible_projects(data,current.user.role)} if payload.dataset == 'starter-v1' else {r[0] for r in data.execute('SELECT project_id FROM projects')}
-            if payload.project_id not in visible: raise HTTPException(404,'找不到AI專案')
-        try: result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history,preview=preview)
-        except PermissionError: raise HTTPException(403,'沒有此AI查詢的資料權限') from None
-        except ValueError: raise HTTPException(422,'不支援此查詢') from None
+    try:
+        if payload.dataset == 'formal-v1':
+            result=formal_index.ask(db,current,payload,preview=preview)
+        else:
+            with closing(connection(current, payload.dataset)) as data:
+                if payload.project_id:
+                    visible = {p['project_id'] for p in starter.visible_projects(data,current.user.role)} if payload.dataset == 'starter-v1' else {r[0] for r in data.execute('SELECT project_id FROM projects')}
+                    if payload.project_id not in visible: raise HTTPException(404,'找不到AI專案')
+                result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history,preview=preview)
+    except PermissionError: raise HTTPException(403,'沒有此AI查詢的資料權限') from None
+    except ValueError: raise HTTPException(422,'不支援此查詢') from None
     log_audit(db,current,'ai.preview' if preview else 'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':'preview' if preview else result['kind'],'source_count':result['gateway']['source_count'],'query_id':result['analysis']['query_id'] if not preview and result['analysis'] else None,'gateway':result['gateway']})
     db.commit()
     return result
 
 
 @router.get('/documents/{document_id}')
-def document(document_id:str,dataset:Dataset='dataset-v1',current:CurrentUser=Depends(require_session)):
+def document(document_id:str,dataset:Dataset='dataset-v1',current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    if dataset == 'formal-v1':
+        return formal_index.document(db,current,document_id)
     with closing(connection(current, dataset)) as db:
         row=db.execute('SELECT * FROM documents WHERE document_id=? AND EXISTS (SELECT 1 FROM json_each(roles) WHERE value=?)',(document_id,current.user.role)).fetchone()
         if row is None: raise HTTPException(404,'找不到文件')
         metadata=json.loads(row['metadata'])
         return dict(document_id=row['document_id'],title=row['title'],text=row['body'],project_id=row['project_id'],version=metadata['version'],is_current=metadata['is_current'])
+
+
+@router.post('/index/refresh')
+def refresh_index(current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    result=formal_index.refresh(db,current)
+    log_audit(db,current,'ai.index.refresh',payload={'dataset':'formal-v1','counts':result['counts']})
+    db.commit()
+    return result
 
 
 @router.get('/model')
