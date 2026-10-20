@@ -1,7 +1,7 @@
 import CollaborationActions from './CollaborationDialogs';
 import MemberPermissions from './MemberPermissions';
-import { useEffect, useMemo, useState } from 'react';
-import type { DragEvent, FocusEvent, ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { DragEvent, FocusEvent, KeyboardEvent, ReactNode } from 'react';
 import ReportPanel from './ReportPanel';
 import RecordTimeline from './RecordTimeline';
 import CollaboratorEditor from './CollaboratorEditor';
@@ -264,6 +264,18 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       {statusControl(node, true)}
     </article>;
   }
+  const tabList = useRef<HTMLDivElement>(null);
+  // 方向鍵只移動焦點（手動啟用），按 Enter／空白鍵才切換，避免每按一次就載入資料或跳離開確認。
+  function tabKey(event: KeyboardEvent<HTMLDivElement>) {
+    const buttons = [...(tabList.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled)') ?? [])];
+    const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (index < 0) return;
+    const next = event.key === 'ArrowRight' ? (index + 1) % buttons.length : event.key === 'ArrowLeft' ? (index - 1 + buttons.length) % buttons.length
+      : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    buttons[next].focus();
+  }
   const crumbs = nodePath(nodes, selectedNodeId);
   const owner = selected?.owner_display_name;
   const level = selected ? levelOf(nodes, selected.id) : 0;
@@ -322,12 +334,13 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       {canApprove && gate.status === 'pending' && <button disabled={disabled} onClick={() => mutate('gate', gate.id)}>核准閘門</button>}
     </section>}
     <div className="node-views">
-    <div className="node-toolbar"><div role="tablist" aria-label="節點內容">{tabs.map(item => item.tab === null
+    <div className="node-toolbar"><div role="tablist" aria-label="節點內容" ref={tabList} onKeyDown={tabKey}>{tabs.map(item => item.tab === null
       ? <button key={item.label} role="tab" aria-selected={false} disabled className="tab-unavailable">{item.label}<span className="nav-badge">尚未提供</span></button>
-      : <button key={item.tab} role="tab" aria-selected={active === item.tab} disabled={tabsDisabled} onClick={() => { if (item.tab !== active) changeTab?.(item.tab!); }}>{item.label}</button>)}</div>
+      : <button key={item.tab} id={`node-tab-${item.tab}`} role="tab" aria-selected={active === item.tab} aria-controls="node-tabpanel" tabIndex={active === item.tab ? 0 : -1} disabled={tabsDisabled} onClick={() => { if (item.tab !== active) changeTab?.(item.tab!); }}>{item.label}</button>)}</div>
 
     </div>
-    <div className="node-view-content">
+    {/* 用「…內容」命名而非 aria-labelledby，避免和內層同名區塊（如「看板」）撞名。 */}
+    <div className="node-view-content" role="tabpanel" id="node-tabpanel" aria-label={`${TABS.find(item => item.tab === active)?.label ?? ''}內容`}>
       {active === 'board' && <p className="tools-hint">{canMoveAny ? '拖曳卡片改狀態；拖到另一張卡片上 = 變成它的子任務' : anyDraggable ? '拖曳卡片或用卡片上的狀態選單改狀態；點卡片標題進入下一層' : '點卡片標題進入下一層'}</p>}
     {editor}
     {active === 'board' && <section aria-label="看板" className="board-scroll">

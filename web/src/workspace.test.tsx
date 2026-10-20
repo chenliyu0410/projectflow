@@ -345,6 +345,33 @@ describe('UI3 Demo home pages', () => {
 });
 
 
+describe('node content tabs', () => {
+  it('links each tab to its panel and moves focus with arrow, Home and End keys', () => {
+    const changeTab = vi.fn();
+    render(<NodeWorkspace project={detail} selectedNodeId={null} select={vi.fn()} readonly={false} canApprove={false} disabled={false} mutate={vi.fn()} tab="board" changeTab={changeTab} />);
+    const tabs = within(screen.getByRole('tablist', { name: '節點內容' })).getAllByRole('tab');
+    const panel = screen.getByRole('tabpanel');
+    expect(tabs[0]).toHaveAttribute('aria-controls', panel.id);
+    expect(panel).toHaveAccessibleName('看板內容');
+    expect(tabs.map(tab => tab.tabIndex)).toEqual(tabs.map((_, index) => index === 0 ? 0 : -1));
+    tabs[0].focus();
+    fireEvent.keyDown(tabs[0], { key: 'ArrowRight' });
+    expect(tabs[1]).toHaveFocus();
+    fireEvent.keyDown(tabs[1], { key: 'End' });
+    expect(tabs[tabs.length - 1]).toHaveFocus();
+    fireEvent.keyDown(tabs[tabs.length - 1], { key: 'ArrowRight' });
+    expect(tabs[0]).toHaveFocus();
+    fireEvent.keyDown(tabs[0], { key: 'ArrowLeft' });
+    expect(tabs[tabs.length - 1]).toHaveFocus();
+    fireEvent.keyDown(tabs[tabs.length - 1], { key: 'Home' });
+    expect(tabs[0]).toHaveFocus();
+    // 方向鍵只移焦點，按下才切換，避免一路觸發載入與離開確認。
+    expect(changeTab).not.toHaveBeenCalled();
+    fireEvent.click(tabs[1]);
+    expect(changeTab).toHaveBeenCalledWith('timeline');
+  });
+});
+
 describe('phase status cards', () => {
   it('distinguishes actual completion, active descendants and untouched work; only allows active cards', () => {
     const completed = {...node('已結束', null, 'phase', 'done'), sort_order:0};
