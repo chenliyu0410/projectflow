@@ -129,12 +129,14 @@ export default function App() {
     const detail = await loadDetail(id, request, nodeId);
     if (detail && current(request)) setProjectView(defaultTab(detail.nodes, nodeId));
   }
+  /** Returns false when the move was refused (busy or the user chose to stay on an unsaved form). */
   function navigate(next: WorkspaceRoute) {
-    if (busy) return;
-    if (!canLeaveDocument()) return;
+    if (busy) return false;
+    if (!canLeaveDocument()) return false;
     setOperationsPreview(false);
-    if (next.page === 'project' && next.projectId) { void selectProject(next.projectId, next.nodeId); return; }
+    if (next.page === 'project' && next.projectId) { void selectProject(next.projectId, next.nodeId); return true; }
     begin(); closeCreation(); setProject(null); setMessage(''); setRoute(next); setState('ready');
+    return true;
   }
   /** Keep the user's timeline/graph context, including leaf tasks and breadcrumbs. */
   function selectNode(nodeId: string | null, preferTab?: NodeTab) {

@@ -54,6 +54,16 @@ describe('unsaved form leave guard', () => {
     expect(await screen.findByRole('heading', { name: '我的任務' })).toBeInTheDocument();
   });
 
+  it('keeps the project drawer closed when leaving is cancelled', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    setup(); await openTask();
+    fireEvent.click(await screen.findByRole('button', { name: '編輯節點' }));
+    fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '改到一半' } });
+    fireEvent.click(within(await findProjectMenu()).getByRole('button', { name: second.title }));
+    expect(document.querySelector('dialog.project-task-drawer')).not.toHaveAttribute('open');
+    expect(screen.getByLabelText('節點名稱')).toHaveValue('改到一半');
+  });
+
   it('does not ask when the node form is unchanged', async () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
     setup(); await openTask();
