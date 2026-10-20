@@ -10,7 +10,7 @@ import TimelineView from './components/TimelineView';
 import DependencyPanel from './components/DependencyPanel';
 import ReviewCenter from './components/ReviewCenter';
 import AuditLogView from './components/AuditLogView';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError, KNOWN_CONFLICTS } from './api';
 import type { NodeStatus, ProjectDetail, ProjectSummary, SessionInfo, WorkflowSummary, WorkspaceRoute } from './types';
@@ -336,7 +336,8 @@ export default function App() {
     announce(`已新增「${title}」`, true);
   }
   // Demo: Ctrl+Z / ⌘Z undoes the last step when focus is not in a field and no form is open.
-  useEffect(() => {
+  // 用 layout effect 在畫面更新時同步換上最新處理器，連按兩次才不會拿到舊的復原步驟而重送。
+  useLayoutEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== 'z') return;
       const active = document.activeElement as HTMLElement | null;
