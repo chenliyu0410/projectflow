@@ -1,4 +1,5 @@
 """Company-scoped, batched collaboration and record authorization."""
+from contextlib import contextmanager
 from dataclasses import dataclass
 
 from sqlalchemy import select
@@ -22,15 +23,61 @@ class PolicyContext:
     soft_warning_ids: set[str]
 
 
+@dataclass
+class CompanyPolicyData:
+    users: dict[str, User]
+    departments: dict[str, Department]
+    collaborators: list[tuple[str, str | None, str | None]]
+    pending_reports: dict[str, TaskReport]
+    latest_versions: dict[str, int]
+    blocked_node_ids: set[str]
+    soft_warning_ids: set[str]
+
+
+SHARED_POLICY_DATA = 'shared_policy_data'
+
+
+@contextmanager
+def shared_policy_data(db: Session):
+    """Reuse company-wide policy data while evaluating many users in one block.
+
+    Only for blocks that do not change users, departments, collaborators, reports,
+    nodes, dependencies or conditions; the cache is dropped when the block ends.
+    """
+    outer = SHARED_POLICY_DATA in db.info
+    if not outer:
+        db.info[SHARED_POLICY_DATA] = {}
+    try:
+        yield
+    finally:
+        if not outer:
+            db.info.pop(SHARED_POLICY_DATA, None)
+
+
 def load_policy_context(db: Session, current: CurrentUser) -> PolicyContext:
     org = current.organization.id
+    cache = db.info.get(SHARED_POLICY_DATA)
+    data = cache.get(org) if cache is not None else None
+    if data is None:
+        data = company_policy_data(db, org)
+        if cache is not None:
+            cache[org] = data
+    collaboration = set()
+    for node_id, user_id, department_id in data.collaborators:
+        department = data.departments.get(department_id)
+        if user_id == current.user.id or (department is not None and department.head_user_id == current.user.id):
+            collaboration.add(node_id)
+    # 每個 context 拿自己的容器，共用快取時一個使用者的修改不會影響其他人。
+    return PolicyContext(org, current.user.id, dict(data.users), dict(data.departments), collaboration,
+                         dict(data.pending_reports), dict(data.latest_versions), set(data.blocked_node_ids), set(data.soft_warning_ids))
+
+
+def company_policy_data(db: Session, org: str) -> CompanyPolicyData:
+    """Everything in a PolicyContext that does not depend on the user; the expensive part."""
     users = {u.id: u for u in db.scalars(select(User).where(User.organization_id == org))}
     departments = {d.id: d for d in db.scalars(select(Department).where(Department.organization_id == org))}
-    collaboration = set()
-    for row in db.scalars(select(NodeCollaborator).where(NodeCollaborator.organization_id == org)):
-        department = departments.get(row.department_id)
-        if row.user_id == current.user.id or (department is not None and department.head_user_id == current.user.id):
-            collaboration.add(row.node_id)
+    collaborators = [(row.node_id, row.user_id, row.department_id)
+                     for row in db.scalars(select(NodeCollaborator).where(NodeCollaborator.organization_id == org))]
     pending = {}
     versions = {}
     for report in db.scalars(select(TaskReport).where(TaskReport.organization_id == org, TaskReport.workflow_version == 2)):
@@ -61,7 +108,7 @@ def load_policy_context(db: Session, current: CurrentUser) -> PolicyContext:
             if not isinstance(exc, HTTPException):
                 raise
             blocked.add(n.id)
-    return PolicyContext(org, current.user.id, users, departments, collaboration, pending, versions, blocked, soft)
+    return CompanyPolicyData(users, departments, collaborators, pending, versions, blocked, soft)
 
 
 def is_collaborator(current: CurrentUser, node: Node, *, context: PolicyContext) -> bool:
@@ -140,8 +187,8 @@ def page_timestamp(value):
     return value.astimezone(timezone.utc).isoformat()
 
 
-def authorized_page(entries, *, organization_id, endpoint, filters, cursor, limit, descending=False):
-    """Paginate only an already-authorized projection; bind cursors to its query."""
+def decode_page_cursor(cursor, *, organization_id, endpoint, filters):
+    """Return the (timestamp, id, kind) key a cursor was issued for, rejecting cursors bound to another query."""
     import base64
     import json
     from datetime import datetime
@@ -164,12 +211,24 @@ def authorized_page(entries, *, organization_id, endpoint, filters, cursor, limi
             after = tuple(key)
         except (ValueError, TypeError, KeyError, UnicodeError, OverflowError, RecursionError):
             raise HTTPException(status_code=422, detail='無效的分頁游標') from None
+    return after
+
+
+def encode_page_cursor(key, *, organization_id, endpoint, filters):
+    import base64
+    import json
+    data = {'organization_id': organization_id, 'endpoint': endpoint, 'filters': filters, 'key': key}
+    return base64.urlsafe_b64encode(json.dumps(data, separators=(',', ':')).encode()).decode()
+
+
+def authorized_page(entries, *, organization_id, endpoint, filters, cursor, limit, descending=False):
+    """Paginate only an already-authorized projection; bind cursors to its query."""
+    after = decode_page_cursor(cursor, organization_id=organization_id, endpoint=endpoint, filters=filters)
     ordered = sorted(entries, key=lambda entry: entry[0], reverse=descending)
     if after is not None:
         ordered = [entry for entry in ordered if (entry[0] < after if descending else entry[0] > after)]
     page = ordered[:limit]
     next_cursor = None
     if len(ordered) > limit:
-        data = {'organization_id': organization_id, 'endpoint': endpoint, 'filters': filters, 'key': page[-1][0]}
-        next_cursor = base64.urlsafe_b64encode(json.dumps(data, separators=(',', ':')).encode()).decode()
+        next_cursor = encode_page_cursor(page[-1][0], organization_id=organization_id, endpoint=endpoint, filters=filters)
     return {'items': [entry[1] for entry in page], 'next_cursor': next_cursor}

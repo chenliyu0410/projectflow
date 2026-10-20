@@ -11,22 +11,23 @@ from app.audit import log_audit
 from app.models import Document, DocumentVersion, Node, now_utc
 from app.services import attachment_store as files
 from app.services.record_policy import can_write_record, load_policy_context
-from app.services.dependency_service import lock_project
+from app.services.dependency_service import lock_project, read_project
 from app.permissions import can_view_project, can_manage_project
-from app.services.report_service import lock_node
+from app.services.report_service import lock_node, read_node
 
 TEXT_LIMIT = 1_000_000
 
 
 def permission(db, current, node_id, write=False, project_id=None):
+    # 只有寫入路徑需要鎖住專案／節點來序列化；讀取不能擋住其他人的寫入。
     if node_id is None:
-        project = lock_project(db, current, project_id)
+        project = (lock_project if write else read_project)(db, current, project_id)
         if project is None or not can_view_project(current, project):
             raise HTTPException(404, '找不到專案')
         context = load_policy_context(db, current)
         allowed = can_manage_project(current, project)
     else:
-        node, project, context = lock_node(db, current, node_id)
+        node, project, context = (lock_node if write else read_node)(db, current, node_id)
         allowed = can_write_record(db, current, project, node, context=context)
     if write and not allowed:
         raise HTTPException(403, '沒有編輯文件的權限')

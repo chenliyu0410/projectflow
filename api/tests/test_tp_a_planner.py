@@ -128,9 +128,10 @@ def test_phase_cannot_be_done_while_any_child_is_open_even_hidden(client, engine
     assert response.status_code == 409 and 'Secret' not in response.text and '1' not in response.json()['detail']
     set_status(engine, h='skipped')
     assert client.patch('/nodes/ph/status', json={'status': 'done'}).json()['status'] == 'done'
-    # Other phase transitions are unaffected by open children.
+    # Review/skipped would freeze open children, so they follow the done rule; other transitions do not.
     set_status(engine, h='todo')
-    assert client.patch('/nodes/ph/status', json={'status': 'review'}).status_code == 200
+    assert client.patch('/nodes/ph/status', json={'status': 'review'}).status_code == 409
+    assert client.patch('/nodes/ph/status', json={'status': 'doing'}).status_code == 200
 
 
 def test_parent_task_report_submit_and_approve_require_finished_children(client, engine, tree):

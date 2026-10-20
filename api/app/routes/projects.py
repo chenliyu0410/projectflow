@@ -161,7 +161,10 @@ def update_node_status(node_id: str, payload: NodeStatusUpdate, current: Current
         conflict()
     if node.kind == "task" and node.status == "todo" and payload.status == "doing":
         require_dependencies(db, current, node)
-    if payload.status == "done" and node.status != "done":
+    # 上層改成待確認或略過會凍結底下任務（require_open_ancestors），所以專案根節點不開放，階段要等子節點都結束。
+    if node.kind == "project" and payload.status in {"review", "skipped"}:
+        conflict()
+    if payload.status in {"done", "review", "skipped"} and node.status != payload.status:
         require_children_finished(db, current, node)
     node.status = payload.status
     log_audit(db, current, "node.status", node_id=node.id, payload={"status": payload.status})
