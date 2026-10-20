@@ -17,7 +17,7 @@
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
 | 下一個動作 | 人類可在15175選「正式文件與附件（隔離）」、選隔離索引展示專案，試問新人報到／設備申請；上傳文件後由管理者更新索引。後續為自動更新、歷史文件、OCR、向量檢索、完整分級繼承、遮罩及真模型品質。Docker恢復後才備份與另做正式部署，原公開網址／開機試用待辦仍保留。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
-| 最新程式 commit | `c964f97`（本地AI閘道與權限範圍內的資料預覽）；前階段`fb9640e`為RAG-STARTER。 |
+| 最新程式 commit | `9a3801a`（正式文件與附件隔離索引）；前階段`c964f97`為本地AI閘道、`fb9640e`為RAG-STARTER。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | FORMAL-INDEX：核心API RED5fail→GREEN；新舊AI／文件／附件相關API79pass，獨立審查發現XLSX重複字串展開上限，新增測試RED1fail→修正後相關8pass；前端31檔316pass，Node24.15下tsc/build exit0（既有>500kB警告）；Edge桌面1280／手機375、新舊資料集共4pass，含最新版本／附件引用／機密預覽／切換清除／無水平溢位或pageerror，截圖目視確認。獨立審查及修正複核無剩餘問題。原隔離DB與教材SQLite雜湊不變、複製版保留30表81筆原資料；健康200。未跑歷史全API、正式PG或真模型。 |
 | 資料版本 | 正式PostgreSQL、Docker volumes與舊dataset-v1未修改；無migration。原acceptance.sqlite完整保留，另複製formal-index.sqlite並使用formal-index-files；新增虛構展示專案、文件與附件，formal-v1只存衍生索引。starter-v1仍24文件（food23/electronics1）、現行23／歷史1，管理者可見23／一般成員22。隔離環境沿用2公司7帳號，僅15175/18005回環；不是正式六家公司完整副本。Python3.12.14／Node24.15驗證，Docker目標Python3.13待部署驗證。 |
@@ -1194,7 +1194,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ### 2026-10-20｜Codex｜FORMAL-INDEX隔離版
 
-- **做了什麼**：正式文件最新版本及可用附件加入獨立formal-v1分段索引，支援五種文字格式、管理者手動更新、原子替換、即時公司／節點權限、來源版本與段落預覽。保留舊教材及查詢功能，未新增migration。
+- **做了什麼**：`9a3801a`正式文件最新版本及可用附件加入獨立formal-v1分段索引，支援五種文字格式、管理者手動更新、原子替換、即時公司／節點權限、來源版本與段落預覽。保留舊教材及查詢功能，未新增migration。
 - **驗證**：相關API79pass，XLSX資源上限審查修正後8pass；前端316pass、tsc/build exit0、真Edge1280／375新舊資料集4pass。獨立唯讀審查與P2複核通過；原DB／教材hash不變，複製版保留原30表81筆資料。健康200、啟動器沿用服務正常。不是LLM品質或正式PG驗收。
 - **限制**：僅雙開關啟用的SQLite隔離環境；最新版本、手動更新、500來源、單檔10MB／20萬字、PDF30頁。無OCR、歷史索引、向量檢索、自動更新或正式部署。已顯示對話不做遠端撤回。
 - **交付／下一步**：15175／18005使用另複製的formal-index.sqlite與formal-index-files；原acceptance.sqlite保留。repo外試用說明、啟動器及正式索引驗證結果.json已更新，截圖在formal-index-browser。保留feature分支、本機commit，未merge／push；後續見▶現在。
