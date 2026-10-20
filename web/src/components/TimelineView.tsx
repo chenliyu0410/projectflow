@@ -1,6 +1,8 @@
 import { childCreationReason } from '../child-creation';
 import { dependencyLabel, dependencyMet, dependencyShift } from '../dependencies';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useLeaveGuard } from '../leave-guard';
+import type { LeaveGuards } from '../leave-guard';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { api, ApiError, useRecordMutation } from '../api';
 import type { RecordReload } from '../api';
@@ -61,8 +63,9 @@ export default function TimelineView({
   reload,
   expired,
   color = 'var(--teal)',
-  undo, created, notice, recordVersion = 0,
+  undo, created, notice, recordVersion = 0, leaveGuards,
 }: {
+  leaveGuards?: LeaveGuards;
   recordVersion?: number;
   created?: (title: string, undoId: string | null) => void;
   notice?: (message: string) => void;
@@ -148,6 +151,8 @@ export default function TimelineView({
     await reload(signal);
     if (!signal.aborted) setDraft(null);
   }, expired, true);
+  const draftChanged = !!draft && !mutation.busy && !mutation.saved && (draft.start !== (draft.node.start_date ?? '') || draft.due !== (draft.node.due_date ?? ''));
+  useLeaveGuard(leaveGuards, draftChanged, '日期修改尚未儲存，確定放棄並離開嗎？');
   const now = new Date();
   const today = calendarDay(
     `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,

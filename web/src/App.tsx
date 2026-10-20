@@ -21,6 +21,8 @@ import NodeEditor from './components/NodeEditor';
 import WorkspaceOverview from './components/WorkspaceOverview';
 import MyTasks from './components/MyTasks';
 import NavIcon from './components/NavIcons';
+import { canLeaveAll } from './leave-guard';
+import type { LeaveGuards } from './leave-guard';
 
 const ROLE_LABELS: Record<string, string> = { admin: '系統管理員', project_owner: '專案負責人', reviewer: '階段審核人', member: '成員', readonly: '唯讀' };
 const PAGE_SCOPES: Record<string, string> = { overview: '所有可見專案', 'my-tasks': '我的任務', reviews: '審核中心', workflows: '模板庫', audit: '活動與稽核紀錄', operations: '公司營運資料', governance: 'AI 政策展示預覽' };
@@ -67,7 +69,8 @@ export default function App() {
   const creationForm = useRef<HTMLFormElement>(null);
   const documentLeaveGuard = useRef<(() => boolean) | null>(null);
   const [operationsPreview, setOperationsPreview] = useState(false);
-  const canLeaveDocument = () => documentLeaveGuard.current?.() ?? true;
+  const formGuards = useRef(new Set<() => boolean>()) as LeaveGuards;
+  const canLeaveDocument = () => (documentLeaveGuard.current?.() ?? true) && canLeaveAll(formGuards);
   const controller = useRef<AbortController | null>(null);
 
   function begin() {
@@ -519,9 +522,9 @@ export default function App() {
             tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { if (!canLeaveDocument()) return; begin(); closeCreation(); setProjectView(view); }}
             actions={canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
             editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
-              canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession}
+              canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} leaveGuards={formGuards}
               nodes={project.nodes} created={nodeCreated} tree={selectedNode ? { move: parentId => void moveNode(selectedNode.id, parentId), copy: () => void structure('copy', selectedNode.id), remove: () => void structure('delete', selectedNode.id) } : undefined} />}
-            timeline={!busy && !creationOpen && <TimelineView key={project.id} recordVersion={recordVersion} project={project} scopeId={selectedNodeId} created={nodeCreated} notice={setMessage} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession}
+            timeline={!busy && !creationOpen && <TimelineView key={project.id} recordVersion={recordVersion} project={project} scopeId={selectedNodeId} created={nodeCreated} notice={setMessage} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession} leaveGuards={formGuards}
               undo={session.user.role === 'readonly' ? undefined : { label: lastUndo?.label ?? null, disabled: busy || mutating, run: () => void undoLast() }} />}
             graph={!busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} project={project} scopeId={selectedNodeId} select={id => selectNode(id, 'graph')} reload={reloadRecords} expired={expireSession} />} />}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}
