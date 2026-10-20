@@ -58,7 +58,8 @@ export default function WorkspaceShell({route,projects,busy,navigate,children,se
  </dialog>
  <div className="workspace-main"><div className="workspace-topbar"><button ref={toggle} className="navigation-toggle" aria-label="切換導覽" aria-expanded={expanded} aria-controls="workspace-navigation" onClick={()=>setExpanded(v=>!v)}>☰ 選單</button><div className="workspace-account-actions">{headerActions}<Dropdown className="account-menu" name="使用者選單" label={<><span className="avatar" aria-hidden="true">{accountName.slice(0,1)}</span><span className="account-name">{accountName}</span></>}><div className="sidebar-session">{session}</div></Dropdown></div></div><div className="workspace-content">{children}</div></div>
  <button ref={copilotToggle} className="copilot-launcher" aria-label="切換 AI 副手" title="AI 專案副手" aria-expanded={copilotOpen} aria-controls="copilot-panel" onClick={()=>setCopilotOpen(v=>!v)}><NavIcon name="ai" size={26}/><span className="sr-only">AI 專案副手</span></button>
- <CopilotPanel key={previewKey??location} food={food} companyName={companyName} scope={copilotScope} open={copilotOpen} close={closeCopilot}/>
+ {/* 只在進出展示預覽區時重建（照 formal-development.md 清除對話）；一般導覽保留對話與進行中查詢。 */}
+ <CopilotPanel key={previewKey??'workspace'} food={food} companyName={companyName} scope={copilotScope} open={copilotOpen} close={closeCopilot}/>
  {(expanded||copilotOpen)&&<div className="drawer-backdrop" aria-hidden="true" onClick={()=>{if(expanded)closeNavigation();if(copilotOpen)closeCopilot();}}/>}
  </>;
 }
