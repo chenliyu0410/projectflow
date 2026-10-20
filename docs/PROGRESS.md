@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **DOCS-CLEAN ✅ README精簡與架構圖更新**：人類2026-10-20指示「先同步git，然後把目前本地的內容整理，已經完成的進度從readme.md中移除，把readme弄乾淨一點…projectflow-system-architecture.svg依照目前的進度更新一次，等我確認好以後推上去」。README只留目前狀態、快速開始、正式版功能總覽、規格與尚未完成的路線圖（D82）；架構圖改畫正式版現況；一併提交人類本機的`docs/technical-roadmap.md`。之前OPS-PUBLIC ✅ 恢復公開網址並加開機捷徑：人類2026-10-15回報別人點網址打不開。8443是repo外`Desktop\projectflow-local`本地共用版，其`start.bat`用`tailscale serve`（只限tailnet，且會移除8443既有Funnel）；10000正式版因開機後沒有人啟動Docker堆疊而停。已改Funnel、重啟試用並加`shell:startup`捷徑。之前OPS-SYNC ✅（PR #3合併`28dbecb`）、PUBLIC-TRIAL ✅等。 |
+| 目前工作項目 | **RAG-STARTER 🟢 隔離測試版已交付**：人類要求將新RAG資料改用現有公司並接續匯入；已改為毛研食品／峰曜科技，新增starter-v1及副手資料集切換、PDF文字解析、歷史版本、來源引用與完整未完成工單。Docker仍錯誤，人類明確選擇「先交付隔離測試版」，正式環境未部署。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 方向待人類指示。仍待人類：用外部網路（例如手機行動網路）開`https://p215-2203-nb01.tail177cc6.ts.net:10000`確認新介面與登入，`:8443`確認本地共用版；下次開機時確認捷徑開出的視窗顯示本機與公開都是200 OK。停止公開：`停止公開試用.bat`（若也要停止開機自動公開，請刪除`shell:startup\ProjectFlow 公開試用.lnk`）。 |
-| 分支 | `main`；無feature分支。`origin/feature/ux-child-modules-navigation`是PR #3已合併的遠端分支，未刪除。 |
-| 最新程式 commit | `28dbecb`（PR #3合併）；PUBLIC-TRIAL為`b1e209b`、`fa49437`。 |
+| 下一個動作 | 人類試用 http://127.0.0.1:15175 （全新隔離SQLite）。選AI副手→入門文件；操作與啟動器在repo外 ../output/rag-starter-acceptance/。Docker恢復後先備份，再整合／部署並匯入正式ai_data；不重設原資料。原公開網址及開機試用確認仍保留待辦。 |
+| 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
+| 最新程式 commit | `fb9640e`（RAG-STARTER程式／測資／操作文件）；之前正式程式為`28dbecb`。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
-| 測試基準 | DOCS-CLEAN只改文件，沒有跑產品測試：SVG以XML解析通過，並用headless Edge以2400×1350渲染目視檢查文字與箭頭；README內連結的文件與錨點逐一核對存在。OPS-PUBLIC只做營運，沒有改程式也沒有跑測試；以公網DoH解析出的Funnel中繼IP 103.84.155.153／.217用`--resolve`直連，8443首頁與`/api/version`、10000 `/api/health/ready`皆200。OPS-SYNC只部署，未重跑測試（PR #3只改web與文件、另加一個API測試檔，API程式未改）；合併時docs衝突已由人類解決，本機只修正看板與README。PROJECT-DRAWER（PR #3）：PROJECT-DRAWER：完整前端31檔309pass；桌面／手機專案抽屜、相依追蹤、返回、頂欄與五尺寸側欄共9pass；型別與build exit0。獨立審查發現高亮節點遮住拖線按鈕，已修正層級並以左側命中及pointerdown回歸。初跑單元306pass／3fail（2項旧導覽斷言、1項既有入庫測試等待），修正後全量通過；初跑瀏覽器5pass／4fail為手機測試定位忽略隱藏元素，修正後9pass。歷史端對端僅載入檢查，未全量執行；本輪未改後端、未重跑歷史API與部署測試。保留既有產物大於500kB警告。 PUBLIC-TRIAL：PUBLIC-TRIAL：test_deployment＋新test_public_trial RED 10fail／17error exit1→73pass exit0（審查後修正再跑73pass exit0）；`nginx -t` ok；暫存nginx容器實測81埠只收ts.net Host（127.0.0.1／localhost／127.0.0.1.ts.net／無Host／絕對URI＋假Host皆421），80埠不變；未跑API全量（API程式未改）。LAN-SWITCH：showcase七檔＋deployment RED 9fail exit1→81pass exit0；API全量636pass／14skip exit0（19分45秒）。LAN-TRIAL：test_deployment RED 7fail exit1→46pass exit0；新Vitest new-id RED 3fail exit1→全前端27檔292pass exit0；build exit0；未跑API全量與E2E（只改啟動腳本、compose與三處前端id產生）。DATA-PACK（`258ca1e`）後只跑相關：test_demo_pack 2pass、整合後相關API 68pass、migration 23pass，未重跑全量。以下為F1-RET全量：全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
-| 資料版本 | OPS-PUBLIC無migration：`public_trial.py`只啟動既有容器（web `9df836f2145c`、API `e60becf4b227`、DB `d43b3c315aa0`與10-14相同，未重建、不seed）。OPS-SYNC無migration：`public_trial.py`只重建web（映像`78be54ef96bd`、容器`9df836f2145c`，bundle `index-wScy0RyV.js`含PR新樣式），API `e60becf4b227`與DB `d43b3c315aa0`未重建；本機與公開health 200，127.0.0.1以yu登入看到新專案總覽與「選擇專案，查看我的待辦」，主控台只有登入前的401，之後登出。PUBLIC-TRIAL無migration：部署前pg_dump存.superpowers/public-trial/before-public.dump；啟動器重建web（nginx 81）、API帶`PF_SHOWCASE_LAN=true`與`FORWARDED_ALLOW_IPS=*`重建，DB容器`d43b3c315aa0`未重建，6公司／80帳號／39專案／500節點／0019部署前後一致。LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
-| 認領中 | 無。 |
-| 阻塞／待人類 | 待人類：外部網路實測兩個公開網址；公開試用期間密碼`demo-<帳號>`可推得，用完請停止；8443本地共用版沒有登入，任何拿到網址的人都能修改或重置資料；PR #3列出的後續UI／UX建議待人類檢視。 |
-| 遠端 | 依D50發布main，push後核對遠端SHA；不force。PR #3已合併。 |
+| 測試基準 | RAG-STARTER：相關新舊API最終17pass；前端31檔全量311pass，最後小幅工單UI修改後相關9pass；Node24.15下tsc/build exit0（保留既有>500kB警告）；真Edge桌面1280／手機375各1條E2E，共2pass，含登入→資料集→現行／歷史檢索→引用→完整工單→切換清除。32題權限／版本32pass，有指定來源29題全部找到；不是LLM答案評測，Q31明確使用工單模式。6份PDF完整中文擷取及目視通過；已提交Git匯出的27項manifest SHA-256一致。獨立唯讀審查與修正後複核通過。併發匯入測試RED1fail→GREEN；前端新功能RED2fail/6pass→最終9pass。首次API及全前端曾因沙箱TEMP/socketpair失敗，改用本機授權環境後通過，不將環境錯誤當產品RED。初次E2E匹配到提及MTG-003的其他文件，改為引用標題定位後2pass。未跑歷史全API、正式PG或真模型。 |
+| 資料版本 | 正式PostgreSQL、Docker volumes與舊dataset-v1未修改；無migration。repo外 output/rag-starter-local-ai/starter-v1已匯入24文件（food23/electronics1），現行23／歷史1；food管理者可見23、一般成員22。隔離preview是新建SQLite與原seed_demo_data的2公司7帳號，僅15175/18005回環；不是正式資料庫。人資限定文件現階段只限admin，未新增hr角色。Python3.12.14／Node24.15隔離驗證，Docker目標Python3.13尚待部署驗證。 |
+| 認領中 | 無；隔離服務留供人類試用，PID與啟動器存output/rag-starter-acceptance。 |
+| 阻塞／待人類 | 正式部署等待Docker Desktop恢復：啟動日誌為sailor-ingest.sock無法存取，改名與唯讀reparse查詢均遭Windows拒絕；未刪除／修改socket或Docker資料。人類已選先交付隔離版。AI閘道、OCR、正式附件索引、向量檢索與真模型品質驗收仍未完成。 |
+| 遠端 | 本輪僅本機commit，未push／PR／合併／正式部署；保留feature分支。 |
 
 ---
 
@@ -66,6 +66,10 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- RAG-STARTER 🟢 隔離交付（2026-10-20）：人類授權接續匯入後續工作，並指定假資料改用現有公司。依[短規格／計畫](superpowers/plans/2026-10-20-rag-starter-import.md)，改成毛研食品／峰曜科技，新增獨立starter-v1資料集、PDF文字解析、搜尋與來源、新舊版本及完整工單查詢。舊AI資料與正式DB保留；人資限定資料暫限admin。已在repo外獨立AI區匯入24份並完成17項API、前端全量311及最後相關9項、桌面／手機2項驗證；32題來源／權限驗證通過，模型答案品質未測。使用者確認Docker仍出錯，先交付15175隔離SQLite版；未匯入正式環境、未push／合併。
+
+- RAG-SAMPLE（2026-10-20，獨立素材交付，非產品功能完成）：依人類要求產生一般人資易讀的RAG假資料與尚未完成工作清單。產物位於repo外的`../output/projectflow-rag-starter-20261020/`：6份會議紀錄、8份工單、4份通知／郵件、6份中文PDF，共24份文件；另附32題預期問答、來源與權限metadata、SHA-256、ZIP及系統待辦盤點。情境為新人報到、教育訓練與歡迎包，含舊版／新版、人資限定與跨公司隔離案例。以本機main `3c1294e`的README／看板／AI文件與匯入程式盤點；現有文字RAG已實作，AI閘道與正式文件索引仍待完成。本包不是既有`app.ai.import_cli`契約，需另外轉接及隔離驗證。24份來源、32題引用／公司／角色／指定證據片段與6份單頁PDF完整中文擷取檢查通過；6頁已渲染目視確認。未匯入系統、未改產品程式／正式資料、未跑RAG模型評測或產品回歸，未部署／提交／推送。
 
 - DOCS-CLEAN ✅：人類2026-10-20指示同步git、整理本地內容、把已完成的進度從README移除並精簡、依目前進度更新架構圖，確認後再push。fetch後origin沒有新commit，本機main領先1個（`d3fc44e` OPS-PUBLIC紀錄）。README（1045→約810行）刪除頂部逐次交付公告、協作者分支段、目前進度表與UI／TP逐段說明、Demo功能總覽；改為目前狀態、快速開始（本機／給別人試用／自動驗收／單檔Demo）、正式版功能總覽、§8只列正式版還沒做的項目；§3–§5規格保留，§9「已決定」修正前端（實際未用dnd-kit／React Flow）與文件編輯兩列。架構圖改為正式版現況：web／api／db容器、files與ai_data volume已完成，區網與Tailscale試用、AI副手與Ollama為試用級，內網HTTPS、AI閘道、pgvector待建置，備份／NAS、ERP／AD、雲端LLM為外部目標。AGENTS.md文件地圖的README列同步更新。`docs/technical-roadmap.md`（人類本機2026-10-19的技術路線圖，原未追蹤）一併提交，只把一句對話用語改成中性說法。
 
@@ -1183,6 +1187,15 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-20｜Codex｜RAG-STARTER隔離版
+
+- 人類授權新資料改成現有毛研食品／峰曜科技再匯入；後續確認Docker仍出錯，先交付隔離版。
+- `fb9640e`：獨立starter-v1、24份來源、PDF解析、來源引用／歷史版本／完整工單、角色與公司隔離；短計畫及操作文件已保存。
+- 最終證據見「▶ 現在」與repo外`output/rag-starter-acceptance/驗證結果.json`；檢索評估在`output/rag-starter-evaluation.json`。全量前端311pass後最後相關9pass、API17pass、E2E2pass；沒有宣稱模型答案通過。
+- 隔離入口15175，API18005，只使用本次新建SQLite；原資料保留。啟動腳本與PID在`../output/rag-starter-acceptance/`，保持服務供試用。
+- Docker socket改名失敗，沒有完成任何Docker資料修改。待引擎恢復後再備份／整合／部署，保留本機feature分支，未推送。
+
 
 ### 2026-10-20｜Claude Code Opus 5.5｜DOCS-CLEAN README精簡與架構圖更新
 - **做了什麼**：同步git（origin無新commit）；README移除交付紀錄並重整為目前狀態／快速開始／功能總覽／規格／未完成路線圖（D82）；重畫`docs/projectflow-system-architecture.svg`為正式版現況；更新AGENTS.md文件地圖；提交人類本機的`docs/technical-roadmap.md`。

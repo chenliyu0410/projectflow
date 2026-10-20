@@ -1,5 +1,6 @@
 # The demo data pack is verified by SHA-256 on restore, so Git must keep its bytes unchanged.
 deploy/demo-data/** -text
-deploy/rag-starter/** -text
+# Preserve the imported fixture bytes, including CRLF and intentional final blank lines.
+deploy/rag-starter/** -text whitespace=cr-at-eol,-blank-at-eof
 # cmd.exe needs CRLF batch files; a clone must not turn them into LF.
 *.bat text eol=crlf
