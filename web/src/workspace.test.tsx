@@ -52,6 +52,23 @@ describe('P2a query pages', () => {
     expect(fetcher.mock.calls.every(([path]) => path.startsWith('/api/workspace/my-tasks?'))).toBe(true);
   });
 
+  it('waits for typing to pause before searching and keeps the current list while it reloads', async () => {
+    let finish!: (value: unknown) => void;
+    const task = { ...nodes[3], project_title: summary.title };
+    const fetcher = vi.fn().mockResolvedValueOnce(response({ items: [task] })).mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+    vi.stubGlobal('fetch', fetcher); render(<MyTasks openNode={vi.fn()} expired={vi.fn()} />);
+    expect(await screen.findByRole('button', { name: task.title })).toBeInTheDocument();
+    for (const value of ['子', '子任', '子任務']) fireEvent.change(screen.getByLabelText('搜尋任務'), { target: { value } });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+    expect(fetcher).toHaveBeenLastCalledWith(`/api/workspace/my-tasks?q=${encodeURIComponent('子任務')}&status=`, expect.anything());
+    // 新結果回來前仍顯示原本的列表，只多一個更新中的提示。
+    expect(screen.getByRole('button', { name: task.title })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('更新');
+    await act(async () => { finish(response({ items: [] })); });
+    expect(await screen.findByText('沒有符合篩選的任務')).toBeInTheDocument();
+  });
+
   it('retries my-task errors without showing empty results and ignores superseded queries', async () => {
     let finish!: (value: unknown) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response({}, 500)).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; })).mockResolvedValueOnce(response({ items: [] }));
