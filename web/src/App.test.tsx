@@ -467,7 +467,7 @@ describe('P1b typed API client', () => {
     stubFetch(fetcher);
     const signal = new AbortController().signal;
     expect(await api.project('p1', signal)).toEqual(detail);
-    expect(fetcher).toHaveBeenCalledWith('/api/projects/p1', expect.objectContaining({ credentials: 'include', signal }));
+    expect(fetcher).toHaveBeenCalledWith('/api/projects/p1', expect.objectContaining({ credentials: 'include', signal: expect.any(AbortSignal) }));
     expect(fetcher.mock.calls[0][1].body).toBeUndefined();
   });
 
@@ -477,7 +477,7 @@ describe('P1b typed API client', () => {
     stubFetch(fetcher);
     const signal = new AbortController().signal;
     expect(await api.updateNodeStatus('n1', 'doing', signal)).toEqual(node);
-    expect(fetcher).toHaveBeenCalledWith('/api/nodes/n1/status', expect.objectContaining({ method: 'PATCH', credentials: 'include', signal }));
+    expect(fetcher).toHaveBeenCalledWith('/api/nodes/n1/status', expect.objectContaining({ method: 'PATCH', credentials: 'include', signal: expect.any(AbortSignal) }));
     expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ status: 'doing' });
   });
 
@@ -487,7 +487,7 @@ describe('P1b typed API client', () => {
     stubFetch(fetcher);
     const signal = new AbortController().signal;
     expect(await api.workflows(signal)).toEqual(workflows);
-    expect(fetcher).toHaveBeenCalledWith('/api/workflows', expect.objectContaining({ credentials: 'include', signal }));
+    expect(fetcher).toHaveBeenCalledWith('/api/workflows', expect.objectContaining({ credentials: 'include', signal: expect.any(AbortSignal) }));
     expect(fetcher.mock.calls[0][1].body).toBeUndefined();
   });
 
@@ -497,7 +497,7 @@ describe('P1b typed API client', () => {
     const payload = { workflow_id: 'w1', title: '成貓主食罐正式版' };
     const signal = new AbortController().signal;
     expect(await api.createFromWorkflow(payload, signal)).toEqual(projects.items[0]);
-    expect(fetcher).toHaveBeenCalledWith('/api/projects/from-workflow', expect.objectContaining({ method: 'POST', credentials: 'include', signal }));
+    expect(fetcher).toHaveBeenCalledWith('/api/projects/from-workflow', expect.objectContaining({ method: 'POST', credentials: 'include', signal: expect.any(AbortSignal) }));
     expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual(payload);
   });
 
@@ -507,7 +507,7 @@ describe('P1b typed API client', () => {
     stubFetch(fetcher);
     const signal = new AbortController().signal;
     expect(await api.approveGate('g1', signal)).toEqual(gate);
-    expect(fetcher).toHaveBeenCalledWith('/api/gates/g1', expect.objectContaining({ method: 'PATCH', credentials: 'include', signal }));
+    expect(fetcher).toHaveBeenCalledWith('/api/gates/g1', expect.objectContaining({ method: 'PATCH', credentials: 'include', signal: expect.any(AbortSignal) }));
     expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ status: 'approved' });
   });
 });
