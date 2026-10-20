@@ -649,10 +649,15 @@ it('downloads an authorized Blob, releases its URL and never previews attachment
       ? { ok: true, status: 200, blob: async () => new Blob(['safe']) }
       : undefined,
   );
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldAdvanceTime: true });
   fireEvent.click(await screen.findByRole('button', { name: '下載 安全.txt' }));
-  await waitFor(() => expect(revoke).toHaveBeenCalledWith('blob:authorized'));
+  await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
   expect(create).toHaveBeenCalledTimes(1);
-  expect(click).toHaveBeenCalledTimes(1);
+  // 瀏覽器在 click 之後才非同步開始下載，立刻釋放網址會讓部分瀏覽器下載失敗。
+  expect(revoke).not.toHaveBeenCalled();
+  vi.advanceTimersByTime(60_000);
+  expect(revoke).toHaveBeenCalledWith('blob:authorized');
+  vi.useRealTimers();
   expect(
     screen.queryByRole('button', { name: '移除 安全.txt' }),
   ).not.toBeInTheDocument();
