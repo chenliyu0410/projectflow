@@ -17,7 +17,7 @@
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
 | 下一個動作 | 人類可在15175選「正式文件與附件（隔離）」及「增量索引展示」專案，查看管理者索引狀態的處理／沿用／移除數量。自動檢查仍每10秒，新版只處理新版，歷史選項保留。後續為OCR、向量檢索、完整分級繼承、遮罩、真模型品質及大量資料佇列；正式部署另驗。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
-| 最新程式 commit | `449ddf1`（隔離自動索引與歷史版本）；前階段`9a3801a`為正式文件索引、`c964f97`為本地閘道、`fb9640e`為RAG-STARTER。 |
+| 最新程式 commit | `d62e54e`（隔離增量索引）；前階段`449ddf1`為自動／歷史、`9a3801a`為正式文件索引、`c964f97`為本地閘道。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | INDEX-INCREMENTAL：新測試初跑5fail（含舊schema測資未關閉SQLite連線）；實作後16pass／2個測資問題（PNG缺檔頭、無變動不再觸發發布），修正後相關AI／索引／歷史／權限API43pass。前端相關15pass、tsc/build exit0（既有>500kB警告）；Edge桌面1280／手機375增量與教材4pass、無水平溢位或pageerror，截圖目視確認處理1／沿用其餘。驗證未變FTS列保留、新版只解析1份、刪除零解析、無變動不改索引bytes、舊schema一次建置、失敗保留／重試。獨立唯讀審查無實質問題。原DB／27檔記錄／教材hash不變，30表411筆原資料及副本新增容量核對通過；健康200。未跑全歷史API、正式PG、多worker或真模型。 |
 | 資料版本 | 正式PostgreSQL、Docker volumes與舊dataset-v1未修改；無migration。新增incremental.sqlite／incremental-files副本，原auto-history.sqlite／auto-history-files及更早隔離資料皆保留且hash一致。30表411筆原資料核對，副本quota增量精確符合新增虛構文件。衍生索引user_version=1，首次／舊格式一次建置，其後差異更新；發布仍複製SQLite暫存檔。starter-v1保持24文件及原hash；隔離2公司7帳號、15175／18005回環，非正式六家公司完整副本。 |
@@ -1198,7 +1198,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ### 2026-10-21｜Codex｜INDEX-INCREMENTAL隔離版
 
-- **做了什麼**：來源版本signature包含metadata及檔案狀態；相容索引先backup到暫存副本，只修改changed／removed來源列，未變chunk與FTS沿用。新版本不重解析舊版，無變動不發布；管理者可看上次處理／沿用／移除數。首次及舊格式一次建置，只動衍生索引。
+- **做了什麼**：`d62e54e`，來源版本signature包含metadata及檔案狀態；相容索引先backup到暫存副本，只修改changed／removed來源列，未變chunk與FTS沿用。新版本不重解析舊版，無變動不發布；管理者可看上次處理／沿用／移除數。首次及舊格式一次建置，只動衍生索引。
 - **驗證**：相關API43pass、前端15pass、tsc/build0、Edge1280／375增量與教材4pass；獨立唯讀審查及純記憶體FTS差異probe無問題。RED與測資調整見▶現在。原auto-history及更早DB／檔案／教材hash不變，原30表411筆核對保留，副本新增quota差額符合新增測試檔。健康200，啟動器沿用正常。
 - **限制**：仍單程序／SQLite／500來源版本，背景掃描metadata，發布前仍複製SQLite檔；不是零複製或大量資料佇列。現行與歷史權限／SHA-256查詢保護不變。未部署正式PG或測真模型。
 - **交付／下一步**：15175／18005使用incremental.sqlite及incremental-files；原資料完整保留。repo外試用說明、啟動器、incremental-preservation.json、verify_incremental_preservation.py、增量索引驗證結果.json及incremental-browser截圖。保留feature分支、本機commit，未push／合併；後續見▶現在。
