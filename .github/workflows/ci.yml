@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API (pytest, SQLite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: api/requirements.lock
+      - name: Install locked dependencies
+        run: python -m pip install -r api/requirements.lock
+      - name: pytest
+        # 未設專用 PostgreSQL 時，14 個 PG 測試會 skip；它們由 api-postgresql job 實跑。
+        run: python -m pytest api/tests -q
+
+  api-postgresql:
+    name: API (dedicated PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          # 一次性的 CI 容器只綁在 runner 本機，用 trust 認證就不必在 repo 放任何密碼。
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      PG_ADMIN_URL: postgresql://postgres@127.0.0.1:5432/postgres
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: api/requirements.lock
+      - name: Install locked dependencies
+        run: python -m pip install -r api/requirements.lock
+      - name: PostgreSQL migrations and races (fresh database per stage)
+        run: python .github/scripts/run_postgresql_tests.py
+
+  web:
+    name: Web (Vitest, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Vitest
+        run: npx vitest run
+      - name: Type check and build
+        run: npm run build
