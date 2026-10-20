@@ -9,15 +9,18 @@ from sqlalchemy.orm import Session
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.audit import log_audit
-from app.ai import store, service, model
+from app.ai import store, service, model, starter
 
 router=APIRouter(prefix='/ai',tags=['ai'])
+Dataset = Literal['dataset-v1', 'starter-v1']
 
 
 class Ask(BaseModel):
     model_config=ConfigDict(extra='forbid')
     question: str=Field(min_length=1,max_length=2000)
-    mode: Literal['rag','sql']='rag'
+    mode: Literal['rag','sql','work_orders']='rag'
+    dataset: Dataset='dataset-v1'
+    include_history: bool=False
     project_id: str | None=Field(default=None,max_length=120)
     query_id: str | None=Field(default=None,pattern=r'^q(0[1-9]|1[0-6])$')
 
@@ -29,8 +32,8 @@ class ModelConfig(BaseModel):
     model: str=Field(default='',max_length=120,pattern=r'^[a-zA-Z0-9._:/-]*$')
 
 
-def connection(current):
-    try: return store.connect(current.organization.key)
+def connection(current, dataset='dataset-v1'):
+    try: return store.connect(current.organization.key, dataset)
     except (FileNotFoundError,sqlite3.Error): raise HTTPException(409,'AI展示資料尚未匯入') from None
 
 
@@ -42,12 +45,16 @@ def local_admin(request,current):
 
 
 @router.get('/status')
-def status(request:Request,current:CurrentUser=Depends(require_session)):
+def status(request:Request,dataset:Dataset='dataset-v1',current:CurrentUser=Depends(require_session)):
     config=model.settings(current.organization.key)
     result=dict(ready=False,as_of=store.AS_OF,company_name=current.organization.name,model_enabled=config['enabled'],model_name=config['model'] if config['enabled'] else '',can_configure=current.user.role=='admin' and request.url.hostname in {'localhost','127.0.0.1','::1'},can_sql=current.user.role in {'admin','project_owner'},projects=[],queries=[],counts={})
+    result['dataset'] = dataset
+    if dataset == 'starter-v1':
+        result.update(as_of=starter.AS_OF, can_sql=False)
     try:
-        with closing(store.connect(current.organization.key)) as db:
-            result.update(ready=True,projects=[dict(r) for r in db.execute('SELECT project_id,title FROM projects ORDER BY project_id')],queries=[{'query_id':q['query_id'],'label':q['label']} for q in store.catalog()],counts={'projects':db.execute('SELECT COUNT(*) FROM projects').fetchone()[0],'documents':db.execute('SELECT COUNT(*) FROM documents WHERE EXISTS (SELECT 1 FROM json_each(roles) WHERE value=?)',(current.user.role,)).fetchone()[0]})
+        with closing(store.connect(current.organization.key, dataset)) as db:
+            projects = starter.visible_projects(db, current.user.role) if dataset == 'starter-v1' else [dict(r) for r in db.execute('SELECT project_id,title FROM projects ORDER BY project_id')]
+            result.update(ready=True,projects=projects,queries=[] if dataset == 'starter-v1' else [{'query_id':q['query_id'],'label':q['label']} for q in store.catalog()],counts={'projects':len(projects),'documents':db.execute('SELECT COUNT(*) FROM documents WHERE EXISTS (SELECT 1 FROM json_each(roles) WHERE value=?)',(current.user.role,)).fetchone()[0]})
     except (FileNotFoundError,sqlite3.Error): pass
     return result
 
@@ -55,19 +62,21 @@ def status(request:Request,current:CurrentUser=Depends(require_session)):
 @router.post('/ask')
 def ask(payload:Ask,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
     if not payload.question.strip(): raise HTTPException(422,'請輸入問題')
-    with closing(connection(current)) as data:
-        if payload.project_id and not data.execute('SELECT 1 FROM projects WHERE project_id=?',(payload.project_id,)).fetchone(): raise HTTPException(404,'找不到AI專案')
-        try: result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id)
+    with closing(connection(current, payload.dataset)) as data:
+        if payload.project_id:
+            visible = {p['project_id'] for p in starter.visible_projects(data,current.user.role)} if payload.dataset == 'starter-v1' else {r[0] for r in data.execute('SELECT project_id FROM projects')}
+            if payload.project_id not in visible: raise HTTPException(404,'找不到AI專案')
+        try: result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history)
         except PermissionError: raise HTTPException(403,'沒有資料分析權限') from None
         except ValueError: raise HTTPException(422,'不支援此查詢') from None
-    log_audit(db,current,'ai.query',payload={'mode':payload.mode,'project_id':payload.project_id,'kind':result['kind'],'source_count':len(result['sources']),'query_id':result['analysis']['query_id'] if result['analysis'] else None})
+    log_audit(db,current,'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':result['kind'],'source_count':len(result['sources']),'query_id':result['analysis']['query_id'] if result['analysis'] else None})
     db.commit()
     return result
 
 
 @router.get('/documents/{document_id}')
-def document(document_id:str,current:CurrentUser=Depends(require_session)):
-    with closing(connection(current)) as db:
+def document(document_id:str,dataset:Dataset='dataset-v1',current:CurrentUser=Depends(require_session)):
+    with closing(connection(current, dataset)) as db:
         row=db.execute('SELECT * FROM documents WHERE document_id=? AND EXISTS (SELECT 1 FROM json_each(roles) WHERE value=?)',(document_id,current.user.role)).fetchone()
         if row is None: raise HTTPException(404,'找不到文件')
         metadata=json.loads(row['metadata'])

@@ -8,6 +8,50 @@ const status: AIStatus = { ready: true, as_of: '2026-10-11', company_name: '食�
 const retrieved: AIResult = { kind: 'retrieval', engine: 'retrieval', answer: '檢索原文', warning: null, sources: [{ document_id: 'D1', title: '交付規範', project_id: 'P1', excerpt: '<script>文字</script> 截圖4張' }], analysis: null };
 beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(status); vi.mocked(ai.ask).mockResolvedValue(retrieved); vi.mocked(ai.document).mockResolvedValue({ title: '交付規範', text: '原文截圖4張' }); vi.mocked(ai.config).mockResolvedValue({ enabled: false, base_url: '', model: '' }); });
 
+it('selects the starter corpus, requests history explicitly and opens its own citations', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  vi.mocked(ai.status).mockResolvedValue({ ...status, as_of: '2026-10-20', can_sql: false, projects: [], counts: { projects: 4, documents: 23 } });
+  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'starter-v1' } });
+  await screen.findByText(/基準日 2026-10-20/);
+  expect(screen.getByRole('option', { name: 'Text-to-SQL 資料分析' })).toBeDisabled();
+  fireEvent.click(screen.getByLabelText('包含歷史版本'));
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '課程原本哪天？' } });
+  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  await screen.findByText('檢索原文');
+  expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ dataset: 'starter-v1', include_history: true }), expect.any(AbortSignal));
+  fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
+  await screen.findByText('原文截圖4張');
+  expect(ai.document).toHaveBeenLastCalledWith('D1', expect.any(AbortSignal), 'starter-v1');
+});
+
+it('cancels old queries and clears their replies when the dataset changes', async () => {
+  let resolve!: (value: AIResult) => void;
+  vi.mocked(ai.ask).mockImplementation(() => new Promise(r => { resolve = r; }));
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
+  const signal = vi.mocked(ai.ask).mock.calls[0][1]!;
+  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'starter-v1' } });
+  expect(signal.aborted).toBe(true);
+  await act(async () => resolve(retrieved));
+  expect(screen.queryByText('檢索原文')).toBeNull();
+});
+
+it('uses explicit complete work-order mode without silently accepting extra text filters', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'starter-v1' } });
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.change(screen.getByLabelText('查詢方式'), { target: { value: 'work_orders' } });
+  expect(screen.getByLabelText('詢問 AI')).toBeDisabled();
+  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  await screen.findByText('檢索原文');
+  expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({
+    dataset: 'starter-v1', mode: 'work_orders', question: '列出全部未完成工單',
+  }), expect.any(AbortSignal));
+});
+
 it('queries actual API, passes selected project and opens escaped original citation', async () => {
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
   await screen.findByText(/1 個專案／2 份可見文件/);

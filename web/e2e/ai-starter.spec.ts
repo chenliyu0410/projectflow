@@ -1,0 +1,46 @@
+import { expect, test } from '@playwright/test';
+
+test.use(process.platform === 'win32' ? { channel: 'msedge' } : {});
+
+for (const width of [1280, 375]) test(`starter documents, citations and pending orders ${width}`, async ({ page, request }, info) => {
+  test.setTimeout(60000);
+  expect(await (await request.get('/api/health/acceptance')).json()).toEqual({ acceptance: true });
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(String(e)));
+  await page.setViewportSize({ width, height: 900 });
+  await page.goto('/');
+  await page.getByLabel('帳號').fill('yu');
+  await page.getByLabel('密碼').fill('demo-yu');
+  await page.getByRole('button', { name: '登入', exact: true }).click();
+  await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
+  await page.getByRole('button', { name: '切換 AI 副手' }).click();
+  const panel = page.getByLabel('AI 專案副手', { exact: true });
+  await panel.getByLabel('AI資料集').selectOption('starter-v1');
+  await expect(panel).toContainText('23 份可見文件');
+  await expect(panel).toContainText('基準日 2026-10-20');
+  await panel.getByLabel('AI展示專案').selectOption('TRAIN-10');
+  await panel.getByRole('button', { name: '新人課程目前哪天上？' }).click();
+  await expect(panel.locator('.copilot-message')).toContainText('找到');
+  const source = panel.locator('.ai-sources details').filter({ has: page.locator('summary').filter({ hasText: /^MTG-003 ·/ }) });
+  await source.locator('summary').click();
+  await source.getByRole('button', { name: '開啟原文 MTG-003' }).click();
+  await expect(panel.getByLabel('引用原文')).toContainText('2026-10-28 10:00');
+  await expect(panel.getByLabel('引用原文')).toContainText('毛研食品');
+  await panel.getByRole('button', { name: '關閉原文' }).click();
+  await panel.getByLabel('包含歷史版本').check();
+  await panel.getByLabel('詢問 AI').fill('新人課程原訂安排');
+  await panel.getByRole('button', { name: '送出 AI 問題' }).click();
+  await expect(panel.locator('.ai-sources')).toContainText('MTG-002');
+  await expect(panel.locator('.ai-sources')).toContainText('歷史版本');
+  await panel.getByLabel('AI展示專案').selectOption('');
+  await panel.getByLabel('查詢方式').selectOption('work_orders');
+  await panel.getByRole('button', { name: '列出全部未完成工單' }).click();
+  await expect(panel.locator('.copilot-message')).toContainText('6張未完成工單');
+  await expect(panel.locator('.copilot-message')).toContainText('逾期1天');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await panel.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath(`starter-${width}.png`), fullPage: true });
+  await panel.getByLabel('AI資料集').selectOption('dataset-v1');
+  await expect(panel.locator('.copilot-message')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

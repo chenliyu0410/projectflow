@@ -4,6 +4,20 @@
 
 ## 使用
 
+### 入門文件資料集
+
+副手的「AI資料集」可切換原有展示資料與「入門文件：報到與教育訓練」。入門文件使用既有毛研食品及峰曜科技，不新增公司；共24份來源（毛研23、峰曜1），資料日期2026-10-20。原有資料集及其2026-10-11基準不變。這次程式與資料已在隔離環境驗證，正式環境是否已交付以PROGRESS為準。
+
+1. 用毛研食品帳號登入，開啟AI副手，選入門文件。
+2. 問「新人課程目前哪天上？」並開啟MTG-003原文，應看到10月28日10:00、B會議室。
+3. 要看原10月27日安排時勾「包含歷史版本」，歷史來源會顯示標記。
+4. 查完整待辦時改選「未完成工單（完整清單）」，按公司及所選專案列出；全公司應有6張未完成，WO-006逾期1個日曆日。此模式不解析姓名或日期等額外自由文字條件。
+5. 一般成員看不到人資預算PDF-006；目前只有管理者可讀，未建立真正的人資部門角色。跨公司引用會回404。
+
+新資料沒有舊SQL分析用的營運表，故該選項停用。原本的展示資料仍保留獨立查詢入口。
+
+### 原有展示資料
+
 登入後使用右側「AI專案副手」，手機按「AI副手」。
 
 1. 在「AI展示專案」選一案，例如 `MY-AI-001`。
@@ -22,6 +36,8 @@
 
 API契約依Ollama官方[Chat](https://docs.ollama.com/api/chat)、[結構化輸出](https://docs.ollama.com/capabilities/structured-outputs)與[網路／本地模式設定](https://docs.ollama.com/faq)。採文字搜尋RAG（中文雙字詞FTS5與BM25），目前不需要embedding模型；向量檢索、OCR與正式附件索引尚未實作。
 
+入門資料匯入器另支援有文字層的PDF、Markdown及TXT；這不代表正式附件會自動建立索引，也不支援掃描PDF的OCR。
+
 ## 資料與權限
 
 - `projectflow-formal_ai_data`是獨立Docker volume；`dataset-v1/`中每公司一個唯讀SQLite，`settings/`保存每公司模型設定。查詢無權寫入AI資料庫，設定操作與查詢摘要會寫入既有稽核（不記問題全文／模型答案／位址）。
@@ -32,6 +48,28 @@ API契約依Ollama官方[Chat](https://docs.ollama.com/api/chat)、[結構化輸
 - 金額為未稅TWD整數。expenses是已入帳成本；訂單是採購承諾，兩者不重複相加。不良率合計分子與分母。逾期為due_date早於基準日且狀態非done。
 
 ## 匯入與重現
+
+### 新入門資料（starter-v1）
+
+來源包在`deploy/rag-starter`。先在獨立目錄驗證：
+
+```powershell
+$env:PYTHONPATH = 'api'
+.\.venv\Scripts\python.exe deploy/check_rag_starter.py --destination ../output/rag-starter-local-ai --report ../output/rag-starter-evaluation.json
+```
+
+檢查器匯入後用32題核對權限、版本與必要來源；Q31使用明確的完整工單模式。它不呼叫模型、不測模型答案正確率。29題有指定來源，其餘3題屬資料不足或未授權；拒答語意仍需模型啟用後另驗。
+
+正式Docker引擎正常、先完成備份與部署更新後，才執行：
+
+```powershell
+docker cp deploy/rag-starter projectflow-formal-api-1:/tmp/rag-starter
+docker exec projectflow-formal-api-1 python -m app.ai.import_cli /tmp/rag-starter --dataset starter-v1
+```
+
+只新增`ai_data/starter-v1`，不改原`dataset-v1`或PostgreSQL。若不同版本已存在會拒絕覆蓋，不能刪原資料來繞過；需另外規劃更新流程。同內容重跑及同時匯入可安全完成。這些命令不是本次已部署的證明。
+
+### 舊資料（dataset-v1）
 
 資料包位於workspace的 `ai-demo-data/pack`（另有ZIP與生成器）。先備份正式DB與附件，再更新API/web映像。不可重設DB或重新seed正式環境。
 

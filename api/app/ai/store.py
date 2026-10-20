@@ -28,9 +28,10 @@ def tokens(text):
     return result
 
 
-def connect(company):
+def connect(company, dataset='dataset-v1'):
+    if dataset not in {'dataset-v1', 'starter-v1'}: raise ValueError('Unknown dataset')
     if company not in COMPANIES: raise FileNotFoundError('Unknown company')
-    path = root() / 'dataset-v1' / f'{company}.sqlite'
+    path = root() / dataset / f'{company}.sqlite'
     db = sqlite3.connect(path.resolve().as_uri()+'?mode=ro', uri=True, timeout=5)
     db.row_factory = sqlite3.Row
     db.execute('PRAGMA query_only=ON')
@@ -98,15 +99,15 @@ def catalog():
     return json.loads(Path(__file__).with_name('queries.json').read_text(encoding='utf-8'))
 
 
-def search(db, question, role, project_id=None):
+def search(db, question, role, project_id=None, include_history=False):
     clean = re.sub('目前|有哪些|請問|一下|幫我|什麼|多少|資料|專案', ' ', question)
     words = list(dict.fromkeys(tokens(clean)))[:60]
     if not words: return []
     match = ' OR '.join('"'+w.replace('"','""')+'"' for w in words)
     query = '''SELECT d.*, bm25(search) AS rank FROM search JOIN documents d ON d.document_id=search.document_id
-        WHERE search MATCH ? AND d.current=1 AND EXISTS (SELECT 1 FROM json_each(d.roles) WHERE value=?)
+        WHERE search MATCH ? AND (d.current=1 OR ?) AND EXISTS (SELECT 1 FROM json_each(d.roles) WHERE value=?)
         AND (? IS NULL OR d.project_id=? OR d.project_id IS NULL) ORDER BY rank,d.document_id LIMIT 6'''
-    return [dict(r) for r in db.execute(query,(match,role,project_id,project_id))]
+    return [dict(r) for r in db.execute(query,(match,int(include_history),role,project_id,project_id))]
 
 
 def execute_query(db, query_id, company, project_id=None):

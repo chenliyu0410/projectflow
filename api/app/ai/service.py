@@ -20,9 +20,21 @@ def infer(question):
     return None
 
 
-def ask(db, company, role, question, mode, project_id=None, query_id=None):
+def ask(db, company, role, question, mode, project_id=None, query_id=None, dataset='dataset-v1', include_history=False):
     config=model.settings(company)
     base=dict(as_of=store.AS_OF,synthetic=True,project_id=project_id,sources=[],analysis=None,warning=None)
+    if dataset == 'starter-v1':
+        from app.ai import starter
+        base['as_of'] = starter.AS_OF
+        if mode == 'sql':
+            raise ValueError('Starter documents have no SQL dataset')
+    if mode == 'work_orders':
+        if dataset != 'starter-v1':
+            raise ValueError('Work-order listing requires starter dataset')
+        rows = starter.pending_orders(db, role, project_id)
+        base['sources'] = [dict(document_id=d['document_id'], title=d['title'], project_id=d['project_id'], excerpt=d['body'][:1200]) for d in rows]
+        lines = [f"{d['document_id']} {d['title']}｜{d['owner']}｜期限{d['due_date']}｜{d['status']}" + (f"｜逾期{d['overdue_days']}天" if d['overdue_days'] else '') for d in rows]
+        return dict(base, kind='work_orders', engine='rules', answer=f"截至{base['as_of']}，目前範圍共有{len(rows)}張未完成工單（日曆日計算）。\n" + '\n'.join(lines))
     if mode=='sql':
         if role not in {'admin','project_owner'}: raise PermissionError('SQL role')
         chosen=query_id or infer(question)
@@ -40,14 +52,15 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None):
         result=store.execute_query(db,chosen,company,project_id)
         base['analysis']=result
         return dict(base,kind='sql',engine=engine,answer=f'查詢：{result["label"]}。找到{len(result["rows"])}列結果'+('（已截取前200列）。' if result['truncated'] else '。')+'以下為資料庫實際計算；未執行任意模型SQL。')
-    documents=store.search(db,question,role,project_id)
+    documents=store.search(db,question,role,project_id,include_history)
     if not documents:
         return dict(base,kind='no_sources',engine='retrieval',answer='在目前公司、專案與權限範圍內找不到可引用資料。請換個關鍵詞或選擇其他AI展示專案。')
-    base['sources']=[dict(document_id=d['document_id'],title=d['title'],project_id=d['project_id'],excerpt=d['body'][:1200]) for d in documents]
+    base['sources']=[dict(document_id=d['document_id'],title=d['title'],project_id=d['project_id'],excerpt=d['body'][:1200],is_current=bool(d['current'])) for d in documents]
     if config['enabled']:
         try:
             generated=model.answer(config,question,documents)
             return dict(base,kind='rag',engine='model',answer=generated['answer'],citations=generated['citations'])
         except Exception:
             base['warning']='模型連線或引用驗證失敗，改顯示可核對的檢索原文。'
-    return dict(base,kind='retrieval',engine='retrieval',answer=f'找到{len(documents)}份相關現行文件。'+('模型尚未啟用，以下提供檢索原文；不是模型生成的答案。' if not config['enabled'] else '請開啟引用查看原文。'))
+    label = '文件（含歷史版本，請核對日期）' if include_history else '現行文件'
+    return dict(base,kind='retrieval',engine='retrieval',answer=f'找到{len(documents)}份相關{label}。'+('模型尚未啟用，以下提供檢索原文；不是模型生成的答案。' if not config['enabled'] else '請開啟引用查看原文。'))
