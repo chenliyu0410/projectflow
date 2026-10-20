@@ -46,9 +46,14 @@ def local_admin(request,current):
 
 @router.get('/status')
 def status(request:Request,dataset:Dataset='dataset-v1',current:CurrentUser=Depends(require_session)):
-    config=model.settings(current.organization.key)
+    try:
+        config=model.settings(current.organization.key)
+        model.validate_config(config)
+    except (OSError, KeyError, TypeError, ValueError):
+        config=dict(enabled=False,model='')
     result=dict(ready=False,as_of=store.AS_OF,company_name=current.organization.name,model_enabled=config['enabled'],model_name=config['model'] if config['enabled'] else '',can_configure=current.user.role=='admin' and request.url.hostname in {'localhost','127.0.0.1','::1'},can_sql=current.user.role in {'admin','project_owner'},projects=[],queries=[],counts={})
     result['dataset'] = dataset
+    result['gateway'] = dict(policy='local_only', cloud_enabled=False)
     if dataset == 'starter-v1':
         result.update(as_of=starter.AS_OF, can_sql=False)
     try:
@@ -61,15 +66,24 @@ def status(request:Request,dataset:Dataset='dataset-v1',current:CurrentUser=Depe
 
 @router.post('/ask')
 def ask(payload:Ask,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    return evaluate(payload,current,db,preview=False)
+
+
+@router.post('/preview')
+def preview(payload:Ask,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    return evaluate(payload,current,db,preview=True)
+
+
+def evaluate(payload,current,db,*,preview):
     if not payload.question.strip(): raise HTTPException(422,'請輸入問題')
     with closing(connection(current, payload.dataset)) as data:
         if payload.project_id:
             visible = {p['project_id'] for p in starter.visible_projects(data,current.user.role)} if payload.dataset == 'starter-v1' else {r[0] for r in data.execute('SELECT project_id FROM projects')}
             if payload.project_id not in visible: raise HTTPException(404,'找不到AI專案')
-        try: result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history)
-        except PermissionError: raise HTTPException(403,'沒有資料分析權限') from None
+        try: result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history,preview=preview)
+        except PermissionError: raise HTTPException(403,'沒有此AI查詢的資料權限') from None
         except ValueError: raise HTTPException(422,'不支援此查詢') from None
-    log_audit(db,current,'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':result['kind'],'source_count':len(result['sources']),'query_id':result['analysis']['query_id'] if result['analysis'] else None})
+    log_audit(db,current,'ai.preview' if preview else 'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':'preview' if preview else result['kind'],'source_count':result['gateway']['source_count'],'query_id':result['analysis']['query_id'] if not preview and result['analysis'] else None,'gateway':result['gateway']})
     db.commit()
     return result
 

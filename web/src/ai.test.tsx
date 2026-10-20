@@ -3,10 +3,47 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import CopilotPanel from './components/CopilotPanel';
 import { ai } from './ai';
 import type { AIResult, AIStatus } from './ai';
-vi.mock('./ai', () => ({ ai: { status: vi.fn(), ask: vi.fn(), document: vi.fn(), config: vi.fn(), save: vi.fn(), test: vi.fn() } }));
+vi.mock('./ai', () => ({ ai: { status: vi.fn(), ask: vi.fn(), preview: vi.fn(), document: vi.fn(), config: vi.fn(), save: vi.fn(), test: vi.fn() } }));
 const status: AIStatus = { ready: true, as_of: '2026-10-11', company_name: '食品', model_enabled: false, model_name: '', can_configure: true, can_sql: true, projects: [{ project_id: 'P1', title: '展示案' }], queries: [{ query_id: 'q02', label: '各部門逾期未完成數' }], counts: { projects: 1, documents: 2 } };
 const retrieved: AIResult = { kind: 'retrieval', engine: 'retrieval', answer: '檢索原文', warning: null, sources: [{ document_id: 'D1', title: '交付規範', project_id: 'P1', excerpt: '<script>文字</script> 截圖4張' }], analysis: null };
 beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(status); vi.mocked(ai.ask).mockResolvedValue(retrieved); vi.mocked(ai.document).mockResolvedValue({ title: '交付規範', text: '原文截圖4張' }); vi.mocked(ai.config).mockResolvedValue({ enabled: false, base_url: '', model: '' }); });
+
+const gateway = { policy: 'local_only' as const, cloud_enabled: false as const, function: 'rag', classification: 'confidential' as const, classification_reason: 'source_level', route: 'none' as const, reason: 'model_disabled', outcome: 'not_sent' as const, source_count: 1, model: '' };
+
+it('previews scoped data without asking and clears the preview when input changes', async () => {
+  vi.mocked(ai.preview).mockResolvedValue({ gateway, content: { question: '預算', sources: [{ document_id: 'PDF-006', text: '<script>機密預算</script>' }] } });
+  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, gateway });
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '預算' } });
+  fireEvent.click(screen.getByRole('button', { name: '預覽提供給模型的資料' }));
+  const preview = await screen.findByLabelText('模型資料預覽');
+  expect(preview).toHaveTextContent('機密');
+  expect(preview).toHaveTextContent('尚未送往模型');
+  expect(preview).toHaveTextContent('<script>機密預算</script>');
+  expect(document.querySelector('script')).toBeNull();
+  expect(ai.ask).not.toHaveBeenCalled();
+  expect(ai.preview).toHaveBeenCalledWith(expect.objectContaining({ question: '預算', mode: 'rag' }), expect.any(AbortSignal));
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '課程' } });
+  expect(screen.queryByLabelText('模型資料預覽')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  await screen.findByText('檢索原文');
+  expect(screen.getByText(/資料等級：機密/)).toBeInTheDocument();
+});
+
+it('aborts a pending preview and ignores its late result after scope changes', async () => {
+  let resolve!: (value: Awaited<ReturnType<typeof ai.preview>>) => void;
+  vi.mocked(ai.preview).mockImplementation(() => new Promise(r => { resolve = r; }));
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '預算' } });
+  fireEvent.click(screen.getByRole('button', { name: '預覽提供給模型的資料' }));
+  const signal = vi.mocked(ai.preview).mock.calls[0][1]!;
+  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'starter-v1' } });
+  expect(signal.aborted).toBe(true);
+  await act(async () => resolve({ gateway, content: { question: '預算', sources: [] } }));
+  expect(screen.queryByLabelText('模型資料預覽')).toBeNull();
+});
 
 it('selects the starter corpus, requests history explicitly and opens its own citations', async () => {
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
