@@ -128,6 +128,13 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
   const nodePercent = (node: NodeItem) => percent(values.get(node.id) ?? 0);
   const headPercent = selected ? nodePercent(selected) : projectProgress(nodes, values);
 
+  // 每個紀錄元件只在「自己」寫入並重新載入後重建；別人寫入時只刷新資料，避免清掉正在填的草稿。
+  const [writes, setWrites] = useState<Record<string, number>>({});
+  const reloadAfter = (writer: string): RecordReload | undefined => reloadRecords && (async signal => {
+    await reloadRecords(signal);
+    if (!signal.aborted) setWrites(value => ({ ...value, [writer]: (value[writer] ?? 0) + 1 }));
+  });
+  const generation = (writer: string) => writes[writer] ?? 0;
   const [expanded, setExpanded] = useState(new Set<string>());
   const [deps, setDeps] = useState<DependencyData | null>(null);
   const [hover, setHover] = useState<string | null>(null);
@@ -287,8 +294,8 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         {actions}
       </div>}
     </section>
-    {selected && reloadRecords && expired && <CollaborationActions key={`collaboration:${selected.id}:${recordVersion}`} node={selected} reload={reloadRecords} expired={expired}/>}
-    {selected?.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`report:${selected.id}:${recordVersion}`} node={selected} userId={userId} reload={reloadRecords} expired={expired}
+    {selected && reloadRecords && expired && <CollaborationActions key={`collaboration:${selected.id}:${generation('collaboration')}`} node={selected} reload={reloadAfter('collaboration')!} expired={expired}/>}
+    {selected?.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`report:${selected.id}:${generation('report')}`} version={recordVersion} node={selected} userId={userId} reload={reloadAfter('report')!} expired={expired}
       autoOpen={reportIntent === selected.id} openChildren={openChildren(nodes, selected)}
       parentClosed={['review', 'done', 'skipped'].includes(nodes.find(node => node.id === selected.parent_id)?.status ?? '')} />}
     {!selected && phases.length > 0 && <section className="phases" aria-label="開發階段與閘門">{phases.map(phase => {
@@ -357,11 +364,11 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
           ] as const).map(([text, ok]) => <li key={text} className={ok && !readonly || text === '檢視' ? 'yes' : 'no'}><span aria-hidden="true">{ok && !readonly || text === '檢視' ? '✓' : '✗'}</span>{text}<span className="sr-only">{ok && !readonly || text === '檢視' ? '：可以' : '：不可以'}</span></li>)}</ul>
         </section>
       </div>
-      {recordsEnabled && reloadRecords && expired && <CollaboratorEditor key={`people:${selected.id}:${recordVersion}`} nodeId={selected.id} projectId={selected.project_id} manage={!!selected.capabilities?.manage_collaborators} reload={reloadRecords} expired={expired} />}
+      {recordsEnabled && reloadRecords && expired && <CollaboratorEditor key={`people:${selected.id}:${generation('people')}`} nodeId={selected.id} projectId={selected.project_id} manage={!!selected.capabilities?.manage_collaborators} reload={reloadAfter('people')!} expired={expired} />}
     </div>}
     {active === 'people' && expired && <MemberPermissions project={project} expired={expired}/>}
-    {active === 'records' && recordsEnabled && reloadRecords && expired && <RecordTimeline key={`records:${selected?.id ?? project.id}:${recordVersion}`} node={selected ?? null} projectId={project.id}
-      leaf={leaf} descendantTasks={descendantTasks} userId={userId} reload={reloadRecords} expired={expired} select={select} />}
+    {active === 'records' && recordsEnabled && reloadRecords && expired && <RecordTimeline key={`records:${selected?.id ?? project.id}:${generation('records')}`} version={recordVersion} node={selected ?? null} projectId={project.id}
+      leaf={leaf} descendantTasks={descendantTasks} userId={userId} reload={reloadAfter('records')!} expired={expired} select={select} />}
     </div>
     </div>
   </>;
