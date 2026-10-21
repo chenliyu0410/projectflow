@@ -52,7 +52,7 @@ def test_confidential_query_and_preview_record_only_safe_audit_metadata(client, 
     def fake(config, system, prompt, schema):
         context = json.loads(prompt)
         captured.append(context)
-        return {"answer": "請由人資確認預算草案。", "citations": ["PDF-006"]}
+        return {"answerable": True, "answer": "請由人資確認預算草案。", "citations": ["PDF-006"]}
 
     monkeypatch.setattr(model, "chat", fake)
     payload = dict(dataset="starter-v1", question="預算草案金額", project_id="HR-BUDGET")
