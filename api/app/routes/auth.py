@@ -8,9 +8,17 @@ from app.models import Organization, SessionToken, User
 from app.schemas import LoginRequest, LoginResponse, MeResponse, OrganizationOut, UserOut, ShowcaseSwitch
 from app import showcase
 from app.audit import log_audit
-from app.security import new_token, verify_password
+from app.security import hash_password, new_token, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+# 帳號不存在時也要跑一次同成本的 PBKDF2，回應時間才不會洩漏帳號是否存在。
+DUMMY_PASSWORD_HASH = hash_password(new_token())
+
+
+def set_session_cookie(response: Response, request: Request, token: str) -> None:
+    # 公開模式由 nginx 81 帶 X-Forwarded-Proto: https，uvicorn 採信後 scheme 才是 https；本機 http 不能設 Secure，否則登不進去。
+    response.set_cookie(COOKIE_NAME, token, httponly=True, samesite="lax", secure=request.url.scheme == "https",
+                        max_age=7 * 24 * 60 * 60)
 
 
 def login_body(user: User, organization: Organization, request: Request) -> LoginResponse:
@@ -29,6 +37,7 @@ def login(payload: LoginRequest, response: Response, request: Request, db: Sessi
         .where(Organization.key == payload.organization_key, User.username == payload.username)
     ).first()
     if row is None:
+        verify_password(payload.password, DUMMY_PASSWORD_HASH)
         raise HTTPException(status_code=401, detail="帳號或密碼錯誤")
     user, organization = row
     if not verify_password(payload.password, user.password_hash):
@@ -36,15 +45,16 @@ def login(payload: LoginRequest, response: Response, request: Request, db: Sessi
     token = new_token()
     db.add(SessionToken(token=token, user_id=user.id, organization_id=organization.id, expires_at=session_expires_at()))
     db.commit()
-    response.set_cookie(COOKIE_NAME, token, httponly=True, samesite="lax", max_age=7 * 24 * 60 * 60)
+    set_session_cookie(response, request, token)
     return login_body(user, organization, request)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-def logout(response: Response, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+def logout(response: Response, request: Request, current: CurrentUser = Depends(require_session),
+           db: Session = Depends(get_session)):
     db.execute(delete(SessionToken).where(SessionToken.token == current.token))
     db.commit()
-    response.delete_cookie(COOKIE_NAME)
+    response.delete_cookie(COOKIE_NAME, httponly=True, samesite="lax", secure=request.url.scheme == "https")
     return None
 
 
@@ -74,5 +84,5 @@ def switch_showcase(payload: ShowcaseSwitch, response: Response, request: Reques
     db.add(SessionToken(token=token, user_id=user.id, organization_id=org.id, expires_at=session_expires_at()))
     log_audit(db, current, 'showcase.switch', payload={'target_company': org.key})
     db.commit()
-    response.set_cookie(COOKIE_NAME, token, httponly=True, samesite='lax', max_age=7 * 24 * 60 * 60)
+    set_session_cookie(response, request, token)
     return login_body(user, org, request)

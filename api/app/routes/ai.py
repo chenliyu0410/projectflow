@@ -1,5 +1,6 @@
 from contextlib import closing
 import json
+import os
 import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -34,8 +35,14 @@ def connection(current):
     except (FileNotFoundError,sqlite3.Error): raise HTTPException(409,'AI展示資料尚未匯入') from None
 
 
+def local_request(request):
+    # Host 由瀏覽器決定；--lan 模式 web 對區網開放，區網訪客也能送 Host: 127.0.0.1。
+    # Docker Desktop 轉送後的來源位址分不出本機與區網，只能依啟動時是否開放區網（start.py 設定）一律拒絕。
+    return request.url.hostname in {'localhost','127.0.0.1','::1'} and os.environ.get('PF_WEB_LAN')!='true'
+
+
 def local_admin(request,current):
-    if current.user.role!='admin' or request.url.hostname not in {'localhost','127.0.0.1','::1'}: raise HTTPException(403,'僅本機管理者可設定模型')
+    if current.user.role!='admin' or not local_request(request): raise HTTPException(403,'僅本機管理者可設定模型')
     origin=request.headers.get('origin')
     if origin and origin!=str(request.base_url).rstrip('/'): raise HTTPException(403,'不允許此來源')
     if request.headers.get('sec-fetch-site')=='cross-site': raise HTTPException(403,'不允許此來源')
@@ -44,7 +51,7 @@ def local_admin(request,current):
 @router.get('/status')
 def status(request:Request,current:CurrentUser=Depends(require_session)):
     config=model.settings(current.organization.key)
-    result=dict(ready=False,as_of=store.AS_OF,company_name=current.organization.name,model_enabled=config['enabled'],model_name=config['model'] if config['enabled'] else '',can_configure=current.user.role=='admin' and request.url.hostname in {'localhost','127.0.0.1','::1'},can_sql=current.user.role in {'admin','project_owner'},projects=[],queries=[],counts={})
+    result=dict(ready=False,as_of=store.AS_OF,company_name=current.organization.name,model_enabled=config['enabled'],model_name=config['model'] if config['enabled'] else '',can_configure=current.user.role=='admin' and local_request(request),can_sql=current.user.role in {'admin','project_owner'},projects=[],queries=[],counts={})
     try:
         with closing(store.connect(current.organization.key)) as db:
             result.update(ready=True,projects=[dict(r) for r in db.execute('SELECT project_id,title FROM projects ORDER BY project_id')],queries=[{'query_id':q['query_id'],'label':q['label']} for q in store.catalog()],counts={'projects':db.execute('SELECT COUNT(*) FROM projects').fetchone()[0],'documents':db.execute('SELECT COUNT(*) FROM documents WHERE EXISTS (SELECT 1 FROM json_each(roles) WHERE value=?)',(current.user.role,)).fetchone()[0]})
@@ -59,7 +66,9 @@ def ask(payload:Ask,current:CurrentUser=Depends(require_session),db:Session=Depe
         if payload.project_id and not data.execute('SELECT 1 FROM projects WHERE project_id=?',(payload.project_id,)).fetchone(): raise HTTPException(404,'找不到AI專案')
         try: result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id)
         except PermissionError: raise HTTPException(403,'沒有資料分析權限') from None
+        except store.QueryTooLarge: raise HTTPException(422,'查詢過於複雜，超過執行上限；請指定專案或換個問法後再試') from None
         except ValueError: raise HTTPException(422,'不支援此查詢') from None
+        except sqlite3.Error: raise HTTPException(503,'AI展示資料暫時無法查詢，請稍後再試') from None
     log_audit(db,current,'ai.query',payload={'mode':payload.mode,'project_id':payload.project_id,'kind':result['kind'],'source_count':len(result['sources']),'query_id':result['analysis']['query_id'] if result['analysis'] else None})
     db.commit()
     return result
