@@ -125,11 +125,13 @@ def create(db,current,node_id,payload):
         r.status='approved';r.decided_by=current.user.id;r.decided_at=now_utc()
         perform(db,current,project,node,r,context)
     else:
-        for user in context.users.values():
-            reviewer=CurrentUser(user,current.organization,'')
-            from app.services.record_policy import load_policy_context
-            if can_decide(db,reviewer,project,node,load_policy_context(db,reviewer),r.kind):
-                emit(db,current,node,user.id,'有新的跳過／覆寫申請待審核',r.id+':requested')
+        from app.services.record_policy import load_policy_context, shared_policy_data
+        # 迴圈內只新增通知，公司層授權資料不變，所有審核者共用一次計算。
+        with shared_policy_data(db):
+            for user in context.users.values():
+                reviewer=CurrentUser(user,current.organization,'')
+                if can_decide(db,reviewer,project,node,load_policy_context(db,reviewer),r.kind):
+                    emit(db,current,node,user.id,'有新的跳過／覆寫申請待審核',r.id+':requested')
     try: db.commit()
     except IntegrityError:
         db.rollback();raise HTTPException(409,'已有待審核申請')

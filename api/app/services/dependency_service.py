@@ -17,6 +17,13 @@ def lock_project(db,current,project_id):
     return project
 
 
+def read_project(db,current,project_id):
+    # 唯讀請求不鎖列也不登記通知比對：不會 commit，before_commit 的通知不會觸發。
+    project=db.scalar(select(Project).where(Project.organization_id==current.organization.id,Project.id==project_id))
+    if project is None or not can_view_project(current,project):raise HTTPException(status_code=404,detail='找不到專案')
+    return project
+
+
 def unmet_dependencies(nodes, edges, conditions, node, *, phase='start'):
     """Evaluate complete company data without exposing predecessors to callers."""
     chain = set()

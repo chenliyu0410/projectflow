@@ -11,7 +11,7 @@ from app.database import get_session
 from app.models import Attachment, AttachmentQuota, now_utc
 from app.permissions import can_manage_project
 from app.services.record_policy import can_write_record
-from app.services.report_service import lock_node
+from app.services.report_service import lock_node, read_node
 from app.services import attachment_store as store
 
 router = APIRouter(tags=['attachments'])
@@ -22,13 +22,13 @@ async def upload(node_id: str, request: Request, filename: str, current: Current
     return await store.upload_attachment(db, current, node_id, request, filename)
 
 
-def authorized_attachment(db, current, attachment_id):
+def authorized_attachment(db, current, attachment_id, *, lock=True):
     node_id = db.scalar(select(Attachment.node_id).where(Attachment.id == attachment_id, Attachment.organization_id == current.organization.id))
     if node_id is None:
         raise HTTPException(status_code=404, detail='找不到附件')
-    node, project, context = lock_node(db, current, node_id)
-    row = db.scalar(select(Attachment).where(Attachment.id == attachment_id, Attachment.organization_id == current.organization.id)
-                    .with_for_update().execution_options(populate_existing=True))
+    node, project, context = (lock_node if lock else read_node)(db, current, node_id)
+    query = select(Attachment).where(Attachment.id == attachment_id, Attachment.organization_id == current.organization.id)
+    row = db.scalar(query.with_for_update().execution_options(populate_existing=True) if lock else query)
     if row.state != 'ready' or row.deleted_at is not None:
         raise HTTPException(status_code=404, detail='找不到附件')
     return row, node, project, context
@@ -36,7 +36,7 @@ def authorized_attachment(db, current, attachment_id):
 
 @router.get('/attachments/{attachment_id}/download')
 def download(attachment_id: str, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
-    row, _, _, _ = authorized_attachment(db, current, attachment_id)
+    row, _, _, _ = authorized_attachment(db, current, attachment_id, lock=False)
     path = store.storage_path(store.storage_root(), row.storage_key)
     if not path.is_file():
         logging.getLogger(__name__).error('Ready attachment file is missing: %s', row.id)
@@ -61,7 +61,7 @@ def delete_attachment(attachment_id: str, current: CurrentUser = Depends(require
 
 @router.get('/nodes/{node_id}/attachment-quota')
 def get_quota(node_id: str, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
-    node, project, context = lock_node(db, current, node_id)
+    node, project, context = read_node(db, current, node_id)
     if not can_write_record(db, current, project, node, context=context):
         raise HTTPException(status_code=403, detail='沒有上傳附件的權限')
     charged = db.scalar(select(AttachmentQuota.charged_bytes).where(AttachmentQuota.organization_id == current.organization.id)) or 0
