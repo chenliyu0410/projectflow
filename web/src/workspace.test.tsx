@@ -390,6 +390,39 @@ describe('node content tabs', () => {
 });
 
 describe('phase status cards', () => {
+  it('offers task creation on an untouched empty phase without making the card enterable', () => {
+    const active = {...node('執行階段', null, 'phase'), sort_order:0};
+    const empty = {...node('空階段', null, 'phase'), sort_order:1};
+    const filled = {...node('有子項', null, 'phase'), sort_order:2};
+    const locked = {...node('無權階段', null, 'phase'), sort_order:3, capabilities:{edit_metadata:false, assign:false, create_child:false}};
+    const project: ProjectDetail = {...detail, nodes:[active, empty, filled, locked, node('執行任務', active.id, 'task', 'doing'), node('未開始任務', filled.id)], gates:[]};
+    const select = vi.fn(); const createIn = vi.fn();
+    render(<NodeWorkspace project={project} selectedNodeId={null} select={select} readonly={false} canApprove={false} disabled={false} mutate={vi.fn()} createIn={createIn} />);
+    expect(screen.queryByRole('button', { name: '進入階段：空階段' })).not.toBeInTheDocument();
+    expect(within(screen.getByLabelText('開發階段與閘門')).getByRole('group', { name: '階段：空階段' })).toHaveTextContent('尚未開始');
+    fireEvent.click(screen.getByRole('button', { name: '新增任務：空階段' }));
+    expect(createIn).toHaveBeenCalledWith(empty.id);
+    expect(select).not.toHaveBeenCalled();
+    expect(phaseButton('有子項')).toBeDisabled();
+    expect(screen.queryByRole('button', { name: '新增任務：有子項' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '新增任務：無權階段' })).not.toBeInTheDocument();
+  });
+
+  it('opens the create form under an empty phase and stays on the project overview', async () => {
+    const empty = {...node('空階段', null, 'phase'), sort_order:1};
+    const project = {...detail, nodes:[empty], capabilities:{create_node:true}};
+    stubFetch(async (path: string) => response(path === '/api/auth/me' ? identity : path === '/api/projects' ? { items: [summary] }
+      : path.endsWith('/assignment-options') ? { users: [], departments: [] } : path.startsWith('/api/workspace/my-tasks') ? { items: [] } : project));
+    render(<App />);
+    fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
+    fireEvent.click(await screen.findByRole('button', { name: '新增任務：空階段' }));
+    const form = await screen.findByRole('form', { name: '新增節點表單' });
+    expect(form).toHaveTextContent('空階段');
+    expect(within(form).getByLabelText('種類')).toHaveValue('task');
+    expect(screen.getByLabelText('目前層級')).toHaveTextContent('專案總覽');
+  });
+
   it('distinguishes actual completion, active descendants and untouched work; only allows active cards', () => {
     const completed = {...node('已結束', null, 'phase', 'done'), sort_order:0};
     const active = {...node('執行階段', null, 'phase'), sort_order:1};

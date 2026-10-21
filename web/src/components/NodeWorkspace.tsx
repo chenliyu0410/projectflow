@@ -9,6 +9,7 @@ import { api } from '../api';
 import type { RecordReload } from '../api';
 import type { DependencyData, NodeItem, NodeStatus, ProjectDetail } from '../types';
 import { percent, progressMap, projectProgress } from '../progress';
+import { childCreationReason } from '../child-creation';
 
 export const statuses: { status: NodeStatus; label: string }[] = [
   { status: 'todo', label: '待處理' }, { status: 'doing', label: '進行中' },
@@ -100,7 +101,9 @@ function Progress({ value, color }: { value: number | null; color?: string }) {
   </span>;
 }
 
-export default function NodeWorkspace({ project, selectedNodeId, select, readonly, canApprove, disabled, mutate, move, openReport, reportIntent = null, notify, userId = '', userName = '', roleLabel = '', reloadRecords, expired, recordVersion = 0, recordsEnabled = true, tab = 'board', tabsDisabled = false, changeTab, actions, editor, timeline, graph, preview, color = 'var(--teal)' }: {
+export default function NodeWorkspace({ project, selectedNodeId, select, readonly, canApprove, disabled, mutate, move, openReport, reportIntent = null, notify, userId = '', userName = '', roleLabel = '', reloadRecords, expired, recordVersion = 0, recordsEnabled = true, tab = 'board', tabsDisabled = false, changeTab, actions, editor, timeline, graph, preview, color = 'var(--teal)', createIn }: {
+  /** Opens the create form under a phase without entering it (D: untouched phases stay closed as entries). */
+  createIn?: (phaseId: string) => void;
   project: ProjectDetail; selectedNodeId: string | null; select: (id: string | null, preserveTab?: boolean) => void;
   readonly: boolean; canApprove: boolean; disabled: boolean;
   userId?: string; userName?: string; roleLabel?: string; reloadRecords?: RecordReload; expired?: () => void; recordVersion?: number; recordsEnabled?: boolean;
@@ -319,6 +322,14 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       const stateText = complete ? '已完成' : started ? '進行中' : '尚未開始';
       const unavailable = !started;
       const reason = complete ? '已完成階段不開放此入口' : !started ? '尚未開始，暫不開放此入口' : '';
+      // 尚未開始又是空的階段沒有任何卡片可點，只好在卡片上給新增入口；卡片本身仍不開放進入。
+      const creatable = !!createIn && !readonly && !started && !complete && childrenOf(nodes, phase.id).length === 0 && !childCreationReason(phase, !!phase.capabilities?.create_child);
+      if (creatable) return <div key={phase.id} className="phase phase-todo" role="group" aria-label={`階段：${phase.title}`}>
+        <span className="phase-row"><span className="phase-state">{stateText}</span></span>
+        <span className="phase-name">{phase.title}</span>
+        <span className="phase-gate">{phaseGate?.status === 'pending' ? '本階段閘門待核准' : '還沒有任務，先新增第一個任務'}</span>
+        <button type="button" className="phase-add" disabled={disabled} onClick={() => createIn!(phase.id)} aria-label={`新增任務：${phase.title}`}><span aria-hidden="true">＋ </span>新增任務</button>
+      </div>;
       return <button key={phase.id} className={`phase phase-${state}`} disabled={disabled || unavailable} title={reason || undefined}
         onClick={() => select(phase.id)} aria-label={`進入階段：${phase.title}`} aria-describedby={`phase-state-${phase.id} phase-progress-${phase.id} phase-gate-${phase.id}`}>
         <span className="phase-row"><span className="phase-state" id={`phase-state-${phase.id}`}>{complete ? '✓ ' : ''}{stateText}</span>{started && <span className="phase-arrow" aria-label="進行中階段">→</span>}</span>

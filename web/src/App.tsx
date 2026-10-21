@@ -57,6 +57,8 @@ export default function App() {
   const [editor, setEditor] = useState<'create' | 'edit' | null>(null);
   const [recordVersion, setRecordVersion] = useState(0);
   const [editorGeneration, setEditorGeneration] = useState(0);
+  // 從階段卡新增時，父層是那個階段而不是目前所在位置。
+  const [createParentId, setCreateParentId] = useState<string | null>(null);
   const [workflows, setWorkflows] = useState<WorkflowSummary[] | null>(null);
   const [workflowLoading, setWorkflowLoading] = useState(false);
   const [workflowId, setWorkflowId] = useState('');
@@ -428,11 +430,12 @@ export default function App() {
   // D74: a review/done/skipped node cannot gain new children.
   const closedParent = !!selectedNode && !!childCreationReason(selectedNode, true);
   const canEditNode = session?.user.role !== 'readonly' && selectedNode?.kind !== 'project' && selectedNode?.capabilities?.edit_metadata;
-  function openNodeEditor(mode: 'create' | 'edit') {
+  function openNodeEditor(mode: 'create' | 'edit', parentId: string | null = null) {
     if (busy || mutating || creationOpen) return;
     if (!canLeaveDocument()) return;
-    begin(); setEditorGeneration(value => value + 1); setEditor(mode);
+    begin(); setEditorGeneration(value => value + 1); setCreateParentId(parentId); setEditor(mode);
   }
+  const editorParent = (createParentId && project?.nodes.find(node => node.id === createParentId)) || selectedNode;
   function expireSession() { begin(); clearSession(); setBusy(false); setMessage('登入已失效，請重新登入'); }
   async function reloadNode(nodeId: string) {
     if (!project) return;
@@ -525,7 +528,8 @@ export default function App() {
             preview={projectView === 'documents' ? <DocumentManager key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} /> : projectView === 'data' && <LinkedOperations key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} preview={<Suspense fallback={previewLoading}><PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage="data" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} /></Suspense>} />}
             tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { if (!canLeaveDocument()) return; begin(); closeCreation(); setProjectView(view); }}
             actions={canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
-            editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
+            createIn={id => openNodeEditor('create', id)}
+            editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={editor === 'create' ? editorParent : selectedNode}
               canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} leaveGuards={formGuards}
               nodes={project.nodes} created={nodeCreated} tree={selectedNode ? { move: parentId => void moveNode(selectedNode.id, parentId), copy: () => void structure('copy', selectedNode.id), remove: () => void structure('delete', selectedNode.id) } : undefined} />}
             timeline={!busy && !creationOpen && <TimelineView key={project.id} recordVersion={recordVersion} project={project} scopeId={selectedNodeId} created={nodeCreated} notice={setMessage} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession} leaveGuards={formGuards}
