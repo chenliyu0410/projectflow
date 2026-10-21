@@ -56,7 +56,7 @@ for (const width of [1280, 375]) {
     await (await openProjects(page)).getByRole('button', { name: '成貓主食罐正式版', exact: true }).click();await closeProjectDrawer(page);
     await expect(page.getByRole('heading', { name: '成貓主食罐正式版', exact: true })).toBeVisible();
     await expect(page.getByLabel('開發階段與閘門')).toContainText('市場與配方');
-    await expect(page.getByLabel('看板')).toContainText('殺菌條件驗證');
+    await expect(page.getByLabel('看板', { exact: true })).toContainText('殺菌條件驗證');
     const projectList = await page.request.get('/api/projects');
     expect(projectList.status()).toBe(200);
     const seedProject = (await projectList.json()).items.find((item: { title: string }) => item.title === '成貓主食罐正式版');
@@ -107,7 +107,7 @@ for (const width of [1280, 375]) {
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
     await page.getByRole('button', { name: `進入階段：${phaseTitle}`, exact: true }).click();
     await expect(page.getByLabel('進行中')).toContainText('試作工單');
-    await expect(page.getByLabel('看板').getByRole('combobox')).toHaveCount(0);
+    await expect(page.getByLabel('看板', { exact: true }).getByRole('combobox')).toHaveCount(0);
     await expect(page.getByRole('button', { name: '建立新專案' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '核准閘門' })).toHaveCount(0);
     await screenshot('readonly');

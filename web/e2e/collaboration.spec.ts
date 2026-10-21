@@ -40,7 +40,7 @@ for (const width of [1280, 375]) {
     };
     const openTask = async () => {
       await (await openProjects(page)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(page);
-      await page.getByLabel('看板').getByRole('button', { name: '送審成果任務', exact: true }).click();
+      await page.getByLabel('看板', { exact: true }).getByRole('button', { name: '送審成果任務', exact: true }).click();
     };
     const submit = async (summary: string) => {
       await page.getByLabel('完成回報', { exact: true }).getByRole('button', { name: /^(回報完成|重新回報)$/ }).click();
