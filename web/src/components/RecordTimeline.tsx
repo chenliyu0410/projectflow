@@ -20,7 +20,9 @@ function Timeline({
   expired,
   select,
   readScope,
+  version = 0,
 }: {
+  version?: number;
   node: NodeItem | null;
   projectId: string;
   descendantTasks: number;
@@ -38,8 +40,8 @@ function Timeline({
   const [editing, setEditing] = useState<Note | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const lock = useRef(false);
-  async function load(append = false) {
-    if (lock.current) return;
+  async function load(append = false, force = false) {
+    if (lock.current && !force) return;
     const r = scope.begin();
     lock.current = true;
     setLoading(true);
@@ -88,6 +90,13 @@ function Timeline({
   useEffect(() => {
     void load();
   }, []);
+  // 其他元件寫入時只重讀清單，不重建這裡的筆記草稿。
+  const seenVersion = useRef(version);
+  useEffect(() => {
+    if (seenVersion.current === version) return;
+    seenVersion.current = version;
+    void load(false, true);
+  }, [version]);
   const canWrite = !!node?.capabilities?.write_record;
   const attachments = new Map<string, Attachment>();
   for (const item of items) {
@@ -221,6 +230,7 @@ function Timeline({
 }
 
 export default function RecordTimeline(props: {
+  version?: number;
   node: NodeItem | null;
   projectId: string;
   leaf: boolean;

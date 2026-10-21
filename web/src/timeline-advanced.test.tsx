@@ -107,6 +107,24 @@ describe('TP-C interactions', () => {
     expect(screen.queryByRole('form')).not.toBeInTheDocument();
     expect(fetcher.mock.calls.every(([, init]) => !init.method || init.method === 'GET')).toBe(true);
   });
+  it('Escape closes the creation dialog, asking first when it has a draft', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response({ users: [], departments: [] })));
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    mount([n('a')]);
+    const escape = () => fireEvent(document.querySelector('dialog.timeline-create-dialog')!, new Event('cancel', { cancelable: true }));
+    fireEvent.click(screen.getByRole('button', { name: '新增子任務：a' }));
+    escape();
+    expect(confirm).not.toHaveBeenCalled();
+    expect(screen.queryByRole('form', { name: '新增節點表單' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '新增子任務：a' }));
+    fireEvent.change(screen.getByLabelText('節點名稱'), { target: { value: '草稿' } });
+    escape();
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText('節點名稱')).toHaveValue('草稿');
+    confirm.mockReturnValue(true);
+    escape();
+    expect(screen.queryByRole('form', { name: '新增節點表單' })).not.toBeInTheDocument();
+  });
   it('editor keeps milestone dates equal and sends both flags', async () => {
     const item = n('a', null, { capabilities: { edit_metadata: true, edit_schedule: true, lock_schedule: true, assign: false, create_child: false } });
     const fetcher = vi.fn().mockResolvedValue(response(item)); vi.stubGlobal('fetch', fetcher);

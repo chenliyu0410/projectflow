@@ -11,8 +11,8 @@ export const projectColor = (index: number) => PROJECT_COLORS[index % PROJECT_CO
 type NavItem = {page:'overview'|'my-tasks'|'reviews'|'workflows'|'audit'|'operations'|'governance';label:string;icon:IconName};
 const LINKS:NavItem[]=[{page:'overview',label:'所有專案總覽',icon:'overview'},{page:'my-tasks',label:'我的任務',icon:'tasks'},{page:'reviews',label:'審核中心',icon:'review'},{page:'operations',label:'營運資料',icon:'ops'},{page:'workflows',label:'模板庫',icon:'templates'},{page:'governance',label:'AI 政策與稽核',icon:'ai'},{page:'audit',label:'活動與稽核紀錄',icon:'audit'}];
 const STATUS:Record<string,string>={todo:'待處理',doing:'進行中',review:'待確認'};
-export default function WorkspaceShell({route,projects,busy,navigate,children,session,createAction,headerActions,copilotScope,food=false,companyName='目前公司',accountName='使用者',previewKey}:{
- route:WorkspaceRoute;projects:ProjectSummary[];busy:boolean;navigate:(route:WorkspaceRoute)=>void;children:ReactNode;session?:ReactNode;createAction?:ReactNode;headerActions?:ReactNode;copilotScope:string;food?:boolean;companyName?:string;accountName?:string;previewKey?:string;
+export default function WorkspaceShell({route,projects,busy,navigate,children,session,createAction,headerActions,copilotScope,food=false,companyName='目前公司',accountName='使用者',previewKey,expired}:{
+ route:WorkspaceRoute;projects:ProjectSummary[];busy:boolean;navigate:(route:WorkspaceRoute)=>boolean|void;children:ReactNode;session?:ReactNode;createAction?:ReactNode;headerActions?:ReactNode;copilotScope:string;food?:boolean;companyName?:string;accountName?:string;previewKey?:string;expired?:()=>void;
 }){
  const [expanded,setExpanded]=useState(false),[copilotOpen,setCopilotOpen]=useState(false);
  const [drawerProject,setDrawerProject]=useState<ProjectSummary|null>(null),[tasks,setTasks]=useState<MyTask[]>([]);
@@ -32,7 +32,7 @@ export default function WorkspaceShell({route,projects,busy,navigate,children,se
  function closeDrawer(restore=true){const id=drawerProject?.id;dialog.current?.close();setDrawerProject(null);if(restore){if(window.matchMedia('(max-width:860px)').matches)toggle.current?.focus();else if(id)projectButtons.current.get(id)?.focus();}}
  function go(next:WorkspaceRoute){focusDestination.current=true;closeDrawer(false);setExpanded(false);navigate(next);}
  useEffect(()=>{if(!focusDestination.current||busy)return;const target=document.querySelector<HTMLElement>('.workspace-content .level-back, .workspace-content .node-title, .workspace-content h1');if(target){if(!target.matches('button'))target.tabIndex=-1;target.focus({preventScroll:true});focusDestination.current=false;}},[route,children,busy]);
- function openProject(item:ProjectSummary){setExpanded(false);setDrawerProject(item);navigate({page:'project',projectId:item.id,nodeId:null});}
+ function openProject(item:ProjectSummary){setExpanded(false);if(navigate({page:'project',projectId:item.id,nodeId:null})===false)return;setDrawerProject(item);}
  function closeNavigation(){setExpanded(false);toggle.current?.focus();}
  function closeCopilot(){restoreCopilotFocus.current=true;setCopilotOpen(false);}
  useEffect(()=>{if(!copilotOpen&&restoreCopilotFocus.current){restoreCopilotFocus.current=false;copilotToggle.current?.focus();}},[copilotOpen]);
@@ -58,7 +58,8 @@ export default function WorkspaceShell({route,projects,busy,navigate,children,se
  </dialog>
  <div className="workspace-main"><div className="workspace-topbar"><button ref={toggle} className="navigation-toggle" aria-label="切換導覽" aria-expanded={expanded} aria-controls="workspace-navigation" onClick={()=>setExpanded(v=>!v)}>☰ 選單</button><div className="workspace-account-actions">{headerActions}<Dropdown className="account-menu" name="使用者選單" label={<><span className="avatar" aria-hidden="true">{accountName.slice(0,1)}</span><span className="account-name">{accountName}</span></>}><div className="sidebar-session">{session}</div></Dropdown></div></div><div className="workspace-content">{children}</div></div>
  <button ref={copilotToggle} className="copilot-launcher" aria-label="切換 AI 副手" title="AI 專案副手" aria-expanded={copilotOpen} aria-controls="copilot-panel" onClick={()=>setCopilotOpen(v=>!v)}><NavIcon name="ai" size={26}/><span className="sr-only">AI 專案副手</span></button>
- <CopilotPanel key={previewKey??location} food={food} companyName={companyName} scope={copilotScope} open={copilotOpen} close={closeCopilot}/>
+ {/* 只在進出展示預覽區時重建（照 formal-development.md 清除對話）；一般導覽保留對話與進行中查詢。 */}
+ <CopilotPanel key={previewKey??'workspace'} food={food} companyName={companyName} scope={copilotScope} open={copilotOpen} close={closeCopilot} expired={expired}/>
  {(expanded||copilotOpen)&&<div className="drawer-backdrop" aria-hidden="true" onClick={()=>{if(expanded)closeNavigation();if(copilotOpen)closeCopilot();}}/>}
  </>;
 }

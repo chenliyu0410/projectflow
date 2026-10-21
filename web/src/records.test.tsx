@@ -576,6 +576,23 @@ describe('record session and replacement races', () => {
     await act(async () => pending.resolve(response(project)));
     expect(screen.getByLabelText('編輯筆記')).toHaveValue('新的草稿');
   });
+  it('keeps an open report draft when a note is saved, and a note draft when a report is sent', async () => {
+    const fetcher = await setup([note]);
+    await fillReport();
+    fireEvent.change(screen.getByLabelText('新增筆記'), { target: { value: '旁邊的筆記' } });
+    fireEvent.click(screen.getByRole('button', { name: '新增筆記' }));
+    await waitFor(() => expect(fetcher.mock.calls.some(([p]) => p === '/api/nodes/n/notes')).toBe(true));
+    await waitFor(() => expect(screen.getByLabelText('新增筆記')).toHaveValue(''));
+    expect(screen.getByLabelText('成果說明')).toHaveValue('完成驗證');
+    expect(screen.getByLabelText('實際完成日')).toHaveValue('2026-10-08');
+    fireEvent.change(screen.getByLabelText('新增筆記'), { target: { value: '還沒送出的筆記' } });
+    fireEvent.click(screen.getByRole('button', { name: '送出回報' }));
+    await waitFor(() => expect(screen.queryByLabelText('成果說明')).not.toBeInTheDocument());
+    await waitFor(() => expect(fetcher.mock.calls.filter(([p]) => p.includes('/records?')).length).toBeGreaterThan(3));
+    expect(screen.getByLabelText('新增筆記')).toHaveValue('還沒送出的筆記');
+    // 回報自己送出後仍要回到可再操作的狀態，而不是停在「重試回報載入」。
+    expect(screen.queryByRole('button', { name: '重試回報載入' })).not.toBeInTheDocument();
+  });
   it('retains collaboration selections after stale-revision conflict without resending', async () => {
     const fetcher = await setup([], (p, i) =>
       p.endsWith('/collaborators') && i?.method === 'PUT'
@@ -632,10 +649,15 @@ it('downloads an authorized Blob, releases its URL and never previews attachment
       ? { ok: true, status: 200, blob: async () => new Blob(['safe']) }
       : undefined,
   );
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldAdvanceTime: true });
   fireEvent.click(await screen.findByRole('button', { name: '下載 安全.txt' }));
-  await waitFor(() => expect(revoke).toHaveBeenCalledWith('blob:authorized'));
+  await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
   expect(create).toHaveBeenCalledTimes(1);
-  expect(click).toHaveBeenCalledTimes(1);
+  // 瀏覽器在 click 之後才非同步開始下載，立刻釋放網址會讓部分瀏覽器下載失敗。
+  expect(revoke).not.toHaveBeenCalled();
+  vi.advanceTimersByTime(60_000);
+  expect(revoke).toHaveBeenCalledWith('blob:authorized');
+  vi.useRealTimers();
   expect(
     screen.queryByRole('button', { name: '移除 安全.txt' }),
   ).not.toBeInTheDocument();

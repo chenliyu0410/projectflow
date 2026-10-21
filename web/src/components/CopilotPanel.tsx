@@ -3,12 +3,13 @@ import NavIcon from './NavIcons';
 import ModelSettings from './ModelSettings';
 import { ai } from '../ai';
 import type { AIResult, AIStatus } from '../ai';
+import { ApiError } from '../api';
 
 type Message = { id: number; question: string; result: AIResult };
 const HEADINGS: Record<string, string> = { project_id: 'AI專案', task_id: '任務', supplier_id: '供應商', department: '部門', name: '姓名', person_id: '人員', status: '狀態', count: '數量', overdue_count: '逾期數', total: '總數', done_count: '完成數', completion_pct: '完成率％', budget_twd: '預算', actual_twd: '已入帳', overrun_twd: '超支', amount_twd: '金額', received_count: '收貨數', late_count: '延遲數', late_pct: '延遲率％', samples: '抽樣數', defects: '不良數', defect_pct: '不良率％', month: '月份', category: '類別', risk_id: '風險', cause: '原因', action: '處理方式', open_tasks: '未完成數', estimated_hours: '預估工時', actual_hours: '實際工時', extra_hours: '超估工時', committed_twd: '承諾金額', due_date: '到期日', rejected_count: '退回數', blocked_count: '受阻數', order_id: '採購單', promised_date: '承諾日', zero_defect_batches: '零不良批次' };
 const STATUS: Record<string, string> = { done: '完成', doing: '進行中', review: '待審核', rejected: '退回', todo: '未開始', blocked: '受阻' };
 
-export default function CopilotPanel({ scope, open, close, companyName = '目前公司' }: { scope: string; open: boolean; close: () => void; food?: boolean; companyName?: string }) {
+export default function CopilotPanel({ scope, open, close, companyName = '目前公司', expired }: { scope: string; open: boolean; close: () => void; food?: boolean; companyName?: string; expired?: () => void }) {
   const [status, setStatus] = useState<AIStatus | null>(null);
   const [error, setError] = useState('');
   const [mode, setMode] = useState<'rag' | 'sql'>('rag');
@@ -37,19 +38,29 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
   function clear() { controller.current?.abort(); docController.current?.abort(); setBusy(false); setLoadingDocument(false); setMessages([]); setDocument(null); setError(''); }
   async function ask(question: string, selectedQuery?: string, selectedMode = mode) {
     if (busy || !status?.ready || !question.trim()) return;
+    // 新問題會清掉原文區，舊的原文請求晚到也不該再蓋回來。
+    docController.current?.abort(); setLoadingDocument(false);
     const request = new AbortController(); controller.current = request;
     setBusy(true); setError(''); setDocument(null);
     try {
       const result = await ai.ask({ question, mode: selectedMode, project_id: project || null, ...(selectedQuery ? { query_id: selectedQuery } : {}) }, request.signal);
       if (!request.signal.aborted) { setMessages(items => [...items.slice(-19), { id: ++nextId.current, question, result }]); setInput(''); }
-    } catch (e) { if (!request.signal.aborted) setError(e instanceof Error ? e.message : '查詢失敗，請重試。'); }
+    } catch (e) {
+      if (request.signal.aborted) return;
+      if (e instanceof ApiError && e.status === 401 && expired) { expired(); return; }
+      setError(e instanceof Error ? e.message : '查詢失敗，請重試。');
+    }
     finally { if (!request.signal.aborted) setBusy(false); }
   }
   async function showDocument(id: string) {
     docController.current?.abort(); const request = new AbortController(); docController.current = request;
     setLoadingDocument(true); setError('');
     try { const value = await ai.document(id, request.signal); if (!request.signal.aborted) setDocument(value); }
-    catch { if (!request.signal.aborted) setError('無法讀取引用，可能沒有權限或登入已失效。'); }
+    catch (e) {
+      if (request.signal.aborted) return;
+      if (e instanceof ApiError && e.status === 401 && expired) { expired(); return; }
+      setError('無法讀取引用，可能沒有權限或登入已失效。');
+    }
     finally { if (!request.signal.aborted) setLoadingDocument(false); }
   }
   const quick = mode === 'rag' ? ['現行交付需要幾張截圖？', '風險原因與處理方式', '採購追蹤紀錄'] : ['各部門逾期未完成數', '超支專案及金額', '各專案加權不良率'];

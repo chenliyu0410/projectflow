@@ -4,6 +4,8 @@ import type { FormEvent } from 'react';
 import { api, ApiError } from '../api';
 import type { AssignmentOptions, DependencyData, NodeItem, NodeMetadata, NodeStatus, NodeUpdate } from '../types';
 import { childrenOf, levelOf, subtree, visibleRoots } from './NodeWorkspace';
+import { useLeaveGuard } from '../leave-guard';
+import type { LeaveGuards } from '../leave-guard';
 
 /** TP-B structure actions run by the App, which closes this form first like the Demo's drawer. */
 export type TreeActions = { move: (parentId: string | null) => void; copy: () => void; remove: () => void };
@@ -111,8 +113,11 @@ function DeleteConfirm({ projectId, nodes, node, cancel, confirm, expired }: {
   </section>;
 }
 
-export default function NodeEditor({ projectId, mode, node, parent, canAssign, leaf = false, nodes = [], tree, created, reload, close, expired, initialDates }: {
+export default function NodeEditor({ projectId, mode, node, parent, canAssign, leaf = false, nodes = [], tree, created, reload, close, expired, initialDates, leaveGuards, cancelRef }: {
   projectId: string; mode: 'create' | 'edit'; node: NodeItem | null; parent: NodeItem | null; canAssign: boolean; leaf?: boolean;
+  leaveGuards?: LeaveGuards;
+  /** Filled with "cancel unless saving; confirm a draft first" so a host dialog can map Escape onto it. */
+  cancelRef?: { current: (() => void) | null };
   initialDates?: { start_date?: string; due_date?: string };
   nodes?: NodeItem[]; tree?: TreeActions; created?: (title: string, undoId: string | null) => void;
   reload: (nodeId: string) => Promise<void>; close: () => void; expired: () => void;
@@ -158,6 +163,13 @@ export default function NodeEditor({ projectId, mode, node, parent, canAssign, l
   const invalidDates = !!start && !!due && start > due;
   // Unsaved edits would be lost by a structure action, so those wait until the form is saved or cancelled.
   const dirty = Object.keys(changes).length > 0 || weight !== initialWeight || progress !== initialProgress;
+  // 送出中或已送出成功（只差重新載入）就不算未儲存：結果已交給後端，離開也不會遺失。
+  useLeaveGuard(leaveGuards, dirty && !saving && !savedNodeId, mode === 'create' ? '新增節點的內容尚未儲存，確定放棄並離開嗎？' : '節點有未儲存的編輯，確定放棄並離開嗎？');
+  if (cancelRef) cancelRef.current = () => {
+    if (saving) return;
+    if (dirty && !savedNodeId && !window.confirm(mode === 'create' ? '新增節點的內容尚未儲存，確定放棄嗎？' : '節點有未儲存的編輯，確定放棄嗎？')) return;
+    close();
+  };
   async function refresh(id: string, request: ReturnType<typeof begin>) {
     try { await reload(id); if (current(request)) close(); }
     catch (value) { if (!current(request)) return; if (value instanceof ApiError && value.status === 401) expired(); else setError('已儲存，資料重新載入失敗'); }

@@ -16,8 +16,19 @@ export default function useScrollActivity() {
       const element = event.target === document ? document.documentElement : event.target;
       if (element instanceof HTMLElement) reveal(element);
     }
+    // pointermove 一秒可觸發上百次；逐層量版面會強制重排，所以只記下最後位置，每幀量一次。
+    let frame = 0;
+    let latest: PointerEvent | null = null;
     function edge(event: PointerEvent) {
       if (event.pointerType === 'touch') return;
+      latest = event;
+      if (!frame) frame = requestAnimationFrame(measure);
+    }
+    function measure() {
+      frame = 0;
+      const event = latest;
+      latest = null;
+      if (!event) return;
       let element = event.target instanceof HTMLElement ? event.target : null;
       while (element) {
         const box = element.getBoundingClientRect();
@@ -33,6 +44,7 @@ export default function useScrollActivity() {
     return () => {
       document.removeEventListener('scroll', scrolling, true);
       document.removeEventListener('pointermove', edge);
+      if (frame) cancelAnimationFrame(frame);
       timers.forEach((timer, element) => { clearTimeout(timer); delete element.dataset.scrollActive; });
     };
   }, []);
