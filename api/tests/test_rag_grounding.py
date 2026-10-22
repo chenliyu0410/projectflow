@@ -1,5 +1,45 @@
 import pytest
+import os
+import json
+import re
+from pathlib import Path
 from app.rag import parsing
+
+
+@pytest.mark.skipif(os.environ.get('PF_RAG_LIVE_TESTS') != '1', reason='Opt-in local Ollama integration')
+@pytest.mark.parametrize('variant', ['original', 'renamed', 'no_approval', 'known_absence'])
+def test_live_condition_answer_preserves_prerequisites(variant):
+    """Catch generated summaries dropping a required sign-off despite complete evidence."""
+    from app.rag.provider import answer
+    report = Path(__file__).resolve().parents[2] / 'artifacts/rag-demo-data-2026-10-21/evaluation-accepted.json'
+    case = next(row for row in json.loads(report.read_text(encoding='utf-8'))['cases'] if row['id'] == 'Q06')
+    sources, question = case['sources'], case['question']
+    terms = ['批次識別資料', '供應商聲明', '模擬檢驗報告', '陳奕安', '簽核']
+    if variant == 'renamed':
+        swaps = {'G2': 'K7', '陳奕安': '葉子庭', '批次識別資料': '設備清單', '供應商聲明': '校正紀錄', '模擬檢驗報告': '操作測試報告'}
+        for old, new in swaps.items():
+            question = question.replace(old, new)
+            sources = json.loads(json.dumps(sources, ensure_ascii=False).replace(old, new))
+        terms = ['設備清單', '校正紀錄', '操作測試報告', '葉子庭', '簽核']
+    elif variant == 'no_approval':
+        question = '驗收關卡 Z9 要具備什麼才能通過？是否需要主管簽核？'
+        sources = [dict(source_id='z9', title='設備驗收規則', version=1, excerpt='Z9 通過須完成設備清單與操作測試報告。\n兩份文件齊備後，仍須等待觀察期滿七天且無異常，才可通過。\n本關卡不需主管簽核。若觀察期未滿或發現異常，應維持待驗收。')]
+        terms = ['設備清單', '操作測試報告', '七天', '異常']
+    elif variant == 'known_absence':
+        case = next(row for row in json.loads(report.read_text(encoding='utf-8'))['cases'] if row['id'] == 'Q18')
+        sources, question = case['sources'], case['question']
+        terms = ['備援', '核准']
+    result = answer(dict(enabled=True, base_url='http://127.0.0.1:11434', model='qwen2.5-coder:7b'), question, sources)
+    print(json.dumps(dict(variant=variant, **result), ensure_ascii=False))
+    assert all(term in result['answer'] for term in terms), result
+    assert result['citations'] and set(result['citations']) <= {s['source_id'] for s in sources}
+    if variant == 'no_approval':
+        assert re.search(r'(?:不需|無需|不必)[^。；\n]{0,16}簽核', result['answer']), result
+    if variant == 'known_absence':
+        assert re.search(r'(?:沒有|無|未|尚未)[^。；\n]{0,12}核准', result['answer']), result
+        assert '梧桐' not in result['answer'], result
+        supporting_statements = ['目前沒有已核准的備援供應商名稱', '備援供應商仍在評選，本文件沒有提供備援供應商名稱，也不能推定已核准']
+        assert any(s['source_id'] in result['citations'] and any(text in s['excerpt'] for text in supporting_statements) for s in sources), result
 
 
 def test_csv_retains_headers_missing_and_extra_columns(tmp_path):
