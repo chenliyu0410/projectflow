@@ -743,6 +743,8 @@ projectflow/
 
 ### 8.6 專案知識庫（RAG）
 
+目前品質候選的原20題：AI內容複核19/20（自動粗篩17/20），Q06必要簽核條件漏答待修；品質新版尚未部署。見[驗證結果](artifacts/rag-demo-data-2026-10-21/品質驗證結果.md)與[換機交接](docs/rag-quality-handoff.md)。
+
 - [ ] 納入附件、背景索引排程與大資料量管理；正式文件已有依權限的手動可重試索引
 - [ ] 導入 pgvector／ANN 與模型重排；初版採本地 embedding＋JSON 儲存＋精確 cosine、BM25、RRF 與規則重排
 - [ ] Excel 與 OCR；初版支援 TXT／CSV、文字 PDF、DOCX

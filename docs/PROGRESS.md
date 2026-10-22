@@ -13,15 +13,15 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **RAG-DATA 🟢 假資料已匯入**：本機RAG可試用，新增獨立虛構食品專案、10份文件與20題標準問答；真模型試跑暴露5項答案品質案例，見artifacts/rag-demo-data-2026-10-21/試跑結果.md。既有REVIEW-FIX待審PR，未合併／推送。 |
+| 目前工作項目 | **RAG-HANDOFF 🔍 PR #5 已推送**：正式文件 RAG 與品質修正已保存至 codex/rag-quality-handoff；7B 完整20題已完成：自動17/20、AI內容複核19/20；Q06漏品保簽核待修，品質新版尚未部署。 |
 | 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
-| 下一個動作 | 在15173的正式文件問答選「【虛構展示】山嵐新品 RAG 知識驗證」試用；後續建議優先解決Q04／Q05／Q07／Q10／Q13的引用／矛盾／日期／計算問題，以保留失敗題與新題比較。原資料與Chrome不變，本輪尚未實作後續品質修正。 |
-| 分支 | `feature/review-fixes`（本機RAG初版已整合，原PR仍審閱中；main凍結）。既有claude worktree未改動。三個RAG分身採ignored隔離源碼副本，主checkout只有主代理修改產品檔。 |
-| 最新程式 commit | `69ebaf7`（含RAG實作`e3f614c`與E2E型別修正）；部署程式未修改，本輪只更新部署與交接文件。 |
+| 下一個動作 | 換機先讀 docs/rag-quality-handoff.md 與最終評測；修正 Q06 必要條件漏答，重新隔離驗證，再備份／比對資料並更新本機。PR #5 保持 Draft；PR #4 原分支保留。 |
+| 分支 | `codex/rag-quality-handoff`（PR #5，base feature/review-fixes）。原 feature/review-fixes 本機歷史與其他草稿完整保留；無 force push／main 合併。 |
+| 最新程式 commit | `6d9e913`（交接快照；品質修正來源提交 7daf0ad，包含原 RAG e3f614c 與資料包 b78a0c0）。 |
 | 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
 | 測試基準 | RAG-IMPL：新API／pipeline／治理／評測／migration共32pass exit0；相關既有文件／AI／權限／migration 59pass／10skip exit0（10項為歷史專用PG測試）；全Vitest36檔336pass，收尾相關12pass，build exit0。隔離真PG 0019→0020七表列數保存，Edge E2E上傳→索引→問答→原文→回饋桌面1280／手機375共2pass。實際服務評測5/5、fixture契約7/7；bge-m3 1024維語意首位命中、qwen2.5:3b-instruct-q4_K_M合法引用真推論通過（各1合成案例，非領域品質門檻）。獨立審查3項P2修正並複核通過。 REVIEW-FIX整合（`feature/review-fixes`）：API全量716pass／14skip exit0（約17分鐘，Windows、SQLite；14個需專用PG）；Vitest 35檔332pass、build（含tsc）exit0、主bundle 489kB。各分支自身結果見對應plan檔。DOCS-CLEAN只改文件，沒有跑產品測試：SVG以XML解析通過，並用headless Edge以2400×1350渲染目視檢查文字與箭頭；README內連結的文件與錨點逐一核對存在。OPS-PUBLIC只做營運，沒有改程式也沒有跑測試；以公網DoH解析出的Funnel中繼IP 103.84.155.153／.217用`--resolve`直連，8443首頁與`/api/version`、10000 `/api/health/ready`皆200。OPS-SYNC只部署，未重跑測試（PR #3只改web與文件、另加一個API測試檔，API程式未改）；合併時docs衝突已由人類解決，本機只修正看板與README。PROJECT-DRAWER（PR #3）：PROJECT-DRAWER：完整前端31檔309pass；桌面／手機專案抽屜、相依追蹤、返回、頂欄與五尺寸側欄共9pass；型別與build exit0。獨立審查發現高亮節點遮住拖線按鈕，已修正層級並以左側命中及pointerdown回歸。初跑單元306pass／3fail（2項旧導覽斷言、1項既有入庫測試等待），修正後全量通過；初跑瀏覽器5pass／4fail為手機測試定位忽略隱藏元素，修正後9pass。歷史端對端僅載入檢查，未全量執行；本輪未改後端、未重跑歷史API與部署測試。保留既有產物大於500kB警告。 PUBLIC-TRIAL：PUBLIC-TRIAL：test_deployment＋新test_public_trial RED 10fail／17error exit1→73pass exit0（審查後修正再跑73pass exit0）；`nginx -t` ok；暫存nginx容器實測81埠只收ts.net Host（127.0.0.1／localhost／127.0.0.1.ts.net／無Host／絕對URI＋假Host皆421），80埠不變；未跑API全量（API程式未改）。LAN-SWITCH：showcase七檔＋deployment RED 9fail exit1→81pass exit0；API全量636pass／14skip exit0（19分45秒）。LAN-TRIAL：test_deployment RED 7fail exit1→46pass exit0；新Vitest new-id RED 3fail exit1→全前端27檔292pass exit0；build exit0；未跑API全量與E2E（只改啟動腳本、compose與三處前端id產生）。DATA-PACK（`258ca1e`）後只跑相關：test_demo_pack 2pass、整合後相關API 68pass、migration 23pass，未重跑全量。以下為F1-RET全量：全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
 | 資料版本 | 本機RAG已升級0020：以GitHub資料包還原0019之27表1758列至新projectflow-formal volumes，升級前pg_dump、30張既有表逐值指紋前後一致；另新增1個試用專案／文件。原正式DB未找到，不能將10/12快照視為最新完整資料。備份見.superpowers/rag-deploy-20261021。以下為舊環境歷史紀錄： OPS-PUBLIC無migration：`public_trial.py`只啟動既有容器（web `9df836f2145c`、API `e60becf4b227`、DB `d43b3c315aa0`與10-14相同，未重建、不seed）。OPS-SYNC無migration：`public_trial.py`只重建web（映像`78be54ef96bd`、容器`9df836f2145c`，bundle `index-wScy0RyV.js`含PR新樣式），API `e60becf4b227`與DB `d43b3c315aa0`未重建；本機與公開health 200，127.0.0.1以yu登入看到新專案總覽與「選擇專案，查看我的待辦」，主控台只有登入前的401，之後登出。PUBLIC-TRIAL無migration：部署前pg_dump存.superpowers/public-trial/before-public.dump；啟動器重建web（nginx 81）、API帶`PF_SHOWCASE_LAN=true`與`FORWARDED_ALLOW_IPS=*`重建，DB容器`d43b3c315aa0`未重建，6公司／80帳號／39專案／500節點／0019部署前後一致。LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
-| 認領中 | 無。 |
+| 認領中 | 無；PR #5 Draft 換機接續。 |
 | 阻塞／待人類 | 待人類：外部網路實測兩個公開網址；公開試用期間密碼`demo-<帳號>`可推得，用完請停止；8443本地共用版沒有登入，任何拿到網址的人都能修改或重置資料；PR #3列出的後續UI／UX建議待人類檢視。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。PR #3已合併。 |
 
@@ -67,7 +67,7 @@
 
 ## 2. 工作佇列（由上往下執行）
 
-- RAG-HANDOFF 🔨（2026-10-22）：人類要求完成驗證後開 PR 供換機接續。65項相關測試通過，7B重點8題正確，完整20題續跑；品質新版尚未部署。交接見 docs/rag-quality-handoff.md。遠端PR #4與本機歷史分岔但E2E修正內容一致，以遠端分支為基底建立獨立codex/rag-quality-handoff快照PR，保留原本機提交／未提交草稿，不force或改寫PR #4。
+- RAG-HANDOFF 🔨（2026-10-22）：人類要求完成驗證後開 PR 供換機接續。65項相關測試通過，7B重點8題正確，完整20題自動17/20、AI內容複核19/20，Q06待修；品質新版尚未部署。交接見 docs/rag-quality-handoff.md。遠端PR #4與本機歷史分岔但E2E修正內容一致，以遠端分支為基底建立獨立codex/rag-quality-handoff快照PR，保留原本機提交／未提交草稿，不force或改寫PR #4。
 
 - RAG-QUALITY 🔨（2026-10-21）：人類授權修正 Q04／Q05／Q07／Q10／Q13，保持原題庫與基線，重跑 20 題真模型、獨立複核；備份並比對原資料後更新本機試用。只改 CSV 證據、回答引用／計算及相關驗證，不 seed／還原／覆蓋既有檔案。
 
@@ -1341,3 +1341,10 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **驗證**：23頁全部渲染，4頁新增內容逐頁目視；原19頁排除頁碼後與原渲染完全一致。finalizer exit0，結構／版面／字型0 findings與0 warnings，6個原生可編輯表格、23頁重新匯入成功。交付檔SHA256為9f64eede…18851cc，與candidate一致。獨立唯讀審查無阻擋；已採納Asana「要求修改」與「部署成本更可控」兩項用語精準化，重新渲染檢查正常。
 - **沒做的事**：未實測競品帳號、未比較價格、未以原生PowerPoint檢查；未改產品／業務資料、未跑產品回歸、未部署／push／合併。
 - **下一步**：人類檢視23頁簡報；後續可依實際採購短名單做同案例比較。▶現在REVIEW-FIX工作維持原排程。
+
+### 2026-10-22｜Codex GPT-6｜RAG-HANDOFF PR與驗證交接
+- **完成**：原五題的引用、矛盾、日期及計算修正；CSV附欄名、伺服器證據／數字ID、Decimal、16K上下文；原題庫／文件未改。PR #5 Draft，codex/rag-quality-handoff，base feature/review-fixes；遠端分岔以新父提交＋相同檔案樹保留成果，無force／改寫PR #4；原本機歷史仍在feature分支。
+- **驗證**：相關65pytest pass exit0；7B原20題全數執行exit0，自動17/20，AI逐題複核19/20。Q01替代來源、Q15日期空格為粗篩誤判；Q06確實漏品保簽核。原五題均正確。原始／中間／最終結果分別保留。獨立程式與逐題審查完成；非人類簽核。
+- **資料**：啟動原有db/api/web容器，未部署候選；36項保護資料／環境及13個檔案指紋一致，rag_indexes亦相同；6公司80帳號41專案502節點11文件12版本保留。備份在.superpowers/rag-quality-20261021，未上傳DB／附件／env／模型。
+- **接續**：先修Q06必要條件漏答與變體，重跑20題及語意複核，再備份、更新API／模型與衍生索引、比對舊資料和歷史引用、桌面／手機試用。詳見docs/rag-quality-handoff.md。
+- **保留其他工作**：SYS-PACK4草稿與使用者解壓的RAG虛構資料包資料夾保持原樣，不納入本次提交。先前自動核准服務因額度失敗，本輪已恢復並成功推送PR；未繞過審查。

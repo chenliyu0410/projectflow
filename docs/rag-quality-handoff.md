@@ -7,13 +7,13 @@
 - 原始 3B：20 題自動粗篩 16/20，逐題內容複核 15/20。
 - 中間候選：`evaluation-after.json` 14/20、`evaluation-final.json` 15/20；檔名 final 是實驗名稱，**不是驗收通過**。
 - 最終程式的 7B 重點比較：Q04/Q05/Q07/Q08/Q10/Q13/Q14/Q18 答案符合預期，僅是 8 題定向比較，不能視為 20 題通過。
-- 2026-10-22 完整 20 題正在跑；結果檔預定 `artifacts/rag-demo-data-2026-10-21/evaluation-accepted.json`。檔名 accepted 本身不代表通過，須看實際結果及逐題審查。
+- 2026-10-22 完整 20 題已跑完：自動粗篩 **17/20**、AI 逐題內容複核 **19/20**。原五題均修正，**Q06 漏品保陳奕安簽核**，仍需修正。Q01 替代來源與 Q15 日期空格是粗篩誤判。詳見 [完整結果](../artifacts/rag-demo-data-2026-10-21/品質驗證結果.md)及 `evaluation-accepted.json`；PR #5 維持 Draft。
 - 相關 API／pipeline／計算／權限／migration／文件測試：65 passed，exit 0。獨立程式審查已修正異常格式與小數精度問題，後續證據／數字映射複核無阻擋。
-- **本機尚未部署品質修正版**。舊服務保留在 15173；已建立候選映像，但未切換 API、未改模型設定、未重新索引。
+- **本機尚未部署品質修正版**。2026-10-22 既有原版容器曾停止，已沿用原容器啟動並完成資料比對：36 項保護資料／環境項目與 13 檔案指紋一致，索引亦未變。舊服務在 15173；未切換候選 API、未改模型設定、未重新索引。
 
 ## 在另一台電腦取回程式
 
-交接分支為 `codex/rag-quality-handoff`，PR 以現有 `feature/review-fixes` 分支為基底。原 PR #4 保持不變。遠端與本機各有同內容的 E2E 修正提交，交接分支將本機成果的檔案樹接在遠端提交之後，避免 force push；原始本機提交仍保留。
+交接分支為 `codex/rag-quality-handoff`，[PR #5](https://github.com/chenliyu0410/projectflow/pull/5) 以現有 `feature/review-fixes` 分支為基底。原 PR #4 保持不變。遠端與本機各有同內容的 E2E 修正提交，交接分支將本機成果的檔案樹接在遠端提交之後，避免 force push；原始本機提交仍保留。
 
 新資料夾可執行：
 
@@ -27,7 +27,7 @@ git switch codex/rag-quality-handoff
 
 ## 接續驗證與部署
 
-1. 先看本文件最終更新及 `evaluation-accepted.json`，確認最後 20 題是否真的完成；若仍有缺陷，修正並另存下一輪報告。
+1. 優先修 Q06 的必要條件漏答：通過 G2 除三份文件，還需品保陳奕安簽核。新增不同條件的變體測試，保持通用解法；重跑 20 題並另存下一輪報告。
 2. 使用 API 鎖定依賴、啟動本機 Ollama，確認有 `bge-m3:latest` 與 `qwen2.5-coder:7b`。模型權重不在 GitHub。
 3. 隔離評測指令（新檔名，避免覆蓋結果）：
 
