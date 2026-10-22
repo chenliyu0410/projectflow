@@ -1,0 +1,3 @@
+# Keep manifest-covered knowledge files in canonical LF form.
+current/* text eol=lf
+history/* text eol=lf

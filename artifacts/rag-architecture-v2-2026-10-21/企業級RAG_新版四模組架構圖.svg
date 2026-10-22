@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440" role="img" aria-labelledby="title desc"><title id="title">企業級 RAG 新版四模組分工架構</title><desc id="desc">A 知識接入與生命週期，B 智慧檢索與上下文，C 生成與應用，D 安全治理與運維評估貫穿三者。四人各二十相對點，姓名留白。箭頭區分知識更新、問答檢索、追蹤紀錄及治理回饋。</desc><defs><marker id="teal" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#51D8C6"/></marker><marker id="blue" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#87BEFF"/></marker><marker id="gold" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#F4C16D"/></marker><marker id="violet" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#CCB9FF"/></marker><marker id="trace" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#91AABB"/></marker></defs><g font-family="Microsoft JhengHei, Noto Sans CJK TC, sans-serif"><rect x="0" y="0" width="2560" height="1440" fill="#071B2B" stroke="none" stroke-width="1"/>
+<text x="60" y="73" font-size="54" font-weight="700" fill="#F5F8FA" text-anchor="start">企業級 RAG 四模組分工架構</text>
+<text x="62" y="125" font-size="29" font-weight="400" fill="#B3C7D3" text-anchor="start">新版分工　A 管知識　B 管檢索　C 管回答與介面　D 貫穿治理與評估</text>
+<text x="2498" y="75" font-size="26" font-weight="400" fill="#B3C7D3" text-anchor="end">建議架構　姓名待認領　各包 20 相對工作點</text>
+<text x="2498" y="123" font-size="25" font-weight="400" fill="#B3C7D3" text-anchor="end">介面是資料契約，可共用同一後端部署</text>
+<text x="1280" y="177" font-size="25" font-weight="600" fill="#51D8C6" text-anchor="middle">C → A　文件上傳：檔案／專案範圍</text>
+<path d="M 1960 270 L 1960 190 L 120 190 L 120 270" fill="none" stroke="#51D8C6" stroke-width="3" marker-end="url(#teal)"/>
+<text x="1280" y="222" font-size="25" font-weight="600" fill="#F4C16D" text-anchor="middle">A → C　文件狀態：解析／索引中／可查詢／失敗</text>
+<path d="M 160 270 L 160 235 L 1920 235 L 1920 270" fill="none" stroke="#F4C16D" stroke-width="3" marker-end="url(#gold)"/>
+<rect x="60" y="270" width="600" height="580" fill="#0C2638" stroke="#38586D" stroke-width="1.5"/>
+<rect x="60" y="270" width="6" height="580" fill="#51D8C6" stroke="none" stroke-width="1"/>
+<text x="88" y="319" font-size="42" font-weight="700" fill="#51D8C6" text-anchor="start">A</text>
+<text x="145" y="317" font-size="31" font-weight="700" fill="#F5F8FA" text-anchor="start">知識接入與資料生命週期</text>
+<text x="88" y="360" font-size="25" font-weight="400" fill="#B3C7D3" text-anchor="start">組員 A 姓名：____________</text>
+<text x="632" y="360" font-size="25" font-weight="400" fill="#B3C7D3" text-anchor="end">20 點</text>
+<path d="M 88 382 L 632 382" fill="none" stroke="#38586D" stroke-width="1.5"/>
+<text x="88" y="422" font-size="28" font-weight="700" fill="#51D8C6" text-anchor="start">知識盤點</text>
+<text x="88" y="454" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">來源、擁有者、權威文件與有效版本</text>
+<text x="88" y="486" font-size="28" font-weight="700" fill="#51D8C6" text-anchor="start">解析與清理</text>
+<text x="88" y="518" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">文字、標題、表格、重複內容處理</text>
+<text x="88" y="550" font-size="28" font-weight="700" fill="#51D8C6" text-anchor="start">結構化切片</text>
+<text x="88" y="582" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">依章條節切割，保留父子片段關係</text>
+<text x="88" y="614" font-size="28" font-weight="700" fill="#51D8C6" text-anchor="start">元資料管理</text>
+<text x="88" y="646" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">版本、生效日、來源位置與權限標籤</text>
+<text x="88" y="678" font-size="28" font-weight="700" fill="#51D8C6" text-anchor="start">生命週期</text>
+<text x="88" y="710" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">新增、改版、停用、封存與刪除</text>
+<path d="M 88 764 L 632 764" fill="none" stroke="#38586D" stroke-width="1.5"/>
+<text x="88" y="800" font-size="25" font-weight="600" fill="#F5F8FA" text-anchor="start">管理原文、片段及結構化元資料</text>
+<text x="88" y="832" font-size="22" font-weight="400" fill="#B3C7D3" text-anchor="start">六層映射：數據源／處理／結構化存儲</text>
+<rect x="980" y="270" width="600" height="580" fill="#0C2638" stroke="#38586D" stroke-width="1.5"/>
+<rect x="980" y="270" width="6" height="580" fill="#87BEFF" stroke="none" stroke-width="1"/>
+<text x="1008" y="319" font-size="42" font-weight="700" fill="#87BEFF" text-anchor="start">B</text>
+<text x="1065" y="317" font-size="31" font-weight="700" fill="#F5F8FA" text-anchor="start">智慧檢索與上下文建構</text>
+<text x="1008" y="360" font-size="25" font-weight="400" fill="#B3C7D3" text-anchor="start">組員 B 姓名：____________</text>
+<text x="1552" y="360" font-size="25" font-weight="400" fill="#B3C7D3" text-anchor="end">20 點</text>
+<path d="M 1008 382 L 1552 382" fill="none" stroke="#38586D" stroke-width="1.5"/>
+<text x="1008" y="422" font-size="28" font-weight="700" fill="#87BEFF" text-anchor="start">向量化與索引</text>
+<text x="1008" y="454" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">統一 Embedding，維護文字及向量索引</text>
+<text x="1008" y="486" font-size="28" font-weight="700" fill="#87BEFF" text-anchor="start">查詢理解</text>
+<text x="1008" y="518" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">糾錯、意圖、同義詞與多輪問題改寫</text>
+<text x="1008" y="550" font-size="28" font-weight="700" fill="#87BEFF" text-anchor="start">混合檢索</text>
+<text x="1008" y="582" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">先限制授權範圍，再召回與排名融合</text>
+<text x="1008" y="614" font-size="28" font-weight="700" fill="#87BEFF" text-anchor="start">重排序</text>
+<text x="1008" y="646" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">Rerank 精選可支持回答的候選片段</text>
+<text x="1008" y="678" font-size="28" font-weight="700" fill="#87BEFF" text-anchor="start">上下文建構</text>
+<text x="1008" y="710" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">父片段再授權、去重、長度與來源</text>
+<path d="M 1008 764 L 1552 764" fill="none" stroke="#38586D" stroke-width="1.5"/>
+<text x="1008" y="800" font-size="25" font-weight="600" fill="#F5F8FA" text-anchor="start">交付已授權、可引用的證據包</text>
+<text x="1008" y="832" font-size="22" font-weight="400" fill="#B3C7D3" text-anchor="start">六層映射：向量化／檢索索引／檢索增強</text>
+<rect x="1900" y="270" width="600" height="580" fill="#0C2638" stroke="#38586D" stroke-width="1.5"/>
+<rect x="1900" y="270" width="6" height="580" fill="#F4C16D" stroke="none" stroke-width="1"/>
+<text x="1928" y="319" font-size="42" font-weight="700" fill="#F4C16D" text-anchor="start">C</text>
+<text x="1985" y="317" font-size="31" font-weight="700" fill="#F5F8FA" text-anchor="start">生成服務與應用互動</text>
+<text x="1928" y="360" font-size="25" font-weight="400" fill="#B3C7D3" text-anchor="start">組員 C 姓名：____________</text>
+<text x="2472" y="360" font-size="25" font-weight="400" fill="#B3C7D3" text-anchor="end">20 點</text>
+<path d="M 1928 382 L 2472 382" fill="none" stroke="#38586D" stroke-width="1.5"/>
+<text x="1928" y="422" font-size="28" font-weight="700" fill="#F4C16D" text-anchor="start">問答協調</text>
+<text x="1928" y="454" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">接收問題，呼叫檢索與模型服務</text>
+<text x="1928" y="486" font-size="28" font-weight="700" fill="#F4C16D" text-anchor="start">生成與引用</text>
+<text x="1928" y="518" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">Prompt、引用檢查、無答案與矛盾處理</text>
+<text x="1928" y="550" font-size="28" font-weight="700" fill="#F4C16D" text-anchor="start">模型連線</text>
+<text x="1928" y="582" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">LLM 呼叫、逾時、取消、錯誤處理</text>
+<text x="1928" y="614" font-size="28" font-weight="700" fill="#F4C16D" text-anchor="start">使用者介面</text>
+<text x="1928" y="646" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">Web／API、上傳、提問與回答呈現</text>
+<text x="1928" y="678" font-size="28" font-weight="700" fill="#F4C16D" text-anchor="start">來源與回饋</text>
+<text x="1928" y="710" font-size="26" font-weight="400" fill="#F5F8FA" text-anchor="start">原文檢視、使用者回饋與登入狀態隔離</text>
+<path d="M 1928 764 L 2472 764" fill="none" stroke="#38586D" stroke-width="1.5"/>
+<text x="1928" y="800" font-size="25" font-weight="600" fill="#F5F8FA" text-anchor="start">管理問答 API、對話介面及 Prompt</text>
+<text x="1928" y="832" font-size="22" font-weight="400" fill="#B3C7D3" text-anchor="start">六層映射：生成／應用入口</text>
+<text x="820" y="418" font-size="27" font-weight="700" fill="#51D8C6" text-anchor="middle">KnowledgePackage</text>
+<text x="820" y="454" font-size="24" font-weight="400" fill="#B3C7D3" text-anchor="middle">片段／父子關係／來源</text>
+<text x="820" y="485" font-size="24" font-weight="400" fill="#B3C7D3" text-anchor="middle">有效版本／權限標籤</text>
+<path d="M 660 507 L 980 507" fill="none" stroke="#51D8C6" stroke-width="3" marker-end="url(#teal)"/>
+<text x="820" y="590" font-size="27" font-weight="700" fill="#51D8C6" text-anchor="middle">KnowledgeChange</text>
+<text x="820" y="626" font-size="24" font-weight="400" fill="#B3C7D3" text-anchor="middle">新增／改版／停用／刪除</text>
+<path d="M 660 650 L 980 650" fill="none" stroke="#51D8C6" stroke-width="3" stroke-dasharray="10 8" marker-end="url(#teal)"/>
+<text x="820" y="741" font-size="27" font-weight="700" fill="#F4C16D" text-anchor="middle">IndexStatus</text>
+<text x="820" y="777" font-size="24" font-weight="400" fill="#B3C7D3" text-anchor="middle">索引版本／完成／失敗</text>
+<path d="M 980 807 L 660 807" fill="none" stroke="#F4C16D" stroke-width="3" marker-end="url(#gold)"/>
+<text x="1740" y="418" font-size="27" font-weight="700" fill="#87BEFF" text-anchor="middle">RetrievalRequest</text>
+<text x="1740" y="454" font-size="24" font-weight="400" fill="#B3C7D3" text-anchor="middle">問題／範圍／授權資訊</text>
+<text x="1740" y="485" font-size="24" font-weight="400" fill="#B3C7D3" text-anchor="middle">檢索設定／追蹤 ID</text>
+<path d="M 1900 507 L 1580 507" fill="none" stroke="#87BEFF" stroke-width="3" marker-end="url(#blue)"/>
+<text x="1740" y="646" font-size="27" font-weight="700" fill="#F4C16D" text-anchor="middle">ContextBundle</text>
+<text x="1740" y="682" font-size="24" font-weight="400" fill="#B3C7D3" text-anchor="middle">證據文字／引用 ID／來源</text>
+<text x="1740" y="713" font-size="24" font-weight="400" fill="#B3C7D3" text-anchor="middle">排序／索引版本</text>
+<path d="M 1580 744 L 1900 744" fill="none" stroke="#F4C16D" stroke-width="3" marker-end="url(#gold)"/>
+<path d="M 112 850 L 112 1090" fill="none" stroke="#91AABB" stroke-width="3" stroke-dasharray="10 8" marker-end="url(#trace)"/>
+<text x="144" y="922" font-size="26" font-weight="700" fill="#91AABB" text-anchor="start">TraceEvent</text>
+<text x="144" y="955" font-size="23" font-weight="400" fill="#B3C7D3" text-anchor="start">階段／版本／耗時／錯誤</text>
+<path d="M 1032 850 L 1032 1090" fill="none" stroke="#91AABB" stroke-width="3" stroke-dasharray="10 8" marker-end="url(#trace)"/>
+<text x="1064" y="922" font-size="26" font-weight="700" fill="#91AABB" text-anchor="start">TraceEvent</text>
+<text x="1064" y="955" font-size="23" font-weight="400" fill="#B3C7D3" text-anchor="start">階段／版本／耗時／錯誤</text>
+<path d="M 1952 850 L 1952 1090" fill="none" stroke="#91AABB" stroke-width="3" stroke-dasharray="10 8" marker-end="url(#trace)"/>
+<text x="1984" y="922" font-size="26" font-weight="700" fill="#91AABB" text-anchor="start">TraceEvent</text>
+<text x="1984" y="955" font-size="23" font-weight="400" fill="#B3C7D3" text-anchor="start">階段／版本／耗時／錯誤</text>
+<path d="M 608 1090 L 608 850" fill="none" stroke="#CCB9FF" stroke-width="3" stroke-dasharray="10 8" marker-end="url(#violet)"/>
+<text x="576" y="1019" font-size="26" font-weight="700" fill="#CCB9FF" text-anchor="end">EvaluationReport</text>
+<text x="576" y="1052" font-size="23" font-weight="400" fill="#B3C7D3" text-anchor="end">品質回饋／生命週期規則</text>
+<path d="M 1528 1090 L 1528 850" fill="none" stroke="#CCB9FF" stroke-width="3" stroke-dasharray="10 8" marker-end="url(#violet)"/>
+<text x="1496" y="1008" font-size="26" font-weight="700" fill="#CCB9FF" text-anchor="end">AccessContext</text>
+<text x="1496" y="1041" font-size="26" font-weight="700" fill="#CCB9FF" text-anchor="end">EvaluationReport</text>
+<text x="1496" y="1073" font-size="22" font-weight="400" fill="#B3C7D3" text-anchor="end">後端授權範圍／評測回饋</text>
+<path d="M 2448 1090 L 2448 850" fill="none" stroke="#CCB9FF" stroke-width="3" stroke-dasharray="10 8" marker-end="url(#violet)"/>
+<text x="2416" y="1008" font-size="26" font-weight="700" fill="#CCB9FF" text-anchor="end">AccessContext</text>
+<text x="2416" y="1041" font-size="26" font-weight="700" fill="#CCB9FF" text-anchor="end">EvaluationReport</text>
+<text x="2416" y="1073" font-size="22" font-weight="400" fill="#B3C7D3" text-anchor="end">後端授權範圍／評測回饋</text>
+<rect x="60" y="1090" width="2440" height="280" fill="#0C2638" stroke="#38586D" stroke-width="1.5"/>
+<rect x="60" y="1090" width="6" height="280" fill="#CCB9FF" stroke="none" stroke-width="1"/>
+<text x="88" y="1143" font-size="42" font-weight="700" fill="#CCB9FF" text-anchor="start">D</text>
+<text x="145" y="1141" font-size="34" font-weight="700" fill="#F5F8FA" text-anchor="start">安全治理與運維評估</text>
+<text x="1740" y="1141" font-size="25" font-weight="400" fill="#B3C7D3" text-anchor="start">組員 D 姓名：____________</text>
+<text x="2472" y="1141" font-size="25" font-weight="400" fill="#B3C7D3" text-anchor="end">20 點</text>
+<path d="M 88 1162 L 2472 1162" fill="none" stroke="#38586D" stroke-width="1.5"/>
+<text x="88" y="1209" font-size="29" font-weight="700" fill="#CCB9FF" text-anchor="start">權限與分級</text>
+<text x="88" y="1252" font-size="25" font-weight="400" fill="#F5F8FA" text-anchor="start">角色／部門／密級／授權規則</text>
+<text x="88" y="1288" font-size="25" font-weight="400" fill="#F5F8FA" text-anchor="start">各模組執行檢查，原文開啟再授權</text>
+<text x="690" y="1209" font-size="29" font-weight="700" fill="#CCB9FF" text-anchor="start">全流程追蹤與稽核</text>
+<text x="690" y="1252" font-size="25" font-weight="400" fill="#F5F8FA" text-anchor="start">追蹤 ID、紀錄格式、保存期限</text>
+<text x="690" y="1288" font-size="25" font-weight="400" fill="#F5F8FA" text-anchor="start">限制日誌存取，敏感內容遮罩</text>
+<text x="1290" y="1209" font-size="29" font-weight="700" fill="#CCB9FF" text-anchor="start">監控與設定版本</text>
+<text x="1290" y="1252" font-size="25" font-weight="400" fill="#F5F8FA" text-anchor="start">錯誤率／延遲／Token／成本</text>
+<text x="1290" y="1288" font-size="25" font-weight="400" fill="#F5F8FA" text-anchor="start">模型、Prompt、索引與參數版本</text>
+<text x="1890" y="1209" font-size="29" font-weight="700" fill="#CCB9FF" text-anchor="start">品質評估與改善</text>
+<text x="1890" y="1252" font-size="25" font-weight="400" fill="#F5F8FA" text-anchor="start">Recall／Precision／忠實度／引用</text>
+<text x="1890" y="1288" font-size="25" font-weight="400" fill="#F5F8FA" text-anchor="start">固定題組、版本比較、問題分派</text>
+<text x="88" y="1344" font-size="24" font-weight="400" fill="#B3C7D3" text-anchor="start">共同責任：A／B／C 提供紀錄與測試證據並修正所屬問題；D 負責規則、評測工具及結果彙整。</text>
+<text x="60" y="1412" font-size="23" font-weight="400" fill="#B3C7D3" text-anchor="start">來源：企業級 RAG 教學簡報第 14–20、26–32、37–40 頁。此圖為規劃分工，非已完成功能；20 點為本版相對估算。</text></g></svg>

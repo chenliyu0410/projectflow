@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
-from app.routes import collaboration, notifications, report_fields, ai, documents, operations, operation_links, inventory, purchasing, production
+from app.routes import collaboration, notifications, report_fields, ai, rag, documents, operations, operation_links, inventory, purchasing, production
 from app.routes import audit_logs, auth, departments, projects, reports, workflows, workspace, records, collaborators, attachments, dependencies, conditions
 
 
@@ -63,6 +63,7 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
                           docs_url="/docs" if docs else None, redoc_url="/redoc" if docs else None)
     application.add_middleware(OriginCheckMiddleware)
     application.include_router(ai.router)
+    application.include_router(rag.router)
     application.include_router(documents.router)
     application.include_router(operations.router)
     application.include_router(operation_links.router)

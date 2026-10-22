@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import NavIcon from './NavIcons';
 import ModelSettings from './ModelSettings';
+import FormalRagPanel from './FormalRagPanel';
 import { ai } from '../ai';
 import type { AIResult, AIStatus } from '../ai';
 import { ApiError } from '../api';
@@ -10,6 +11,7 @@ const HEADINGS: Record<string, string> = { project_id: 'AI專案', task_id: '任
 const STATUS: Record<string, string> = { done: '完成', doing: '進行中', review: '待審核', rejected: '退回', todo: '未開始', blocked: '受阻' };
 
 export default function CopilotPanel({ scope, open, close, companyName = '目前公司', expired }: { scope: string; open: boolean; close: () => void; food?: boolean; companyName?: string; expired?: () => void }) {
+  const [sourceMode, setSourceMode] = useState<'demo' | 'formal'>('demo');
   const [status, setStatus] = useState<AIStatus | null>(null);
   const [error, setError] = useState('');
   const [mode, setMode] = useState<'rag' | 'sql'>('rag');
@@ -66,7 +68,8 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
   const quick = mode === 'rag' ? ['現行交付需要幾張截圖？', '風險原因與處理方式', '採購追蹤紀錄'] : ['各部門逾期未完成數', '超支專案及金額', '各專案加權不良率'];
   return <aside id="copilot-panel" className={`copilot ${open ? 'open' : ''}`} aria-label="AI 專案副手" hidden={!open}>
     <div className="copilot-head"><span className="copilot-avatar"><NavIcon name="ai" /></span><div><strong className="brand-name">AI 專案副手</strong><small>目前位置：{scope}</small></div><button ref={closeButton} className="copilot-close" aria-label="關閉 AI 副手" onClick={close}>✕</button></div>
-    <p className="copilot-policy">{status?.model_enabled ? `本地模型：${status.model_name}` : '模型未啟用・檢索與資料查詢可用'}</p>
+    <label>資料來源<select aria-label="資料來源" value={sourceMode} onChange={e => { clear(); setSourceMode(e.target.value as 'demo' | 'formal'); }}><option value="demo">展示資料</option><option value="formal">正式文件</option></select></label>
+    {sourceMode === 'formal' ? (open && <FormalRagPanel expired={expired} />) : <><p className="copilot-policy">{status?.model_enabled ? `本地模型：${status.model_name}` : '模型未啟用・檢索與資料查詢可用'}</p>
     <p className="copilot-example-note">{companyName}・AI展示資料區<br />{status?.ready ? `${status.counts.projects} 個專案／${status.counts.documents} 份可見文件・基準日 ${status.as_of}` : '資料尚未就緒'}。虛構延伸案，與目前正式任務分開；查詢不修改任務。</p>
     <div className="ai-controls">
       <label>查詢方式<select aria-label="查詢方式" value={mode} onChange={e => { clear(); setMode(e.target.value as 'rag' | 'sql'); setQuery(''); }}><option value="rag">RAG 文件問答</option><option value="sql" disabled={!status?.can_sql}>Text-to-SQL 資料分析</option></select></label>
@@ -87,5 +90,6 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
     </div>
     <form className="copilot-ask" onSubmit={e => { e.preventDefault(); const selected = status?.queries.find(q => q.query_id === query); void ask(selected ? selected.label : input, query || undefined); }}><label className="sr-only" htmlFor="copilot-input">詢問 AI</label><input id="copilot-input" maxLength={2000} value={input} disabled={busy} onChange={e => setInput(e.target.value)} placeholder={mode === 'rag' ? '查交付規範、風險或會議紀錄…' : query ? '將執行上方選定分析' : '例如：各部門逾期未完成數'} /><button type="submit" disabled={busy || !status?.ready || (!input.trim() && !query)} aria-label="送出 AI 問題"><NavIcon name="send" /></button></form>
     {status?.can_configure && <details className="ai-model-details" onToggle={e => setSettingsOpen(e.currentTarget.open)}><summary>本地模型連線設定</summary>{settingsOpen && <ModelSettings saved={() => setRefresh(v => v + 1)} />}</details>}
+    </>}
   </aside>;
 }

@@ -1,0 +1,14 @@
+build/*
+!build/build.mjs
+!build/cover.png
+!build/add-shots.mjs
+!build/add-competition.mjs
+!build/build-career.mjs
+!build/update-value-tables.mjs
+output/*_v2.pptx
+output/*_差異化分析版_*.pptx
+output/*_AI應用工程師求職簡報_*.pptx
+screenshots/02-timeline.png
+screenshots/03-report.png
+screenshots/04-documents-before.png
+screenshots/05-operations-full.png

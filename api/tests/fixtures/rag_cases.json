@@ -1,0 +1,9 @@
+[
+  {"id":"authorized-answer","expected_kind":"rag","expected_source_ids":["synthetic-current-1"],"required_source_ids":["synthetic-current-1"],"fixture_result":{"kind":"rag","sources":[{"source_id":"synthetic-current-1","is_current":true}],"citations":["synthetic-current-1"]}},
+  {"id":"cross-company-denied","expected_kind":"no_sources","expected_source_ids":[],"fixture_result":{"kind":"no_sources","sources":[],"citations":[]}},
+  {"id":"hidden-node-denied","expected_kind":"no_sources","expected_source_ids":[],"fixture_result":{"kind":"no_sources","sources":[],"citations":[]}},
+  {"id":"stale-version-excluded","expected_kind":"no_sources","expected_source_ids":[],"fixture_result":{"kind":"no_sources","sources":[],"citations":[]}},
+  {"id":"insufficient-evidence","expected_kind":"no_sources","expected_source_ids":[],"fixture_result":{"kind":"no_sources","sources":[],"citations":[]}},
+  {"id":"invalid-model-citation-rejected","expected_kind":"no_sources","expected_source_ids":[],"expected_failure":"invalid_citation","fixture_result":{"kind":"no_sources","error_code":"invalid_citation","sources":[],"citations":[]}},
+  {"id":"model-unavailable-degraded","expected_kind":"retrieval","expected_source_ids":["synthetic-current-1"],"required_source_ids":["synthetic-current-1"],"expected_failure":"model_unavailable","fixture_result":{"kind":"retrieval","error_code":"model_unavailable","sources":[{"source_id":"synthetic-current-1","is_current":true}],"citations":["synthetic-current-1"]}}
+]

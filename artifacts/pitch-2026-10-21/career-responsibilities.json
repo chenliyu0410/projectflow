@@ -1,0 +1,119 @@
+{
+  "purpose": "AI應用工程師求職作品集",
+  "status": "建議認領，非歷史個人貢獻紀錄",
+  "basis": "依使用者提供姓名順序分配。每人4項、12點，共48點；點數是相對工作量估算，不是工時、實績或程式貢獻比例。工作範圍為程式理解、驗證、維護與展示，不聲稱已由該人獨立開發。",
+  "tasks": [
+    {
+      "name": "李奕儒",
+      "role": "AI 互動與前端整合",
+      "skill": "React、TypeScript、Vitest",
+      "items": [
+        [
+          "工作區與任務互動",
+          "梳理元件、狀態與操作流程",
+          4
+        ],
+        [
+          "AI 副手使用流程",
+          "驗證提問、引用、切案與錯誤提示",
+          3
+        ],
+        [
+          "API 契約整合",
+          "核對型別、請求與錯誤顯示",
+          2
+        ],
+        [
+          "前端測試與展示",
+          "整理測試證據與一條示範路徑",
+          3
+        ]
+      ],
+      "evidence": "web/src/components/CopilotPanel.tsx；web/src/ai.ts；web/src/ai.test.tsx；web/src/components/NodeWorkspace.tsx"
+    },
+    {
+      "name": "李倫安",
+      "role": "API、權限與工作流",
+      "skill": "FastAPI、Session、pytest",
+      "items": [
+        [
+          "公司與角色權限",
+          "驗證 Session、節點與 AI 存取範圍",
+          4
+        ],
+        [
+          "任務與交付規則",
+          "追蹤回報、閘門與覆寫 API",
+          3
+        ],
+        [
+          "稽核與例外處理",
+          "核對錯誤回應及業務操作紀錄",
+          2
+        ],
+        [
+          "後端測試與展示",
+          "整理越權、退回與例外案例",
+          3
+        ]
+      ],
+      "evidence": "api/app/auth.py；api/app/permissions.py；api/app/routes/ai.py；api/app/services；api/tests"
+    },
+    {
+      "name": "廖洪茹",
+      "role": "資料建模與檢索",
+      "skill": "PostgreSQL、FTS5、SQL",
+      "items": [
+        [
+          "業務資料模型",
+          "說明任務、營運關聯與交易規則",
+          4
+        ],
+        [
+          "文件檢索流程",
+          "驗證 FTS5／BM25 與角色過濾",
+          3
+        ],
+        [
+          "受控 SQL 分析",
+          "核對 16 種模板、參數與唯讀限制",
+          3
+        ],
+        [
+          "資料升級與匯入",
+          "整理 migration 與隔離資料驗證",
+          2
+        ]
+      ],
+      "evidence": "api/app/models.py；api/alembic；api/app/ai/store.py；api/app/ai/queries.json；api/app/ai/import_cli.py"
+    },
+    {
+      "name": "劉力瑜",
+      "role": "模型串接與部署驗證",
+      "skill": "Ollama、Docker、測試評估",
+      "items": [
+        [
+          "模型連線與回退",
+          "驗證端點、格式、引用及失敗回退",
+          4
+        ],
+        [
+          "容器部署與健檢",
+          "梳理 web／api／db 與資料 volume",
+          3
+        ],
+        [
+          "AI 情境評估",
+          "核對有來源、無來源與不支援問題",
+          3
+        ],
+        [
+          "CI 與端對端交付",
+          "整理測試流程、展示與重現步驟",
+          2
+        ]
+      ],
+      "evidence": "api/app/ai/model.py；api/app/ai/service.py；deploy；.github/workflows/ci.yml；web/e2e/ai.spec.ts"
+    }
+  ]
+}

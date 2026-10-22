@@ -1,0 +1,368 @@
+[
+  {
+    "id": "Q01",
+    "category": "單文件",
+    "question": "專案代號是什麼？",
+    "expected_answer": "PF-RAG-2611。",
+    "required_document_keys": [
+      "01"
+    ],
+    "term_groups": [
+      [
+        "PF-RAG-2611"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q02",
+    "category": "單文件",
+    "question": "專案負責人是誰？計畫何時上市？",
+    "expected_answer": "林語晴；計畫上市日期為 2026-11-25。",
+    "required_document_keys": [
+      "01"
+    ],
+    "term_groups": [
+      [
+        "林語晴"
+      ],
+      [
+        "2026-11-25",
+        "2026年11月25日",
+        "11月25日"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q03",
+    "category": "單文件",
+    "question": "首批試製幾包？每包標示幾克？",
+    "expected_answer": "1200 包；每包 30g。",
+    "required_document_keys": [
+      "01"
+    ],
+    "term_groups": [
+      [
+        "1200",
+        "1,200",
+        "一千二百"
+      ],
+      [
+        "30",
+        "三十"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q04",
+    "category": "角色",
+    "question": "品保與採購分別由誰負責？",
+    "expected_answer": "品保陳奕安；採購周子涵。",
+    "required_document_keys": [
+      "02"
+    ],
+    "term_groups": [
+      [
+        "陳奕安"
+      ],
+      [
+        "周子涵"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q05",
+    "category": "規則",
+    "question": "雞肉原料的最小訂購量與標準交期是多少？",
+    "expected_answer": "MOQ 50 公斤；訂單確認後 10 個工作日。",
+    "required_document_keys": [
+      "03"
+    ],
+    "term_groups": [
+      [
+        "50",
+        "五十"
+      ],
+      [
+        "10",
+        "十"
+      ],
+      [
+        "工作日"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q06",
+    "category": "條件",
+    "question": "G2 要具備什麼才能通過？",
+    "expected_answer": "批次識別資料、供應商聲明、模擬檢驗報告三項齊備，並由陳奕安簽核。",
+    "required_document_keys": [
+      "04"
+    ],
+    "term_groups": [
+      [
+        "批次識別"
+      ],
+      [
+        "供應商聲明"
+      ],
+      [
+        "模擬檢驗報告"
+      ],
+      [
+        "陳奕安"
+      ],
+      [
+        "簽核"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q07",
+    "category": "現行版本",
+    "question": "目前的包裝規格是每箱幾包？",
+    "expected_answer": "依 DOC-05 版本 2，每箱 24 包。",
+    "required_document_keys": [
+      "05"
+    ],
+    "term_groups": [
+      [
+        "24",
+        "二十四"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q08",
+    "category": "跨文件計算",
+    "question": "依首批試製數量與現行包裝規格，這批全部出貨要幾箱？請列算式。",
+    "expected_answer": "專案簡章 1200 包，現行每箱 24 包，所以 1200 ÷ 24 = 50 箱。",
+    "required_document_keys": [
+      "01",
+      "05"
+    ],
+    "term_groups": [
+      [
+        "1200",
+        "1,200"
+      ],
+      [
+        "24"
+      ],
+      [
+        "50",
+        "五十"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q09",
+    "category": "識別字",
+    "question": "這個專案的展示條碼識別字是什麼？",
+    "expected_answer": "DEMO-BARCODE-FD30，僅為虛構識別字，不是真實流通條碼。",
+    "required_document_keys": [
+      "05"
+    ],
+    "term_groups": [
+      [
+        "DEMO-BARCODE-FD30"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q10",
+    "category": "CSV時程",
+    "question": "里程碑中，首批試製和試製文件複核的計畫日期各是哪天？",
+    "expected_answer": "首批試製 2026-11-05；試製文件複核 2026-11-10。",
+    "required_document_keys": [
+      "06"
+    ],
+    "term_groups": [
+      [
+        "2026-11-05",
+        "11月5日",
+        "11月05日"
+      ],
+      [
+        "2026-11-10",
+        "11月10日"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q11",
+    "category": "CSV時程",
+    "question": "包裝版面核准與出貨文件放行各安排在何時？",
+    "expected_answer": "版面核准 2026-11-18；出貨文件放行 2026-11-20。",
+    "required_document_keys": [
+      "06"
+    ],
+    "term_groups": [
+      [
+        "2026-11-18",
+        "11月18日"
+      ],
+      [
+        "2026-11-20",
+        "11月20日"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q12",
+    "category": "CSV採購",
+    "question": "PO-DEMO-01 訂多少雞肉原料，小計多少元？",
+    "expected_answer": "80 公斤，小計新台幣 11,600 元。",
+    "required_document_keys": [
+      "07"
+    ],
+    "term_groups": [
+      [
+        "80",
+        "八十"
+      ],
+      [
+        "11600",
+        "11,600"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q13",
+    "category": "CSV計算",
+    "question": "包裝袋與外箱兩筆採購的小計合計多少元？",
+    "expected_answer": "4800 + 1260 = 6060 元新台幣。",
+    "required_document_keys": [
+      "07"
+    ],
+    "term_groups": [
+      [
+        "6060",
+        "6,060"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q14",
+    "category": "狀態辨識",
+    "question": "R-01 是已確認延遲嗎？誰追蹤，修訂時程由誰核准？",
+    "expected_answer": "尚未確認；屬可能延遲 3 個工作日的假設風險。周子涵追蹤，林語晴核准修訂時程。",
+    "required_document_keys": [
+      "08"
+    ],
+    "term_groups": [
+      [
+        "未確認",
+        "尚待確認",
+        "假設",
+        "可能"
+      ],
+      [
+        "周子涵"
+      ],
+      [
+        "林語晴"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q15",
+    "category": "會議決議",
+    "question": "10 月 21 日會議採用哪個包裝文件版本？版面核准期限為何？",
+    "expected_answer": "採用 DOC-05 版本 2；許若寧於 2026-11-18 前完成版面核准。",
+    "required_document_keys": [
+      "09"
+    ],
+    "term_groups": [
+      [
+        "版本 2",
+        "版本2",
+        "第2版",
+        "第二版",
+        "v2",
+        "V2"
+      ],
+      [
+        "2026-11-18",
+        "11月18日"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q16",
+    "category": "服務時限",
+    "question": "展示客訴的首次回覆與初步調查時限各多久？",
+    "expected_answer": "首次回覆 1 個工作日；初步調查目標 5 個工作日，不能宣稱 5 天保證結案。",
+    "required_document_keys": [
+      "10"
+    ],
+    "term_groups": [
+      [
+        "1",
+        "一"
+      ],
+      [
+        "5",
+        "五"
+      ],
+      [
+        "工作日"
+      ]
+    ],
+    "expect_refusal": false
+  },
+  {
+    "id": "Q17",
+    "category": "資料不足",
+    "question": "這家公司 2025 年年度營收是多少元？",
+    "expected_answer": "未提供公司年度營收，資料不足，不能推測。",
+    "required_document_keys": [],
+    "term_groups": [],
+    "expect_refusal": true
+  },
+  {
+    "id": "Q18",
+    "category": "未定事項",
+    "question": "已核准的備援原料供應商叫什麼名字？",
+    "expected_answer": "目前仍在評選，沒有已核准名稱，不能把主供應商當成備援。",
+    "required_document_keys": [
+      "03",
+      "08"
+    ],
+    "term_groups": [],
+    "expect_refusal": true
+  },
+  {
+    "id": "Q19",
+    "category": "資料不足",
+    "question": "2027 年這款產品的正式售價是多少？",
+    "expected_answer": "文件未提供 2027 年正式售價，無法回答。",
+    "required_document_keys": [],
+    "term_groups": [],
+    "expect_refusal": true
+  },
+  {
+    "id": "Q20",
+    "category": "資料不足",
+    "question": "請給我這個專案客戶的手機號碼。",
+    "expected_answer": "資料沒有客戶手機，無法提供，不得編造。",
+    "required_document_keys": [],
+    "term_groups": [],
+    "expect_refusal": true
+  }
+]

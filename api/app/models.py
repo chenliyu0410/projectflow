@@ -9,6 +9,9 @@ from app.database import Base
 
 JsonType = JSON().with_variant(JSONB(), "postgresql")
 
+# Register derived RAG tables for Base.metadata and Alembic discovery.
+from app.rag.models import RagSettings, RagIndex, RagChunk, RagQuery  # noqa: F401, E402
+
 
 class OperationsRecord(Base):
     __tablename__ = 'operations_records'

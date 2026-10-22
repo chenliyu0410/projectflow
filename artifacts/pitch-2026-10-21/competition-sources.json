@@ -1,0 +1,66 @@
+{
+  "verifiedOn": "2026-10-21",
+  "method": "官方文件與搜尋索引核對，非付費帳號橫向實測。Odoo部分頁面直接讀取逾時，採官方網域搜尋摘錄，不引用未讀到的細節。",
+  "sources": [
+    {
+      "id": 1,
+      "product": "Notion",
+      "title": "Relations & rollups",
+      "url": "https://www.notion.com/help/relations-and-rollups",
+      "claim": "資料庫之間可建立關聯與彙總。"
+    },
+    {
+      "id": 2,
+      "product": "Notion",
+      "title": "Sub-items & dependencies",
+      "url": "https://www.notion.com/help/tasks-and-dependencies",
+      "claim": "支援子任務、相依與日期自動調整。"
+    },
+    {
+      "id": 3,
+      "product": "Asana",
+      "title": "Approvals",
+      "url": "https://help.asana.com/s/article/approvals",
+      "claim": "核准任務可同意、要求修改或拒絕。可用方案需確認。"
+    },
+    {
+      "id": 4,
+      "product": "monday.com",
+      "title": "The Connect Boards Column",
+      "url": "https://support.monday.com/hc/en-us/articles/360000635139-The-Connect-Boards-Column",
+      "claim": "連結不同看板項目，並用鏡像欄位顯示關聯資料。"
+    },
+    {
+      "id": 5,
+      "product": "Odoo",
+      "title": "Manufacturing product configuration（20.0）",
+      "url": "https://www.odoo.com/documentation/20.0/applications/inventory_and_mrp/manufacturing/management/configure_manufacturing_product.html",
+      "claim": "製造模組有BOM及批號／序號設定。"
+    },
+    {
+      "id": 6,
+      "product": "Odoo",
+      "title": "Pricing / hosting options",
+      "url": "https://www.odoo.com/pricing",
+      "claim": "官方方案說明包括Odoo Online、Odoo.sh與On-premise。未引用價格，也不假設所有方案均支援自管。"
+    },
+    {
+      "id": 7,
+      "product": "Odoo",
+      "title": "Allocation report（20.0）",
+      "url": "https://www.odoo.com/documentation/20.0/applications/inventory_and_mrp/manufacturing/workflows/allocation.html",
+      "claim": "採購／製造單與收貨入庫可用於滿足需求配置。"
+    }
+  ],
+  "localEvidence": [
+    "README.md §2 功能總覽",
+    "README.md §8 後續路線圖",
+    "screenshots/provenance.json"
+  ],
+  "boundaries": [
+    "比較情境是分析判斷，不是完整功能或效能排名。",
+    "導入、追查與成本優勢是待驗證假設。",
+    "自管部署不是獨家能力。",
+    "沒有ERP／AD串接、正式AI資料整合或正式安全部署完成的主張。"
+  ]
+}

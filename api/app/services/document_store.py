@@ -111,6 +111,18 @@ async def save(db, current, node_id, chunks, filename, comment, *, document_id=N
             version=doc.current_version, filename=filename, storage_key=key, size_bytes=total,
             sha256=digest.hexdigest(), created_by=actor, created_at=now_utc(), comment=comment.strip())
         db.add(row)
+        # Durable queue marker belongs to the same transaction as the new immutable version.
+        # Parsing and model requests run only when an editor explicitly starts indexing.
+        from app.rag.models import RagIndex
+        index = db.get(RagIndex, doc.id)
+        if index is None:
+            db.add(RagIndex(document_id=doc.id, organization_id=org, version=row.version))
+        else:
+            index.version = row.version
+            index.state = 'queued'
+            index.claim = None
+            index.error_code = None
+            index.updated_at = now_utc()
         quota.charged_bytes += total
         log_audit(db, current, 'document.version', node_id=node_id,
             payload={'project_id': project_id, 'document_id': doc.id, 'version': row.version, 'filename': filename, 'sha256': row.sha256})
