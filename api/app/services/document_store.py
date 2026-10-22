@@ -116,13 +116,17 @@ async def save(db, current, node_id, chunks, filename, comment, *, document_id=N
         from app.rag.models import RagIndex
         index = db.get(RagIndex, doc.id)
         if index is None:
-            db.add(RagIndex(document_id=doc.id, organization_id=org, version=row.version))
+            index = RagIndex(document_id=doc.id, organization_id=org, version=row.version, enabled=True)
+            db.add(index)
         else:
             index.version = row.version
             index.state = 'queued'
             index.claim = None
             index.error_code = None
             index.updated_at = now_utc()
+        if index.enabled:
+            from app.rag.indexing import enqueue
+            enqueue(index, actor)
         quota.charged_bytes += total
         log_audit(db, current, 'document.version', node_id=node_id,
             payload={'project_id': project_id, 'document_id': doc.id, 'version': row.version, 'filename': filename, 'sha256': row.sha256})

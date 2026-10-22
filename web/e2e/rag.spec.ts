@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { closeProjectDrawer, openProjects } from './navigation';
 
-for (const width of [1280, 375]) test(`formal document upload, index, retrieval, original source and feedback ${width}`, async ({ page, request }, info) => {
+for (const width of [1280, 375]) test(`formal document upload, automatic index, retrieval, original source and feedback ${width}`, async ({ page, request }, info) => {
   test.setTimeout(90000);
   await page.setViewportSize({ width, height: 900 });
   expect(await (await request.get('/api/health/acceptance')).json()).toEqual({ acceptance: true });
@@ -20,14 +20,16 @@ for (const width of [1280, 375]) test(`formal document upload, index, retrieval,
   await expect(page.getByRole('link', { name: '下載 v1' })).toBeVisible();
   await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const ai = page.getByLabel('AI 專案副手', { exact: true });
-  await ai.getByLabel('資料來源').selectOption('formal');
-  await expect(ai.getByLabel('正式專案').locator(`option[value="${projectId}"]`)).toBeAttached();
-  await ai.getByLabel('正式專案').selectOption(projectId);
+  await expect(ai.getByLabel('正式文件問答')).toBeVisible();
+  await expect(ai.getByLabel('查詢範圍').locator(`option[value="${projectId}"]`)).toBeAttached();
+  await ai.getByLabel('查詢範圍').selectOption(projectId);
+  await ai.getByRole('button', { name: '管理與設定' }).click();
   const document = ai.getByLabel('正式文件清單').locator('article').filter({ hasText: filename });
-  await expect(document).toContainText('待索引');
-  await document.getByRole('button', { name: '建立／更新索引' }).click();
-  await expect(document).toContainText('可檢索');
-  await ai.getByLabel('正式文件問題').fill('正式知識驗收規範出貨前必須完成幾項檢核？');
+  await expect(document).toBeVisible();
+  // New uploads must become searchable through the durable worker, with no manual indexing.
+  await expect(document).toContainText('可檢索', { timeout: 70000 });
+  await ai.getByRole('button', { name: '返回問答 →' }).click();
+  await ai.getByLabel('正式文件問題', { exact: true }).fill('正式知識驗收規範出貨前必須完成幾項檢核？');
   await ai.getByRole('button', { name: '送出正式文件問題' }).click();
   const answer = ai.getByLabel('正式文件回答');
   await expect(answer).toContainText('七項檢核');
@@ -36,12 +38,17 @@ for (const width of [1280, 375]) test(`formal document upload, index, retrieval,
   await source.getByRole('button', { name: '查看原文' }).click();
   await expect(ai.getByLabel('正式引用原文')).toContainText('驗收簽名');
   await expect(ai.getByLabel('正式引用原文')).toContainText('現行版本');
+  const download = page.waitForEvent('download');
+  await ai.getByRole('button', { name: '下載完整文件' }).click();
+  expect((await download).suggestedFilename()).toBe(filename);
+  await ai.getByRole('button', { name: '關閉來源' }).click();
   await ai.getByRole('button', { name: '有幫助', exact: true }).click();
   await expect(ai).toContainText('已記錄：有幫助');
   expect(await page.evaluate(() => window.document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath(`formal-rag-${width}.png`), fullPage: true });
-  await ai.getByLabel('資料來源').selectOption('demo');
-  await expect(ai.getByLabel('正式文件回答')).toHaveCount(0);
+  await ai.getByRole('button', { name: '管理與設定' }).click();
+  await ai.getByRole('button', { name: '開啟展示資料與 SQL' }).click();
+  await expect(ai.getByLabel('正式文件回答')).toBeHidden();
   await expect(ai.getByLabel('查詢方式')).toBeVisible();
   expect(errors).toEqual([]);
 });

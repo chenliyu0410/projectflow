@@ -188,3 +188,35 @@ def test_config_enforces_local_admin_and_private_endpoint(client, engine, monkey
     assert client.get('/rag/model', headers=headers).json() == payload
     monkeypatch.setenv('PF_WEB_LAN', 'true')
     assert client.get('/rag/model', headers=headers).status_code == 403
+
+@pytest.mark.parametrize('phase',['embedding','answer'])
+@pytest.mark.parametrize('change',['revoke','expire'])
+def test_session_revoked_during_model_stops_dispatch_and_return(client,engine,monkeypatch,phase,change):
+    from app.rag import provider
+    from app.models import SessionToken
+    from sqlalchemy import delete
+    nid,pid,users=setup(client,engine)
+    configure(engine,users)
+    monkeypatch.setattr(provider,'embed',lambda c,t:[[1.,0.] for _ in t])
+    doc=upload(client,nid);index(client,doc)
+    def revoke():
+        with Session(engine) as db:
+            if change=='revoke':
+                db.execute(delete(SessionToken).where(SessionToken.user_id==users['ming']))
+            else:
+                from datetime import timedelta
+                from app.rag.models import now
+                from sqlalchemy import update
+                db.execute(update(SessionToken).where(SessionToken.user_id==users['ming']).values(expires_at=now()-timedelta(seconds=1)))
+            db.commit()
+    def embedding(c,t):
+        revoke()
+        return [[1.,0.] for _ in t]
+    def generated(c,q,s):
+        if phase=='embedding': pytest.fail('generation dispatched after logout')
+        revoke()
+        return {'answer':'secret answer','citations':[s[0]['source_id']]}
+    if phase=='embedding': monkeypatch.setattr(provider,'embed',embedding)
+    monkeypatch.setattr(provider,'answer',generated)
+    result=client.post('/rag/ask',json={'project_id':pid,'question':'星際驗收密碼'})
+    assert result.status_code==401 and 'secret answer' not in result.text

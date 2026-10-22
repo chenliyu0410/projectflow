@@ -76,7 +76,7 @@ def test_answer_citations_and_refusal(monkeypatch):
     monkeypatch.setattr(provider, '_request', request)
     with pytest.raises(ValueError, match='invalid_citations'):
         provider.answer(CONFIG, '問題', sources)
-    monkeypatch.setattr(provider, '_request', lambda *args: {'message': {'content': json.dumps({'answer': '資料不足，無法回答', 'evidence': [], 'calculation': {'operation': 'none', 'operands': [], 'unit': ''}})}})
+    monkeypatch.setattr(provider, '_request', lambda *args: {'message': {'content': json.dumps({'answer': '資料不足，無法回答', 'evidence': [], 'blocks': [], 'calculation': {'operation': 'none', 'operands': [], 'unit': ''}})}})
     assert provider.answer(CONFIG, '問題', sources)['citations'] == []
 
 
@@ -85,9 +85,9 @@ def test_model_selects_evidence_ids_and_server_calculates(monkeypatch):
     def request(config, path, payload):
         catalog = json.loads(payload['messages'][1]['content'])['sources']
         assert payload['options']['num_ctx'] == 16384
-        assert catalog == [dict(evidence_id='E1', title='材料表', version=2, text='甲 小計 321'),
-                           dict(evidence_id='E2', title='材料表', version=2, text='乙 小計 79')]
-        return {'message': {'content': json.dumps(dict(answer='不要採信模型自行計算的 999', evidence=['E1', 'E2'], calculation=dict(
+        assert catalog == [dict(evidence_id='E1', title='材料表', project_title='', version=2, text='甲 小計 321'),
+                           dict(evidence_id='E2', title='材料表', project_title='', version=2, text='乙 小計 79')]
+        return {'message': {'content': json.dumps(dict(answer='不要採信模型自行計算的 999', evidence=['E1', 'E2'], blocks=[], calculation=dict(
             operation='add', unit='元', operands=[dict(number_id='E1:321', label='甲小計'), dict(number_id='E2:79', label='乙小計')])) )}}
     monkeypatch.setattr(provider, '_request', request)
     result = provider.answer(CONFIG, '兩筆合計？', sources)
@@ -98,7 +98,7 @@ def test_model_selects_evidence_ids_and_server_calculates(monkeypatch):
 def test_transport_error_is_sanitized(monkeypatch):
     def broken(**kwargs):
         raise RuntimeError('sensitive endpoint')
-    monkeypatch.setattr(provider.httpx, 'Client', broken)
+    monkeypatch.setattr(provider.httpx, 'AsyncClient', broken)
     with pytest.raises(ValueError, match='^model_transport_error$'):
         provider.embed(CONFIG, ['x'])
 
@@ -173,3 +173,49 @@ def test_pdf_wall_timeout(tmp_path, monkeypatch):
     monkeypatch.setattr(parsing, 'PDF_TIMEOUT', 0)
     with pytest.raises(ValueError, match='parse_timeout'):
         parsing.parse_file(path, path.name)
+
+
+def test_request_total_deadline_cancels_slow_headers_and_body():
+    import time, threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    class Slow(BaseHTTPRequestHandler):
+        def log_message(self,*args): pass
+        def do_POST(self):
+            self.rfile.read(int(self.headers['Content-Length']))
+            time.sleep(.18)
+            self.send_response(200);self.send_header('Content-Length','20');self.end_headers()
+            self.wfile.write(b'{');self.wfile.flush()
+            time.sleep(.5)
+    server=ThreadingHTTPServer(('127.0.0.1',0),Slow)
+    server.daemon_threads=True
+    thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+    try:
+        # Warm up the async runtime/client creation before measuring the deadline.
+        started=time.monotonic()
+        config=dict(CONFIG,base_url=f'http://127.0.0.1:{server.server_port}',_remaining_timeout=.3,_deadline=started+.3,_timeout_code='generation_timeout')
+        with pytest.raises(ValueError,match='generation_timeout'):
+            provider._request(config,'/api/chat',{})
+        assert time.monotonic()-started < .40
+    finally:
+        server.shutdown();server.server_close();thread.join()
+
+
+def test_authorization_exception_is_not_converted_to_model_failure(monkeypatch):
+    from fastapi import HTTPException
+    def deny(): raise HTTPException(401,'login expired')
+    with pytest.raises(HTTPException) as error:
+        provider._request(dict(CONFIG,_authorize=deny),'/api/chat',{})
+    assert error.value.status_code==401
+    def denied_request(*args): raise HTTPException(404,'source revoked')
+    monkeypatch.setattr(provider,'_request',denied_request)
+    with pytest.raises(HTTPException):
+        provider.answer(CONFIG,'問題',[{'source_id':'a','excerpt':'文字'}])
+
+
+def test_known_negative_keeps_grounded_block_and_prompt_distinguishes_absence(monkeypatch):
+    def request(config,path,payload):
+        assert '否定與未定同樣是可回答的事實' in payload['messages'][0]['content']
+        return {'message':{'content':json.dumps({'answer':'目前沒有已核准的替代設備。','evidence':['E1'],'blocks':[{'text':'目前沒有已核准的替代設備。','evidence':['E1']}],'calculation':{'operation':'none','operands':[],'unit':''}})}}
+    monkeypatch.setattr(provider,'_request',request)
+    result=provider.answer(CONFIG,'核准的替代設備是什麼？',[{'source_id':'a','excerpt':'替代設備尚在評選，沒有已核准的型號。'}])
+    assert result['blocks'][0]['source_ids']==['a'] and result['citations']==['a']

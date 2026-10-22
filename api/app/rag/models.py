@@ -29,6 +29,7 @@ class RagIndex(Base):
     __tablename__ = 'rag_indexes'
     __table_args__ = (
         ForeignKeyConstraint(['organization_id', 'document_id'], ['documents.organization_id', 'documents.id']),
+        ForeignKeyConstraint(['organization_id', 'requested_by_user_id'], ['users.organization_id', 'users.id'], name='fk_rag_index_requester'),
         CheckConstraint("state IN ('queued','processing','ready','failed','unsupported')", name='ck_rag_index_state'),
     )
     document_id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -43,6 +44,10 @@ class RagIndex(Base):
     chunk_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     error_code: Mapped[str | None] = mapped_column(String(40))
     claim: Mapped[str | None] = mapped_column(String(36))
+    requested_by_user_id: Mapped[str | None] = mapped_column(String(36))
+    requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default='0', nullable=False)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, nullable=False)
 
 
@@ -75,7 +80,7 @@ class RagQuery(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     organization_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
     actor_user_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    project_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    project_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     source_ids: Mapped[list] = mapped_column(Json, default=list, nullable=False)
     trace: Mapped[dict] = mapped_column(Json, default=dict, nullable=False)
     rating: Mapped[str | None] = mapped_column(String(12))

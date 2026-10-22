@@ -1,0 +1,224 @@
+[
+  {
+    "case": "followup",
+    "request": {
+      "scope": {
+        "kind": "project",
+        "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543"
+      },
+      "question": "那需要誰簽核？",
+      "history": [
+        {
+          "question": "G2 要具備什麼才能通過？",
+          "query_id": "77cf9a99-aaa6-4c6e-8f44-092fca8f95c4"
+        }
+      ]
+    },
+    "response": {
+      "query_id": "d761442b-87a0-49cc-b9b4-235cbad71786",
+      "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+      "scope": {
+        "kind": "project",
+        "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543"
+      },
+      "source_mode": "formal",
+      "synthetic": false,
+      "kind": "clarification",
+      "engine": "retrieval",
+      "answer": "請補充您指的是哪個專案、階段或文件，以及要查詢的事項。",
+      "warning": null,
+      "citations": [],
+      "blocks": [],
+      "code": "clarification_required",
+      "coverage": {
+        "ready": 10,
+        "queued": 0,
+        "processing": 0,
+        "failed": 0,
+        "unsupported": 0,
+        "disabled": 0,
+        "partial": false
+      },
+      "sources": [],
+      "retrieval_mode": "bm25_rules"
+    }
+  },
+  {
+    "case": "all_visible",
+    "request": {
+      "scope": {
+        "kind": "all_visible"
+      },
+      "question": "PF-RAG-2611 的 G2 要具備什麼才能通過？"
+    },
+    "response": {
+      "query_id": "2459f8f7-bf45-4e8f-9c37-e1fc55045afd",
+      "project_id": null,
+      "scope": {
+        "kind": "all_visible"
+      },
+      "source_mode": "formal",
+      "synthetic": false,
+      "kind": "rag",
+      "engine": "model",
+      "answer": "PF-RAG-2611 的 G2 需要備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告，並由品保負責人陳奕安完成簽核，才能通過。",
+      "warning": null,
+      "citations": [
+        "86790e05-fe1a-487a-8322-13e944e4df34"
+      ],
+      "blocks": [
+        {
+          "text": "PF-RAG-2611 的 G2 需要備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告，並由品保負責人陳奕安完成簽核，才能通過。",
+          "source_ids": [
+            "86790e05-fe1a-487a-8322-13e944e4df34"
+          ]
+        }
+      ],
+      "code": null,
+      "coverage": {
+        "ready": 10,
+        "queued": 0,
+        "processing": 0,
+        "failed": 0,
+        "unsupported": 0,
+        "disabled": 0,
+        "partial": false
+      },
+      "sources": [
+        {
+          "source_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "chunk_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "document_id": "11b5800f-025a-4875-a89e-50413bb8c997",
+          "version": 1,
+          "title": "04_G2文件驗收.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 G2 是「試製前文件齊備」關卡。\n通過 G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人陳奕安完成簽核，才能標示 G2 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        },
+        {
+          "source_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "chunk_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M02 | 里程碑: 首批試製 | 計畫日期: 2026-11-05 | 負責人: 林語晴 | 前提: G2已通過",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 104
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "chunk_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M05 | 里程碑: 出貨文件放行 | 計畫日期: 2026-11-20 | 負責人: 陳奕安 | 前提: 包裝版面核准",
+          "locator": {
+            "section": "第 6 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "chunk_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M06 | 里程碑: 計畫上市 | 計畫日期: 2026-11-25 | 負責人: 林語晴 | 前提: 出貨文件放行",
+          "locator": {
+            "section": "第 7 列",
+            "start_char": 0,
+            "end_char": 105
+          }
+        },
+        {
+          "source_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "chunk_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M01 | 里程碑: 原料預定到貨 | 計畫日期: 2026-11-03 | 負責人: 周子涵 | 前提: 訂單已確認",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 106
+          }
+        }
+      ],
+      "retrieval_mode": "hybrid_rrf_rules"
+    }
+  },
+  {
+    "case": "ambiguous",
+    "request": {
+      "scope": {
+        "kind": "all_visible"
+      },
+      "question": "那個呢？"
+    },
+    "response": {
+      "query_id": "11312dc7-1582-4618-90ef-e575de080318",
+      "project_id": null,
+      "scope": {
+        "kind": "all_visible"
+      },
+      "source_mode": "formal",
+      "synthetic": false,
+      "kind": "clarification",
+      "engine": "retrieval",
+      "answer": "請補充您指的是哪個專案、階段或文件，以及要查詢的事項。",
+      "warning": null,
+      "citations": [],
+      "blocks": [],
+      "code": "clarification_required",
+      "coverage": {
+        "ready": 10,
+        "queued": 0,
+        "processing": 0,
+        "failed": 0,
+        "unsupported": 0,
+        "disabled": 0,
+        "partial": false
+      },
+      "sources": [],
+      "retrieval_mode": "bm25_rules"
+    }
+  }
+]

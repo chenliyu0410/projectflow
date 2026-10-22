@@ -13,7 +13,7 @@ def evidence_catalog(sources):
     catalog, mapping = [], {}
     for number, (source, quote) in enumerate(units, 1):
         eid = f'E{number}'
-        catalog.append(dict(evidence_id=eid, title=source.get('title', ''), version=source.get('version'), text=quote))
+        catalog.append(dict(evidence_id=eid, title=source.get('title', ''), project_title=source.get('project_title',''), version=source.get('version'), text=quote))
         mapping[eid] = dict(source_id=source['source_id'], quote=quote)
     return catalog, mapping
 
@@ -56,7 +56,16 @@ def resolve_evidence(value, mapping, numbers=None):
         number = numbers[nid]
         expanded.append(dict(resolve(number['evidence_id']), value=number['value'], label=item.get('label')))
     calc['operands'] = expanded
-    return dict(answer=value.get('answer'), evidence=[resolve(eid) for eid in value['evidence']], calculation=calc)
+    result = dict(answer=value.get('answer'), evidence=[resolve(eid) for eid in value['evidence']], calculation=calc)
+    if 'blocks' in value:
+        if not isinstance(value['blocks'],list) or len(value['blocks']) > 24:
+            raise ValueError('invalid_citations')
+        result['blocks'] = []
+        for block in value['blocks']:
+            if not isinstance(block,dict) or not isinstance(block.get('evidence'),list) or not 1 <= len(block['evidence']) <= 12:
+                raise ValueError('invalid_citations')
+            result['blocks'].append(dict(text=block.get('text'),evidence=[resolve(eid) for eid in block['evidence']]))
+    return result
 
 
 def grounded_answer(value, sources):
@@ -128,6 +137,23 @@ def grounded_answer(value, sources):
             answer = parts + '。\n計算：' + symbol.join(display(n) for n in numbers) + (' ≈ ' if approximate else ' = ') + rendered + (' ' + unit if unit else '') + '。'
     elif operands:
         raise ValueError('invalid_calculation')
+    blocks = []
+    if 'blocks' in value and operation == 'none':
+        citations.clear()
+        for block in value['blocks']:
+            if not isinstance(block.get('text'),str) or not block['text'].strip() or len(block['text']) > 6000:
+                raise ValueError('invalid_citations')
+            ids = []
+            for item in block['evidence']:
+                quote(item)
+                if item['source_id'] not in ids:
+                    ids.append(item['source_id'])
+            blocks.append(dict(text=block['text'].strip(),source_ids=ids))
+        if sum(len(b['text']) for b in blocks) > 6000:
+            raise ValueError('invalid_citations')
+        answer = '\n\n'.join(b['text'] for b in blocks)
+    elif citations:
+        blocks = [dict(text=answer,source_ids=list(citations))]
     if not citations:
         answer = '目前來源不足以支持答案。'
-    return {'answer': answer, 'citations': citations}
+    return {'answer': answer, 'citations': citations, 'blocks': blocks}

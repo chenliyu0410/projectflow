@@ -25,6 +25,7 @@ services:
       PF_ACCEPTANCE_MODE: ${PF_ACCEPTANCE_MODE:-false}
       PF_ATTACHMENT_ROOT: ${PF_ATTACHMENT_ROOT:-/var/lib/projectflow-files}
       PF_ATTACHMENT_QUOTA_BYTES: ${PF_ATTACHMENT_QUOTA_BYTES:-1000000000}
+      PF_RAG_AUTO_INDEX: ${PF_RAG_AUTO_INDEX:-false}
       PF_AI_ROOT: /var/lib/projectflow-ai
     volumes:
       - files:/var/lib/projectflow-files

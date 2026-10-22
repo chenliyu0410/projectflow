@@ -11,6 +11,7 @@ from app.audit import log_audit
 from app.ai.model import validate_endpoint
 from app.routes.ai import local_admin, local_request
 from app.rag import service
+from app.rag.contracts import Ask, Revalidate
 from app.rag.models import RagQuery, RagSettings
 
 router = APIRouter(prefix='/rag', tags=['formal-rag'])
@@ -18,12 +19,6 @@ router = APIRouter(prefix='/rag', tags=['formal-rag'])
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra='forbid')
-
-
-class Ask(Strict):
-    project_id: str = Field(min_length=1, max_length=36)
-    question: str = Field(min_length=1, max_length=2000)
-    previous_question: str | None = Field(default=None, max_length=1000)
 
 
 class Enabled(Strict):
@@ -42,8 +37,10 @@ class ModelConfig(Strict):
 
 
 @router.get('/status')
-def status(request: Request, project_id: str | None = None, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
-    result = service.status(db, current, project_id)
+def status(request: Request, project_id: str | None = None, scope_kind: Literal['project','all_visible'] | None = None, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    if scope_kind == 'all_visible' and project_id or scope_kind == 'project' and not project_id:
+        raise HTTPException(422, '範圍格式不正確')
+    result = service.status(db, current, project_id, scope_kind)
     result['can_configure'] = current.user.role == 'admin' and local_request(request)
     return result
 
@@ -62,7 +59,8 @@ def enabled(document_id: str, payload: Enabled, current: CurrentUser = Depends(r
 def ask(payload: Ask, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
     if not payload.question.strip():
         raise HTTPException(422, '請輸入問題')
-    return service.ask(db, current, payload.project_id, payload.question.strip(), payload.previous_question)
+    scope = payload.resolved_scope()
+    return service.ask(db, current, scope.get('project_id'), payload.question.strip(), payload.previous_question, scope=scope, history=[t.model_dump() for t in payload.history])
 
 
 @router.get('/queries/{query_id}/sources/{source_id}')
@@ -125,3 +123,8 @@ def metrics(current: CurrentUser = Depends(require_session), db: Session = Depen
         degraded=sum(r.trace.get('outcome') == 'degraded' for r in rows),
         no_sources=sum(r.trace.get('kind') == 'no_sources' for r in rows),
         p50_ms=percentile(.5), p95_ms=percentile(.95), cost=None, input_tokens=None, output_tokens=None)
+
+
+@router.post('/queries/revalidate')
+def revalidate(payload: Revalidate, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+    return service.revalidate(db, current, payload.query_ids)

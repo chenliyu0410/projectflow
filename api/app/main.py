@@ -50,12 +50,14 @@ class OriginCheckMiddleware:
 def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application):
+        from app.rag.indexing import worker_lifecycle
         if os.environ.get("PF_ATTACHMENT_ROOT"):
             from app.services.attachment_store import storage_root, runtime_lock
-            with runtime_lock(storage_root()):
+            with runtime_lock(storage_root()), worker_lifecycle():
                 yield
         else:
-            yield
+            with worker_lifecycle():
+                yield
 
     # 公開試用時不要把完整 API 清單送給任何人；開發要看再設 PF_API_DOCS=true。
     docs = os.environ.get("PF_API_DOCS") == "true"

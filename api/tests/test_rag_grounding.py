@@ -135,7 +135,7 @@ def test_divide_and_zero_rejected():
 
 
 def test_no_evidence_returns_refusal_not_unsupported_answer():
-    assert grounded_answer(response(), SOURCES) == {'answer': '目前來源不足以支持答案。', 'citations': []}
+    assert grounded_answer(response(), SOURCES) == {'answer': '目前來源不足以支持答案。', 'citations': [], 'blocks': []}
 
 
 @pytest.mark.parametrize('operation', [[], {}, None, True])
@@ -151,3 +151,22 @@ def test_small_decimals_and_recurring_quotient_not_rendered_as_zero():
     assert '0.00001 + 0.00002 = 0.00003' in small['answer']
     recurring = grounded_answer(response('divide', [operand('1', text), operand('30000', text)]), sources)
     assert '≈ 0.0000333333333333' in recurring['answer']
+
+def test_blocks_bind_separately_and_unknown_or_empty_evidence_rejected():
+    from app.rag.grounding import evidence_catalog, resolve_evidence
+    sources=[{'source_id':'a','excerpt':'甲同意。'},{'source_id':'b','excerpt':'乙不同意。'}]
+    _, mapping=evidence_catalog(sources)
+    value={'answer':'ignored','evidence':['E1','E2'],'calculation':{'operation':'none','operands':[],'unit':''},'blocks':[{'text':'甲同意。','evidence':['E1']},{'text':'雙方衝突。','evidence':['E1','E2']}]}
+    result=grounded_answer(resolve_evidence(value,mapping),sources)
+    assert result['blocks']==[{'text':'甲同意。','source_ids':['a']},{'text':'雙方衝突。','source_ids':['a','b']}]
+    assert result['citations']==['a','b']
+    for ids in ([],['unknown']):
+        value['blocks'][0]['evidence']=ids
+        with pytest.raises(ValueError): resolve_evidence(value,mapping)
+
+
+def test_calculation_block_uses_operand_sources():
+    value=response('add',[operand('8,125.50','袋：小計 8,125.50 元。'),operand('274.50','箱：小計 274.50 元。')])
+    result=grounded_answer(value,SOURCES)
+    assert result['blocks']==[{'text':result['answer'],'source_ids':['a']}]
+    assert '8,400' in result['answer']

@@ -10,8 +10,11 @@ type Message = { id: number; question: string; result: AIResult };
 const HEADINGS: Record<string, string> = { project_id: 'AI專案', task_id: '任務', supplier_id: '供應商', department: '部門', name: '姓名', person_id: '人員', status: '狀態', count: '數量', overdue_count: '逾期數', total: '總數', done_count: '完成數', completion_pct: '完成率％', budget_twd: '預算', actual_twd: '已入帳', overrun_twd: '超支', amount_twd: '金額', received_count: '收貨數', late_count: '延遲數', late_pct: '延遲率％', samples: '抽樣數', defects: '不良數', defect_pct: '不良率％', month: '月份', category: '類別', risk_id: '風險', cause: '原因', action: '處理方式', open_tasks: '未完成數', estimated_hours: '預估工時', actual_hours: '實際工時', extra_hours: '超估工時', committed_twd: '承諾金額', due_date: '到期日', rejected_count: '退回數', blocked_count: '受阻數', order_id: '採購單', promised_date: '承諾日', zero_defect_batches: '零不良批次' };
 const STATUS: Record<string, string> = { done: '完成', doing: '進行中', review: '待審核', rejected: '退回', todo: '未開始', blocked: '受阻' };
 
-export default function CopilotPanel({ scope, open, close, companyName = '目前公司', expired }: { scope: string; open: boolean; close: () => void; food?: boolean; companyName?: string; expired?: () => void }) {
-  const [sourceMode, setSourceMode] = useState<'demo' | 'formal'>('demo');
+export default function CopilotPanel({ scope, open, close, companyName = '目前公司', expired, routeProjectId }: { scope: string; open: boolean; close: () => void; food?: boolean; companyName?: string; expired?: () => void; routeProjectId?: string | null }) {
+  const [sourceMode, setSourceMode] = useState<'demo' | 'formal'>('formal');
+  const [activated, setActivated] = useState(open);
+  useEffect(() => { if (open) setActivated(true); }, [open]);
+  const [expanded, setExpanded] = useState(false);
   const [status, setStatus] = useState<AIStatus | null>(null);
   const [error, setError] = useState('');
   const [mode, setMode] = useState<'rag' | 'sql'>('rag');
@@ -66,10 +69,10 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
     finally { if (!request.signal.aborted) setLoadingDocument(false); }
   }
   const quick = mode === 'rag' ? ['現行交付需要幾張截圖？', '風險原因與處理方式', '採購追蹤紀錄'] : ['各部門逾期未完成數', '超支專案及金額', '各專案加權不良率'];
-  return <aside id="copilot-panel" className={`copilot ${open ? 'open' : ''}`} aria-label="AI 專案副手" hidden={!open}>
-    <div className="copilot-head"><span className="copilot-avatar"><NavIcon name="ai" /></span><div><strong className="brand-name">AI 專案副手</strong><small>目前位置：{scope}</small></div><button ref={closeButton} className="copilot-close" aria-label="關閉 AI 副手" onClick={close}>✕</button></div>
-    <label>資料來源<select aria-label="資料來源" value={sourceMode} onChange={e => { clear(); setSourceMode(e.target.value as 'demo' | 'formal'); }}><option value="demo">展示資料</option><option value="formal">正式文件</option></select></label>
-    {sourceMode === 'formal' ? (open && <FormalRagPanel expired={expired} />) : <><p className="copilot-policy">{status?.model_enabled ? `本地模型：${status.model_name}` : '模型未啟用・檢索與資料查詢可用'}</p>
+  return <aside id="copilot-panel" className={`copilot ${open ? 'open' : ''} ${expanded ? 'copilot-expanded' : ''} ${sourceMode === 'formal' ? 'copilot-formal' : ''}`} aria-label="AI 專案副手" hidden={!open}>
+    <div className="copilot-head"><span className="copilot-avatar"><NavIcon name="ai" /></span><div><strong className="brand-name">AI 專案副手</strong><small>目前位置：{scope}</small></div><button className="copilot-expand" aria-label={expanded ? '縮小面板' : '放大面板'} onClick={() => setExpanded(v => !v)}>⛶</button><button ref={closeButton} className="copilot-close" aria-label="關閉 AI 副手" onClick={close}>✕</button></div>
+    <div className="rag-host" hidden={sourceMode !== 'formal'}>{(activated || open) && <FormalRagPanel expired={expired} open={open && sourceMode === 'formal'} routeProjectId={routeProjectId} demo={() => setSourceMode('demo')} />}</div>
+    {sourceMode === 'demo' && <><button onClick={() => setSourceMode('formal')}>返回正式文件問答</button><p className="copilot-policy">{status?.model_enabled ? `本地模型：${status.model_name}` : '模型未啟用・檢索與資料查詢可用'}</p>
     <p className="copilot-example-note">{companyName}・AI展示資料區<br />{status?.ready ? `${status.counts.projects} 個專案／${status.counts.documents} 份可見文件・基準日 ${status.as_of}` : '資料尚未就緒'}。虛構延伸案，與目前正式任務分開；查詢不修改任務。</p>
     <div className="ai-controls">
       <label>查詢方式<select aria-label="查詢方式" value={mode} onChange={e => { clear(); setMode(e.target.value as 'rag' | 'sql'); setQuery(''); }}><option value="rag">RAG 文件問答</option><option value="sql" disabled={!status?.can_sql}>Text-to-SQL 資料分析</option></select></label>

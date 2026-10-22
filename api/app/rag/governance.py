@@ -3,17 +3,36 @@ import math
 import re
 from fastapi import HTTPException
 from sqlalchemy import select
-from app.models import Document
+from app.models import Document, Project, SessionToken, User, Organization
+from app.rag.models import now
+from app.permissions import can_view_project
 from app.services import document_store
 from app.services.dependency_service import read_project
+
+
+def session_access(db, current):
+    """Interactive calls must retain a live login; workers never call this helper."""
+    # Discard identity-map state; READ COMMITTED reloads the current login and ACL.
+    db.expire_all()
+    user_id, org_id = current.user.id, current.organization.id
+    token = db.scalar(select(SessionToken.token).where(
+        SessionToken.token == current.token, SessionToken.user_id == user_id,
+        SessionToken.organization_id == org_id, SessionToken.expires_at > now()))
+    if not current.token or token is None:
+        raise HTTPException(401, '請重新登入')
+    db.refresh(current.user)
+    db.refresh(current.organization)
 
 
 def authorized_documents(db, current, project_id):
     # Expire identity-map values: a prior retrieval must not cache revoked ACLs.
     db.expire_all()
-    read_project(db, current, project_id)
+    if project_id is not None:
+        read_project(db, current, project_id)
+    visible = [project_id] if project_id is not None else [p.id for p in db.scalars(select(Project).where(Project.organization_id == current.organization.id)) if can_view_project(current,p)]
     ids = list(db.scalars(select(Document.id).where(
-        Document.organization_id == current.organization.id, Document.project_id == project_id)))
+        Document.organization_id == current.organization.id,
+        Document.project_id.in_(visible))))
     result = []
     for document_id in ids:
         try:
@@ -36,7 +55,7 @@ def recheck(db, current, document_id, version, require_current=True):
 
 
 _IDS = {'query_id', 'project_id', 'document_id', 'source_id', 'chunk_id', 'actor_id', 'organization_id'}
-_CODES = {'kind', 'engine', 'retrieval_mode', 'error_code', 'model', 'embedding_model', 'model_name', 'stage', 'outcome', 'pipeline_version', 'prompt_version'}
+_CODES = {'kind', 'engine', 'retrieval_mode', 'error_code', 'model', 'embedding_model', 'model_name', 'stage', 'outcome', 'pipeline_version', 'prompt_version', 'contract_version', 'scope_kind'}
 _COUNTS = {'version', 'indexed_version', 'chunk_count', 'source_count', 'citation_count', 'candidate_count', 'document_count', 'authorized_count', 'context_chars'}
 _DURATIONS = {'duration_ms', 'retrieval_ms', 'generation_ms', 'embedding_ms', 'total_ms'}
 _SAFE = re.compile(r'^[A-Za-z0-9_.:/@+\-]+$')

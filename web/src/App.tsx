@@ -476,7 +476,7 @@ export default function App() {
         <label>密碼<input type="password" value={password} onChange={event => setPassword(event.target.value)} required disabled={busy} autoComplete="current-password" /></label>
         <button type="submit" disabled={busy}>{busy ? '登入中' : '登入'}</button>
       </form> : <>
-        {session ? <WorkspaceShell key={session.organization.id} route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} copilotScope={copilotScope} food={session.organization.key === 'food'} companyName={session.organization.name} accountName={session.user.display_name}
+        {session ? <WorkspaceShell key={`${session.organization.id}:${session.user.id}`} route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} copilotScope={copilotScope} food={session.organization.key === 'food'} companyName={session.organization.name} accountName={session.user.display_name}
           headerActions={state === 'ready' && route.page === 'project' && project && canAddNode && <Dropdown key={`${project.id}:${selectedNodeId}`} className="project-actions-menu" name="專案操作" closeOnAction label="新增子節點">
               {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen || closedParent} title={selectedNode?.milestone ? '里程碑不能有子任務，請先取消里程碑' : closedParent ? '不能在已完成、待確認或已略過的節點底下新增' : undefined} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
               {['admin','project_owner'].includes(session.user.role) && <>
