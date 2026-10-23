@@ -22,7 +22,7 @@
 | 測試基準 | DOC-TEMPLATE：樣板API 19pass（含不安全樣板、跨公司、並行編號）；相關回歸（documents／health／migrations／attachments／report_fields／reports_audit）106pass、10 skip（需專用PostgreSQL）exit0；前端Vitest全量33檔327pass、build exit0；Playwright樣板4＋既有文件2 pass（1280／375，隔離SQLite經alembic升到head）。AI題庫基準不變：第三份自動22/26、人工25/26。 |
 | 資料版本 | 新增migration `20261024_0020`（3張樣板表＋document_versions兩個可為空欄位；只新增，降級遇資料拒絕）。新依賴docxtpl 0.20.2（＋Jinja2、lxml、python-docx）已鎖版。AI隔離索引INDEX_VERSION仍為3；OCR模型在repo外。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
-| 阻塞／待人類 | 使用者試用簽核未代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
+| 阻塞／待人類 | 人類試用簽核：2026-10-24 人類表示「簽核都沒問題了」（依repo外`output/專流試用簽核重點.html`的10段重點，以本機SQLite一鍵啟動版`output/projectflow-local/start-projectflow.bat`試用；人類表示不匯出簽核表）。限制：此環境沒有本地模型，AI問答段沒有在本機實測；mvp-trial-checklist逐項勾選未由AI代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
 | 遠端 | 2026-10-24 依人類「github可以推」推上 `origin/feature/rag-starter-import`；同日DOC-TEMPLATE `012ec59` 依人類「Push feature/rag-starter-import to GitHub (branch only, no merge or PR)」再推一次（只推分支，未合併main、未開PR、未部署）。mina201199的兩個遠端分支依決定暫不處理。 |
 
 ---
