@@ -20,7 +20,7 @@ def infer(question):
     return None
 
 
-def ask(db, company, role, question, mode, project_id=None, query_id=None, dataset='dataset-v1', include_history=False, *, preview=False):
+def ask(db, company, role, question, mode, project_id=None, query_id=None, dataset='dataset-v1', include_history=False, *, preview=False, other_companies=()):
     base=dict(as_of=store.AS_OF,synthetic=True,project_id=project_id,sources=[],analysis=None,warning=None)
     if dataset == 'starter-v1':
         from app.ai import starter
@@ -63,10 +63,36 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
         documents, base['retrieval'] = starter.search(db, company, question, role, project_id, include_history)
     else:
         documents, base['retrieval'] = store.search(db,question,role,project_id,include_history), 'keyword'
-    return answer_documents(company, role, question, documents, base, include_history=include_history, preview=preview)
+    return answer_documents(company, role, question, documents, base, include_history=include_history, preview=preview, other_companies=other_companies)
 
 
-def answer_documents(company, role, question, documents, base, *, include_history=False, preview=False, mask_terms=()):
+SUFFIXES = ('股份有限公司', '有限公司', '公司', '科技', '食品', '電子', '工程', '軟體', '活動', '營造')
+
+
+def foreign_company(question, documents, names):
+    """Name of another company the question asks about when no visible source mentions it at all.
+
+    Users can never see another company's documents, so such a question cannot be answered from
+    their sources; answering anyway makes the model pin this company's facts on the other one."""
+    for name in names:
+        core = name
+        for suffix in SUFFIXES:
+            if core.endswith(suffix) and len(core) - len(suffix) >= 2:
+                core = core[:-len(suffix)]
+        aliases = {name, core}
+        if any(a in question for a in aliases) and not any(a in d.get('body', '') or a in d.get('title', '') for d in documents for a in aliases):
+            return name
+    return None
+
+
+def answer_documents(company, role, question, documents, base, *, include_history=False, preview=False, mask_terms=(), other_companies=()):
+    other = foreign_company(question, documents, other_companies)
+    if other:
+        prepared = gateway.prepare(company, role, 'rag', question, documents, use_model=False, reason='other_company', as_of=base['as_of'])
+        if preview: return prepared.preview()
+        base['gateway'] = prepared.info
+        return dict(base, kind='other_company', engine='rules',
+                    answer=f'目前可引用的資料不足：這個問題詢問的是{other}，但目前公司與權限範圍內沒有{other}的資料，無法回答，也不會用本公司的資料代替。')
     prepared = gateway.prepare(company, role, 'rag', question, documents, use_model=bool(documents), reason=None if documents else 'no_sources', as_of=base['as_of'], mask_terms=mask_terms)
     if preview: return prepared.preview()
     base['gateway'] = prepared.info

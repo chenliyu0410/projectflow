@@ -388,7 +388,7 @@ def document(db, current, document_id, *, include_history=False):
     raise HTTPException(404, "找不到符合版本選項與權限的索引段落，請確認索引狀態")
 
 
-def ask(db, current, payload, *, preview=False):
+def ask(db, current, payload, *, preview=False, other_companies=()):
     if payload.mode != "rag" or payload.query_id:
         raise HTTPException(422, "正式文件索引僅支援文件問答")
     documents, retrieval = search_with_mode(db, current, payload.question, payload.project_id, include_history=payload.include_history)
@@ -397,7 +397,7 @@ def ask(db, current, payload, *, preview=False):
                 project_id=payload.project_id, sources=[], analysis=None, warning=None)
     return service.answer_documents(current.organization.key, current.user.role, payload.question,
                                     documents, base, include_history=payload.include_history, preview=preview,
-                                    mask_terms=partner_names(db, current))
+                                    mask_terms=partner_names(db, current), other_companies=other_companies)
 
 
 def partner_names(db, current):

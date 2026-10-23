@@ -12,7 +12,7 @@ from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.audit import log_audit
 from app.ai import store, service, model, starter, formal_index, vectors, policy, masking
-from app.models import AuditLog, Document, DocumentVersion, Node, Project
+from app.models import AuditLog, Document, DocumentVersion, Node, Organization, Project
 
 router=APIRouter(prefix='/ai',tags=['ai'])
 Dataset = Literal['dataset-v1', 'starter-v1', 'formal-v1']
@@ -87,15 +87,17 @@ def preview(payload:Ask,current:CurrentUser=Depends(require_session),db:Session=
 
 def evaluate(payload,current,db,*,preview):
     if not payload.question.strip(): raise HTTPException(422,'請輸入問題')
+    # Other companies' names only: their documents are never visible here.
+    others=list(db.scalars(select(Organization.name).where(Organization.id!=current.organization.id)))
     try:
         if payload.dataset == 'formal-v1':
-            result=formal_index.ask(db,current,payload,preview=preview)
+            result=formal_index.ask(db,current,payload,preview=preview,other_companies=others)
         else:
             with closing(connection(current, payload.dataset)) as data:
                 if payload.project_id:
                     visible = {p['project_id'] for p in starter.visible_projects(data,current.user.role)} if payload.dataset == 'starter-v1' else {r[0] for r in data.execute('SELECT project_id FROM projects')}
                     if payload.project_id not in visible: raise HTTPException(404,'找不到AI專案')
-                result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history,preview=preview)
+                result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history,preview=preview,other_companies=others)
     except PermissionError: raise HTTPException(403,'沒有此AI查詢的資料權限') from None
     except ValueError: raise HTTPException(422,'不支援此查詢') from None
     log_audit(db,current,'ai.preview' if preview else 'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':'preview' if preview else result['kind'],'source_count':result['gateway']['source_count'],'query_id':result['analysis']['query_id'] if not preview and result['analysis'] else None,'gateway':result['gateway']})
