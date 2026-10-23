@@ -1,6 +1,7 @@
 import { childCreationReason } from './child-creation';
 import LinkedOperations from './components/LinkedOperations';
 import PreviewBoundary from './components/PreviewBoundary';
+import AIGovernance from './components/AIGovernance';
 import DocumentManager from './components/DocumentManager';
 import OperationsManager from './components/OperationsManager';
 import TemplateDialogs from './components/TemplateDialogs';
@@ -498,7 +499,8 @@ export default function App() {
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
           {state === 'ready' && !creationOpen && route.page === 'operations' && !operationsPreview && <OperationsManager key={session.organization.id} expired={expireSession} leaveGuard={documentLeaveGuard} preview={() => setOperationsPreview(true)} />}
-          {state === 'ready' && (route.page === 'governance' || (route.page === 'operations' && operationsPreview)) && <PreviewBoundary initialPage={route.page as 'operations' | 'governance'} companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => route.page === 'operations' ? setOperationsPreview(false) : navigate({ page: 'overview' })} />}
+          {state === 'ready' && route.page === 'operations' && operationsPreview && <PreviewBoundary initialPage="operations" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setOperationsPreview(false)} />}
+          {state === 'ready' && route.page === 'governance' && <AIGovernance key={session.organization.id} expired={expireSession} fallback={<PreviewBoundary initialPage="governance" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => navigate({ page: 'overview' })} />} />}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview showAssignHint={canCreate} openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} createProject={canCreate ? id => void openCreation(id) : undefined} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}

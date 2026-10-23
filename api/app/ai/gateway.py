@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 import json
 
-from app.ai import model, store
+from app.ai import masking, model, policy, store
 
 LEVELS = {"public": 0, "internal": 1, "confidential": 2}
 
@@ -14,10 +14,11 @@ class Prepared:
     config: dict
     documents: list
     catalog: list
+    cloud_content: dict | None = None
 
     def preview(self):
         # Only data fields; fixed system instructions and HTTP envelope are omitted.
-        return {"gateway": dict(self.info), "content": self.content}
+        return {"gateway": dict(self.info), "content": self.content, "cloud_content": self.cloud_content}
 
     def run(self):
         if self.info["route"] != "local" or self.content is None:
@@ -34,7 +35,7 @@ class Prepared:
         return result
 
 
-def prepare(company, role, function, question, documents=(), catalog=(), *, use_model=True, reason=None, as_of=None):
+def prepare(company, role, function, question, documents=(), catalog=(), *, use_model=True, reason=None, as_of=None, mask_terms=()):
     if company not in store.COMPANIES or function not in {"rag", "sql", "work_orders"}:
         raise ValueError("Unsupported gateway scope")
     level, classification_reason = "internal", "question_floor"
@@ -53,10 +54,14 @@ def prepare(company, role, function, question, documents=(), catalog=(), *, use_
             level, classification_reason = "confidential", "unclassified"
         elif LEVELS[classification] > LEVELS[level]:
             level, classification_reason = classification, "source_level"
+    # The company level is inherited by operational files (formal index); teaching packs keep their own labels.
+    company_policy = policy.load(company)
+    eligible, cloud_reason, masked = policy.cloud_decision(company_policy, level)
     info = dict(policy="local_only", cloud_enabled=False, function=function,
                 classification=level, classification_reason=classification_reason,
                 route="none", reason=reason or "model_disabled", outcome="not_sent",
-                source_count=len(documents), sent_count=0, model="")
+                source_count=len(documents), sent_count=0, model="", ai_policy=company_policy["mode"],
+                cloud=dict(eligible=eligible, reason=cloud_reason, masked=masked, provider=None, sent=False))
     content = None
     config = {}
     sent = []
@@ -82,4 +87,24 @@ def prepare(company, role, function, question, documents=(), catalog=(), *, use_
             content = None
     if info["route"] == "local":
         info["sent_count"] = len(sent)
-    return Prepared(info, content, config, sent, list(catalog))
+    cloud_content = None
+    if eligible and content is not None:
+        cloud_content = cloud_payload(content, mask_terms if masked else None)
+        info["cloud"]["masked_counts"] = cloud_content.pop("_counts")
+    return Prepared(info, content, config, sent, list(catalog), cloud_content)
+
+
+def cloud_payload(content, terms):
+    """What a cloud request would carry: internal text masked, the placeholder mapping kept out."""
+    masker = masking.Masker(terms) if terms is not None else None
+    def clean(text):
+        return masker.mask(text) if masker and isinstance(text, str) else text
+    payload = dict(question=clean(content["question"]))
+    if "as_of" in content:
+        payload["as_of"] = content["as_of"]
+    if "sources" in content:
+        payload["sources"] = [dict(s, text=clean(s["text"]), title=clean(s.get("title", ""))) for s in content["sources"]]
+    if "queries" in content:
+        payload["queries"] = content["queries"]
+    payload["_counts"] = dict(masker.counts) if masker else {}
+    return payload

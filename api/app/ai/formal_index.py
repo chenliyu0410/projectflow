@@ -13,8 +13,8 @@ import time
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from app.ai import extractors, service, store, vectors
-from app.models import Attachment, Document, DocumentVersion, Node, Project
+from app.ai import extractors, policy, service, store, vectors
+from app.models import Attachment, Document, DocumentVersion, Node, OperationsRecord, Project
 from app.permissions import can_view_node, can_view_project
 from app.services import attachment_store as files
 from app.services.record_policy import load_policy_context
@@ -50,11 +50,13 @@ def inventory(db, current, project_id=None, *, include_history=False):
                 if can_view_project(current, p)}
     if project_id and project_id not in projects:
         raise HTTPException(404, "找不到專案")
-    nodes = {n.id: n for n in db.scalars(select(Node).where(Node.organization_id == current.organization.id))
-             if n.project_id in projects and can_view_node(current, n, context=context)}
+    all_nodes = {n.id: n for n in db.scalars(select(Node).where(Node.organization_id == current.organization.id))}
+    nodes = {i: n for i, n in all_nodes.items() if n.project_id in projects and can_view_node(current, n, context=context)}
+    # Inheritance walks every ancestor, including ones this user cannot open.
+    levels = policy.Resolver(policy.load(current.organization.key), all_nodes)
     descriptors = {}
 
-    def add(kind, source_id, node_id, pid, version, filename, key, digest, size, is_current=True):
+    def add(kind, source_id, node_id, pid, version, filename, key, digest, size, is_current=True, document_id=None):
         if pid not in projects or (project_id and pid != project_id) or (node_id and node_id not in nodes):
             return
         value = dict(source_id=f"{kind}-{source_id}", source_type="document" if kind == "doc" else "attachment",
@@ -62,6 +64,8 @@ def inventory(db, current, project_id=None, *, include_history=False):
                      storage_key=key, sha256=digest, size=size)
         value["fingerprint"] = hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
         value["is_current"] = is_current
+        # Not part of the fingerprint: changing a level must not reparse or re-embed text.
+        value["classification"] = levels.document(document_id, node_id, pid) if kind == "doc" else levels.node(node_id)
         descriptors[value["source_id"]] = value
 
     rows = db.execute(select(Document, DocumentVersion).join(DocumentVersion, DocumentVersion.document_id == Document.id)
@@ -71,7 +75,7 @@ def inventory(db, current, project_id=None, *, include_history=False):
         is_current = version.version == doc.current_version
         if include_history or is_current:
             add("doc", f"{doc.id}-v{version.version}", doc.node_id, doc.project_id, version.version, version.filename,
-                version.storage_key, version.sha256, version.size_bytes, is_current)
+                version.storage_key, version.sha256, version.size_bytes, is_current, doc.id)
     for row in db.scalars(select(Attachment).where(Attachment.organization_id == current.organization.id,
                          Attachment.state == "ready", Attachment.deleted_at.is_(None))):
         node = nodes.get(row.node_id)
@@ -299,7 +303,7 @@ def valid_sources(index, sources):
 
 
 def as_document(row, source, current):
-    metadata = dict(company_id=current.organization.key, classification="confidential",
+    metadata = dict(company_id=current.organization.key, classification=source["classification"],
                     version=source["version"], is_current=source["is_current"])
     label = "現行版本" if source["is_current"] else "歷史版本，請勿當作現行規定"
     row = dict(row, body=f"來源：{source['title']}／第{source['version']}版（{label}）\n{row['body']}")
@@ -390,4 +394,11 @@ def ask(db, current, payload, *, preview=False):
     base = dict(as_of=datetime.now().astimezone().date().isoformat(), synthetic=False, retrieval=retrieval,
                 project_id=payload.project_id, sources=[], analysis=None, warning=None)
     return service.answer_documents(current.organization.key, current.user.role, payload.question,
-                                    documents, base, include_history=payload.include_history, preview=preview)
+                                    documents, base, include_history=payload.include_history, preview=preview,
+                                    mask_terms=partner_names(db, current))
+
+
+def partner_names(db, current):
+    """Vendor and partner names from operations data, used only to mask cloud-bound text."""
+    return [title for title in db.scalars(select(OperationsRecord.title).where(
+        OperationsRecord.organization_id == current.organization.id, OperationsRecord.category == "partners"))]

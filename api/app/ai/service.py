@@ -66,8 +66,8 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
     return answer_documents(company, role, question, documents, base, include_history=include_history, preview=preview)
 
 
-def answer_documents(company, role, question, documents, base, *, include_history=False, preview=False):
-    prepared = gateway.prepare(company, role, 'rag', question, documents, use_model=bool(documents), reason=None if documents else 'no_sources', as_of=base['as_of'])
+def answer_documents(company, role, question, documents, base, *, include_history=False, preview=False, mask_terms=()):
+    prepared = gateway.prepare(company, role, 'rag', question, documents, use_model=bool(documents), reason=None if documents else 'no_sources', as_of=base['as_of'], mask_terms=mask_terms)
     if preview: return prepared.preview()
     base['gateway'] = prepared.info
     if not documents:

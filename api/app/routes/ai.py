@@ -1,15 +1,18 @@
 from contextlib import closing
+from datetime import timezone
 import json
 import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Literal
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.audit import log_audit
-from app.ai import store, service, model, starter, formal_index, vectors
+from app.ai import store, service, model, starter, formal_index, vectors, policy, masking
+from app.models import AuditLog, Document, DocumentVersion, Node, Project
 
 router=APIRouter(prefix='/ai',tags=['ai'])
 Dataset = Literal['dataset-v1', 'starter-v1', 'formal-v1']
@@ -146,3 +149,125 @@ def test_model(payload:ModelConfig,request:Request,current:CurrentUser=Depends(r
         return {'ok':payload.model in names,'models':names,'message':'連線成功，請選擇已安裝的聊天模型。' if payload.model not in names else '連線成功，模型已安裝。'}
     except Exception:
         return {'ok':False,'models':[],'message':'無法連線。請確認內網位址、Ollama監聽設定與防火牆。'}
+
+
+class Classification(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    scope: Literal['company','project','node','document']
+    id: str | None=Field(default=None,max_length=120)
+    level: Literal['public','internal','confidential','inherit']
+
+
+class AIPolicy(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    mode: Literal['local_only','mixed','cloud_allowed']
+
+
+class MaskSample(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    text: str=Field(min_length=1,max_length=4000)
+
+
+def utc(value):
+    # SQLite returns naive datetimes; they were written in UTC.
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
+def governance_admin(db,current):
+    formal_index.require_enabled(db)
+    if current.user.role!='admin': raise HTTPException(403,'只有管理者可管理AI政策與分級')
+
+
+def classification_tree(db,current,value):
+    org=current.organization.id
+    projects=list(db.scalars(select(Project).where(Project.organization_id==org).order_by(Project.title)))
+    # Deleted ancestors still pass their level down (as enforced by the index); only live nodes are listed.
+    all_nodes={n.id:n for n in db.scalars(select(Node).where(Node.organization_id==org))}
+    nodes={i:n for i,n in all_nodes.items() if n.deleted_at is None}
+    levels=policy.Resolver(value,all_nodes)
+    def item(scope,row_id,title,effective,inherited,**extra):
+        return dict(scope=scope,id=row_id,title=title,own=value['overrides'].get(f'{scope}:{row_id}'),effective=effective,inherited=inherited,**extra)
+    return dict(
+        projects=[item('project',p.id,p.title,levels.project(p.id),value['company']) for p in projects],
+        nodes=[item('node',n.id,n.title,levels.node(n.id),levels.inherited('node',n.id,project_id=n.project_id,parent_id=n.parent_id if n.parent_id in all_nodes else None),project_id=n.project_id,parent_id=n.parent_id) for n in nodes.values()][:2000],
+        documents=[item('document',d.id,name,levels.document(d.id,d.node_id,d.project_id),levels.inherited('document',d.id,node_id=d.node_id,project_id=d.project_id),project_id=d.project_id,node_id=d.node_id)
+                   for d,name in db.execute(select(Document,DocumentVersion.filename).join(DocumentVersion,(DocumentVersion.document_id==Document.id)&(DocumentVersion.version==Document.current_version))
+                                           .where(Document.organization_id==org).order_by(DocumentVersion.filename))])
+
+
+@router.get('/governance')
+def governance(request:Request,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    governance_admin(db,current)
+    value=policy.load(current.organization.key)
+    audits=db.scalars(select(AuditLog).where(AuditLog.organization_id==current.organization.id,AuditLog.action.like('ai.%')).order_by(AuditLog.created_at.desc()).limit(30))
+    # Only routing metadata: audit payloads never hold question text, document text or mask mappings.
+    keys=('dataset','mode','kind','source_count','scope','level','from','to')
+    recent=[dict(action=a.action,created_at=utc(a.created_at).isoformat(),**{k:a.payload.get(k) for k in keys if isinstance(a.payload,dict) and k in a.payload},
+                 classification=(a.payload.get('gateway') or {}).get('classification') if isinstance(a.payload,dict) else None,
+                 cloud=(a.payload.get('gateway') or {}).get('cloud') if isinstance(a.payload,dict) else None) for a in audits]
+    return dict(mode=value['mode'],company=value['company'],cloud_provider=None,can_set_policy=request.url.hostname in {'localhost','127.0.0.1','::1'},
+                recent=recent,**classification_tree(db,current,value))
+
+
+def save_with_audit(db,current,value,previous,action,payload):
+    # Save the file first; if the audit row cannot be committed, put the old file back.
+    policy.save(current.organization.key,value)
+    try:
+        log_audit(db,current,action,payload=payload)
+        db.commit()
+    except Exception:
+        db.rollback()
+        policy.save(current.organization.key,previous)
+        raise
+
+
+@router.put('/classification')
+def set_classification(payload:Classification,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    governance_admin(db,current)
+    with policy.locked(current.organization.key):
+        return change_classification(payload,current,db)
+
+
+def change_classification(payload,current,db):
+    value=policy.load(current.organization.key)
+    original=json.loads(json.dumps(value))
+    org=current.organization.id
+    if payload.scope=='company':
+        if payload.level=='inherit': raise HTTPException(422,'公司預設必須指定等級')
+        previous,value['company']=value['company'],payload.level
+    else:
+        model_type={'project':Project,'node':Node,'document':Document}[payload.scope]
+        row=db.get(model_type,payload.id or '')
+        if row is None or row.organization_id!=org: raise HTTPException(404,'找不到分級對象')
+        nodes={n.id:n for n in db.scalars(select(Node).where(Node.organization_id==org))}
+        inherited=policy.Resolver(value,nodes).inherited(payload.scope,row.id,node_id=getattr(row,'node_id',None),project_id=getattr(row,'project_id',None),parent_id=getattr(row,'parent_id',None))
+        key=f'{payload.scope}:{row.id}'
+        previous=value['overrides'].get(key)
+        if payload.level=='inherit':
+            value['overrides'].pop(key,None)
+        elif policy.LEVELS[payload.level]<policy.LEVELS[inherited]:
+            raise HTTPException(422,'只能設定得比上層更嚴格；要放寬請調整上層等級')
+        else:
+            value['overrides'][key]=payload.level
+    save_with_audit(db,current,value,original,'ai.classification.set',{'scope':payload.scope,'from':previous,'to':payload.level})
+    return {'ok':True}
+
+
+@router.put('/policy')
+def set_policy(payload:AIPolicy,request:Request,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    governance_admin(db,current)
+    local_admin(request,current)
+    with policy.locked(current.organization.key):
+        value=policy.load(current.organization.key)
+        original=dict(value)
+        previous,value['mode']=value['mode'],payload.mode
+        save_with_audit(db,current,value,original,'ai.policy.set',{'from':previous,'to':payload.mode})
+    return {'ok':True}
+
+
+@router.post('/mask-preview')
+def mask_preview(payload:MaskSample,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    governance_admin(db,current)
+    masker=masking.Masker(formal_index.partner_names(db,current))
+    # Local only: no model call, nothing stored; the placeholder mapping is not returned.
+    return dict(masked=masker.mask(payload.text),counts=masker.counts)

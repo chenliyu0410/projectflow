@@ -13,14 +13,14 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **VECTOR-RETRIEVAL 🟢 隔離交付**（2026-10-23）：本地bge-m3語意檢索（關鍵字＋向量混合排序）與13題示範題目；原資料保留。前一輪LOCAL-MODEL-POLISH `e15a762`。 |
+| 目前工作項目 | **CLASSIFY-MASK 🟢 隔離交付**（2026-10-23）：正式文件分級繼承（只能更嚴格）、規則遮罩、AI政策（全本地／混合／允許雲端，無雲端供應商不送出）與真實「AI政策與稽核」頁；原資料保留。前一輪VECTOR-RETRIEVAL `ed9bce5`。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
-| 下一個動作 | 開啟15176，照[示範題目](ai-demo-questions.md)試用（示範前跑`deploy/check_demo_questions.py`）。後續：OCR、資料分級繼承與遮罩、獨立題庫、正式環境與pgvector（見[交接檔](LOCAL_AI_HANDOFF.md)）。遠端新分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
+| 下一個動作 | 開啟15176，照[示範題目](ai-demo-questions.md)試用（D14–D19為分級與遮罩，示範後改回預設）。後續：OCR、雲端供應商（待人類決定）、欄位級分級與正式PG資料表、獨立題庫、正式環境與pgvector（見[交接檔](LOCAL_AI_HANDOFF.md)）。遠端新分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
-| 最新程式 commit | VECTOR-RETRIEVAL（本筆）；前一輪LOCAL-MODEL-POLISH `e15a762`。操作與後續工作見[交接檔](LOCAL_AI_HANDOFF.md)。 |
+| 最新程式 commit | CLASSIFY-MASK（本筆）；前一輪VECTOR-RETRIEVAL `ed9bce5`。操作與後續工作見[交接檔](LOCAL_AI_HANDOFF.md)。 |
 | 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
-| 測試基準 | AI相關pytest 85pass、Vitest ai 17pass、tsc/build exit0；Edge1280／375真模型2pass並目視確認快捷鈕與檢索方式。檢索比較：原31題必要來源命中率關鍵字／混合皆1.0；12題換句話說0.486→0.944，無越權來源。36例真模型結構／來源36pass、無降級、35次混合檢索，暖機中位數2.093秒；canonical `answers-vector-1.json`。示範13題全通過。獨立審查Ready，四項非阻擋已修。已知：Q07時態、Q12簽到表誤寫已準備。 |
-| 資料版本 | 無migration。正式文件隔離索引INDEX_VERSION升為2（含向量表，舊索引自動重建一次，33來源／33向量）；入門文件向量另存`ai/vectors/`。bge-m3下載到隔離ollama-models。verify_preservation：原79檔hash一致、30表492原列保留。 |
+| 測試基準 | AI相關pytest 96pass（含紅隊：雲端內容與稽核無機密原值、無對照表）、前端全量Vitest 32檔323pass、tsc/build exit0；Edge1280／375真模型2pass；真模型36例結構／來源36pass、無降級；示範13題全通過。實機：公司內部＋混合政策下預覽顯示遮罩後雲端內容（比例3、金額2、廠商、電話、Email）、專案設機密後只限本地、放寬被拒；手機375無水平捲動；設定已改回預設。獨立審查Ready，六項非阻擋已修四項。 |
+| 資料版本 | 無migration。分級與政策存`ai/policy/<公司>.json`（目前為預設：全本地、公司機密、無覆寫）。副本新增虛構「遮罩示範（虛構）」專案、配方成本試算.txt與合作夥伴「青禾原料行」。verify_preservation：原79檔hash一致、30表492原列保留。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
 | 阻塞／待人類 | 使用者試用簽核未代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
 | 遠端 | 僅本機commit，未push／PR／合併／正式部署。 |
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- CLASSIFY-MASK 🟢 隔離交付（2026-10-23）：人類指示「繼續做資料分級與遮罩」（README F9／§8.5）。依[短計畫](superpowers/plans/2026-10-23-classification-masking.md)：公司→專案→節點→文件繼承、只能更嚴格（放寬回422）、公司預設機密（AI代決：沿用原本未分級從嚴）；規則遮罩（比例、金額、電話、Email、合作夥伴名）與還原；政策三選一但無雲端供應商、任何政策都不送出（AI代決：混合與允許雲端都遮罩內部內容）；含機密整題只限本地；預覽列遮罩後雲端內容；真實「AI政策與稽核」頁（非隔離時維持原示意）；AI稽核查詢。延後：雲端供應商、欄位級分級、本地小模型偵測、正式PG資料表。驗證見▶現在。未push／合併／部署。
 
 - VECTOR-RETRIEVAL 🟢 隔離交付（2026-10-23）：人類指示「要有可以示範查詢的題目，並繼續把這份架構完成」，選README架構圖的「向量檢索」並同意下載本地embedding模型。依[短計畫](superpowers/plans/2026-10-23-vector-retrieval.md)：bge-m3（隔離Ollama，雙模型常駐）、入門文件向量側檔、正式索引向量表（增量／補齊／換模型重算）、關鍵字前3名保留＋RRF補足、向量只在已授權候選中計分、失敗退回關鍵字並標示。純RRF使Q10退步（retrieval-1）已撤回。新增[示範題目](ai-demo-questions.md)、`deploy/check_demo_questions.py`、`deploy/check_retrieval.py`與換句話說題庫；副手快捷鈕改用示範題。驗證見▶現在。未push／合併／部署。
 
