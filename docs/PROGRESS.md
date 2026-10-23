@@ -13,14 +13,14 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **LOCAL-MODEL 🟢 隔離交付**：Qwen3 4B本地模型串接與問答驗收，原資料保留。 |
+| 目前工作項目 | **LOCAL-MODEL-POLISH 🟢 隔離交付**（2026-10-23）：分支審查修正、輸入預算改為依排名送放得下的段落、Q09／Q28／Q32措辭；原資料保留。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
-| 下一個動作 | 開啟15176，yu／demo-yu登入副手查入門文件或正式文件附件。後續為三項答案措辭改善、獨立題庫、向量檢索／OCR及正式環境驗證。 |
+| 下一個動作 | 開啟15176，yu／demo-yu登入副手試用。後續：Q07時態、獨立題庫、來源雜湊效能、向量檢索／OCR及正式環境驗證（見[交接檔](LOCAL_AI_HANDOFF.md)）。遠端新分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
-| 最新程式 commit | LOCAL-MODEL `65f42a6`；前一輪增量索引`d62e54e`。操作與後續工作見[交接檔](LOCAL_AI_HANDOFF.md)。 |
+| 最新程式 commit | LOCAL-MODEL-POLISH（本筆）；前一輪LOCAL-MODEL `65f42a6`。操作與後續工作見[交接檔](LOCAL_AI_HANDOFF.md)。 |
 | 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
-| 測試基準 | 相關API57pass，最後模型14pass；前端15pass、tsc/build exit0；Edge1280／375真模型2pass並目視。41例含37次真模型、2次無來源、1次規則工單、1次真斷線，來源／結構41pass、權限4pass；暖機生成中位數1.828秒。一次獨立審查與複核工程可展示，Q07／Q09／Q28三項輕微措辭限制明列，非41題完美準確率。 |
-| 資料版本 | 無migration。新local-model.sqlite／files／ai與獨立Ollama模型目錄；原79檔hash一致、30表492原列保留，副本新增虛構文件容量吻合。原正式PG／Docker volumes及早期隔離資料未修改。 |
+| 測試基準 | AI相關pytest 75pass、Vitest ai 17pass、tsc/build exit0；Edge1280／375真模型2pass。36例（不含--extended）結構／來源36pass、無意外降級、34次真模型，暖機中位數1.906秒；canonical `answers-polish-3.json`，最終程式重跑答案一致。token估算為實際1.7–1.8倍。一次獨立唯讀審查Ready，兩項非阻擋已修。Q07時態及Q12／Q23／Q29輕微措辭明列，非完美準確率。 |
+| 資料版本 | 無migration。沿用local-model副本；2026-10-23重跑verify_preservation：原79檔hash一致、30表492原列保留。原正式PG／Docker volumes及早期隔離資料未修改。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
 | 阻塞／待人類 | 使用者試用簽核未代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
 | 遠端 | 僅本機commit，未push／PR／合併／正式部署。 |
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- LOCAL-MODEL-POLISH 🟢 隔離交付（2026-10-23）：人類指示「先不要碰（遠端新分支），先把我目前本地的rag分支，審查後繼續完成」。high審查9項；人類選「放得下的先送」修正位元組當token的輸入預算（正式文件4段以上整題降級）。依[短計畫](superpowers/plans/2026-10-23-local-model-polish.md)：字元估算＋依排名送完整段落、`sent_count`與畫面標示、`as_of`入提示、Q09／Q28／Q32措辭；單一來源檔不存在只略過、Windows發布重試、document 503、starter原文依include_history、狀態錯誤自動清除。提示三版比較，第2版退步撤回；Q07仍為已知限制。延後：來源雜湊效能、峰曜一般成員驗收帳號。驗證見▶現在。未push／合併／部署。
 
 - LOCAL-AI-HANDOFF（2026-10-21）：依人類「做好交接檔 commit」整理[本地AI／RAG交接檔](LOCAL_AI_HANDOFF.md)，涵蓋啟動、隔離路徑、程式入口、canonical驗收、三項語意限制及後續工作。僅文件提交；核對路徑與差異，不重跑產品測試、不改執行資料、不push／合併／部署。
 

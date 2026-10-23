@@ -8,6 +8,7 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import threading
+import time
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -153,6 +154,18 @@ def snapshot(sources, signatures):
     return hashlib.sha256(json.dumps([INDEX_VERSION, values]).encode()).hexdigest()
 
 
+def publish(temporary, path, attempts=5):
+    # Windows refuses to replace a file another request still has open; readers hold it briefly.
+    for attempt in range(attempts):
+        try:
+            os.replace(temporary, path)
+            return
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(0.2)
+
+
 def refresh(db, current, *, only_if_changed=False):
     path = index_path(db, current)
     if current.user.role != "admin":
@@ -222,6 +235,12 @@ def refresh(db, current, *, only_if_changed=False):
                 except extractors.ExtractionError as exc:
                     state = "skipped"
                     reason = str(exc)
+                except FileNotFoundError:
+                    # The storage root was verified above, so one missing file must not block every
+                    # other source; its signature changes when it reappears. Other I/O errors may be
+                    # transient and still fail the whole build so the old index is kept and retried.
+                    state = "skipped"
+                    reason = "來源檔案不存在，檔案恢復後會重新索引"
                 index.execute("INSERT INTO entries VALUES (?,?,?,?,?)", (sid, source["fingerprint"], state, reason, signatures[sid]))
             changes = dict(mode="incremental" if compatible else "initial", processed=len(changed),
                            reused=len(sources) - len(changed), removed=len(removed))
@@ -230,7 +249,7 @@ def refresh(db, current, *, only_if_changed=False):
             index.commit()
             if index.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise OSError("Invalid index")
-        os.replace(temporary, path)
+        publish(temporary, path)
         return status(db, current)
     except (OSError, sqlite3.Error):
         raise HTTPException(503, "索引更新失敗，原索引與來源檔案保留") from None
@@ -294,13 +313,15 @@ def document(db, current, document_id, *, include_history=False):
     sources, _ = inventory(db, current, include_history=include_history)
     path = index_path(db, current)
     if path.exists():
-        with closing(connect(path)) as index:
-            row = index.execute("SELECT * FROM chunks WHERE document_id=?", (document_id,)).fetchone()
-            if row:
-                source = valid_sources(index, sources).get(row["source_id"])
-                if source and file_present(source, verify_digest=True):
-                    return dict(document_id=document_id, title=source["title"], text=row["body"],
-                                version=source["version"], is_current=source["is_current"], section=row["section"])
+        try:
+            with closing(connect(path)) as index:
+                row = index.execute("SELECT * FROM chunks WHERE document_id=?", (document_id,)).fetchone()
+                source = valid_sources(index, sources).get(row["source_id"]) if row else None
+        except sqlite3.Error:
+            raise HTTPException(503, "索引暫時無法讀取，請管理者更新") from None
+        if source and file_present(source, verify_digest=True):
+            return dict(document_id=document_id, title=source["title"], text=row["body"],
+                        version=source["version"], is_current=source["is_current"], section=row["section"])
     raise HTTPException(404, "找不到符合版本選項與權限的索引段落，請確認索引狀態")
 
 
@@ -308,7 +329,8 @@ def ask(db, current, payload, *, preview=False):
     if payload.mode != "rag" or payload.query_id:
         raise HTTPException(422, "正式文件索引僅支援文件問答")
     documents = search(db, current, payload.question, payload.project_id, include_history=payload.include_history)
-    base = dict(as_of=datetime.now(timezone.utc).date().isoformat(), synthetic=False,
+    # Server-local date: the model treats dates after as_of as not yet happened.
+    base = dict(as_of=datetime.now().astimezone().date().isoformat(), synthetic=False,
                 project_id=payload.project_id, sources=[], analysis=None, warning=None)
     return service.answer_documents(current.organization.key, current.user.role, payload.question,
                                     documents, base, include_history=payload.include_history, preview=preview)

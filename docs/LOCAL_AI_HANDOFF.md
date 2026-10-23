@@ -1,6 +1,6 @@
 # 本地 AI／RAG 隔離測試版交接
 
-交接日期：2026-10-21。程式基準：`65f42a6`，分支：`feature/rag-starter-import`。本文件交接現有成果，不代表正式部署或使用者驗收通過；最新工作狀態以 [PROGRESS](PROGRESS.md) 為準。
+交接日期：2026-10-21，2026-10-23 更新（LOCAL-MODEL-POLISH：審查修正、輸入預算、措辭）。分支：`feature/rag-starter-import`。本文件交接現有成果，不代表正式部署或使用者驗收通過；最新工作狀態以 [PROGRESS](PROGRESS.md) 為準。
 
 ## 接手先看
 
@@ -72,7 +72,7 @@
 
 程式入口：
 
-- [模型呼叫與輸出驗證](../api/app/ai/model.py)：本地限定、不走環境 proxy／redirect，完成狀態、answerable、引用 ID 驗證，輸入超預算時降級；不靜默截斷。
+- [模型呼叫與輸出驗證](../api/app/ai/model.py)：本地限定、不走環境 proxy／redirect，完成狀態、answerable、引用 ID 驗證。輸入以字元估算（實測約為真實 token 的 1.7 倍），依排名只送放得下的完整段落，其餘仍列來源並記 `sent_count`；最相關段落單獨超限才降級，不靜默截斷。提示含資料基準日 `as_of`。
 - [模型單元測試](../api/tests/test_ai_local_model.py)、[真模型驗收腳本](../deploy/check_local_model.py)、[瀏覽器驗收](../web/e2e/ai-local-model.spec.ts)。
 - [AI 說明](ai-assistant.md)、[本輪短規格與計畫](superpowers/plans/2026-10-21-local-model-acceptance.md)。
 
@@ -82,8 +82,10 @@
 
 | 檔案 | 意義 |
 |---|---|
-| answers-delivery.json | **唯一採用的問答交付結果**，對應 65f42a6 的提示與程式 |
-| 驗收結果.json／問答驗收報告.md | 機器摘要與語意審閱、已知限制 |
+| answers-polish-3.json | **2026-10-23 起採用的問答結果**（36 例，不含 `--extended`），對應 LOCAL-MODEL-POLISH 的提示與程式 |
+| 驗收結果-polish.json | 本輪機器摘要、逐題語意審閱、token 估算校準、撤回候選說明 |
+| answers-delivery.json | 前一輪 41 例結果（65f42a6），保留作對照 |
+| 驗收結果.json／問答驗收報告.md | 前一輪機器摘要與語意審閱 |
 | preservation-before.json／preservation-result.json | 原資料基準及保留結果 |
 | verify_preservation.py | 重新比對保留基準的本機腳本 |
 | browser-delivery/ | 桌面 1280、手機 375 的瀏覽器證據與截圖 |
@@ -93,7 +95,9 @@
 
 相關 API 57 pass；最後模型測試 14 pass；前端相關 15 pass，型別／build exit 0；Edge 桌面／手機真模型 2 pass。資料保留檢查為原 79 檔 SHA-256 一致、30 表 492 原列保留；不是正式資料庫的全量稽核。
 
-`answers-initial.json`、`answers-qwen.json`、`answers-qwen-valid.json`、`answers-final.json`、`answers-candidate-rejected.json` 都是未採用候選。最後一份是已撤回的提示實驗，不要用檔案修改時間取代 canonical 指定。
+本輪（2026-10-23）36 例結構／來源全通過、無意外降級，34 次真模型，暖機中位數 1.906 秒；AI 相關 pytest 75、Vitest 17 通過，tsc／build exit 0，Edge 桌面／手機真模型 2 pass，原 79 檔與 30 表 492 列保留檢查通過。`--extended`（注入、斷線、權限）本輪沒有重跑。
+
+`answers-initial.json`、`answers-qwen.json`、`answers-qwen-valid.json`、`answers-final.json`、`answers-candidate-rejected.json`、`answers-polish.json`、`answers-polish-2.json` 都是未採用候選（後兩份原因見驗收結果-polish.json），不要用檔案修改時間取代 canonical 指定。
 
 需要重新驗收時，先啟動上述副本，再從 repo 根目錄執行，輸出到新名稱以保留既有證據：
 
@@ -106,7 +110,8 @@ Set-Location 'C:\Users\User\Desktop\AI_project\work_flow\projectflow'
 
 ## 已知問題與下一步
 
-1. **先改善三項措辭**：Q07 未明確寫發卡是「預計」安排；Q09 正確列出工單後補述「不同專案無直接關聯」，來源不支持該業務判斷；Q28 金額 12000 與未核准狀態正確，但來源僅說林怡安是窗口，不能推定核准權。改提示後重驗拒答、歷史與引用，避免已撤回候選曾出現的拒答格式退步。
+1. **措辭（2026-10-23 已處理大部分）**：Q09、Q28 已修正，Q32 拒答格式維持。Q07 仍照抄來源未標時態的「10月26日由林怡安發給新人」；加例句的提示反而寫成「已發給新人」，已撤回。另有 Q12 措辭混雜、Q23 引用過多、Q29 結尾多餘三項輕微問題。4B 模型對提示措辭敏感，再改提示務必重跑全部 36 例並逐題比對。**API 沒有自動重新載入**：改 `model.py` 後必須重啟 18006 才會生效，否則驗收跑到舊程式。
+1a. 審查延後項：每次查詢與開啟引用都重新讀取並雜湊來源檔（大型附件會變慢）；驗收腳本的峰曜科技題一律用管理者 elaine 登入，沒有驗到一般成員。
 2. 建立未參與提示調整的獨立題庫，分開評估事實、引用、拒答、跨公司／角色、文件內指令及歷史版本。使用者試用簽核仍待完成。
 3. 後續工程：向量檢索／embedding、掃描 PDF OCR、正式資料分級繼承、遮罩、雲端政策、較大量資料的排程與多 worker。
 4. 正式環境另案處理：Docker 恢復後先備份與隔離 PostgreSQL 驗證，確認切換範圍再部署；不要把本輪 SQLite 成功當成正式上線證據。

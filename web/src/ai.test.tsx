@@ -32,7 +32,7 @@ it('updates isolated formal index and defaults to current sources', async () => 
   expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ dataset: 'formal-v1', include_history: false }), expect.any(AbortSignal));
   fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
   await screen.findByText('原文截圖4張');
-  expect(ai.document).toHaveBeenCalledWith('D1', expect.any(AbortSignal), 'formal-v1');
+  expect(ai.document).toHaveBeenCalledWith('D1', expect.any(AbortSignal), 'formal-v1', false);
 });
 
 it('opts into formal history for ask, preview and citations and clears on opt-out', async () => {
@@ -85,6 +85,34 @@ it('polls formal status while open and cancels polling when closed', async () =>
     view.unmount();
     vi.useRealTimers();
   }
+});
+
+it('clears a status load error once a later formal poll succeeds', async () => {
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
+  const view = render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  vi.mocked(ai.status).mockRejectedValueOnce(new Error('offline'));
+  vi.useFakeTimers();
+  try {
+    fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
+    await act(async () => {});
+    expect(screen.getByRole('alert')).toHaveTextContent('無法載入 AI 資料');
+    await act(async () => { await vi.advanceTimersByTimeAsync(10000); });
+    expect(screen.queryByRole('alert')).toBeNull();
+  } finally {
+    view.unmount();
+    vi.useRealTimers();
+  }
+});
+
+it('says how many retrieved sections were not sent because of the model length limit', async () => {
+  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'rag', engine: 'model', answer: '五樓', citations: ['D1'], gateway: { ...gateway, route: 'local', reason: 'local_only', outcome: 'completed', source_count: 6, sent_count: 4 } });
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '報到地點' } });
+  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  await screen.findByText('五樓');
+  expect(screen.getByText(/提供模型 4 段；另 2 段因長度上限未提供/)).toBeInTheDocument();
 });
 
 it('keeps formal refresh controls out of member view', async () => {
@@ -145,7 +173,7 @@ it('selects the starter corpus, requests history explicitly and opens its own ci
   expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ dataset: 'starter-v1', include_history: true }), expect.any(AbortSignal));
   fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
   await screen.findByText('原文截圖4張');
-  expect(ai.document).toHaveBeenLastCalledWith('D1', expect.any(AbortSignal), 'starter-v1');
+  expect(ai.document).toHaveBeenLastCalledWith('D1', expect.any(AbortSignal), 'starter-v1', true);
 });
 
 it('cancels old queries and clears their replies when the dataset changes', async () => {

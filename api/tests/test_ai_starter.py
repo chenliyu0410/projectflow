@@ -88,6 +88,9 @@ def test_starter_api_scope_history_and_complete_orders(client, starter_root):
     }).json()
     assert "MTG-002" in {s["document_id"] for s in historical["sources"]}
     assert client.get("/ai/documents/PDF-001?dataset=starter-v1").status_code == 200
+    assert client.get("/ai/documents/MTG-002?dataset=starter-v1").status_code == 404
+    old = client.get("/ai/documents/MTG-002?dataset=starter-v1&include_history=true")
+    assert old.status_code == 200 and old.json()["is_current"] is False
     assert client.get("/ai/documents/MAIL-004?dataset=starter-v1").status_code == 404
     assert client.post("/ai/ask", json={"dataset": "starter-v1", "question": "x", "mode": "sql"}).status_code == 422
     orders = client.post("/ai/ask", json={"dataset": "starter-v1", "question": "列出工單", "mode": "work_orders"}).json()

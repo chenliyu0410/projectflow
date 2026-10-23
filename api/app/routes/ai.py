@@ -104,7 +104,9 @@ def document(document_id:str,dataset:Dataset='dataset-v1',include_history:bool=F
     if dataset == 'formal-v1':
         return formal_index.document(db,current,document_id,include_history=include_history)
     with closing(connection(current, dataset)) as db:
-        row=db.execute('SELECT * FROM documents WHERE document_id=? AND EXISTS (SELECT 1 FROM json_each(roles) WHERE value=?)',(document_id,current.user.role)).fetchone()
+        # Superseded starter documents are only readable when history was requested, as in search.
+        history=include_history or dataset=='dataset-v1'
+        row=db.execute('SELECT * FROM documents WHERE document_id=? AND (current=1 OR ?) AND EXISTS (SELECT 1 FROM json_each(roles) WHERE value=?)',(document_id,int(history),current.user.role)).fetchone()
         if row is None: raise HTTPException(404,'找不到文件')
         metadata=json.loads(row['metadata'])
         return dict(document_id=row['document_id'],title=row['title'],text=row['body'],project_id=row['project_id'],version=metadata['version'],is_current=metadata['is_current'])

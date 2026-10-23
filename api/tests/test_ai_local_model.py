@@ -61,4 +61,44 @@ def test_incomplete_completion_metadata_is_rejected(monkeypatch, extra):
 def test_oversized_context_fails_before_model_can_silently_drop_sources(monkeypatch):
     monkeypatch.setattr(model, 'request', lambda *args: pytest.fail('oversized prompt sent'))
     with pytest.raises(ValueError, match='context'):
-        model.chat({'model': 'local'}, '指示', '字' * 9000, {'type': 'object'})
+        model.chat({'model': 'local'}, '指示', '字' * 10000, {'type': 'object'})
+
+
+def test_six_full_cjk_chunks_fit_the_context_budget():
+    # Formal-document search returns up to six 1200-character sections.
+    documents = [dict(document_id=f'd{i}', body='新人報到地點' * 200, title='報到說明') for i in range(6)]
+    assert model.fit_documents('新人報到地點在哪裡？', documents, '2026-10-23') == documents
+
+
+def test_sources_that_do_not_fit_are_dropped_from_the_lowest_rank_whole():
+    documents = [dict(document_id=f'd{i}', body='字' * 3000) for i in range(6)]
+    sent = model.fit_documents('問題', documents)
+    assert sent == documents[:len(sent)] and 0 < len(sent) < 6
+    assert model.fit_documents('問題', [dict(document_id='big', body='字' * 20000)]) == []
+
+
+def test_answer_content_carries_as_of_for_planned_dates(monkeypatch):
+    captured = []
+    def chat(config, system, prompt, schema):
+        captured.append((system, json.loads(prompt)))
+        return {'answerable': True, 'answer': '預計10月26日發卡', 'citations': ['d1']}
+    monkeypatch.setattr(model, 'chat', chat)
+    model.answer({}, '門禁卡發了嗎', [{'document_id': 'd1', 'body': '10月26日發卡'}], '2026-10-20')
+    system, content = captured[0]
+    assert content['as_of'] == '2026-10-20'
+    assert 'as_of' in system and '預計' in system and '核准人' in system
+
+
+def test_gateway_records_sent_count_and_refuses_when_top_source_is_too_large(monkeypatch):
+    from app.ai import gateway
+    monkeypatch.setattr(model, 'settings', lambda company: dict(enabled=True, base_url='http://127.0.0.1:11434', model='local'))
+    def doc(i, size):
+        return dict(document_id=f'd{i}', body='字' * size, roles='["admin"]', metadata=json.dumps(dict(company_id='food', classification='internal')))
+    prepared = gateway.prepare('food', 'admin', 'rag', '問題', [doc(i, 3000) for i in range(6)], as_of='2026-10-23')
+    assert prepared.info['route'] == 'local' and prepared.info['source_count'] == 6
+    assert 0 < prepared.info['sent_count'] < 6
+    assert [d['document_id'] for d in prepared.content['sources']] == [d['document_id'] for d in prepared.documents]
+    blocked = gateway.prepare('food', 'admin', 'rag', '問題', [doc(0, 20000)])
+    assert blocked.info['route'] == 'none' and blocked.info['reason'] == 'context_too_large' and blocked.content is None
+    monkeypatch.setattr(model, 'settings', lambda company: dict(enabled=False, base_url='', model=''))
+    assert gateway.prepare('food', 'admin', 'rag', '問題', [doc(0, 20000)]).info['reason'] == 'model_disabled'

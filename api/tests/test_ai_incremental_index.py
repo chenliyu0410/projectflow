@@ -146,3 +146,21 @@ def test_legacy_index_is_built_once_without_modifying_sources(client, engine, is
     refresh(client)
     assert parser.call_count == 1
     assert {p.name: p.read_bytes() for p in isolated.iterdir()} == source_bytes
+
+
+def test_missing_source_file_is_skipped_without_blocking_other_sources(client, engine, isolated):
+    nid, _, _ = setup(client, engine, "yu")
+    missing = upload_doc(client, nid, "新人報到遺失檔案".encode()).json()
+    with Session(engine) as db:
+        key = db.scalar(select(DocumentVersion.storage_key).where(DocumentVersion.document_id == missing["document_id"]))
+    file = isolated / key
+    saved = file.read_bytes()
+    file.unlink()
+    upload_doc(client, nid, "新人報到保留檔案".encode())
+    result = refresh(client)
+    assert result["counts"] == {"indexed": 1, "pending": 0, "skipped": 1}
+    assert any("不存在" in item["reason"] for item in result["items"])
+    assert "保留檔案" in ask(client).text and "遺失檔案" not in ask(client).text
+    file.write_bytes(saved)
+    result = refresh(client)
+    assert result["counts"]["indexed"] == 2 and result["last_update"]["processed"] == 1

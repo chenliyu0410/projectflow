@@ -64,7 +64,7 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
 
 
 def answer_documents(company, role, question, documents, base, *, include_history=False, preview=False):
-    prepared = gateway.prepare(company, role, 'rag', question, documents, use_model=bool(documents), reason=None if documents else 'no_sources')
+    prepared = gateway.prepare(company, role, 'rag', question, documents, use_model=bool(documents), reason=None if documents else 'no_sources', as_of=base['as_of'])
     if preview: return prepared.preview()
     base['gateway'] = prepared.info
     if not documents:
@@ -72,6 +72,8 @@ def answer_documents(company, role, question, documents, base, *, include_histor
     base['sources']=[dict(document_id=d['document_id'],title=d['title'],project_id=d['project_id'],excerpt=d['body'][:1200],is_current=bool(d['current']),**{k:d[k] for k in ('source_type','node_id','version','section') if k in d}) for d in documents]
     if prepared.info['route'] == 'blocked':
         base['warning'] = 'AI閘道拒絕目前模型設定；未送出內容，改顯示可核對的檢索原文。'
+    if prepared.info['reason'] == 'context_too_large':
+        base['warning'] = '最相關的來源段落超過本地模型長度上限；未送出內容，改顯示可核對的檢索原文。'
     if prepared.info['route'] == 'local':
         try:
             generated=prepared.run()

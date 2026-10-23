@@ -24,7 +24,7 @@ class Prepared:
             raise ValueError("No permitted model request")
         try:
             if self.info["function"] == "rag":
-                result = model.answer(self.config, self.content["question"], self.documents)
+                result = model.answer(self.config, self.content["question"], self.documents, self.content.get("as_of"))
             else:
                 result = model.choose_query(self.config, self.content["question"], self.catalog)
         except Exception:
@@ -34,7 +34,7 @@ class Prepared:
         return result
 
 
-def prepare(company, role, function, question, documents=(), catalog=(), *, use_model=True, reason=None):
+def prepare(company, role, function, question, documents=(), catalog=(), *, use_model=True, reason=None, as_of=None):
     if company not in store.COMPANIES or function not in {"rag", "sql", "work_orders"}:
         raise ValueError("Unsupported gateway scope")
     level, classification_reason = "internal", "question_floor"
@@ -56,19 +56,30 @@ def prepare(company, role, function, question, documents=(), catalog=(), *, use_
     info = dict(policy="local_only", cloud_enabled=False, function=function,
                 classification=level, classification_reason=classification_reason,
                 route="none", reason=reason or "model_disabled", outcome="not_sent",
-                source_count=len(documents), model="")
+                source_count=len(documents), sent_count=0, model="")
     content = None
     config = {}
+    sent = []
     if use_model:
-        content = model.answer_content(question, documents) if function == "rag" else model.query_content(question, catalog)
+        if function == "rag":
+            # Ranked order is kept; sources that do not fit are listed to the user but not sent.
+            sent = model.fit_documents(question, documents, as_of)
+            content = model.answer_content(question, sent, as_of) if sent else None
+        else:
+            content = model.query_content(question, catalog)
         try:
             config = model.settings(company)
             if not isinstance(config, dict) or type(config.get("enabled")) is not bool:
                 raise ValueError("Invalid settings")
             if config["enabled"]:
                 model.validate_config(config)
-                info.update(route="local", reason="local_only", model=config["model"])
+                if content is None:
+                    info.update(reason="context_too_large")
+                else:
+                    info.update(route="local", reason="local_only", model=config["model"])
         except (OSError, KeyError, TypeError, ValueError):
             info.update(route="blocked", reason="invalid_config")
             content = None
-    return Prepared(info, content, config, list(documents), list(catalog))
+    if info["route"] == "local":
+        info["sent_count"] = len(sent)
+    return Prepared(info, content, config, sent, list(catalog))
