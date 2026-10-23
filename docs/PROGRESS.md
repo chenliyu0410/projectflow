@@ -23,7 +23,7 @@
 | 資料版本 | 無migration。正式文件隔離索引INDEX_VERSION升為3（自動重建）。OCR模型在repo外`ocr-models/`（SHA-256已核對），OCR套件另列`api/requirements-ocr.lock`。副本新增虛構「OCR 示範（虛構）」專案（報到動線公告.png、設備借用簽收單（掃描）.pdf）。verify_preservation：原79檔hash一致、30表492原列保留。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
 | 阻塞／待人類 | 使用者試用簽核未代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
-| 遠端 | 僅本機commit，未push／PR／合併／正式部署。 |
+| 遠端 | 2026-10-24 依人類「github可以推」推上 `origin/feature/rag-starter-import`（只推分支，未合併main、未開PR、未部署）。mina201199的兩個遠端分支依決定暫不處理。 |
 
 ---
 
