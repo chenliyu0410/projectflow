@@ -13,7 +13,7 @@ import time
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from app.ai import extractors, policy, service, store, vectors
+from app.ai import extractors, ocr, policy, service, store, vectors
 from app.models import Attachment, Document, DocumentVersion, Node, OperationsRecord, Project
 from app.permissions import can_view_node, can_view_project
 from app.services import attachment_store as files
@@ -21,7 +21,7 @@ from app.services.record_policy import load_policy_context
 
 DATASET = "formal-v1"
 # Bump when extraction, chunking or tokenization rules change.
-INDEX_VERSION = 2
+INDEX_VERSION = 3
 _locks = {}
 _locks_guard = threading.Lock()
 
@@ -149,7 +149,9 @@ def source_signatures(sources):
             file_state = (stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
         except (OSError, HTTPException):
             file_state = None
-        values[sid] = hashlib.sha256(json.dumps([INDEX_VERSION, source["fingerprint"], file_state]).encode()).hexdigest()
+        # OCR on/off or a new OCR model changes how images and scans are read, so only those re-parse.
+        reader = ocr.identity() if Path(source["title"]).suffix.lower() in extractors.IMAGES | {".pdf"} else ""
+        values[sid] = hashlib.sha256(json.dumps([INDEX_VERSION, reader, source["fingerprint"], file_state]).encode()).hexdigest()
     return values
 
 
@@ -260,7 +262,7 @@ def refresh(db, current, *, only_if_changed=False):
                         data = handle.read(extractors.MAX_BYTES + 1)
                     if len(data) != source["size"] or hashlib.sha256(data).hexdigest() != source["sha256"]:
                         raise extractors.ExtractionError("檔案完整性不符，請確認原始文件")
-                    text = extractors.extract(data, source["title"])
+                    text, reason = extractors.extract_document(data, source["title"])
                     for section, body in enumerate(extractors.chunks(text), 1):
                         cid = f"{sid}-c{section}"
                         index.execute("INSERT INTO chunks VALUES (?,?,?,?)", (cid, sid, section, body))

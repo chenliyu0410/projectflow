@@ -27,8 +27,8 @@ def test_new_version_reuses_old_text_and_fts_without_reparsing(client, engine, i
     with closing(formal_index.connect(path)) as db:
         old_terms = db.execute("SELECT rowid,document_id,words FROM search ORDER BY rowid").fetchall()
         old_terms = [tuple(row) for row in old_terms]
-    parser = Mock(wraps=formal_index.extractors.extract)
-    monkeypatch.setattr(formal_index.extractors, "extract", parser)
+    parser = Mock(wraps=formal_index.extractors.extract_document)
+    monkeypatch.setattr(formal_index.extractors, "extract_document", parser)
     assert client.post(f"/documents/{first['document_id']}/text", json={"expected_version": 1, "content": "新人報到五樓"}).status_code == 201
     result = refresh(client)
     assert parser.call_count == 1
@@ -53,8 +53,8 @@ def test_deletion_removes_only_its_index_rows_without_parsing(client, engine, is
     upload_doc(client, nid, "新人報到保留文件".encode())
     attachment = upload_attachment(client, nid, "新人報到刪除附件".encode()).json()
     refresh(client)
-    parser = Mock(wraps=formal_index.extractors.extract)
-    monkeypatch.setattr(formal_index.extractors, "extract", parser)
+    parser = Mock(wraps=formal_index.extractors.extract_document)
+    monkeypatch.setattr(formal_index.extractors, "extract_document", parser)
     assert client.delete(f"/attachments/{attachment['id']}").status_code == 200
     result = refresh(client)
     assert not parser.called
@@ -77,8 +77,8 @@ def test_changed_file_state_and_unsupported_sources_are_handled_individually(cli
     doc = upload_doc(client, nid, "新人報到原始文字".encode()).json()
     assert upload_doc(client, nid, b"\x89PNG\r\n\x1a\nfake", name="image.png").status_code == 201
     refresh(client)
-    parser = Mock(wraps=formal_index.extractors.extract)
-    monkeypatch.setattr(formal_index.extractors, "extract", parser)
+    parser = Mock(wraps=formal_index.extractors.extract_document)
+    monkeypatch.setattr(formal_index.extractors, "extract_document", parser)
     with Session(engine) as db:
         key = db.scalar(select(DocumentVersion.storage_key).where(DocumentVersion.document_id == doc["document_id"]))
     file = isolated / key
@@ -104,7 +104,7 @@ def test_failed_incremental_build_preserves_old_index_and_retries(client, engine
     before = path.read_bytes()
     upload_doc(client, nid, "新人報到新增甲".encode())
     upload_doc(client, nid, "新人報到新增乙".encode())
-    original = formal_index.extractors.extract
+    original = formal_index.extractors.extract_document
     calls = []
 
     def fail_second(data, filename):
@@ -113,12 +113,12 @@ def test_failed_incremental_build_preserves_old_index_and_retries(client, engine
             raise OSError("transient")
         return original(data, filename)
 
-    monkeypatch.setattr(formal_index.extractors, "extract", fail_second)
+    monkeypatch.setattr(formal_index.extractors, "extract_document", fail_second)
     assert client.post("/ai/index/refresh").status_code == 503
     assert path.read_bytes() == before
     assert not list(path.parent.glob(".index-*.sqlite"))
     parser = Mock(wraps=original)
-    monkeypatch.setattr(formal_index.extractors, "extract", parser)
+    monkeypatch.setattr(formal_index.extractors, "extract_document", parser)
     result = refresh(client)
     assert parser.call_count == 2 and result["last_update"]["reused"] == 1
 
@@ -138,8 +138,8 @@ def test_legacy_index_is_built_once_without_modifying_sources(client, engine, is
             INSERT INTO info VALUES ('old','old');
         """)
         db.commit()
-    parser = Mock(wraps=formal_index.extractors.extract)
-    monkeypatch.setattr(formal_index.extractors, "extract", parser)
+    parser = Mock(wraps=formal_index.extractors.extract_document)
+    monkeypatch.setattr(formal_index.extractors, "extract_document", parser)
     result = refresh(client)
     assert result["last_update"] == {"mode": "initial", "processed": 1, "reused": 0, "removed": 0}
     assert parser.call_count == 1

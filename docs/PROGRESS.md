@@ -13,14 +13,14 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **CLASSIFY-MASK 🟢 隔離交付**（2026-10-23）：正式文件分級繼承（只能更嚴格）、規則遮罩、AI政策（全本地／混合／允許雲端，無雲端供應商不送出）與真實「AI政策與稽核」頁；原資料保留。前一輪VECTOR-RETRIEVAL `ed9bce5`。 |
+| 目前工作項目 | **OCR 🟢 隔離交付**（2026-10-23）：正式文件索引以RapidOCR繁中模型辨識PNG／JPG圖片與掃描PDF；原資料保留。前一輪CLASSIFY-MASK `33afb56`。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
-| 下一個動作 | 開啟15176，照[示範題目](ai-demo-questions.md)試用（D14–D19為分級與遮罩，示範後改回預設）。後續：OCR、雲端供應商（待人類決定）、欄位級分級與正式PG資料表、獨立題庫、正式環境與pgvector（見[交接檔](LOCAL_AI_HANDOFF.md)）。遠端新分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
+| 下一個動作 | 開啟15176，照[示範題目](ai-demo-questions.md)試用（D20／D21為OCR）。後續：手寫／表格／直書OCR與正式映像相依、雲端供應商（待人類決定）、欄位級分級與正式PG資料表、獨立題庫、正式環境與pgvector（見[交接檔](LOCAL_AI_HANDOFF.md)）。遠端新分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
-| 最新程式 commit | CLASSIFY-MASK（本筆）；前一輪VECTOR-RETRIEVAL `ed9bce5`。操作與後續工作見[交接檔](LOCAL_AI_HANDOFF.md)。 |
+| 最新程式 commit | OCR（本筆）；前一輪CLASSIFY-MASK `33afb56`。操作與後續工作見[交接檔](LOCAL_AI_HANDOFF.md)。 |
 | 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
-| 測試基準 | AI相關pytest 96pass（含紅隊：雲端內容與稽核無機密原值、無對照表）、前端全量Vitest 32檔323pass、tsc/build exit0；Edge1280／375真模型2pass；真模型36例結構／來源36pass、無降級；示範13題全通過。實機：公司內部＋混合政策下預覽顯示遮罩後雲端內容（比例3、金額2、廠商、電話、Email）、專案設機密後只限本地、放寬被拒；手機375無水平捲動；設定已改回預設。獨立審查Ready，六項非阻擋已修四項。 |
-| 資料版本 | 無migration。分級與政策存`ai/policy/<公司>.json`（目前為預設：全本地、公司機密、無覆寫）。副本新增虛構「遮罩示範（虛構）」專案、配方成本試算.txt與合作夥伴「青禾原料行」。verify_preservation：原79檔hash一致、30表492原列保留。 |
+| 測試基準 | AI pytest 105pass、文件／附件47pass（合計152）（含真繁中模型辨識測試）；Edge1280／375真模型2pass；真模型36例結構／來源36pass、無降級；示範15題（含OCR兩題）全通過。實機：圖片公告OCR平均信心0.98、兩頁掃描PDF 0.95，副手正確回答「一樓警衛室」「10月29日（預計）」。獨立審查Ready，五項非阻擋全修。 |
+| 資料版本 | 無migration。正式文件隔離索引INDEX_VERSION升為3（自動重建）。OCR模型在repo外`ocr-models/`（SHA-256已核對），OCR套件另列`api/requirements-ocr.lock`。副本新增虛構「OCR 示範（虛構）」專案（報到動線公告.png、設備借用簽收單（掃描）.pdf）。verify_preservation：原79檔hash一致、30表492原列保留。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
 | 阻塞／待人類 | 使用者試用簽核未代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
 | 遠端 | 僅本機commit，未push／PR／合併／正式部署。 |
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- OCR 🟢 隔離交付（2026-10-23）：人類指示「繼續做OCR」，選RapidOCR套件；預設簡體模型把繁體認成簡體或漏字，人類同意（「可以繼續」）改下載RapidAI官方繁中辨識模型（ModelScope，SHA-256核對）。依[短計畫](superpowers/plans/2026-10-23-ocr.md)：圖片與無文字層PDF頁OCR、低信心行丟棄與整份略過、OCR標示與信心、像素／頁數上限、OCR開關或模型變更自動重解析、OCR套件另列不進正式主依賴。示範題加D20／D21。驗證見▶現在。未push／合併／部署。
 
 - CLASSIFY-MASK 🟢 隔離交付（2026-10-23）：人類指示「繼續做資料分級與遮罩」（README F9／§8.5）。依[短計畫](superpowers/plans/2026-10-23-classification-masking.md)：公司→專案→節點→文件繼承、只能更嚴格（放寬回422）、公司預設機密（AI代決：沿用原本未分級從嚴）；規則遮罩（比例、金額、電話、Email、合作夥伴名）與還原；政策三選一但無雲端供應商、任何政策都不送出（AI代決：混合與允許雲端都遮罩內部內容）；含機密整題只限本地；預覽列遮罩後雲端內容；真實「AI政策與稽核」頁（非隔離時維持原示意）；AI稽核查詢。延後：雲端供應商、欄位級分級、本地小模型偵測、正式PG資料表。驗證見▶現在。未push／合併／部署。
 

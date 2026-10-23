@@ -11,5 +11,7 @@
   {"id": "D10", "login": "elaine", "company": "electronics", "dataset": "starter-v1", "question": "新人課程什麼時候上？", "must_contain": ["10月29日|10-29"], "sources_only": ["MAIL-004"], "point": "另一家公司只看到自己的文件（峰曜科技10月29日），不會混入毛研食品。"},
   {"id": "D11", "login": "yu", "dataset": "formal-v1", "project_title": "增量索引展示", "question": "新人報到地點在哪一樓？", "must_contain": ["五樓"], "must_not_contain": ["三樓"], "point": "正式文件與附件：預設只查現行第2版。"},
   {"id": "D12", "login": "yu", "dataset": "formal-v1", "project_title": "增量索引展示", "include_history": true, "question": "新人報到地點原本和現在分別在哪一樓？", "must_contain": ["三樓", "五樓"], "point": "勾選歷史版本：舊版三樓、現行五樓。"},
-  {"id": "D13", "login": "yu", "dataset": "formal-v1", "project_title": "隔離索引展示", "question": "設備申請流程怎麼做？", "must_contain": ["人資", "資訊"], "source_type": "attachment", "point": "來源是上傳的附件，引用可開啟原段落。"}
+  {"id": "D13", "login": "yu", "dataset": "formal-v1", "project_title": "隔離索引展示", "question": "設備申請流程怎麼做？", "must_contain": ["人資", "資訊"], "source_type": "attachment", "point": "來源是上傳的附件，引用可開啟原段落。"},
+  {"id": "D20", "login": "yu", "dataset": "formal-v1", "project_title": "OCR 示範", "question": "新人報到要先去哪裡換證？", "must_contain": ["警衛室"], "point": "答案來自圖片公告：OCR 把圖片裡的字變成可搜尋的文字。"},
+  {"id": "D21", "login": "yu", "dataset": "formal-v1", "project_title": "OCR 示範", "question": "投影機預定什麼時候歸還？", "must_contain": ["10月29日|10-29"], "point": "答案來自只有影像的掃描 PDF；來源段落標示 OCR 辨識、可能有錯字。"}
 ]

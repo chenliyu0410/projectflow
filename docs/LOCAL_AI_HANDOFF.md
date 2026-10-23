@@ -39,7 +39,8 @@
 |---|---|
 | 網頁 | http://127.0.0.1:15176 |
 | API 隔離健康檢查 | http://127.0.0.1:18006/health/acceptance ，應為 `acceptance: true` |
-| 專用 Ollama | http://127.0.0.1:11436 ，只使用本輪 `ollama-models/`；對話模型與 `bge-m3` 向量模型同時常駐（`OLLAMA_MAX_LOADED_MODELS=2`） |
+| OCR | 啟動器設 `PF_AI_OCR_MODEL_DIR`＝本資料夾 `ocr-models/`（繁中辨識模型，SHA-256 見 ai-assistant.md）；`.venv` 需另裝 `api/requirements-ocr.lock` |
+| 專用 Ollama | http://127.0.0.1:11436 ，只使用本輪 `ollama-models/`（2026-10-23 重啟時本機 Ollama 已自動更新為 0.40.7）；對話模型與 `bge-m3` 向量模型同時常駐（`OLLAMA_MAX_LOADED_MODELS=2`） |
 
 全部綁定回環位址。服務只剩部分存活或埠被占用時，先核對本資料夾的 `pids.json`、`ollama.pid`、程序命令列與日誌。PID 可能過期，不能只憑檔案數字停止程序；不要批次終止 Python、Node 或其他 Ollama。
 
@@ -119,7 +120,7 @@ Set-Location 'C:\Users\User\Desktop\AI_project\work_flow\projectflow'
 1b. 混合檢索後 Q12 誤把「將準備紙本簽到表」寫成已準備；示範腳本已避開 Q07 類時態題。
 1a. 審查延後項：每次查詢與開啟引用都重新讀取並雜湊來源檔（大型附件會變慢）；驗收腳本的峰曜科技題一律用管理者 elaine 登入，沒有驗到一般成員。
 2. 建立未參與提示調整的獨立題庫，分開評估事實、引用、拒答、跨公司／角色、文件內指令及歷史版本。使用者試用簽核仍待完成。
-3. 後續工程：掃描 PDF OCR、雲端供應商轉接（需人類決定供應商、合約與金鑰）、欄位級分級與正式 PostgreSQL 版分級資料表、正式 PostgreSQL 的 pgvector、較大量資料的排程與多 worker。分級繼承、規則遮罩與 AI 政策已在隔離版完成（CLASSIFY-MASK，見 ai-assistant.md 與示範題 D14–D19）；隔離副本新增虛構「遮罩示範（虛構）」專案、〈配方成本試算.txt〉與合作夥伴「青禾原料行」，設定已改回預設。向量檢索已在隔離版完成（bge-m3，見 ai-assistant.md）；向量以 Python 標準函式庫計算，適合數千段以內，資料量變大前要改 pgvector 或專用索引。
+3. 後續工程：手寫／表格／直書 OCR 與正式映像的 OCR 相依（Linux 需 libGL 等）、雲端供應商轉接（需人類決定供應商、合約與金鑰）、欄位級分級與正式 PostgreSQL 版分級資料表、正式 PostgreSQL 的 pgvector、較大量資料的排程與多 worker。分級繼承、規則遮罩與 AI 政策已在隔離版完成（CLASSIFY-MASK，見 ai-assistant.md 與示範題 D14–D19）；隔離副本新增虛構「遮罩示範（虛構）」專案、〈配方成本試算.txt〉與合作夥伴「青禾原料行」，設定已改回預設。向量檢索已在隔離版完成（bge-m3，見 ai-assistant.md）；向量以 Python 標準函式庫計算，適合數千段以內，資料量變大前要改 pgvector 或專用索引。
 4. 正式環境另案處理：Docker 恢復後先備份與隔離 PostgreSQL 驗證，確認切換範圍再部署；不要把本輪 SQLite 成功當成正式上線證據。
 
 接手修改前先讀 AGENTS、PROGRESS，核對 branch／status。延續目前 feature 分支，保留所有原資料；這次交接本身僅提交文件。
