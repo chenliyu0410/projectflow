@@ -59,7 +59,10 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
         result=store.execute_query(db,chosen,company,project_id)
         base['analysis']=result
         return dict(base,kind='sql',engine=engine,answer=f'查詢：{result["label"]}。找到{len(result["rows"])}列結果'+('（已截取前200列）。' if result['truncated'] else '。')+'以下為資料庫實際計算；未執行任意模型SQL。')
-    documents=store.search(db,question,role,project_id,include_history)
+    if dataset == 'starter-v1':
+        documents, base['retrieval'] = starter.search(db, company, question, role, project_id, include_history)
+    else:
+        documents, base['retrieval'] = store.search(db,question,role,project_id,include_history), 'keyword'
     return answer_documents(company, role, question, documents, base, include_history=include_history, preview=preview)
 
 

@@ -13,7 +13,7 @@ import time
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from app.ai import extractors, service, store
+from app.ai import extractors, service, store, vectors
 from app.models import Attachment, Document, DocumentVersion, Node, Project
 from app.permissions import can_view_node, can_view_project
 from app.services import attachment_store as files
@@ -21,7 +21,7 @@ from app.services.record_policy import load_policy_context
 
 DATASET = "formal-v1"
 # Bump when extraction, chunking or tokenization rules change.
-INDEX_VERSION = 1
+INDEX_VERSION = 2
 _locks = {}
 _locks_guard = threading.Lock()
 
@@ -166,6 +166,34 @@ def publish(temporary, path, attempts=5):
             time.sleep(0.2)
 
 
+MISSING_VECTORS = "SELECT c.document_id, c.source_id, c.body FROM chunks c LEFT JOIN vectors v USING(document_id) WHERE v.document_id IS NULL ORDER BY c.document_id"
+
+
+def vectors_ready(index, company):
+    """True when vectors cannot be built now (off, or model switched off), or every chunk has one."""
+    if not vectors.available(company):
+        return True
+    if index.execute("SELECT vector_model FROM info").fetchone()[0] != vectors.model_name():
+        return False
+    return index.execute(MISSING_VECTORS).fetchone() is None
+
+
+def fill_vectors(index, current, sources, stored_model, *, content_changed):
+    """Embed only chunks without a vector; a model change clears all. Keyword index never waits on it."""
+    if stored_model != vectors.model_name():
+        index.execute("DELETE FROM vectors")
+    pending = index.execute(MISSING_VECTORS).fetchall()
+    try:
+        values = vectors.embed(current.organization.key, [sources[sid]["title"] + "\n" + body for _, sid, body in pending]) if pending else []
+    except Exception:
+        if not content_changed:
+            # Nothing else to publish; keep the current index and retry on the next check.
+            raise HTTPException(503, "語意向量模型暫時無法使用；關鍵字索引照常提供，下一輪重試") from None
+        return dict(vectors=0, vector_state="pending")
+    index.executemany("INSERT INTO vectors VALUES (?,?)", [(cid, vectors.pack(v)) for (cid, _, _), v in zip(pending, values)])
+    return dict(vectors=len(values), vector_state="complete")
+
+
 def refresh(db, current, *, only_if_changed=False):
     path = index_path(db, current)
     if current.user.role != "admin":
@@ -179,14 +207,15 @@ def refresh(db, current, *, only_if_changed=False):
         sources, _ = inventory(db, current, include_history=True)
         signatures = source_signatures(sources)
         signature = snapshot(sources, signatures)
-        previous, compatible = {}, False
+        previous, compatible, stored_vector_model = {}, False, ""
         if path.exists():
             try:
                 with closing(connect(path)) as existing:
                     if existing.execute("PRAGMA user_version").fetchone()[0] == INDEX_VERSION:
                         previous = {r["source_id"]: r["source_signature"] for r in existing.execute("SELECT source_id,source_signature FROM entries")}
                         compatible = True
-                        if existing.execute("SELECT snapshot_hash FROM info").fetchone()[0] == signature:
+                        stored_vector_model = existing.execute("SELECT vector_model FROM info").fetchone()[0]
+                        if existing.execute("SELECT snapshot_hash FROM info").fetchone()[0] == signature and vectors_ready(existing, current.organization.key):
                             return None if only_if_changed else status(db, current)
             except sqlite3.Error:
                 previous, compatible = {}, False
@@ -204,13 +233,15 @@ def refresh(db, current, *, only_if_changed=False):
                     CREATE TABLE entries(source_id TEXT PRIMARY KEY, fingerprint TEXT, state TEXT, reason TEXT, source_signature TEXT);
                     CREATE TABLE chunks(document_id TEXT PRIMARY KEY, source_id TEXT, section INTEGER, body TEXT);
                     CREATE VIRTUAL TABLE search USING fts5(document_id UNINDEXED, words);
-                    CREATE TABLE info(updated_at TEXT, snapshot_hash TEXT, changes TEXT);
+                    CREATE TABLE info(updated_at TEXT, snapshot_hash TEXT, changes TEXT, vector_model TEXT);
+                    CREATE TABLE vectors(document_id TEXT PRIMARY KEY, vector BLOB);
                 """)
                 index.execute(f"PRAGMA user_version={INDEX_VERSION}")
             changed = {sid for sid in sources if previous.get(sid) != signatures[sid]}
             removed = set(previous) - set(sources)
             for sid in changed | removed:
                 index.execute("DELETE FROM search WHERE document_id IN (SELECT document_id FROM chunks WHERE source_id=?)", (sid,))
+                index.execute("DELETE FROM vectors WHERE document_id IN (SELECT document_id FROM chunks WHERE source_id=?)", (sid,))
                 index.execute("DELETE FROM chunks WHERE source_id=?", (sid,))
                 index.execute("DELETE FROM entries WHERE source_id=?", (sid,))
             for sid, source in sources.items():
@@ -244,8 +275,10 @@ def refresh(db, current, *, only_if_changed=False):
                 index.execute("INSERT INTO entries VALUES (?,?,?,?,?)", (sid, source["fingerprint"], state, reason, signatures[sid]))
             changes = dict(mode="incremental" if compatible else "initial", processed=len(changed),
                            reused=len(sources) - len(changed), removed=len(removed))
+            if vectors.available(current.organization.key):
+                changes.update(fill_vectors(index, current, sources, stored_vector_model, content_changed=bool(changed or removed or not compatible)))
             index.execute("DELETE FROM info")
-            index.execute("INSERT INTO info VALUES (?,?,?)", (datetime.now(timezone.utc).isoformat(), signature, json.dumps(changes)))
+            index.execute("INSERT INTO info VALUES (?,?,?,?)", (datetime.now(timezone.utc).isoformat(), signature, json.dumps(changes), vectors.model_name()))
             index.commit()
             if index.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise OSError("Invalid index")
@@ -277,34 +310,58 @@ def as_document(row, source, current):
 
 
 def search(db, current, question, project_id=None, *, include_history=False):
+    return search_with_mode(db, current, question, project_id, include_history=include_history)[0]
+
+
+def search_with_mode(db, current, question, project_id=None, *, include_history=False):
+    """Keyword (BM25) fused with local vectors; returns (documents, retrieval mode)."""
     sources, _ = inventory(db, current, project_id, include_history=include_history)
     path = index_path(db, current)
+    mode, query = "keyword", None
+    if vectors.available(current.organization.key):
+        # Embed before opening the index so a slow model load never holds the file open.
+        try:
+            query, mode = vectors.embed(current.organization.key, [question])[0], "hybrid"
+        except Exception:
+            mode = "keyword_fallback"
     if not path.exists():
-        return []
+        return [], mode
     words = list(dict.fromkeys(store.tokens(question)))[:60]
-    if not words:
-        return []
     match = " OR ".join('"' + word + '"' for word in words)
     try:
         with closing(connect(path)) as index:
             allowed = valid_sources(index, sources)
             if not allowed:
-                return []
+                return [], mode
             # Apply ACLs before top-k; hidden hits cannot crowd out accessible documents.
             slots = ",".join("?" for _ in allowed)
-            rows = index.execute(f"""SELECT c.* FROM search JOIN chunks c USING(document_id)
+            keyword = [r[0] for r in index.execute(f"""SELECT c.document_id FROM search JOIN chunks c USING(document_id)
                 WHERE search MATCH ? AND c.source_id IN ({slots})
-                ORDER BY bm25(search),c.document_id""", (match, *allowed))
-            verified, results = {}, []
-            for row in rows:
-                sid = row["source_id"]
-                if sid not in verified:
-                    verified[sid] = file_present(allowed[sid], verify_digest=True)
-                if verified[sid]:
-                    results.append(as_document(dict(row), allowed[sid], current))
-                if len(results) == 6:
-                    break
-            return results
+                ORDER BY bm25(search),c.document_id LIMIT ?""", (match, *allowed, vectors.CANDIDATES if query is not None else -1))] if words else []
+            semantic = []
+            if query is not None:
+                try:
+                    if index.execute("SELECT vector_model FROM info").fetchone()[0] != vectors.model_name():
+                        raise ValueError("Index vectors use another model")
+                    stored = {r[0]: vectors.unpack(r[1]) for r in index.execute(
+                        f"SELECT v.document_id, v.vector FROM vectors v JOIN chunks c USING(document_id) WHERE c.source_id IN ({slots})", tuple(allowed))}
+                    semantic = vectors.rank(query, stored, stored)
+                except (sqlite3.Error, ValueError):
+                    mode = "keyword_fallback"
+            order = vectors.fuse(keyword, semantic)
+            rows = {r["document_id"]: dict(r) for r in index.execute(
+                f"SELECT * FROM chunks WHERE document_id IN ({','.join('?' for _ in order)})", tuple(order))} if order else {}
+        verified, results = {}, []
+        for cid in order:
+            row = rows[cid]
+            sid = row["source_id"]
+            if sid not in verified:
+                verified[sid] = file_present(allowed[sid], verify_digest=True)
+            if verified[sid]:
+                results.append(as_document(row, allowed[sid], current))
+            if len(results) == 6:
+                break
+        return results, mode
     except sqlite3.Error:
         raise HTTPException(503, "索引暫時無法讀取，請管理者更新") from None
 
@@ -328,9 +385,9 @@ def document(db, current, document_id, *, include_history=False):
 def ask(db, current, payload, *, preview=False):
     if payload.mode != "rag" or payload.query_id:
         raise HTTPException(422, "正式文件索引僅支援文件問答")
-    documents = search(db, current, payload.question, payload.project_id, include_history=payload.include_history)
+    documents, retrieval = search_with_mode(db, current, payload.question, payload.project_id, include_history=payload.include_history)
     # Server-local date: the model treats dates after as_of as not yet happened.
-    base = dict(as_of=datetime.now().astimezone().date().isoformat(), synthetic=False,
+    base = dict(as_of=datetime.now().astimezone().date().isoformat(), synthetic=False, retrieval=retrieval,
                 project_id=payload.project_id, sources=[], analysis=None, warning=None)
     return service.answer_documents(current.organization.key, current.user.role, payload.question,
                                     documents, base, include_history=payload.include_history, preview=preview)

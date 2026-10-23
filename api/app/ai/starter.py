@@ -9,7 +9,7 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
-from app.ai import store
+from app.ai import store, vectors
 
 DATASET = "starter-v1"
 AS_OF = "2026-10-20"
@@ -161,6 +161,27 @@ def visible_projects(db, role):
     for row in rows:
         row["title"] = titles.get(row["project_id"], row["project_id"])
     return rows
+
+
+def search(db, company, question, role, project_id=None, include_history=False):
+    """Keyword search fused with local vectors; returns (documents, retrieval mode)."""
+    keyword = store.search(db, question, role, project_id, include_history, limit=vectors.CANDIDATES)
+    if not vectors.available(company):
+        return keyword[:6], "keyword"
+    try:
+        stored = vectors.starter_vectors(db, company)
+        query = vectors.embed(company, [question])[0]
+    except Exception:
+        return keyword[:6], "keyword_fallback"
+    # Same company/role/project/version filter as keyword search, so vectors cannot widen scope.
+    allowed = {r["document_id"]: dict(r) for r in db.execute("""
+        SELECT d.* FROM documents d WHERE (d.current=1 OR ?)
+          AND EXISTS (SELECT 1 FROM json_each(d.roles) WHERE value=?)
+          AND (? IS NULL OR d.project_id=? OR d.project_id IS NULL)
+    """, (int(include_history), role, project_id, project_id))}
+    keyword_ids = [d["document_id"] for d in keyword if d["document_id"] in allowed]
+    order = vectors.fuse(keyword_ids, vectors.rank(query, stored, allowed))[:6]
+    return [allowed[i] for i in order], "hybrid"
 
 
 def pending_orders(db, role, project_id=None):

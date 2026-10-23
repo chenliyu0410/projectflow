@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.audit import log_audit
-from app.ai import store, service, model, starter, formal_index
+from app.ai import store, service, model, starter, formal_index, vectors
 
 router=APIRouter(prefix='/ai',tags=['ai'])
 Dataset = Literal['dataset-v1', 'starter-v1', 'formal-v1']
@@ -54,6 +54,7 @@ def status(request:Request,dataset:Dataset='dataset-v1',current:CurrentUser=Depe
     result=dict(ready=False,as_of=store.AS_OF,company_name=current.organization.name,model_enabled=config['enabled'],model_name=config['model'] if config['enabled'] else '',can_configure=current.user.role=='admin' and request.url.hostname in {'localhost','127.0.0.1','::1'},can_sql=current.user.role in {'admin','project_owner'},projects=[],queries=[],counts={})
     result['dataset'] = dataset
     result['gateway'] = dict(policy='local_only', cloud_enabled=False)
+    result['vectors'] = dict(enabled=vectors.available(current.organization.key) and dataset != 'dataset-v1', model=vectors.model_name() if dataset != 'dataset-v1' else '')
     result['formal_available'] = formal_index.enabled() and db.bind.dialect.name == 'sqlite'
     if dataset == 'formal-v1':
         index = formal_index.status(db,current)

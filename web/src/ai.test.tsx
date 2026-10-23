@@ -106,13 +106,14 @@ it('clears a status load error once a later formal poll succeeds', async () => {
 });
 
 it('says how many retrieved sections were not sent because of the model length limit', async () => {
-  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'rag', engine: 'model', answer: '五樓', citations: ['D1'], gateway: { ...gateway, route: 'local', reason: 'local_only', outcome: 'completed', source_count: 6, sent_count: 4 } });
+  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'rag', engine: 'model', answer: '五樓', citations: ['D1'], retrieval: 'hybrid', gateway: { ...gateway, route: 'local', reason: 'local_only', outcome: 'completed', source_count: 6, sent_count: 4 } });
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
   await screen.findByText(/1 個專案／2 份可見文件/);
   fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '報到地點' } });
   fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
   await screen.findByText('五樓');
   expect(screen.getByText(/提供模型 4 段；另 2 段因長度上限未提供/)).toBeInTheDocument();
+  expect(screen.getByText('檢索方式：關鍵字＋本地語意向量')).toBeInTheDocument();
 });
 
 it('keeps formal refresh controls out of member view', async () => {

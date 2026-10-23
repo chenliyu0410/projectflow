@@ -13,14 +13,14 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **LOCAL-MODEL-POLISH 🟢 隔離交付**（2026-10-23）：分支審查修正、輸入預算改為依排名送放得下的段落、Q09／Q28／Q32措辭；原資料保留。 |
+| 目前工作項目 | **VECTOR-RETRIEVAL 🟢 隔離交付**（2026-10-23）：本地bge-m3語意檢索（關鍵字＋向量混合排序）與13題示範題目；原資料保留。前一輪LOCAL-MODEL-POLISH `e15a762`。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
-| 下一個動作 | 開啟15176，yu／demo-yu登入副手試用。後續：Q07時態、獨立題庫、來源雜湊效能、向量檢索／OCR及正式環境驗證（見[交接檔](LOCAL_AI_HANDOFF.md)）。遠端新分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
+| 下一個動作 | 開啟15176，照[示範題目](ai-demo-questions.md)試用（示範前跑`deploy/check_demo_questions.py`）。後續：OCR、資料分級繼承與遮罩、獨立題庫、正式環境與pgvector（見[交接檔](LOCAL_AI_HANDOFF.md)）。遠端新分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
-| 最新程式 commit | LOCAL-MODEL-POLISH（本筆）；前一輪LOCAL-MODEL `65f42a6`。操作與後續工作見[交接檔](LOCAL_AI_HANDOFF.md)。 |
+| 最新程式 commit | VECTOR-RETRIEVAL（本筆）；前一輪LOCAL-MODEL-POLISH `e15a762`。操作與後續工作見[交接檔](LOCAL_AI_HANDOFF.md)。 |
 | 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
-| 測試基準 | AI相關pytest 75pass、Vitest ai 17pass、tsc/build exit0；Edge1280／375真模型2pass。36例（不含--extended）結構／來源36pass、無意外降級、34次真模型，暖機中位數1.906秒；canonical `answers-polish-3.json`，最終程式重跑答案一致。token估算為實際1.7–1.8倍。一次獨立唯讀審查Ready，兩項非阻擋已修。Q07時態及Q12／Q23／Q29輕微措辭明列，非完美準確率。 |
-| 資料版本 | 無migration。沿用local-model副本；2026-10-23重跑verify_preservation：原79檔hash一致、30表492原列保留。原正式PG／Docker volumes及早期隔離資料未修改。 |
+| 測試基準 | AI相關pytest 85pass、Vitest ai 17pass、tsc/build exit0；Edge1280／375真模型2pass並目視確認快捷鈕與檢索方式。檢索比較：原31題必要來源命中率關鍵字／混合皆1.0；12題換句話說0.486→0.944，無越權來源。36例真模型結構／來源36pass、無降級、35次混合檢索，暖機中位數2.093秒；canonical `answers-vector-1.json`。示範13題全通過。獨立審查Ready，四項非阻擋已修。已知：Q07時態、Q12簽到表誤寫已準備。 |
+| 資料版本 | 無migration。正式文件隔離索引INDEX_VERSION升為2（含向量表，舊索引自動重建一次，33來源／33向量）；入門文件向量另存`ai/vectors/`。bge-m3下載到隔離ollama-models。verify_preservation：原79檔hash一致、30表492原列保留。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
 | 阻塞／待人類 | 使用者試用簽核未代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
 | 遠端 | 僅本機commit，未push／PR／合併／正式部署。 |
@@ -66,6 +66,8 @@
 ---
 
 ## 2. 工作佇列（由上往下執行）
+
+- VECTOR-RETRIEVAL 🟢 隔離交付（2026-10-23）：人類指示「要有可以示範查詢的題目，並繼續把這份架構完成」，選README架構圖的「向量檢索」並同意下載本地embedding模型。依[短計畫](superpowers/plans/2026-10-23-vector-retrieval.md)：bge-m3（隔離Ollama，雙模型常駐）、入門文件向量側檔、正式索引向量表（增量／補齊／換模型重算）、關鍵字前3名保留＋RRF補足、向量只在已授權候選中計分、失敗退回關鍵字並標示。純RRF使Q10退步（retrieval-1）已撤回。新增[示範題目](ai-demo-questions.md)、`deploy/check_demo_questions.py`、`deploy/check_retrieval.py`與換句話說題庫；副手快捷鈕改用示範題。驗證見▶現在。未push／合併／部署。
 
 - LOCAL-MODEL-POLISH 🟢 隔離交付（2026-10-23）：人類指示「先不要碰（遠端新分支），先把我目前本地的rag分支，審查後繼續完成」。high審查9項；人類選「放得下的先送」修正位元組當token的輸入預算（正式文件4段以上整題降級）。依[短計畫](superpowers/plans/2026-10-23-local-model-polish.md)：字元估算＋依排名送完整段落、`sent_count`與畫面標示、`as_of`入提示、Q09／Q28／Q32措辭；單一來源檔不存在只略過、Windows發布重試、document 503、starter原文依include_history、狀態錯誤自動清除。提示三版比較，第2版退步撤回；Q07仍為已知限制。延後：來源雜湊效能、峰曜一般成員驗收帳號。驗證見▶現在。未push／合併／部署。
 

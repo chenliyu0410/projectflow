@@ -99,15 +99,15 @@ def catalog():
     return json.loads(Path(__file__).with_name('queries.json').read_text(encoding='utf-8'))
 
 
-def search(db, question, role, project_id=None, include_history=False):
+def search(db, question, role, project_id=None, include_history=False, limit=6):
     clean = re.sub('目前|有哪些|請問|一下|幫我|什麼|多少|資料|專案', ' ', question)
     words = list(dict.fromkeys(tokens(clean)))[:60]
     if not words: return []
     match = ' OR '.join('"'+w.replace('"','""')+'"' for w in words)
     query = '''SELECT d.*, bm25(search) AS rank FROM search JOIN documents d ON d.document_id=search.document_id
         WHERE search MATCH ? AND (d.current=1 OR ?) AND EXISTS (SELECT 1 FROM json_each(d.roles) WHERE value=?)
-        AND (? IS NULL OR d.project_id=? OR d.project_id IS NULL) ORDER BY rank,d.document_id LIMIT 6'''
-    return [dict(r) for r in db.execute(query,(match,int(include_history),role,project_id,project_id))]
+        AND (? IS NULL OR d.project_id=? OR d.project_id IS NULL) ORDER BY rank,d.document_id LIMIT ?'''
+    return [dict(r) for r in db.execute(query,(match,int(include_history),role,project_id,project_id,limit))]
 
 
 def execute_query(db, query_id, company, project_id=None):

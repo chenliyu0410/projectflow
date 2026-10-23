@@ -39,13 +39,13 @@
 |---|---|
 | 網頁 | http://127.0.0.1:15176 |
 | API 隔離健康檢查 | http://127.0.0.1:18006/health/acceptance ，應為 `acceptance: true` |
-| 專用 Ollama | http://127.0.0.1:11436 ，只使用本輪 `ollama-models/` |
+| 專用 Ollama | http://127.0.0.1:11436 ，只使用本輪 `ollama-models/`；對話模型與 `bge-m3` 向量模型同時常駐（`OLLAMA_MAX_LOADED_MODELS=2`） |
 
 全部綁定回環位址。服務只剩部分存活或埠被占用時，先核對本資料夾的 `pids.json`、`ollama.pid`、程序命令列與日誌。PID 可能過期，不能只憑檔案數字停止程序；不要批次終止 Python、Node 或其他 Ollama。
 
 測試帳號為虛構資料專用：`yu`／`demo-yu` 是毛研管理者；`ming`／`demo-ming` 是一般成員；`elaine`／`demo-elaine` 是峰曜管理者。尚未實作真正人資部門角色，不能將 admin 測試當成人資角色驗證。
 
-登入後開啟 AI 副手，選「入門文件：報到與教育訓練」：
+完整示範腳本（13 題，含換句話說、權限與公司隔離）見[AI副手示範題目](ai-demo-questions.md)，示範前執行 `deploy/check_demo_questions.py` 確認。快速試用：登入後開啟 AI 副手，選「入門文件：報到與教育訓練」：
 
 1. 問「新人課程目前哪天上？」：10 月 28 日，能展開來源。
 2. 勾選包含歷史版本，問「新人課程原本哪天？為什麼改期？」：原訂 10 月 27 日，因講師時間改為 28 日。
@@ -82,7 +82,10 @@
 
 | 檔案 | 意義 |
 |---|---|
-| answers-polish-3.json | **2026-10-23 起採用的問答結果**（36 例，不含 `--extended`），對應 LOCAL-MODEL-POLISH 的提示與程式 |
+| answers-vector-1.json | **2026-10-23 混合檢索版採用的問答結果**（36 例，不含 `--extended`） |
+| 驗收結果-vector.json | 向量檢索輪摘要：檢索比較、答案差異、示範題、正式索引向量建置 |
+| retrieval-2.json／demo-check-3.json | 關鍵字與混合檢索比較（retrieval-1 為已撤回的純 RRF）；13 題示範題實跑結果 |
+| answers-polish-3.json | 純關鍵字版（LOCAL-MODEL-POLISH）結果，保留對照 |
 | 驗收結果-polish.json | 本輪機器摘要、逐題語意審閱、token 估算校準、撤回候選說明 |
 | answers-delivery.json | 前一輪 41 例結果（65f42a6），保留作對照 |
 | 驗收結果.json／問答驗收報告.md | 前一輪機器摘要與語意審閱 |
@@ -96,6 +99,8 @@
 相關 API 57 pass；最後模型測試 14 pass；前端相關 15 pass，型別／build exit 0；Edge 桌面／手機真模型 2 pass。資料保留檢查為原 79 檔 SHA-256 一致、30 表 492 原列保留；不是正式資料庫的全量稽核。
 
 本輪（2026-10-23）36 例結構／來源全通過、無意外降級，34 次真模型，暖機中位數 1.906 秒；AI 相關 pytest 75、Vitest 17 通過，tsc／build exit 0，Edge 桌面／手機真模型 2 pass，原 79 檔與 30 表 492 列保留檢查通過。`--extended`（注入、斷線、權限）本輪沒有重跑。
+
+混合檢索輪（2026-10-23，VECTOR-RETRIEVAL）：36 例結構／來源全通過、無意外降級，35 次真模型皆為混合檢索，暖機中位數 2.093 秒；AI 相關 pytest 85、Vitest 17 通過，tsc／build exit 0，Edge 桌面／手機 2 pass；13 題示範題全通過；獨立審查 Ready；原資料保留檢查通過。正式文件索引因 INDEX_VERSION 升為 2 已自動重建（33 來源、33 向量）。
 
 `answers-initial.json`、`answers-qwen.json`、`answers-qwen-valid.json`、`answers-final.json`、`answers-candidate-rejected.json`、`answers-polish.json`、`answers-polish-2.json` 都是未採用候選（後兩份原因見驗收結果-polish.json），不要用檔案修改時間取代 canonical 指定。
 
@@ -111,9 +116,10 @@ Set-Location 'C:\Users\User\Desktop\AI_project\work_flow\projectflow'
 ## 已知問題與下一步
 
 1. **措辭（2026-10-23 已處理大部分）**：Q09、Q28 已修正，Q32 拒答格式維持。Q07 仍照抄來源未標時態的「10月26日由林怡安發給新人」；加例句的提示反而寫成「已發給新人」，已撤回。另有 Q12 措辭混雜、Q23 引用過多、Q29 結尾多餘三項輕微問題。4B 模型對提示措辭敏感，再改提示務必重跑全部 36 例並逐題比對。**API 沒有自動重新載入**：改 `model.py` 後必須重啟 18006 才會生效，否則驗收跑到舊程式。
+1b. 混合檢索後 Q12 誤把「將準備紙本簽到表」寫成已準備；示範腳本已避開 Q07 類時態題。
 1a. 審查延後項：每次查詢與開啟引用都重新讀取並雜湊來源檔（大型附件會變慢）；驗收腳本的峰曜科技題一律用管理者 elaine 登入，沒有驗到一般成員。
 2. 建立未參與提示調整的獨立題庫，分開評估事實、引用、拒答、跨公司／角色、文件內指令及歷史版本。使用者試用簽核仍待完成。
-3. 後續工程：向量檢索／embedding、掃描 PDF OCR、正式資料分級繼承、遮罩、雲端政策、較大量資料的排程與多 worker。
+3. 後續工程：掃描 PDF OCR、正式資料分級繼承、遮罩、雲端政策、正式 PostgreSQL 的 pgvector、較大量資料的排程與多 worker。向量檢索已在隔離版完成（bge-m3，見 ai-assistant.md）；向量以 Python 標準函式庫計算，適合數千段以內，資料量變大前要改 pgvector 或專用索引。
 4. 正式環境另案處理：Docker 恢復後先備份與隔離 PostgreSQL 驗證，確認切換範圍再部署；不要把本輪 SQLite 成功當成正式上線證據。
 
 接手修改前先讀 AGENTS、PROGRESS，核對 branch／status。延續目前 feature 分支，保留所有原資料；這次交接本身僅提交文件。
