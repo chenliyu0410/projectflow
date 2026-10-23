@@ -13,14 +13,14 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **DOC-TEMPLATE 🟢 隔離交付**（2026-10-24）：可填寫並匯出的Word文件樣板（樣板庫、欄位設定、編號、報價明細計算、產生／重新產生文件版本、三份虛構範例）。前一項TIME-FIX 🟢見§2。 |
+| 目前工作項目 | **ACCOUNTS 🟢 隔離交付**（2026-10-24）：正式帳號管理（新增／停用／改角色／重設密碼、首次登入改密碼、自己改密碼、登入失敗限流、公開網址拒絕示範密碼）。前一項DOC-TEMPLATE 🟢已推送分支。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
 | 下一個動作 | 待人類：試用文件樣板（模板庫→加入三份範例；專案「文件」分頁→用樣板建立），決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
-| 最新程式 commit | DOC-TEMPLATE（本筆）；前一輪TIME-FIX `4c4682d`。 |
+| 最新程式 commit | ACCOUNTS（本筆）；DOC-TEMPLATE `012ec59`。 |
 | 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
-| 測試基準 | DOC-TEMPLATE：樣板API 19pass（含不安全樣板、跨公司、並行編號）；相關回歸（documents／health／migrations／attachments／report_fields／reports_audit）106pass、10 skip（需專用PostgreSQL）exit0；前端Vitest全量33檔327pass、build exit0；Playwright樣板4＋既有文件2 pass（1280／375，隔離SQLite經alembic升到head）。AI題庫基準不變：第三份自動22/26、人工25/26。 |
-| 資料版本 | 新增migration `20261024_0020`（3張樣板表＋document_versions兩個可為空欄位；只新增，降級遇資料拒絕）。新依賴docxtpl 0.20.2（＋Jinja2、lxml、python-docx）已鎖版。AI隔離索引INDEX_VERSION仍為3；OCR模型在repo外。 |
+| 測試基準 | ACCOUNTS：後端全量（不含需本地模型的test_ai_local_model）766 pass、15 skip（需專用PostgreSQL）、1 fail；該fail為`test_child_creation_matrix`，原因是DOC-TEMPLATE新增資料表後舊資料包（revision 0019）匯入找不到新表檔案，已修`demo_pack.import_pack`只匯入資料包列出的表，重跑matrix＋demo_pack 3 pass。帳號相關API 12 pass；前端Vitest全量34檔330 pass（一次偶發1 fail重跑通過）、build exit0；Playwright帳號3＋樣板4＋文件2 pass（1280／375，隔離SQLite升到`20261024_0021`）。既有`health.spec`在SQLite環境3 fail：readiness只認PostgreSQL（環境限制）；另2項卡在「進入階段：小量試作」按鈕停用，為PHASE-CARDS（10/13，只開放進行中階段）後測試未更新的既有問題，與本次無關、未修。AI題庫基準不變。 |
+| 資料版本 | 新增migration `20261024_0021`（users加status、must_change_password、last_login_at、password_changed_at，舊帳號維持啟用）與 `20261024_0020`（3張樣板表＋document_versions兩個可為空欄位；只新增，降級遇資料拒絕）。新依賴docxtpl 0.20.2（＋Jinja2、lxml、python-docx）已鎖版。AI隔離索引INDEX_VERSION仍為3；OCR模型在repo外。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
 | 阻塞／待人類 | 人類試用簽核：2026-10-24 人類表示「簽核都沒問題了」（依repo外`output/專流試用簽核重點.html`的10段重點，以本機SQLite一鍵啟動版`output/projectflow-local/start-projectflow.bat`試用；人類表示不匯出簽核表）。限制：此環境沒有本地模型，AI問答段沒有在本機實測；mvp-trial-checklist逐項勾選未由AI代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
 | 遠端 | 2026-10-24 依人類「github可以推」推上 `origin/feature/rag-starter-import`；同日DOC-TEMPLATE `012ec59` 依人類「Push feature/rag-starter-import to GitHub (branch only, no merge or PR)」再推一次（只推分支，未合併main、未開PR、未部署）。mina201199的兩個遠端分支依決定暫不處理。 |
@@ -67,7 +67,7 @@
 
 ## 2. 工作佇列（由上往下執行）
 
-- ACCOUNTS ✏️ 規格中（2026-10-24）：人類「其他工作項目可以繼續做」；本機無本地模型，T02無法在此修，改做README §8.2正式帳號。[短規格與計畫](superpowers/plans/2026-10-24-accounts.md)待人類確認範圍、鎖定門檻與公開模式是否關閉示範密碼；核准前不寫程式。
+- ACCOUNTS 🟢 隔離交付（2026-10-24）：人類核准[短規格](superpowers/plans/2026-10-24-accounts.md)（照規格做、「不用鎖」、公開時自動關閉示範密碼），並說「照你的建議繼續做下去，不用停下來問我」。完成：帳號與密碼頁（管理者新增／改角色／停用與啟用／重設密碼；臨時密碼只顯示一次、無易混字元，首次登入強制改密碼；每人可改自己的密碼）、停用即登出、至少保留一位管理者、`*.ts.net`公開入口或`PF_DISABLE_DEMO_PASSWORDS=true`拒絕`demo-`密碼、同一來源＋同一帳號一分鐘失敗20次暫停（不鎖帳號）。一次獨立唯讀審查：初審Not ready（nginx後所有人共用位址，按位址限流會讓任何人擋住全公司），改為位址＋帳號並修最後管理者競態、帳號是否存在的時間差、重複帳號500；複核Ready。審查提醒：公開入口上有人持續猜某一帳號，可讓該帳號暫時無法從公開網址登入（本機不受影響）。驗證見▶現在。偏離：允許清單外改了NavIcons.tsx、types.ts、WorkspaceShell.tsx（新導覽頁）、AuditLogView.tsx（事件名稱）、`api/app/demo_pack.py`（修DOC-TEMPLATE造成的舊資料包匯入回歸）。未push／合併／部署。
 
 - DOC-TEMPLATE 🟢 隔離交付（2026-10-24）：人類核准[短規格與計畫](superpowers/plans/2026-10-24-doc-templates.md)四項（照規格做、只開管理者、可加docxtpl、沿用AI分支），AI代決細節記在該文件末。完成：樣板庫（上傳.docx掃描代號、欄位設定、編號格式、稅率與進位、換檔改版、停用／刪除、三份虛構範例）、文件分頁「用樣板建立」（必填擋下、自動欄位、明細即時計算）、產生Word存成文件版本、「修改內容重新產生」新版本、稽核只記欄位名稱。一次獨立唯讀審查：初審Not ready（XML屬性／孤立頁首可夾帶Jinja、字元參照`&#123;`繞過），已改為檢查lxml正規化後每個XML部分並加5個測試，兩輪複核Ready；非阻擋：刪除樣板不退容量、產生失敗會跳號、還原版本不保留樣板關聯。驗證見▶現在。偏離：允許清單外改了App.tsx（掛樣板庫）與AuditLogView.tsx（事件中文名稱）；因主checkout停在舊main且有他人未提交文件，改用worktree `../projectflow-rag`開發。正式Docker／PostgreSQL未實測、未push／合併／部署。
 

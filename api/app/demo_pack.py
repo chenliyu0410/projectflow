@@ -115,10 +115,12 @@ def import_pack(engine, read, files_root):
     with engine.begin() as conn:
         if revision(conn) != manifest['alembic_revision']:
             raise RuntimeError(f"資料庫版本須為 {manifest['alembic_revision']}，請先執行 migration")
-        for table in tables():
+        # A pack only lists the tables that existed at its revision; tables added later stay untouched.
+        packed = [table for table in tables() if table.name in manifest['tables']]
+        for table in packed:
             if conn.execute(select(func.count()).select_from(table)).scalar():
                 raise RuntimeError(f'目標資料庫不是空的（{table.name} 已有資料），拒絕覆蓋')
-        for table in tables():
+        for table in packed:
             body = read(f'tables/{table.name}.json')
             info = manifest['tables'][table.name]
             if hashlib.sha256(body).hexdigest() != info['sha256']:

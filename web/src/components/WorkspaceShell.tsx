@@ -8,8 +8,8 @@ import NavIcon from './NavIcons';
 import type { IconName } from './NavIcons';
 export const PROJECT_COLORS = ['#1F5F5B','#B4541F','#4A5A8C','#6B7A3A','#914667','#216677','#A9692E','#3D6F4E'];
 export const projectColor = (index: number) => PROJECT_COLORS[index % PROJECT_COLORS.length];
-type NavItem = {page:'overview'|'my-tasks'|'reviews'|'workflows'|'audit'|'operations'|'governance';label:string;icon:IconName};
-const LINKS:NavItem[]=[{page:'overview',label:'所有專案總覽',icon:'overview'},{page:'my-tasks',label:'我的任務',icon:'tasks'},{page:'reviews',label:'審核中心',icon:'review'},{page:'operations',label:'營運資料',icon:'ops'},{page:'workflows',label:'模板庫',icon:'templates'},{page:'governance',label:'AI 政策與稽核',icon:'ai'},{page:'audit',label:'活動與稽核紀錄',icon:'audit'}];
+type NavItem = {page:'overview'|'my-tasks'|'reviews'|'workflows'|'audit'|'operations'|'governance'|'accounts';label:string;icon:IconName};
+const LINKS:NavItem[]=[{page:'overview',label:'所有專案總覽',icon:'overview'},{page:'my-tasks',label:'我的任務',icon:'tasks'},{page:'reviews',label:'審核中心',icon:'review'},{page:'operations',label:'營運資料',icon:'ops'},{page:'workflows',label:'模板庫',icon:'templates'},{page:'governance',label:'AI 政策與稽核',icon:'ai'},{page:'audit',label:'活動與稽核紀錄',icon:'audit'},{page:'accounts',label:'帳號與密碼',icon:'account'}];
 const STATUS:Record<string,string>={todo:'待處理',doing:'進行中',review:'待確認'};
 export default function WorkspaceShell({route,projects,busy,navigate,children,session,createAction,headerActions,copilotScope,food=false,companyName='目前公司',accountName='使用者',previewKey}:{
  route:WorkspaceRoute;projects:ProjectSummary[];busy:boolean;navigate:(route:WorkspaceRoute)=>void;children:ReactNode;session?:ReactNode;createAction?:ReactNode;headerActions?:ReactNode;copilotScope:string;food?:boolean;companyName?:string;accountName?:string;previewKey?:string;

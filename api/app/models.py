@@ -307,6 +307,7 @@ class User(Base):
     __table_args__ = (
         UniqueConstraint("organization_id", "id"),
         UniqueConstraint("organization_id", "username"),
+        CheckConstraint("status IN ('active','disabled')", name="ck_users_status"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
@@ -316,6 +317,11 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(40), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(200), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    # Disabled accounts keep their history but cannot sign in; temporary passwords must be changed first.
+    status: Mapped[str] = mapped_column(String(16), default="active", server_default="active", nullable=False)
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), nullable=False)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     organization: Mapped[Organization] = relationship(back_populates="users")
 

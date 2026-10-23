@@ -9,13 +9,16 @@ from app.schemas import LoginRequest, LoginResponse, MeResponse, OrganizationOut
 from app import showcase
 from app.audit import log_audit
 from app.security import new_token, verify_password
+from app.services import account_service
+from app.models import now_utc
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def login_body(user: User, organization: Organization, request: Request) -> LoginResponse:
     return LoginResponse(
-        user=UserOut(id=user.id, username=user.username, display_name=user.display_name, role=user.role),
+        user=UserOut(id=user.id, username=user.username, display_name=user.display_name, role=user.role,
+                     must_change_password=True if user.must_change_password else None),
         organization=OrganizationOut(id=organization.id, key=organization.key, name=organization.name),
         showcase={"active": showcase.dedicated(user, organization), "companies": showcase.COMPANIES} if showcase.available(user, organization, request) else None,
     )
@@ -23,16 +26,21 @@ def login_body(user: User, organization: Organization, request: Request) -> Logi
 
 @router.post("/login", response_model=LoginResponse, response_model_exclude_none=True)
 def login(payload: LoginRequest, response: Response, request: Request, db: Session = Depends(get_session)):
+    account_service.check_rate(request, payload.organization_key, payload.username)
     row = db.execute(
         select(User, Organization)
         .join(Organization, User.organization_id == Organization.id)
         .where(Organization.key == payload.organization_key, User.username == payload.username)
     ).first()
-    if row is None:
+    # Unknown accounts still pay for one hash check, so response time does not reveal which usernames exist.
+    valid = verify_password(payload.password, row[0].password_hash if row else account_service.DUMMY_HASH)
+    if row is None or row[0].status != 'active' or not valid:
+        account_service.record_failure(request, payload.organization_key, payload.username)
         raise HTTPException(status_code=401, detail="帳號或密碼錯誤")
     user, organization = row
-    if not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="帳號或密碼錯誤")
+    if account_service.is_demo_password(user, payload.password) and account_service.demo_blocked(request):
+        raise HTTPException(status_code=403, detail="示範密碼不能從公開網址登入，請管理者先重設密碼")
+    user.last_login_at = now_utc()
     token = new_token()
     db.add(SessionToken(token=token, user_id=user.id, organization_id=organization.id, expires_at=session_expires_at()))
     db.commit()
