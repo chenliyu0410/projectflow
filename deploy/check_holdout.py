@@ -61,11 +61,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--url', default='http://127.0.0.1:18006')
     parser.add_argument('--report', type=Path, required=True)
+    parser.add_argument('--bank', default='holdout.jsonl', help='Frozen bank file under rag-starter/evaluation/')
+    parser.add_argument('--summary-only', action='store_true', help='Print and save category totals only (baseline without reading answers)')
     args = parser.parse_args()
     url = urlsplit(args.url)
     if url.scheme != 'http' or url.hostname != '127.0.0.1' or url.port != 18006 or url.path:
         parser.error('Only the dedicated loopback acceptance API on port 18006 is allowed')
-    bank = Path(__file__).parent / 'rag-starter/evaluation/holdout.jsonl'
+    if '/' in args.bank or '\\' in args.bank:
+        parser.error('--bank must be a file name')
+    bank = Path(__file__).parent / 'rag-starter/evaluation' / args.bank
     cases = [json.loads(line) for line in bank.read_text(encoding='utf-8').splitlines() if line.strip()]
     rows = []
     with httpx.Client(base_url=args.url, timeout=210, trust_env=False, follow_redirects=False) as client:
@@ -90,7 +94,8 @@ def main():
             rows.append(dict(case, seconds=round(time.monotonic() - start, 3), passed=not problems, problems=problems, refusal_style=style,
                              engine=result['engine'], kind=result['kind'], retrieval=result.get('retrieval'), answer=result['answer'],
                              citations=result.get('citations') or [], sources=[s['document_id'] for s in result['sources']]))
-            print(case['id'], 'pass' if not problems else problems, flush=True)
+            if not args.summary_only:
+                print(case['id'], 'pass' if not problems else problems, flush=True)
     by_category = defaultdict(lambda: [0, 0])
     for row in rows:
         by_category[row['category']][0] += row['passed']
@@ -99,7 +104,11 @@ def main():
                    by_category={k: f'{v[0]}/{v[1]}' for k, v in by_category.items()},
                    free_style_refusals=[r['id'] for r in rows if r['refusal_style'] == 'free'],
                    failed=[r['id'] for r in rows if not r['passed']])
-    report = dict(created_at=datetime.now(timezone.utc).isoformat(), bank=str(bank.name), independent_of_prompt_tuning=True,
+    if args.summary_only:
+        # Baseline mode: no per-question answers or failed ids, so they cannot steer later tuning.
+        summary = {k: summary[k] for k in ('cases', 'passed', 'by_category')}
+        rows = []
+    report = dict(created_at=datetime.now(timezone.utc).isoformat(), bank=str(bank.name), summary_only=args.summary_only,
                   third_party_blind=False, summary=summary, cases=rows)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')

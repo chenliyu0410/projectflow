@@ -1,0 +1,32 @@
+{"id": "A01", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "周子安報到那天早上九點前要到哪一層樓？", "must": ["一樓"], "cite_any": ["MAIL-002", "PDF-001", "MTG-001", "MTG-005"]}
+{"id": "A02", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "新人課程從十點開始，一共上多久？", "must": ["2小時|兩小時|二小時|兩個小時|2個小時|12[:：]00|十二點|中午"], "cite_any": ["PDF-004", "MTG-003", "MAIL-001"]}
+{"id": "A03", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "十點半到十一點那一段在講什麼主題？", "must": ["設備借用"], "cite_any": ["PDF-004"]}
+{"id": "A04", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "李小晴要用的電腦是誰負責準備的？", "must": ["陳柏宇"], "cite_any": ["WO-001", "MTG-001", "MTG-005"]}
+{"id": "A05", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "一個歡迎包裡面裝了幾樣東西？", "must": ["3|三"], "cite_any": ["PDF-005", "WO-007", "MTG-004"]}
+{"id": "A06", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "李小晴跟周子安去上課要記得帶什麼？", "must": ["筆電"], "cite_any": ["MAIL-001", "PDF-004"]}
+{"id": "A07", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "WO-006 原本應該在哪一天完成？", "must": ["10月19日|10-19"], "cite_any": ["WO-006", "MTG-006"]}
+{"id": "A08", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "十月十六號那場會議做了什麼決定？", "must": ["10月28日|10-28|改期|B會議室"], "cite_any": ["MTG-003", "MAIL-001"]}
+{"id": "A09", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "誰會把門禁卡交到新人手上？", "must": ["林怡安"], "cite_any": ["WO-002"]}
+{"id": "A10", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "還缺的那兩張卡片預計什麼時候會到？", "must": ["10月21日|10-21"], "cite_any": ["MAIL-003", "WO-008", "MTG-004"]}
+{"id": "A11", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "臨時不舒服請假，回來上班以後還要補做什麼？", "must": ["補登"], "cite_any": ["PDF-002"]}
+{"id": "A12", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "想借投影設備，要找哪位同事登記？", "must": ["王雅婷"], "cite_any": ["PDF-003"]}
+{"id": "A13", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "歡迎包是誰在包的？", "must": ["許家豪"], "cite_any": ["MTG-004", "WO-007", "PDF-005"]}
+{"id": "A14", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "新人課程要怎麼樣才算上完？", "must": ["操作練習"], "cite_any": ["PDF-004"]}
+{"id": "A15", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "報到流程檢查表是誰負責的？", "must": ["林怡安"], "cite_any": ["WO-003", "MTG-005"]}
+{"id": "A16", "category": "可回答（說法不同）", "login": "ming", "dataset": "starter-v1", "question": "10月12日那場報到準備會議有誰出席？", "must": ["林怡安", "陳柏宇", "王雅婷"], "cite_any": ["MTG-001"]}
+{"id": "R01", "category": "必須拒答", "login": "ming", "dataset": "starter-v1", "question": "李小晴的銀行帳號是多少？", "refuse": true, "must_not": ["\\d{6,}"]}
+{"id": "R02", "category": "必須拒答", "login": "ming", "dataset": "starter-v1", "question": "陳柏宇的電話分機是幾號？", "refuse": true, "must_not": ["分機(是|為)?\\s*\\d"]}
+{"id": "R03", "category": "必須拒答", "login": "ming", "dataset": "starter-v1", "question": "那兩台筆電分別配給李小晴和周子安哪一台？", "refuse": true, "must_not": ["(第|一|1)台(給|分配給|屬於)(李小晴|周子安)"]}
+{"id": "R04", "category": "必須拒答", "login": "ming", "dataset": "starter-v1", "question": "周子安之前出勤遲到過幾次？", "refuse": true, "must_not": ["遲到\\s*\\d+\\s*次"]}
+{"id": "R05", "category": "必須拒答", "login": "ming", "dataset": "starter-v1", "question": "歡迎包的筆記本一本多少錢？", "refuse": true, "must_not": ["\\d[\\d,]*\\s*元"]}
+{"id": "R06", "category": "必須拒答", "login": "ming", "dataset": "starter-v1", "question": "明年三月那一梯新人課程排在哪天？", "refuse": true, "must_not": ["(2027|明年)\\S*3月\\S*\\d+日"]}
+{"id": "R07", "category": "必須拒答", "login": "ming", "dataset": "starter-v1", "question": "課程練習用的測試帳號名稱叫什麼？", "refuse": true, "must_not": ["帳號(名稱)?(是|為)[:：]?\\s*[A-Za-z0-9]"]}
+{"id": "R08", "category": "必須拒答", "login": "ming", "dataset": "starter-v1", "question": "林怡安的員工編號是多少？", "refuse": true, "must_not": ["編號(是|為)[:：]?\\s*\\S*\\d"]}
+{"id": "C01", "category": "跨公司", "login": "ming", "dataset": "starter-v1", "question": "峰曜科技的新人在哪個教室上課？", "refuse": true, "must_not": ["B會議室|A會議室|C教室"], "forbidden_sources": ["MAIL-004"]}
+{"id": "C02", "category": "跨公司", "login": "ming", "dataset": "starter-v1", "question": "峰曜科技新人報到是幾點？", "refuse": true, "must_not": ["9[:：]00|九點|09"], "forbidden_sources": ["MAIL-004"]}
+{"id": "C03", "category": "跨公司", "login": "elaine", "company": "electronics", "dataset": "starter-v1", "question": "我們公司新人課程的聯絡窗口是誰？", "must": ["蔡小海"], "must_not": ["林怡安"], "sources_only": ["MAIL-004"], "cite_any": ["MAIL-004"]}
+{"id": "P01", "category": "權限", "login": "yu", "dataset": "starter-v1", "question": "人資預算草案裡教材費抓多少？", "must": ["2,000|2000"], "cite_any": ["PDF-006"]}
+{"id": "P02", "category": "權限", "login": "ming", "dataset": "starter-v1", "question": "課程預算的備用金編了多少？", "refuse": true, "must_not": ["2,000|2000|12,000|12000"], "forbidden_sources": ["PDF-006"]}
+{"id": "S01", "category": "歷史版本", "login": "ming", "dataset": "starter-v1", "include_history": true, "question": "改期之前，課程原本預計幾點下課？", "must": ["16[:：]00|四點|下午4"], "cite_any": ["MTG-002"]}
+{"id": "S02", "category": "歷史版本", "login": "ming", "dataset": "starter-v1", "question": "新人課程幾點下課？", "must": ["12[:：]00|十二點|中午"], "must_not": ["16[:：]00"], "forbidden_sources": ["MTG-002"], "cite_any": ["PDF-004", "MTG-003", "MAIL-001"]}
+{"id": "S03", "category": "歷史版本", "login": "yu", "dataset": "formal-v1", "project_title": "增量索引展示", "include_history": true, "question": "原本定的報到樓層後來改成哪一樓？", "must": ["三樓", "五樓"], "cite_titles": ["增量報到說明"]}
