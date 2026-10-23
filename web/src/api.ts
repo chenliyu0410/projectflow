@@ -127,6 +127,16 @@ export async function requestJson<T>(
       if (typeof detail === 'string' && KNOWN_CONFLICTS.has(detail))
         throw new ApiError(409, detail);
     }
+    // Document-template checks return fixed, user-facing reasons (which field is missing, why a file was refused).
+    if (response.status === 422 && (path.startsWith('/document-templates') || path.includes('/from-template') || path.endsWith('/regenerate'))) {
+      let detail: unknown;
+      try {
+        detail = ((await response.json()) as { detail?: unknown } | null)?.detail;
+      } catch {
+        detail = undefined;
+      }
+      throw new ApiError(422, typeof detail === 'string' && detail.length <= 200 ? detail : '請檢查樣板欄位與內容');
+    }
     const message =
       response.status === 401
         ? path === '/auth/login'

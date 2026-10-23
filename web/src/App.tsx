@@ -7,6 +7,7 @@ import OperationsManager from './components/OperationsManager';
 import TemplateDialogs from './components/TemplateDialogs';
 import Dropdown from './components/Dropdown';
 import WorkflowLibrary from './components/WorkflowLibrary';
+import DocTemplateLibrary from './components/DocTemplateLibrary';
 import TimelineView from './components/TimelineView';
 import DependencyPanel from './components/DependencyPanel';
 import ReviewCenter from './components/ReviewCenter';
@@ -503,6 +504,7 @@ export default function App() {
           {state === 'ready' && route.page === 'governance' && <AIGovernance key={session.organization.id} expired={expireSession} fallback={<PreviewBoundary initialPage="governance" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => navigate({ page: 'overview' })} />} />}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview showAssignHint={canCreate} openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} createProject={canCreate ? id => void openCreation(id) : undefined} />}
+          {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && session?.user.role === 'admin' && <DocTemplateLibrary key={session.organization.id} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'audit' && <AuditLogView openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && route.page === 'my-tasks' && <MyTasks userName={session.user.display_name} openNode={(projectId, nodeId) => navigate({ page: 'project', projectId, nodeId })} expired={expireSession} />}

@@ -13,14 +13,14 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **TIME-FIX 🟢 隔離交付**（2026-10-23）：A03（檢索前中文時間轉數字）與S01（時間區間開始／結束）。第二份題庫30→31/32；凍結的第三份獨立題庫自動22/26、人工核對25/26（基準只看總分22/26）。 |
+| 目前工作項目 | **DOC-TEMPLATE 🟢 隔離交付**（2026-10-24）：可填寫並匯出的Word文件樣板（樣板庫、欄位設定、編號、報價明細計算、產生／重新產生文件版本、三份虛構範例）。前一項TIME-FIX 🟢見§2。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
-| 下一個動作 | 待人類決定：T02「問開始時刻」仍混淆（再修需第四份凍結題庫）；其餘見[交接檔](LOCAL_AI_HANDOFF.md)。遠端新分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
+| 下一個動作 | 待人類：試用文件樣板（模板庫→加入三份範例；專案「文件」分頁→用樣板建立），決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
-| 最新程式 commit | TIME-FIX（本筆）；第三份題庫凍結`51544c5`；前一輪REFUSAL-FIX `86cd672`。 |
+| 最新程式 commit | DOC-TEMPLATE（本筆）；前一輪TIME-FIX `4c4682d`。 |
 | 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
-| 測試基準 | 第三份獨立題庫（凍結`51544c5`）自動22/26：真錯T02，誤判T06／T09／C02（「N點」寫法未涵蓋）；人工25/26。開發：第二份31/32、第一份41/43、36例結構36pass、示範15題全通過。AI pytest 127pass。REFUSAL-FIX＋TIME-FIX獨立審查已補做：Ready，7項非阻擋記於time-fix計畫。 |
-| 資料版本 | 無migration。正式文件隔離索引INDEX_VERSION升為3（自動重建）。OCR模型在repo外`ocr-models/`（SHA-256已核對），OCR套件另列`api/requirements-ocr.lock`。副本新增虛構「OCR 示範（虛構）」專案（報到動線公告.png、設備借用簽收單（掃描）.pdf）。verify_preservation：原79檔hash一致、30表492原列保留。 |
+| 測試基準 | DOC-TEMPLATE：樣板API 19pass（含不安全樣板、跨公司、並行編號）；相關回歸（documents／health／migrations／attachments／report_fields／reports_audit）106pass、10 skip（需專用PostgreSQL）exit0；前端Vitest全量33檔327pass、build exit0；Playwright樣板4＋既有文件2 pass（1280／375，隔離SQLite經alembic升到head）。AI題庫基準不變：第三份自動22/26、人工25/26。 |
+| 資料版本 | 新增migration `20261024_0020`（3張樣板表＋document_versions兩個可為空欄位；只新增，降級遇資料拒絕）。新依賴docxtpl 0.20.2（＋Jinja2、lxml、python-docx）已鎖版。AI隔離索引INDEX_VERSION仍為3；OCR模型在repo外。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
 | 阻塞／待人類 | 使用者試用簽核未代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
 | 遠端 | 2026-10-24 依人類「github可以推」推上 `origin/feature/rag-starter-import`（只推分支，未合併main、未開PR、未部署）。mina201199的兩個遠端分支依決定暫不處理。 |
@@ -67,7 +67,7 @@
 
 ## 2. 工作佇列（由上往下執行）
 
-- DOC-TEMPLATE ✏️ 規格中（2026-10-24）：人類「好先寫短規格」，可填寫並匯出的文件樣板（公司上傳自己的 Word 表單→填必要欄位→自動帶入→產生並下載 .docx，範例：會議紀錄、報價單、工單）。[短規格與計畫](superpowers/plans/2026-10-24-doc-templates.md)待人類確認範圍、樣板管理權限、新增依賴 docxtpl 與分支方式；核准前不寫程式。
+- DOC-TEMPLATE 🟢 隔離交付（2026-10-24）：人類核准[短規格與計畫](superpowers/plans/2026-10-24-doc-templates.md)四項（照規格做、只開管理者、可加docxtpl、沿用AI分支），AI代決細節記在該文件末。完成：樣板庫（上傳.docx掃描代號、欄位設定、編號格式、稅率與進位、換檔改版、停用／刪除、三份虛構範例）、文件分頁「用樣板建立」（必填擋下、自動欄位、明細即時計算）、產生Word存成文件版本、「修改內容重新產生」新版本、稽核只記欄位名稱。一次獨立唯讀審查：初審Not ready（XML屬性／孤立頁首可夾帶Jinja、字元參照`&#123;`繞過），已改為檢查lxml正規化後每個XML部分並加5個測試，兩輪複核Ready；非阻擋：刪除樣板不退容量、產生失敗會跳號、還原版本不保留樣板關聯。驗證見▶現在。偏離：允許清單外改了App.tsx（掛樣板庫）與AuditLogView.tsx（事件中文名稱）；因主checkout停在舊main且有他人未提交文件，改用worktree `../projectflow-rag`開發。正式Docker／PostgreSQL未實測、未push／合併／部署。
 
 - TIME-FIX 🟢 隔離交付（2026-10-23）：人類指示「A03跟S01繼續修」。依[短計畫](superpowers/plans/2026-10-23-time-fix.md)：改前先凍結第三份獨立題庫`51544c5`；檢索前中文時間轉HH:MM、question_times入模型內容、時間區間與是非題規則、未記載回答無引用也轉固定拒答。結果含誤判與無法比較的限制如實記錄。未push／合併／部署。
 
@@ -1215,6 +1215,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-24｜Claude Code（Opus 5.5）｜DOC-TEMPLATE隔離交付
+
+- **做了什麼**：依核准短規格完成文件樣板第一階段。後端`doc_template_service.py`／`routes/doc_templates.py`、migration `20261024_0020`、`document_store.save`可寫入樣板版本與填寫值；前端`DocTemplateLibrary`（模板庫頁，限管理者）、`DocTemplateFill`（文件分頁）；`deploy/demo-templates/`三份範例與產生腳本。
+- **驗證**：見▶現在測試基準。樣板API初跑14pass，審查修正後19pass；E2E修了一個「成功訊息早於切換文件」的畫面時序問題。
+- **審查**：一位獨立唯讀審查者；阻擋項（模板語法藏在屬性、孤立頁首、字元參照）已修並複核Ready。
+- **環境**：本機另建`api/.venv`與`web/node_modules`、安裝Playwright chromium 1248；隔離測試資料在session暫存區，已關閉15177／18007。主checkout `D:\@spin\work_flow\projectflow`（舊main＋他人未提交文件）未動。
+- **未做**：PDF等延後項目；正式Docker／PostgreSQL實跑；push（需人類同意）。
 
 ### 2026-10-21｜Codex｜LOCAL-MODEL隔離版
 - **交接補充**：程式已提交`65f42a6`；依人類要求另建[交接檔](LOCAL_AI_HANDOFF.md)並本機commit，集中記錄啟動／驗收／待辦。特別註明repo外output不在Git內、單靠clone無法還原測試環境；本次僅文件檢查，未重跑或變更服務。
