@@ -46,3 +46,40 @@ def test_questions_about_another_company_are_refused_without_the_model(client, s
     monkeypatch.setattr(model, "chat", lambda *args: {"answerable": False, "answer": "不足", "citations": []})
     other = client.post("/ai/ask", json=dict(dataset="starter-v1", question="毛研食品的新人哪一天報到？")).json()
     assert other["kind"] == "rag" and other["gateway"]["route"] == "local" and "10月26日" not in other["answer"]
+
+
+@pytest.mark.parametrize("question, hints", [
+    ("十點半到十一點那一段在講什麼？", ["10:30", "11:00"]),
+    ("下午三點的會議", ["15:00"]),
+    ("早上九點半集合", ["09:30"]),
+    ("十一點四十五分結束", ["11:45"]),
+    ("10點半上課", ["10:30"]),
+    ("中午十二點吃飯", ["12:00"]),
+    ("一點也不難", ["01:00"]),
+    ("新人課程在哪？", []),
+])
+def test_time_hints_normalize_clock_words(question, hints):
+    from app.ai import store
+    assert store.time_hints(question) == hints
+
+
+def test_time_hints_reach_keyword_search_but_not_the_question_shown_to_the_model():
+    from app.ai import store
+    assert store.search_text("十點半在講什麼") == "十點半在講什麼 10:30"
+    assert store.search_text("新人課程") == "新人課程"
+
+
+def test_range_rule_is_in_the_prompt():
+    assert "A是開始、B是結束" in model.ANSWER_SYSTEM
+
+
+def test_absence_reply_without_citations_is_a_refusal_not_a_failure(monkeypatch):
+    monkeypatch.setattr(model, "chat", lambda *args: {"answerable": True, "answer": "資料中未記載林怡安的員工編號。", "citations": []})
+    result = model.answer({}, "員工編號", [{"document_id": "d1", "body": "來源"}])
+    assert result["citations"] == [] and "資料不足" in result["answer"]
+
+
+def test_question_times_are_given_to_the_model():
+    content = model.answer_content("十一點到十一點半在教什麼", [{"document_id": "d1", "body": "11:00–11:30資料保護"}])
+    assert content["question_times"] == ["11:00", "11:30"]
+    assert "question_times" not in model.answer_content("新人課程", [])

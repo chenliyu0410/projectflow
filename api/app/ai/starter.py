@@ -170,7 +170,7 @@ def search(db, company, question, role, project_id=None, include_history=False):
         return keyword[:6], "keyword"
     try:
         stored = vectors.starter_vectors(db, company)
-        query = vectors.embed(company, [question])[0]
+        query = vectors.embed(company, [store.search_text(question)])[0]
     except Exception:
         return keyword[:6], "keyword_fallback"
     # Same company/role/project/version filter as keyword search, so vectors cannot widen scope.

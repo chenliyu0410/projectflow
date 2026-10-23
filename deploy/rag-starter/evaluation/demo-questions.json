@@ -4,7 +4,7 @@
   {"id": "D03", "login": "yu", "dataset": "starter-v1", "question": "李小晴的月薪是多少？", "kind": "refuse", "point": "資料沒有就拒答，不猜測。"},
   {"id": "D04", "login": "yu", "dataset": "starter-v1", "question": "只有2位新人，為什麼做20份歡迎包？", "must_contain": ["18"], "point": "跨文件說明原因：2份給新人、18份備用。"},
   {"id": "D05", "login": "yu", "dataset": "starter-v1", "question": "給新同事用的電腦弄好了沒？", "must_contain": ["1台|一台"], "sources_include": ["WO-001"], "point": "換句話說：問題沒有「筆電」「新人」，關鍵字找不到筆電工單，語意檢索找到了。"},
-  {"id": "D06", "login": "yu", "dataset": "starter-v1", "question": "迎新禮物準備到哪裡了？", "must_contain": ["18", "20"], "point": "換句話說：「迎新禮物」對應到歡迎包。"},
+  {"id": "D06", "login": "yu", "dataset": "starter-v1", "question": "迎新禮物準備到哪裡了？", "must_contain": ["18", "20|2份|2張|兩份|兩張"], "point": "換句話說：「迎新禮物」對應到歡迎包。"},
   {"id": "D07", "login": "yu", "dataset": "starter-v1", "mode": "work_orders", "question": "列出全部未完成工單", "must_contain": ["6張", "WO-006", "逾期1天"], "point": "完整工單清單由系統規則產生，不靠模型摘要，不會漏列。"},
   {"id": "D08", "login": "yu", "dataset": "starter-v1", "question": "人資訓練預算草案金額是多少？", "must_contain": ["12,000|12000", "草案"], "point": "管理者看得到人資限定文件，回答標明草案、未核准。"},
   {"id": "D09", "login": "ming", "dataset": "starter-v1", "question": "人資訓練預算草案金額是多少？", "kind": "refuse", "must_not_contain": ["12,000", "12000"], "sources_exclude": ["PDF-006"], "point": "一般成員問同一題：看不到人資文件，也不會透露金額。"},

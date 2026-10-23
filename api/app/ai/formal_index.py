@@ -327,12 +327,12 @@ def search_with_mode(db, current, question, project_id=None, *, include_history=
     if vectors.available(current.organization.key):
         # Embed before opening the index so a slow model load never holds the file open.
         try:
-            query, mode = vectors.embed(current.organization.key, [question])[0], "hybrid"
+            query, mode = vectors.embed(current.organization.key, [store.search_text(question)])[0], "hybrid"
         except Exception:
             mode = "keyword_fallback"
     if not path.exists():
         return [], mode
-    words = list(dict.fromkeys(store.tokens(question)))[:60]
+    words = list(dict.fromkeys(store.tokens(store.search_text(question))))[:60]
     match = " OR ".join('"' + word + '"' for word in words)
     try:
         with closing(connect(path)) as index:
