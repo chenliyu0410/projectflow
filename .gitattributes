@@ -4,3 +4,5 @@ deploy/demo-data/** -text
 deploy/rag-starter/** -text whitespace=cr-at-eol,-blank-at-eof
 # cmd.exe needs CRLF batch files; a clone must not turn them into LF.
 *.bat text eol=crlf
+# Portable demo documents are uploaded as-is; keep their bytes identical on every clone.
+deploy/portable/demo-docs/** -text
