@@ -45,6 +45,8 @@ it('blocks missing required fields, then generates a document from a template', 
   expect(screen.getByLabelText('金額合計')).toHaveTextContent('98,700');
   fireEvent.click(screen.getByRole('button', { name: '產生文件' }));
   expect(await screen.findByRole('alert')).toHaveTextContent('請填寫「客戶名稱」');
+  // The message sits right above the submit button, where the user just clicked, not at the top of a long form.
+  expect(screen.getByRole('alert').nextElementSibling).toContainElement(screen.getByRole('button', { name: '產生文件' }));
   expect(fetcher.mock.calls.some(([url]) => String(url).endsWith('/from-template'))).toBe(false);
   fireEvent.change(screen.getByLabelText('客戶名稱'), { target: { value: '好毛 <b>{{x}}</b>' } });
   fireEvent.change(screen.getByLabelText('有效期限'), { target: { value: '2026-11-22' } });

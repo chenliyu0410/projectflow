@@ -93,7 +93,7 @@ export default function DocTemplateFill({ scopePath, documentId, expectedVersion
 
   return <section className="panel doc-template-fill" aria-label={documentId ? '修改內容重新產生' : '用樣板建立文件'}>
     <h3>{documentId ? `修改內容重新產生：${detail?.template_name ?? ''}` : '用樣板建立文件'}</h3>
-    {error && <p role="alert">{error}</p>}
+    {error && !ready && <p role="alert">{error}</p>}
     {!documentId && templates && (templates.length
       ? <label>選擇樣板<select aria-label="選擇樣板" value={chosen} disabled={busy} onChange={e => pick(e.target.value)}>
           <option value="">請選擇</option>{templates.map(t => <option key={t.id} value={t.id}>{t.name}（{t.category}）</option>)}
@@ -134,6 +134,8 @@ export default function DocTemplateFill({ scopePath, documentId, expectedVersion
       <dl className="report-field-values" aria-label="自動帶入">
         {(template?.auto_fields ?? Object.keys(AUTO_HINTS)).map(name => <div key={name}><dt>自動　{name}</dt><dd>{name === '編號' && detail ? detail.number : AUTO_HINTS[name]}</dd></div>)}
       </dl>
+      {/* Next to the submit button: the form is long, so a message at the top would be off screen. */}
+      {error && <p role="alert">{error}</p>}
       <div className="record-actions">
         <button type="submit" disabled={busy}>{busy ? '產生中…' : documentId ? '重新產生新版本' : '產生文件'}</button>
         <button type="button" disabled={busy} onClick={cancel}>取消</button>
