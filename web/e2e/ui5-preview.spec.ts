@@ -1,4 +1,5 @@
 import { closeProjectDrawer, openAccount, openProjects } from './navigation';
+import { openSettings, openSources } from './copilot';
 import { expect, test } from '@playwright/test';
 
 for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, async ({ page, request }, info) => {
@@ -54,6 +55,7 @@ for (const width of [1280, 375]) test(`UI5 isolated preview journey ${width}`, a
   await capture('governance');
   await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const ai = page.getByLabel('AI 專案副手', { exact: true });
+  await openSettings(ai);
   await ai.getByLabel('AI展示專案').selectOption('MY-AI-001');
   await ai.getByRole('button', { name: '現行交付需要幾張截圖？' }).click();
   await expect(ai.locator('.copilot-message').last()).toContainText('找到');

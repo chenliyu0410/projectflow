@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openSettings, openSources } from './copilot';
 
 test.use(process.platform === 'win32' ? { channel: 'msedge' } : {});
 
@@ -15,10 +16,12 @@ for (const width of [1280, 375]) test(`starter documents, citations and pending 
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
   await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const panel = page.getByLabel('AI 專案副手', { exact: true });
+  await openSettings(panel);
   await panel.getByLabel('AI資料集').selectOption('starter-v1');
   await expect(panel).toContainText('23 份可見文件');
   await expect(panel).toContainText('基準日 2026-10-20');
   await expect(panel).toContainText('雲端關閉');
+  await openSettings(panel);
   await panel.getByLabel('AI展示專案').selectOption('TRAIN-10');
   await panel.getByLabel('詢問 AI').fill('新人課程目前哪天上？');
   await panel.getByRole('button', { name: '預覽提供給模型的資料' }).click();
@@ -34,17 +37,21 @@ for (const width of [1280, 375]) test(`starter documents, citations and pending 
   await panel.getByText('資料處理紀錄', { exact: true }).click();
   await expect(panel.locator('.copilot-message')).toContainText('尚未送往模型');
   const source = panel.locator('.ai-sources details').filter({ has: page.locator('summary').filter({ hasText: /^MTG-003 ·/ }) });
+  await openSources(panel);
   await source.locator('summary').click();
   await source.getByRole('button', { name: '開啟原文 MTG-003' }).click();
   await expect(panel.getByLabel('引用原文')).toContainText('2026-10-28 10:00');
   await expect(panel.getByLabel('引用原文')).toContainText('毛研食品');
   await panel.getByRole('button', { name: '關閉原文' }).click();
+  await openSettings(panel);
   await panel.getByLabel('包含歷史版本').check();
   await panel.getByLabel('詢問 AI').fill('新人課程原訂安排');
   await panel.getByRole('button', { name: '送出 AI 問題' }).click();
   await expect(panel.locator('.ai-sources')).toContainText('MTG-002');
   await expect(panel.locator('.ai-sources')).toContainText('歷史版本');
+  await openSettings(panel);
   await panel.getByLabel('AI展示專案').selectOption('');
+  await openSettings(panel);
   await panel.getByLabel('查詢方式').selectOption('work_orders');
   await panel.getByRole('button', { name: '列出全部未完成工單' }).click();
   await expect(panel.locator('.copilot-message')).toContainText('6張未完成工單');
@@ -52,7 +59,9 @@ for (const width of [1280, 375]) test(`starter documents, citations and pending 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await panel.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath(`starter-${width}.png`), fullPage: true });
+  await openSettings(panel);
   await panel.getByLabel('查詢方式').selectOption('rag');
+  await openSettings(panel);
   await panel.getByLabel('AI展示專案').selectOption('HR-BUDGET');
   await panel.getByLabel('詢問 AI').fill('預算草案金額');
   await panel.getByRole('button', { name: '預覽提供給模型的資料' }).click();
@@ -64,6 +73,7 @@ for (const width of [1280, 375]) test(`starter documents, citations and pending 
   expect(await panel.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
   await panel.getByLabel('AI 對話紀錄').evaluate(e => { e.scrollTop = 0; });
   await page.screenshot({ path: info.outputPath(`gateway-${width}.png`), fullPage: true });
+  await openSettings(panel);
   await panel.getByLabel('AI資料集').selectOption('dataset-v1');
   await expect(panel.locator('.copilot-message')).toHaveCount(0);
   await expect(preview).toHaveCount(0);

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openSettings, openSources } from './copilot';
 
 test.use(process.platform === 'win32' ? { channel: 'msedge' } : {});
 
@@ -16,8 +17,10 @@ for (const width of [1280, 375]) test(`real local model answers and citations ${
   await expect(page.getByRole('heading', { name: '所有專案總覽' })).toBeVisible();
   await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const panel = page.getByLabel('AI 專案副手', { exact: true });
+  await openSettings(panel);
   await panel.getByLabel('AI資料集').selectOption('starter-v1');
   await expect(panel).toContainText('pf-qwen3-rag:latest');
+  await openSettings(panel);
   await panel.getByLabel('AI展示專案').selectOption('TRAIN-10');
   const ask = async (question: string) => {
     await panel.getByLabel('詢問 AI').fill(question);
@@ -41,16 +44,20 @@ for (const width of [1280, 375]) test(`real local model answers and citations ${
   await panel.getByLabel('AI 對話紀錄').evaluate(element => { element.scrollTop = 0; });
   await page.screenshot({ path: info.outputPath(`answer-${width}.png`), fullPage: true });
   const source = message.locator('.ai-sources details').filter({ has: page.locator('summary').filter({ hasText: /^MTG-003 ·/ }) });
+  await openSources(panel);
   await source.locator('summary').click();
   await source.getByRole('button', { name: '開啟原文 MTG-003' }).click();
   await expect(panel.getByLabel('引用原文')).toContainText('2026-10-28 10:00');
   await panel.getByRole('button', { name: '關閉原文' }).click();
+  await openSettings(panel);
   await panel.getByLabel('包含歷史版本').check();
   const history = await ask('新人課程原本哪天？為什麼改期？');
   expect(history.answer).toMatch(/10[-月]27/);
   expect(history.answer).toContain('講師');
   await expect(panel.locator('.copilot-message').last()).toContainText('歷史版本');
+  await openSettings(panel);
   await panel.getByLabel('包含歷史版本').uncheck();
+  await openSettings(panel);
   await panel.getByLabel('AI展示專案').selectOption('');
   const unknown = await ask('李小晴的月薪是多少？');
   expect(unknown.answer).toContain('資料不足');

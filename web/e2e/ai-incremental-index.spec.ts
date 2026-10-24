@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openSettings, openSources } from './copilot';
 
 test.use(process.platform === 'win32' ? { channel: 'msedge' } : {});
 
@@ -45,20 +46,26 @@ for (const width of [1280, 375]) test(`incremental index reuses unchanged versio
   expect((await manual.json()).updated_at).toBe(changed.updated_at);
   await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const panel = page.getByLabel('AI 專案副手', { exact: true });
+  await openSettings(panel);
   await panel.getByLabel('AI資料集').selectOption('formal-v1');
+  await openSettings(panel);
   await panel.getByLabel('查詢專案').selectOption(project.id);
+  await openSettings(panel);
   await panel.getByText('查看索引狀態', { exact: true }).click();
   await expect(panel.getByText(/最近一次增量更新：處理 1／沿用/)).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await panel.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath(`incremental-${width}.png`), fullPage: true });
+  await openSettings(panel);
   await panel.getByText('查看索引狀態', { exact: true }).click();
+  await openSettings(panel);
   await panel.getByLabel('包含歷史版本').check();
   await panel.getByLabel('詢問 AI').fill('新人報到');
   await panel.getByRole('button', { name: '送出 AI 問題' }).click();
   await expect(panel.locator('.ai-sources')).toContainText('第2版');
   await expect(panel.locator('.ai-sources')).toContainText('歷史版本');
   await expect(panel.locator('.ai-sources')).toContainText('沿用教育清單.txt');
+  await openSettings(panel);
   await panel.getByLabel('AI資料集').selectOption('starter-v1');
   await expect(panel).toContainText('23 份可見文件');
   expect(errors).toEqual([]);

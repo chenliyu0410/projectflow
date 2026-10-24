@@ -271,6 +271,29 @@ it('lets admin test and save local model settings', async () => {
   expect(ai.save).toHaveBeenCalledWith({ enabled: true, base_url: 'http://192.168.1.20:11434', model: 'test:1' }, expect.any(AbortSignal));
 });
 
+it('gives the conversation the space: settings fold into one line once a reply arrives', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  const toggle = screen.getByRole('button', { name: /查詢設定/ });
+  // Before the first question the settings are open, so the user can choose the data first.
+  expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  expect(screen.getByLabelText('AI資料集')).toBeVisible();
+  expect(toggle).toHaveTextContent('原有展示資料・文件問答・全部專案');
+  fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
+  await screen.findByText('檢索原文');
+  // After the reply the settings fold away; question and answer are separate blocks.
+  expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  expect(screen.getByLabelText('AI資料集')).not.toBeVisible();
+  expect(screen.getByText('現行交付需要幾張截圖？', { selector: '.copilot-question' })).toBeInTheDocument();
+  expect(screen.getByText('檢索原文', { selector: '.copilot-answer' })).toBeInTheDocument();
+  expect(screen.getByText('來源 1 份')).toBeInTheDocument();
+  // Suggested questions stay one click away, and the settings reopen on demand.
+  expect(screen.getByRole('group', { name: '副手快捷動作' })).toBeVisible();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  expect(screen.getByLabelText('AI資料集')).toBeVisible();
+});
+
 it('makes model-selected SQL scope reviewable before execution', async () => {
   vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'query_suggestion', analysis: null, sources: [], answer: '尚未執行', suggestion: { query_id: 'q02', label: '各部門逾期未完成數' } });
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
