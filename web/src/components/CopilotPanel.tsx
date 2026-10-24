@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import NavIcon from './NavIcons';
 import ModelSettings from './ModelSettings';
+import { SCENARIOS } from './copilotScenarios';
 import { ai } from '../ai';
 import type { AIPreview, AIResult, AIStatus, GatewayInfo } from '../ai';
 
@@ -37,6 +38,8 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
   const [indexBusy, setIndexBusy] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsShown, setSettingsShown] = useState<boolean | null>(null);
+  const [scenarioId, setScenarioId] = useState('');
+  const [pendingProject, setPendingProject] = useState<string | null>(null);
   const [document, setDocument] = useState<{ title: string; text: string; version?: number; is_current?: boolean } | null>(null);
   const [loadingDocument, setLoadingDocument] = useState(false);
   const [refresh, setRefresh] = useState(0);
@@ -69,6 +72,19 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
     const area = chat.current, section = document ? documentVersion.current : preview ? previewSection.current : null;
     if (area) area.scrollTo?.({ top: section ? area.scrollTop + section.getBoundingClientRect().top - area.getBoundingClientRect().top : area.scrollHeight });
   }, [messages, busy, preview, document]);
+  // A scenario's project is matched by title once its dataset's status has loaded.
+  useEffect(() => {
+    if (!status || pendingProject === null) return;
+    setProject(status.projects.find(p => p.title.startsWith(pendingProject))?.project_id ?? '');
+    setPendingProject(null);
+  }, [status, pendingProject]);
+  function applyScenario(id: string) {
+    const chosen = SCENARIOS.find(s => s.id === id);
+    clear(); setScenarioId(id);
+    if (!chosen?.dataset) return;
+    if (chosen.dataset !== dataset) { setStatus(null); setDataset(chosen.dataset); }
+    setMode(chosen.mode ?? 'rag'); setHistory(!!chosen.history); setQuery(''); setProject(''); setPendingProject(chosen.project ?? null);
+  }
   function clearPreview() { previewController.current?.abort(); setPreview(null); setPreviewBusy(false); }
   function clear() { controller.current?.abort(); docController.current?.abort(); indexController.current?.abort(); setIndexBusy(false); clearPreview(); setBusy(false); setLoadingDocument(false); setMessages([]); setDocument(null); setError(''); }
   async function refreshIndex() {
@@ -112,11 +128,13 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
     catch { if (!request.signal.aborted) setError('無法讀取引用，可能沒有權限或登入已失效。'); }
     finally { if (!request.signal.aborted) setLoadingDocument(false); }
   }
-  const quick = mode === 'work_orders' ? ['列出全部未完成工單'] : mode === 'rag' ? (dataset === 'formal-v1' ? ['新人報到地點在哪一樓？', '設備申請流程怎麼做？'] : dataset === 'starter-v1' ? ['新人課程目前什麼時候、在哪裡上？', '只有2位新人，為什麼做20份歡迎包？', '給新同事用的電腦弄好了沒？', '李小晴的月薪是多少？'] : ['現行交付需要幾張截圖？', '風險原因與處理方式', '採購追蹤紀錄']) : ['各部門逾期未完成數', '超支專案及金額', '各專案加權不良率'];
+  const scenarios = SCENARIOS.filter(s => !s.companies || s.companies.includes(companyName));
+  const scenario = scenarios.find(s => s.id === scenarioId);
+  const quick = scenario?.questions ?? (mode === 'work_orders' ? ['列出全部未完成工單'] : mode === 'rag' ? (dataset === 'formal-v1' ? ['新人報到地點在哪一樓？', '設備申請流程怎麼做？'] : dataset === 'starter-v1' ? ['新人課程目前什麼時候、在哪裡上？', '只有2位新人，為什麼做20份歡迎包？', '給新同事用的電腦弄好了沒？', '李小晴的月薪是多少？'] : ['現行交付需要幾張截圖？', '風險原因與處理方式', '採購追蹤紀錄']) : ['各部門逾期未完成數', '超支專案及金額', '各專案加權不良率']);
   // Settings stay open until the first reply, then fold into one line so the conversation gets the space.
   const showSettings = settingsShown ?? messages.length === 0;
   const projectTitle = project ? status?.projects.find(p => p.project_id === project)?.title ?? project : '全部專案';
-  const scopeLabel = [DATASET_LABEL[dataset] ?? dataset, MODE_LABEL[mode], projectTitle].join('・') + (history ? '・含歷史版本' : '');
+  const scopeLabel = scenario ? `情境：${scenario.title}` : [DATASET_LABEL[dataset] ?? dataset, MODE_LABEL[mode], projectTitle].join('・') + (history ? '・含歷史版本' : '');
   const suggestions = (className: string) => <div className={className} role="group" aria-label="副手快捷動作">{quick.map(text => <button disabled={busy || indexBusy || !status?.ready} key={text} onClick={() => void ask(text)}>{text}</button>)}</div>;
   return <aside id="copilot-panel" className={`copilot ${open ? 'open' : ''}`} aria-label="AI 專案副手" hidden={!open}>
     {/* One header row: title, the folded settings summary and close — everything else goes to the conversation. */}
@@ -131,18 +149,21 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
       {status?.gateway && <small>AI閘道：僅限本地／內網模型・雲端關閉{status.vectors?.enabled && `・語意檢索：${status.vectors.model}`}</small>}
       {dataset === 'formal-v1' ? <p className="copilot-example-note">{companyName}・正式文件與附件（隔離試用）<br />預設查現行文件；勾選下方選項可含歷史版本。依原權限查詢，原檔保留。{status?.index && <><br />已索引 {status.index.counts.indexed}／待更新 {status.index.counts.pending}／略過 {status.index.counts.skipped}（含可見歷史版本）</>}</p> : <p className="copilot-example-note">{companyName}・AI展示資料區<br />{status?.ready ? `${status.counts.projects} 個專案／${status.counts.documents} 份可見文件・基準日 ${status.as_of}` : '資料尚未就緒'}。虛構延伸案，與目前正式任務分開；查詢不修改任務。</p>}
       <div className="ai-controls">
-        <label>AI資料集<select aria-label="AI資料集" value={dataset} onChange={e => { clear(); setStatus(null); setDataset(e.target.value); setMode('rag'); setProject(''); setQuery(''); setHistory(false); }}><option value="dataset-v1">原有展示資料</option><option value="starter-v1">入門文件：報到與教育訓練</option>{(status?.formal_available || dataset === 'formal-v1') && <option value="formal-v1">正式文件與附件（隔離）</option>}</select></label>
-        <label>查詢方式<select aria-label="查詢方式" value={mode} onChange={e => { clear(); setMode(e.target.value as 'rag' | 'sql' | 'work_orders'); setQuery(''); }}><option value="rag">RAG 文件問答</option><option value="sql" disabled={!status?.can_sql}>Text-to-SQL 資料分析</option>{dataset === 'starter-v1' && <option value="work_orders">未完成工單（完整清單）</option>}</select></label>
-        <label>{dataset === 'formal-v1' ? '查詢專案' : 'AI展示專案'}<select aria-label={dataset === 'formal-v1' ? '查詢專案' : 'AI展示專案'} value={project} onChange={e => { clear(); setProject(e.target.value); }}><option value="">目前公司全部可見專案</option>{status?.projects.map(p => <option key={p.project_id} value={p.project_id}>{dataset === 'formal-v1' ? p.title : `${p.project_id}｜${p.title}`}</option>)}</select></label>
+        <label>示範情境<select aria-label="示範情境" value={scenarioId} onChange={e => applyScenario(e.target.value)}><option value="">自行設定</option>{scenarios.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}</select></label>
+        <label>AI資料集<select aria-label="AI資料集" value={dataset} onChange={e => { clear(); setScenarioId(''); setStatus(null); setDataset(e.target.value); setMode('rag'); setProject(''); setQuery(''); setHistory(false); }}><option value="dataset-v1">原有展示資料</option><option value="starter-v1">入門文件：報到與教育訓練</option>{(status?.formal_available || dataset === 'formal-v1') && <option value="formal-v1">正式文件與附件（隔離）</option>}</select></label>
+        <label>查詢方式<select aria-label="查詢方式" value={mode} onChange={e => { clear(); setScenarioId(''); setMode(e.target.value as 'rag' | 'sql' | 'work_orders'); setQuery(''); }}><option value="rag">RAG 文件問答</option><option value="sql" disabled={!status?.can_sql}>Text-to-SQL 資料分析</option>{dataset === 'starter-v1' && <option value="work_orders">未完成工單（完整清單）</option>}</select></label>
+        <label>{dataset === 'formal-v1' ? '查詢專案' : 'AI展示專案'}<select aria-label={dataset === 'formal-v1' ? '查詢專案' : 'AI展示專案'} value={project} onChange={e => { clear(); setScenarioId(''); setProject(e.target.value); }}><option value="">目前公司全部可見專案</option>{status?.projects.map(p => <option key={p.project_id} value={p.project_id}>{dataset === 'formal-v1' ? p.title : `${p.project_id}｜${p.title}`}</option>)}</select></label>
         {mode === 'sql' && <label>分析種類<select aria-label="分析種類" value={query} onChange={e => { clearPreview(); setQuery(e.target.value); }}><option value="">依輸入問題辨識</option>{status?.queries.map(q => <option key={q.query_id} value={q.query_id}>{q.label}</option>)}</select></label>}
       </div>
       {dataset === 'formal-v1' && status?.index && <div>{status.index.can_refresh && <button disabled={busy || indexBusy} onClick={() => void refreshIndex()}>{indexBusy ? '正在更新索引…' : '更新文件索引'}</button>}<details><summary>查看索引狀態</summary><div style={{ maxHeight: 180, overflow: 'auto', overflowWrap: 'anywhere' }}><p>{status.index.automatic?.enabled ? `自動更新已開啟：服務運行時每${status.index.automatic.interval_seconds}秒檢查變動。` : '自動更新未開啟，請管理者手動更新。'}最近檢查：{status.index.automatic?.last_checked_at ? new Date(status.index.automatic.last_checked_at).toLocaleString('zh-TW') : '尚無紀錄'}。{status.index.automatic?.last_error}</p>{status.index.last_update && <p>最近一次{status.index.last_update.mode === 'initial' ? '首次建置' : '增量更新'}：處理 {status.index.last_update.processed}／沿用 {status.index.last_update.reused}／移除 {status.index.last_update.removed} 個來源版本。</p>}<p>索引更新：{status.index.updated_at ? new Date(status.index.updated_at).toLocaleString('zh-TW') : '尚未建立'}。新版發布後預設不再查舊版；權限撤回或來源刪除後，各版本都停止提供。</p>{status.index.items.map(item => <p key={item.source_id}>{item.title}（第{item.version}版・{item.is_current === false ? '歷史' : '現行'}）・{({ indexed: '已索引', pending: '待更新', skipped: '略過' } as Record<string, string>)[item.state]}{item.reason && `：${item.reason}`}</p>)}</div></details></div>}
-      {dataset !== 'dataset-v1' && mode === 'rag' && <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="checkbox" style={{ width: 16, height: 16, margin: 0 }} checked={history} onChange={e => { clear(); setHistory(e.target.checked); }} />包含歷史版本</label>}
+      {dataset !== 'dataset-v1' && mode === 'rag' && <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input type="checkbox" style={{ width: 16, height: 16, margin: 0 }} checked={history} onChange={e => { clear(); setScenarioId(''); setHistory(e.target.checked); }} />包含歷史版本</label>}
       {status?.can_configure && <details className="ai-model-details" onToggle={e => setSettingsOpen(e.currentTarget.open)}><summary>本地模型連線設定</summary>{settingsOpen && <ModelSettings saved={() => { clearPreview(); setRefresh(v => v + 1); }} />}</details>}
     </div>
     {error && <p role="alert" className="ai-error">{error}<button onClick={() => setRefresh(v => v + 1)}>重新載入</button></p>}
     <div className="copilot-chat" ref={chat} aria-label="AI 對話紀錄" aria-live="polite">
-      {!messages.length && <><p>選擇AI專案後提問，或點下面的建議問題。RAG提供可開啟的原文引用；資料分析顯示實際SQL與結果。</p>{suggestions('copilot-suggestions')}</>}
+      {!messages.length && (scenario?.steps
+        ? <section className="copilot-guide" aria-label="示範步驟"><strong>{scenario.title}</strong><ol>{scenario.steps.map(step => <li key={step}>{step}</li>)}</ol></section>
+        : <><p>{scenario ? `示範情境：${scenario.title}。點下面的問題直接提問。` : '選「示範情境」可自動切好資料與專案；也可以自己提問。RAG提供可開啟的原文引用；資料分析顯示實際SQL與結果。'}</p>{suggestions('copilot-suggestions')}</>)}
       {messages.map(({ id, question, result }) => <article key={id} className="copilot-message">
         <p className="copilot-question">{question}</p>
         <div className="copilot-reply">

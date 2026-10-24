@@ -294,6 +294,43 @@ it('gives the conversation the space: settings fold into one line once a reply a
   expect(screen.getByLabelText('AI資料集')).toBeVisible();
 });
 
+it('sets up a demo scenario: data, mode and project, then lists its questions', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName="毛研食品" />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, can_sql: false, projects: [{ project_id: 'X1', title: '增量索引展示（虛構）' }, { project_id: 'OCR1', title: 'OCR 示範（虛構）' }] });
+  fireEvent.change(screen.getByLabelText('示範情境'), { target: { value: 'ocr' } });
+  // The project is picked by title once the formal dataset has loaded.
+  await waitFor(() => expect(screen.getByLabelText('查詢專案')).toHaveValue('OCR1'));
+  expect(screen.getByLabelText('AI資料集')).toHaveValue('formal-v1');
+  fireEvent.click(screen.getByRole('button', { name: '新人報到要先去哪裡換證？' }));
+  await waitFor(() => expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ dataset: 'formal-v1', project_id: 'OCR1', mode: 'rag' }), expect.any(AbortSignal)));
+
+  vi.mocked(ai.status).mockResolvedValue(status);
+  fireEvent.change(screen.getByLabelText('示範情境'), { target: { value: 'sql' } });
+  await waitFor(() => expect(screen.getByLabelText('查詢方式')).toHaveValue('sql'));
+  expect(screen.getByLabelText('AI資料集')).toHaveValue('dataset-v1');
+  expect(screen.getByRole('button', { name: '供應商已收貨延遲率' })).toBeInTheDocument();
+
+  // Steps that need another account or page are shown as instructions, not automated.
+  fireEvent.change(screen.getByLabelText('示範情境'), { target: { value: 'guide-permission' } });
+  expect(screen.getByLabelText('示範步驟')).toHaveTextContent('demo-ming');
+
+  // Changing a setting by hand leaves the scenario.
+  fireEvent.change(screen.getByLabelText('示範情境'), { target: { value: 'sql' } });
+  await waitFor(() => expect(screen.getByLabelText('查詢方式')).toHaveValue('sql'));
+  fireEvent.change(screen.getByLabelText('查詢方式'), { target: { value: 'rag' } });
+  expect(screen.getByLabelText('示範情境')).toHaveValue('');
+});
+
+it('only offers scenarios whose data the company has', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName="雲序軟體" />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  const options = Array.from((screen.getByLabelText('示範情境') as HTMLSelectElement).options).map(o => o.textContent);
+  expect(options).toContain('資料分析（Text-to-SQL）');
+  expect(options).not.toContain('新人報到（文件問答）');
+  expect(options).not.toContain('圖片與掃描文字辨識（OCR）');
+});
+
 it('makes model-selected SQL scope reviewable before execution', async () => {
   vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'query_suggestion', analysis: null, sources: [], answer: '尚未執行', suggestion: { query_id: 'q02', label: '各部門逾期未完成數' } });
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
