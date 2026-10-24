@@ -9,6 +9,7 @@
 | llama.cpp 等 Ollama 內附函式庫 | runtime/ollama/lib/ollama/*LICENSE* | 見各檔 | 同上 |
 | Python（python-build-standalone） | runtime/python | PSF 等，見 runtime/python/LICENSE.txt | https://github.com/astral-sh/python-build-standalone |
 | Python 套件 | runtime/python/Lib/site-packages/*.dist-info | 見各套件授權檔 | https://pypi.org |
+| Microsoft Visual C++ 執行階段（msvcp140*、vcruntime140*、concrt140） | runtime/python | Microsoft Visual C++ Redistributable 授權（允許隨應用程式散布） | https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist |
 | RapidOCR 繁體中文辨識模型 | models/ocr | Apache-2.0 | https://github.com/RapidAI/RapidOCR |
 
 專流 ProjectFlow 本身的程式與虛構展示資料，僅供展示使用。
