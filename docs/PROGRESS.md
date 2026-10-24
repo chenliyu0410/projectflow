@@ -13,7 +13,7 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **PORTABLE 🟢 待人類第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR與乾淨展示資料，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
+| 目前工作項目 | **PORTABLE＋AI-DEMO-DATA 🟢 待人類第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR、乾淨展示資料與重建的「原有展示資料」Text-to-SQL，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
 | 下一個動作 | 待人類：用repo外`output/portable/ProjectFlow-Portable-20261024.zip`在另一台電腦照[檢查表](../deploy/portable/另一台電腦檢查表.md)做第三層驗證；決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
@@ -67,7 +67,7 @@
 
 ## 2. 工作佇列（由上往下執行）
 
-- AI-DEMO-DATA 🔨 執行中（2026-10-24）：人類要求可攜包含Text-to-SQL，但原始`ai-demo-data`（10/11產生、144專案）不在git、這台電腦與其Docker都找不到（Docker無任何專流volume），人類表示「另一台拿不到」，指示「先寫一份短規格：重新產生一份較小的虛構資料給 16 種分析用，給我確認後再做」。[短規格與計畫](superpowers/plans/2026-10-24-ai-demo-data.md)人類回覆「4 項都照建議：照規格做、資料量照寫的、資料包進 git、新增 4 題示範題」。順帶發現：副手預設選「原有展示資料」，資料不存在時一打開就顯示「資料尚未就緒」。
+- AI-DEMO-DATA 🟢 已併入可攜包（2026-10-24）：完成`deploy/ai-demo-data/`（`generate.py`固定種子產生器、`verify.py`、`pack/`進git：6公司×4專案、1,050筆、78份文件、336KB），`build_seed.py`以正式匯入器匯入並對6家都啟用本機模型，示範題新增D22–D25。驗證見§7。一次獨立唯讀審查：初審無阻擋、3項應修（重產比對受SQLite版本影響、reviewer／readonly看不到文件、隔離版跑示範題會因D22中斷）＋3項輕微，全部修正後複核Ready。偏離：允許清單外改了`deploy/check_demo_questions.py`（隔離版略過D22–D25，可攜包不略過）與檢查表。產品程式未改。背景：人類要求可攜包含Text-to-SQL，但原始`ai-demo-data`（10/11產生、144專案）不在git、這台電腦與其Docker都找不到（Docker無任何專流volume），人類表示「另一台拿不到」，指示「先寫一份短規格：重新產生一份較小的虛構資料給 16 種分析用，給我確認後再做」。[短規格與計畫](superpowers/plans/2026-10-24-ai-demo-data.md)人類回覆「4 項都照建議：照規格做、資料量照寫的、資料包進 git、新增 4 題示範題」。順帶發現：副手預設選「原有展示資料」，資料不存在時一打開就顯示「資料尚未就緒」。
 
 - PORTABLE 🟢 第一、二層驗證通過，待人類第三層（2026-10-24）：人類指示「之後要包成一包，放在別人的電腦上跑」；[短規格與計畫](superpowers/plans/2026-10-24-portable.md)人類回覆「7 項都照建議」（照規格做、只支援Windows、只綁127.0.0.1、從空資料庫重建、含OCR、第三層由人類找電腦測、可用python-build-standalone）。完成：`deploy/portable/`（`serve.py`單一回環程序提供網頁與`/api`並明確執行API lifespan、`build_seed.py`從空資料庫重建乾淨資料、啟動／停止／還原腳本、`build.py`打包與掃描、使用說明、授權說明、[另一台電腦檢查表](../deploy/portable/另一台電腦檢查表.md)）。產物在repo外`output/portable/ProjectFlow-Portable-20261024/`與同名.zip（約7GB）。驗證見§7。一次獨立唯讀審查：初審Not ready（OCR缺VC++執行階段、serve.py會解析UNC路徑、繼承OLLAMA_*等），修正後複核Ready。AI代決與偏離：模型改在打包時建好放入包內（規格原寫第一次啟動時建立），GGUF核對SHA-256、Modelfile照驗收版（含`TEMPLATE {{ .Prompt }}`）；允許清單外改了`deploy/check_demo_questions.py`（多允許15190/api）並新增檢查表；`start.ps1`加`PF_PORTABLE_NO_BROWSER`供自動測試不開瀏覽器。已知限制：正式文件索引的變更判斷含檔案建立時間與OCR模型修改時間（`api/app/ai/formal_index.py`、`ocr.py`），解壓後第一次啟動與每次還原都會重建索引（實測約5秒、含OCR）；改它要動產品程式，未改。未push。
 
@@ -1223,6 +1223,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-24｜Claude Code（Opus 5.5）｜AI-DEMO-DATA 重建原有展示資料
+
+- **做了什麼**：人類要可攜包含Text-to-SQL；原始`ai-demo-data`在這台電腦、這台Docker（無任何專流volume）、git都找不到，人類表示另一台拿不到。依核准短規格重建小型虛構版：每家公司照同一劇本（PRJ2超支、S2逾期未交、S3延遲最高、PRJ4不良率最高、PRJ3退回受阻最多、本週到期未完成4筆、至少2批零不良），文件依產業用詞，成本報告只限管理者與專案負責人，其他文件五種角色都可讀。可攜包重新打包（6家都啟用本機模型）。
+- **驗證**：`verify.py`以正式匯入器匯入、6家×16種分析與不經SQL算出的預期結果一致（修正一處：SQLite ROUND是四捨五入，Python round是銀行家捨入）、劇本、權限、時間順序、重產一致（SQLite以內容比對）；新檢查對舊資料包先RED後GREEN。pytest相關19 pass。可攜包解壓到含中文與空白路徑、精簡PATH：示範題19/19（D22／D23規則引擎＋實際SQL、D24只引用現行版「4張」、D25一般成員拒答且無成本來源）；6家管理者副手預設都「就緒」（4專案／13文件）、加權不良率最高皆PRJ4；「上週逾期任務」只給建議不執行；ming的SQL選項停用且API回403；reviewer（chen）與readonly（lin）各看到11份文件（不含2份成本報告）並答「4張」；以上19/19與角色檢查是在最終包（`52b3314`、資料包指紋`8f8cc6c629e1`）上重跑的結果；瀏覽器看到表格（採購10、品保1、研發1）與可展開的SQL。隔離版18006跑示範題：15題通過、D22–D25略過、exit 0。
+- **審查**：一位獨立唯讀審查者，初審3應修3輕微，修正後複核Ready；剩一項輕微（可攜包上不得略過）已修。
+- **沒做的事**：第三層（另一台電腦）待人類；正式Docker未匯入新資料（這台Docker沒有專流環境）；原本144專案資料無法還原；未push。
+- **注意**：資料包內容改變後指紋也變，已匯入舊版`dataset-v1`的環境會拒絕新版；正式環境原本就沒有匯入，不受影響。Docker Desktop在本輪被啟動，仍在執行。
 
 ### 2026-10-24｜Claude Code（Opus 5.5）｜PORTABLE 可攜展示包
 
