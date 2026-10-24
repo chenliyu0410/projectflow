@@ -30,8 +30,10 @@ def main():
                 client.cookies.clear()
                 client.post('/auth/login', json=dict(organization_key=who[0], username=who[1], password='demo-' + who[1])).raise_for_status()
                 active = who
-            # 原有展示資料 ships only with the portable package; elsewhere skip those cases instead of aborting the run.
-            if case['dataset'] == 'dataset-v1' and not client.get('/ai/status', params={'dataset': 'dataset-v1'}).json()['ready']:
+            # 原有展示資料 ships only with the portable package; on the isolated preview skip those cases instead of
+            # aborting the run. On the package (15190) missing data is a real failure, so it is never skipped there.
+            if case['dataset'] == 'dataset-v1' and url.port == 18006 \
+                    and not client.get('/ai/status', params={'dataset': 'dataset-v1'}).json()['ready']:
                 results.append(dict(case, skipped=True, problems=[]))
                 print(case['id'], 'skipped: 原有展示資料未匯入', flush=True)
                 continue
