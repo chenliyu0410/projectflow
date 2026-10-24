@@ -67,6 +67,8 @@
 
 ## 2. 工作佇列（由上往下執行）
 
+- AI-DEMO-DATA ✏️ 規格中（2026-10-24）：人類要求可攜包含Text-to-SQL，但原始`ai-demo-data`（10/11產生、144專案）不在git、這台電腦與其Docker都找不到（Docker無任何專流volume），人類表示「另一台拿不到」，指示「先寫一份短規格：重新產生一份較小的虛構資料給 16 種分析用，給我確認後再做」。[短規格與計畫](superpowers/plans/2026-10-24-ai-demo-data.md)待人類確認4項（範圍、資料量、資料包進git、新增4題示範題）。順帶發現：副手預設選「原有展示資料」，資料不存在時一打開就顯示「資料尚未就緒」。核准前不寫程式。
+
 - PORTABLE 🟢 第一、二層驗證通過，待人類第三層（2026-10-24）：人類指示「之後要包成一包，放在別人的電腦上跑」；[短規格與計畫](superpowers/plans/2026-10-24-portable.md)人類回覆「7 項都照建議」（照規格做、只支援Windows、只綁127.0.0.1、從空資料庫重建、含OCR、第三層由人類找電腦測、可用python-build-standalone）。完成：`deploy/portable/`（`serve.py`單一回環程序提供網頁與`/api`並明確執行API lifespan、`build_seed.py`從空資料庫重建乾淨資料、啟動／停止／還原腳本、`build.py`打包與掃描、使用說明、授權說明、[另一台電腦檢查表](../deploy/portable/另一台電腦檢查表.md)）。產物在repo外`output/portable/ProjectFlow-Portable-20261024/`與同名.zip（約7GB）。驗證見§7。一次獨立唯讀審查：初審Not ready（OCR缺VC++執行階段、serve.py會解析UNC路徑、繼承OLLAMA_*等），修正後複核Ready。AI代決與偏離：模型改在打包時建好放入包內（規格原寫第一次啟動時建立），GGUF核對SHA-256、Modelfile照驗收版（含`TEMPLATE {{ .Prompt }}`）；允許清單外改了`deploy/check_demo_questions.py`（多允許15190/api）並新增檢查表；`start.ps1`加`PF_PORTABLE_NO_BROWSER`供自動測試不開瀏覽器。已知限制：正式文件索引的變更判斷含檔案建立時間與OCR模型修改時間（`api/app/ai/formal_index.py`、`ocr.py`），解壓後第一次啟動與每次還原都會重建索引（實測約5秒、含OCR）；改它要動產品程式，未改。未push。
 
 - TEMPLATE-TRIAL 🟢 小修（2026-10-24）：人類指示「加入三份樣板測試」並「修正：按產生文件時被擋下的錯誤訊息要出現在使用者看得到的位置」。15176隔離版另建專案「文件樣板試用（虛構）」，三份樣板各產生一份：必填擋下（前端與API 422）、編號MTG-2026-001／Q-2026-1024-01／WO-001、報價小計3,970、稅198.5進位199、總計4,169，Word內容核對一致。修正：`DocTemplateFill`表單顯示時錯誤訊息改放在「產生文件」按鈕正上方（原在表單頂端，捲到底按時在畫面外約600px）。驗證見§7。未push。
