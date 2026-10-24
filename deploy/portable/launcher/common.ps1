@@ -19,7 +19,7 @@ function Fail([string]$Text) {
     Write-Host "記錄檔在 $LogDir ，需要協助時請把整個 logs 資料夾傳給提供者。"
     # Do not leave a hidden model service holding memory after a failed start.
     if ($script:Started) { [void](Stop-Package) }
-    throw $Text
+    exit 1  # not throw: PowerShell would add an English error block after the Chinese message
 }
 
 # Every process this package starts runs an executable inside the package folder, so ownership is decided
