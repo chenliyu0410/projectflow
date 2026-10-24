@@ -13,9 +13,9 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **ACCOUNTS 🟢 隔離交付**（2026-10-24）：正式帳號管理（新增／停用／改角色／重設密碼、首次登入改密碼、自己改密碼、登入失敗限流、公開網址拒絕示範密碼）。前一項DOC-TEMPLATE 🟢已推送分支。 |
+| 目前工作項目 | **PORTABLE 🟢 待人類第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR與乾淨展示資料，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
-| 下一個動作 | 2026-10-24 已在15176隔離版加入三份範例並各產生一份文件（見§7 TEMPLATE-TRIAL），擋下訊息位置已修；待人類決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
+| 下一個動作 | 待人類：用repo外`output/portable/ProjectFlow-Portable-20261024.zip`在另一台電腦照[檢查表](../deploy/portable/另一台電腦檢查表.md)做第三層驗證；決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
 | 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
 | 最新程式 commit | ACCOUNTS（本筆）；DOC-TEMPLATE `012ec59`。 |
 | 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
@@ -67,7 +67,7 @@
 
 ## 2. 工作佇列（由上往下執行）
 
-- PORTABLE 🔨 執行中（2026-10-24）：人類指示「之後要包成一包，放在別人的電腦上跑」「先寫打包成可攜版的短規格給我確認」。[短規格與計畫](superpowers/plans/2026-10-24-portable.md)人類2026-10-24回覆「7 項都照建議」（照規格做、只支援Windows、只綁127.0.0.1、從空資料庫重建、含OCR、第三層由人類找電腦測、可用python-build-standalone）。實查：`.venv`指向本機codex執行環境、Qwen GGUF在另一專案資料夾、隔離版模型資料夾找不到`pf-qwen3-rag`設定檔、Ollama 0.40.7含CUDA／ROCm／Vulkan／CPU函式庫。
+- PORTABLE 🟢 第一、二層驗證通過，待人類第三層（2026-10-24）：人類指示「之後要包成一包，放在別人的電腦上跑」；[短規格與計畫](superpowers/plans/2026-10-24-portable.md)人類回覆「7 項都照建議」（照規格做、只支援Windows、只綁127.0.0.1、從空資料庫重建、含OCR、第三層由人類找電腦測、可用python-build-standalone）。完成：`deploy/portable/`（`serve.py`單一回環程序提供網頁與`/api`並明確執行API lifespan、`build_seed.py`從空資料庫重建乾淨資料、啟動／停止／還原腳本、`build.py`打包與掃描、使用說明、授權說明、[另一台電腦檢查表](../deploy/portable/另一台電腦檢查表.md)）。產物在repo外`output/portable/ProjectFlow-Portable-20261024/`與同名.zip（約7GB）。驗證見§7。一次獨立唯讀審查：初審Not ready（OCR缺VC++執行階段、serve.py會解析UNC路徑、繼承OLLAMA_*等），修正後複核Ready。AI代決與偏離：模型改在打包時建好放入包內（規格原寫第一次啟動時建立），GGUF核對SHA-256、Modelfile照驗收版（含`TEMPLATE {{ .Prompt }}`）；允許清單外改了`deploy/check_demo_questions.py`（多允許15190/api）並新增檢查表；`start.ps1`加`PF_PORTABLE_NO_BROWSER`供自動測試不開瀏覽器。已知限制：正式文件索引的變更判斷含檔案建立時間與OCR模型修改時間（`api/app/ai/formal_index.py`、`ocr.py`），解壓後第一次啟動與每次還原都會重建索引（實測約5秒、含OCR）；改它要動產品程式，未改。未push。
 
 - TEMPLATE-TRIAL 🟢 小修（2026-10-24）：人類指示「加入三份樣板測試」並「修正：按產生文件時被擋下的錯誤訊息要出現在使用者看得到的位置」。15176隔離版另建專案「文件樣板試用（虛構）」，三份樣板各產生一份：必填擋下（前端與API 422）、編號MTG-2026-001／Q-2026-1024-01／WO-001、報價小計3,970、稅198.5進位199、總計4,169，Word內容核對一致。修正：`DocTemplateFill`表單顯示時錯誤訊息改放在「產生文件」按鈕正上方（原在表單頂端，捲到底按時在畫面外約600px）。驗證見§7。未push。
 
@@ -1221,6 +1221,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-24｜Claude Code（Opus 5.5）｜PORTABLE 可攜展示包
+
+- **做了什麼**：依核准短規格完成`deploy/portable/`。打包只下載python-build-standalone 3.12.14與鎖版套件；Ollama 0.40.7從本機安裝版複製（不含會自動更新的系統匣程式與`.lnk`）；問答模型由驗收用GGUF（SHA-256 `2fde00…`）以驗收Modelfile重建，與15176內容一致（同權重檔、模板、參數；bge-m3同`daec91…`）。乾淨資料從空資料庫重建：43個專案（資料包39＋AI示範4），索引9份含OCR與向量，無測試殘留。
+- **驗證**：pytest `test_portable.py` 6 pass（UNC路徑先RED後GREEN）；相關回歸28 pass。第一層：zip解壓到含中文與空白的`C:/Users/Public/專流 展示測試/`、PATH只留System32、刻意注入`OLLAMA_KEEP_ALIVE=0`／`CUDA_VISIBLE_DEVICES=-1`／`PYTHONPATH`仍被清除；啟動6秒，兩個服務都綁127.0.0.1且執行檔在包內；15題自動示範題15/15（14題本地模型＋混合檢索、D07規則）；D14–D19以頁面同一API走過（遮罩後雲端內容無原值、不送出）；三份樣板產生、報價3,970／199／4,169；停止無殘留、重啟資料保留、還原回乾淨並保留備份、資料不完整時拒絕啟動且無殘留；API程序的MSVCP140.dll由包內載入。第二層：遮蔽所有顯示卡後ollama記錄`id=cpu`，15/15通過，一題5–22秒（Ryzen 5 9600 6核），共189秒。
+- **審查**：一位獨立唯讀審查者；初審Not ready（VC++執行階段、UNC、環境變數繼承、非原子複製、掃描盲點等），修正後複核Ready；剩授權來源（已加授權說明）與重複停止（無害）兩項輕微。
+- **沒做的事**：第三層（另一台電腦）待人類；`.bat`的`pause`互動只在第一次啟動實跑，其餘以同一`.ps1`驗證；Windows沙箱不可用（Home版）；未改索引變更判斷（見§2已知限制）；未push。`d39ee59`的訊息寫「delivered」但實際只含授權說明，PROGRESS在下一筆commit。
+- **注意**：瀏覽器若先開過15176，同主機cookie會讓15190第一次顯示「登入已失效」，重新登入即可（對方電腦不會發生）。文件版本時間少8小時的問題在包內同樣存在。
 
 ### 2026-10-24｜Claude Code（Opus 5.5）｜TEMPLATE-TRIAL 樣板試用與擋下訊息位置
 
