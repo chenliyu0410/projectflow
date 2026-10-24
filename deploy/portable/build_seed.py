@@ -21,9 +21,10 @@ API = REPO / 'api'
 DOCS = Path(__file__).resolve().parent / 'demo-docs'
 PACK = REPO / 'deploy' / 'demo-data'
 STARTER = REPO / 'deploy' / 'rag-starter'
+AI_DEMO = REPO / 'deploy' / 'ai-demo-data' / 'pack'  # 原有展示資料 (dataset-v1): Text-to-SQL and its documents
 CHAT_MODEL = 'pf-qwen3-rag:latest'
 VECTOR_MODEL = 'bge-m3'
-AI_COMPANIES = ('food', 'electronics')  # the two companies that own AI starter material
+STARTER_COMPANIES = ('food', 'electronics')  # the two companies that own AI starter material
 
 # Project titles left behind by automated tests; none may reach the demo data.
 TEST_RESIDUE = re.compile(r'\b(1280|1440|375)\b|E2E|\bTP-[A-G]\b|\bP[12][abc]\b|UX 隔離|[0-9a-f]{8}-[0-9a-f]{4}-')
@@ -86,7 +87,9 @@ def build(out, ollama):
     engine.dispose()
     alembic('stamp', 'head')
     import_starter(STARTER, out / 'ai')
-    for company in AI_COMPANIES:
+    store.import_pack(AI_DEMO, out / 'ai')  # the product importer checks checksums and the fixed SQL catalog
+    # The model only runs on this computer, so every company gets the full demo, not just the starter companies.
+    for company in sorted(store.COMPANIES):
         model.save(company, {'enabled': True, 'base_url': ollama, 'model': CHAT_MODEL})
 
     with TestClient(create_app()) as client:
@@ -105,7 +108,7 @@ def build(out, ollama):
         refreshed.raise_for_status()
         client.post('/auth/logout')
 
-    for company in AI_COMPANIES:
+    for company in STARTER_COMPANIES:
         with store.connect(company, 'starter-v1') as starter:
             vectors.starter_vectors(starter, company)
 
