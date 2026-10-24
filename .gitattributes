@@ -6,3 +6,5 @@ deploy/rag-starter/** -text whitespace=cr-at-eol,-blank-at-eof
 *.bat text eol=crlf
 # Portable demo documents are uploaded as-is; keep their bytes identical on every clone.
 deploy/portable/demo-docs/** -text
+# The AI demo pack is verified by SHA-256 on import; keep its bytes unchanged.
+deploy/ai-demo-data/pack/** -text
