@@ -119,11 +119,14 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
   const scopeLabel = [DATASET_LABEL[dataset] ?? dataset, MODE_LABEL[mode], projectTitle].join('・') + (history ? '・含歷史版本' : '');
   const suggestions = (className: string) => <div className={className} role="group" aria-label="副手快捷動作">{quick.map(text => <button disabled={busy || indexBusy || !status?.ready} key={text} onClick={() => void ask(text)}>{text}</button>)}</div>;
   return <aside id="copilot-panel" className={`copilot ${open ? 'open' : ''}`} aria-label="AI 專案副手" hidden={!open}>
-    <div className="copilot-head"><span className="copilot-avatar"><NavIcon name="ai" /></span><div><strong className="brand-name">AI 專案副手</strong><small>目前位置：{scope}・{status?.model_enabled ? '本地模型・雲端關閉' : '模型未啟用・雲端關閉'}</small></div><button ref={closeButton} className="copilot-close" aria-label="關閉 AI 副手" onClick={close}>✕</button></div>
-    <button type="button" className="copilot-settings-toggle" aria-expanded={showSettings} aria-controls="copilot-settings" onClick={() => setSettingsShown(!showSettings)}>
-      <span><span className="sr-only">查詢設定：</span>{scopeLabel}{status && !status.ready ? '・資料尚未就緒' : ''}</span><span aria-hidden="true">{showSettings ? '收合 ▴' : '設定 ▾'}</span>
-    </button>
+    {/* One header row: title, the folded settings summary and close — everything else goes to the conversation. */}
+    <div className="copilot-head"><span className="copilot-avatar"><NavIcon name="ai" /></span><strong className="brand-name">AI 專案副手</strong>
+      <button type="button" className="copilot-settings-toggle" aria-expanded={showSettings} aria-controls="copilot-settings" onClick={() => setSettingsShown(!showSettings)}>
+        <span><span className="sr-only">查詢設定：</span>{scopeLabel}{status && !status.ready ? '・資料尚未就緒' : ''}</span><span aria-hidden="true">{showSettings ? '▴' : '▾'}</span>
+      </button>
+      <button ref={closeButton} className="copilot-close" aria-label="關閉 AI 副手" onClick={close}>✕</button></div>
     <div id="copilot-settings" className="copilot-settings" hidden={!showSettings}>
+      <p className="copilot-scope">目前位置：{scope}・{status?.model_enabled ? '本地模型・雲端關閉' : '模型未啟用・雲端關閉'}</p>
       <p className="copilot-policy">{status?.model_enabled ? `本地模型：${status.model_name}` : '模型未啟用・檢索與資料查詢可用'}</p>
       {status?.gateway && <small>AI閘道：僅限本地／內網模型・雲端關閉{status.vectors?.enabled && `・語意檢索：${status.vectors.model}`}</small>}
       {dataset === 'formal-v1' ? <p className="copilot-example-note">{companyName}・正式文件與附件（隔離試用）<br />預設查現行文件；勾選下方選項可含歷史版本。依原權限查詢，原檔保留。{status?.index && <><br />已索引 {status.index.counts.indexed}／待更新 {status.index.counts.pending}／略過 {status.index.counts.skipped}（含可見歷史版本）</>}</p> : <p className="copilot-example-note">{companyName}・AI展示資料區<br />{status?.ready ? `${status.counts.projects} 個專案／${status.counts.documents} 份可見文件・基準日 ${status.as_of}` : '資料尚未就緒'}。虛構延伸案，與目前正式任務分開；查詢不修改任務。</p>}
@@ -161,7 +164,6 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
       {document && <section className="ai-document" aria-label="引用原文"><button onClick={() => setDocument(null)}>關閉原文</button><h3>{document.title}</h3>{document.version !== undefined && <p ref={documentVersion}>第{document.version}版・{document.is_current === false ? '歷史版本，請勿當作現行規定' : '現行版本'}</p>}<pre>{document.text}</pre></section>}
     </div>
     {!!messages.length && suggestions('copilot-chips')}
-    <form className="copilot-ask" onSubmit={e => { e.preventDefault(); void ask(currentQuestion(), query || undefined); }}><label className="sr-only" htmlFor="copilot-input">詢問 AI</label><input id="copilot-input" maxLength={2000} value={input} disabled={busy || indexBusy || mode === 'work_orders'} onChange={e => { clearPreview(); setInput(e.target.value); }} placeholder={mode === 'work_orders' ? '依上方公司與專案列出未完成工單' : mode === 'rag' ? '查交付規範、風險或會議紀錄…' : query ? '將執行上方選定分析' : '例如：各部門逾期未完成數'} /><button type="submit" disabled={busy || indexBusy || !status?.ready || !currentQuestion().trim()} aria-label="送出 AI 問題"><NavIcon name="send" /></button></form>
-    <button className="copilot-preview" disabled={busy || indexBusy || previewBusy || !status?.ready || !currentQuestion().trim()} onClick={() => void showPreview()}>預覽提供給模型的資料</button>
+    <form className="copilot-ask" onSubmit={e => { e.preventDefault(); void ask(currentQuestion(), query || undefined); }}><label className="sr-only" htmlFor="copilot-input">詢問 AI</label><input id="copilot-input" maxLength={2000} value={input} disabled={busy || indexBusy || mode === 'work_orders'} onChange={e => { clearPreview(); setInput(e.target.value); }} placeholder={mode === 'work_orders' ? '依上方公司與專案列出未完成工單' : mode === 'rag' ? '查交付規範、風險或會議紀錄…' : query ? '將執行上方選定分析' : '例如：各部門逾期未完成數'} /><button type="button" className="copilot-preview" aria-label="預覽提供給模型的資料" title="預覽提供給模型的資料" disabled={busy || indexBusy || previewBusy || !status?.ready || !currentQuestion().trim()} onClick={() => void showPreview()}>預覽</button><button type="submit" disabled={busy || indexBusy || !status?.ready || !currentQuestion().trim()} aria-label="送出 AI 問題"><NavIcon name="send" /></button></form>
   </aside>;
 }
