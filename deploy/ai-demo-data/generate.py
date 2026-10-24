@@ -298,15 +298,18 @@ def write(out):
     db.execute('VACUUM')
     db.close()
     counts['documents'] = len(docs)
-    (out / 'rag' / 'documents.jsonl').write_text(''.join(json.dumps(d, ensure_ascii=False, sort_keys=True) + '\n' for d in docs), encoding='utf-8')
+    # newline='\n': the same bytes on every operating system, so verify.py can compare a regeneration anywhere.
+    (out / 'rag' / 'documents.jsonl').write_text(''.join(json.dumps(d, ensure_ascii=False, sort_keys=True) + '\n' for d in docs),
+                                                 encoding='utf-8', newline='\n')
     (out / 'evaluation' / 'sql_questions.jsonl').write_text(''.join(
         json.dumps(dict(company_id=cid, query_id=q['query_id'], question=q['label'], sql=q['sql']), ensure_ascii=False) + '\n'
-        for cid in sorted(COMPANIES) for q in catalog), encoding='utf-8')
-    (out / 'evaluation' / 'expected.json').write_text(json.dumps(expected, ensure_ascii=False, indent=1, sort_keys=True), encoding='utf-8')
+        for cid in sorted(COMPANIES) for q in catalog), encoding='utf-8', newline='\n')
+    (out / 'evaluation' / 'expected.json').write_text(json.dumps(expected, ensure_ascii=False, indent=1, sort_keys=True),
+                                                      encoding='utf-8', newline='\n')
     files = {p.relative_to(out).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(out.rglob('*')) if p.is_file()}
     manifest = dict(dataset='dataset-v1', generator='deploy/ai-demo-data/generate.py', as_of=day(AS_OF), synthetic=True,
                     counts=dict(counts=dict(sorted(counts.items()))), files=files)
-    (out / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=1, sort_keys=True), encoding='utf-8')
+    (out / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=1, sort_keys=True), encoding='utf-8', newline='\n')
     return manifest
 
 
