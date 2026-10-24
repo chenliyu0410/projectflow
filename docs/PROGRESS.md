@@ -23,7 +23,7 @@
 | 資料版本 | 新增migration `20261024_0021`（users加status、must_change_password、last_login_at、password_changed_at，舊帳號維持啟用）與 `20261024_0020`（3張樣板表＋document_versions兩個可為空欄位；只新增，降級遇資料拒絕）。新依賴docxtpl 0.20.2（＋Jinja2、lxml、python-docx）已鎖版。AI隔離索引INDEX_VERSION仍為3；OCR模型在repo外。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
 | 阻塞／待人類 | 人類試用簽核：2026-10-24 人類表示「簽核都沒問題了」（依repo外`output/專流試用簽核重點.html`的10段重點，以本機SQLite一鍵啟動版`output/projectflow-local/start-projectflow.bat`試用；人類表示不匯出簽核表）。限制：此環境沒有本地模型，AI問答段沒有在本機實測；mvp-trial-checklist逐項勾選未由AI代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
-| 遠端 | 2026-10-24 依人類「github可以推」推上 `origin/feature/rag-starter-import`；同日DOC-TEMPLATE `012ec59` 依人類「Push feature/rag-starter-import to GitHub (branch only, no merge or PR)」再推一次；同日ACCOUNTS `e9b2db6`（含試用簽核紀錄與帳號規格）依人類同樣指示再推（只推分支，未合併main、未開PR、未部署）；同日TEMPLATE-TRIAL與PORTABLE（含本筆紀錄）依人類同樣指示再推，可攜包壓縮檔在repo外、不在git；同日AI-DEMO-DATA（含`deploy/ai-demo-data/pack`）依人類同樣指示再推；同日COPILOT-LAYOUT兩輪版面調整依人類同樣指示再推。mina201199的兩個遠端分支依決定暫不處理。 |
+| 遠端 | 2026-10-24 依人類「github可以推」推上 `origin/feature/rag-starter-import`；同日DOC-TEMPLATE `012ec59` 依人類「Push feature/rag-starter-import to GitHub (branch only, no merge or PR)」再推一次；同日ACCOUNTS `e9b2db6`（含試用簽核紀錄與帳號規格）依人類同樣指示再推（只推分支，未合併main、未開PR、未部署）；同日TEMPLATE-TRIAL與PORTABLE（含本筆紀錄）依人類同樣指示再推，可攜包壓縮檔在repo外、不在git；同日AI-DEMO-DATA（含`deploy/ai-demo-data/pack`）依人類同樣指示再推；同日COPILOT-LAYOUT兩輪版面調整依人類同樣指示再推；同日COPILOT-SCENARIOS示範情境選單依人類同樣指示再推。mina201199的兩個遠端分支依決定暫不處理。 |
 
 ---
 
