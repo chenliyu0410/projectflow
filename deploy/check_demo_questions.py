@@ -16,8 +16,9 @@ def main():
     parser.add_argument('--report', type=Path, required=True)
     args = parser.parse_args()
     url = urlsplit(args.url)
-    if url.scheme != 'http' or url.hostname != '127.0.0.1' or url.port != 18006 or url.path:
-        parser.error('Only the dedicated loopback acceptance API on port 18006 is allowed')
+    # The isolated preview API, or the portable package (deploy/portable) which serves its API under /api.
+    if url.scheme != 'http' or url.hostname != '127.0.0.1' or (url.port, url.path) not in {(18006, ''), (15190, '/api')}:
+        parser.error('Only the isolated acceptance API (18006) or the portable package (15190/api) is allowed')
     cases = json.loads((Path(__file__).parent / 'rag-starter/evaluation/demo-questions.json').read_text(encoding='utf-8'))
     results = []
     with httpx.Client(base_url=args.url, timeout=210, trust_env=False, follow_redirects=False) as client:

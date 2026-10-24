@@ -105,6 +105,10 @@ python deploy/start.py               # 之後重啟：保留資料，不要再�
 
 展示密碼 `demo-<帳號>` 猜得到，只給信任的測試者，用完就停。AI 模型設定只能從本機操作。細節見正式版開發指南的[同網域試用](docs/formal-development.md#同網域試用lan-trial)與[網際網路試用](docs/formal-development.md#網際網路試用public-trial)。
 
+### 可攜展示包（放到別人的 Windows 電腦）
+
+`python deploy/portable/build.py …` 會打包出一個約 7GB 的資料夾：內含 Python、Ollama、本地問答模型、OCR 與乾淨展示資料，對方解壓後雙擊「啟動專流.bat」就能用，不需安裝或連網，只綁 127.0.0.1。打包參數與驗證方式見 [deploy/portable/README.md](deploy/portable/README.md)。
+
 ### 自動驗收（開發者）
 
 先照[正式版開發指南](docs/formal-development.md)安裝鎖版的 API／Web 測試依賴，再執行：

@@ -68,3 +68,12 @@ def test_frontend_never_serves_files_outside_web_root(web):
 
 def test_server_only_binds_loopback():
     assert load('serve').HOST == '127.0.0.1'
+
+
+def test_seed_check_flags_test_leftovers_but_not_demo_projects():
+    residue = load('build_seed').TEST_RESIDUE
+    for leftover in ('TP-A 375 d1df03fe-5c41-4c55-92cd-0083f5667f60', '隔離索引展示 1280 1792506563471',
+                     'P2b files facc179a-1726-4fd1-be34-33e930ee5a6b', 'UX 隔離驗證 8d3691ca', 'P1b E2E 1280 x'):
+        assert residue.search(leftover), leftover
+    for demo in ('成貓主食罐正式版', '增量索引展示（虛構）', 'OCR 示範（虛構）', '十月新人報到', '筆電新機種 2026Q4'):
+        assert not residue.search(demo), demo
