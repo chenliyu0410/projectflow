@@ -11,6 +11,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -28,6 +29,10 @@ QWEN_SHA256 = '2fde00ce69dd4899c70d020845e2638353015bba0fdf161b3eb965f2bca4464e'
 # The acceptance runs used this exact Modelfile; the raw prompt template matters (the API sends a finished prompt).
 MODELFILE = 'FROM {gguf}\nTEMPLATE {{{{ .Prompt }}}}\nPARAMETER num_ctx 8192\nPARAMETER temperature 0\n'
 OLLAMA_SKIP = {'ollama app.exe', 'app.ico', 'unins000.dat', 'unins000.exe', 'unins000.msg'}  # tray app auto-updates
+VC_RUNTIME = ('msvcp140.dll', 'msvcp140_1.dll', 'msvcp140_2.dll', 'msvcp140_atomic_wait.dll', 'msvcp140_codecvt_ids.dll',
+              'concrt140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll', 'vcruntime140_threads.dll')
+# Private keys and common API key formats; demo passwords (demo-<user>) are public by design.
+SECRET = re.compile(rb'-----BEGIN [A-Z ]*PRIVATE KEY-----|\bsk-(?:ant-)?[A-Za-z0-9_-]{20,}|\bAKIA[0-9A-Z]{16}\b|\bghp_[A-Za-z0-9]{36}\b')
 STORED = ('.gguf', '.onnx', '.dll', '.exe', '.pyd', '.so', '.png', '.pdf', '.zip')
 
 
@@ -60,6 +65,18 @@ def python_runtime(target):
     # Console-script launchers embed this computer's python.exe path; the package never uses them.
     for launcher in (target / 'Scripts').glob('*.exe'):
         launcher.unlink()
+    # onnxruntime (OCR) needs the C++ runtime, which a clean Windows may lack. Microsoft allows app-local copies;
+    # python.exe's folder is searched before System32, so the package always loads these.
+    system = Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'System32'
+    for name in VC_RUNTIME:
+        shutil.copy2(system / name, target / name)
+    check = ('import ctypes, ctypes.wintypes, onnxruntime, rapidocr_onnxruntime\n'
+             'k = ctypes.WinDLL("kernel32"); k.GetModuleFileNameW.argtypes = [ctypes.wintypes.HMODULE, ctypes.c_wchar_p, ctypes.c_uint]\n'
+             'k.GetModuleHandleW.restype = ctypes.wintypes.HMODULE\n'
+             'buf = ctypes.create_unicode_buffer(1024); k.GetModuleFileNameW(k.GetModuleHandleW("msvcp140.dll"), buf, 1024); print(buf.value)')
+    loaded = subprocess.run([str(exe), '-E', '-s', '-c', check], capture_output=True, text=True, check=True).stdout.strip()
+    if Path(loaded).parent.resolve() != target.resolve():
+        raise RuntimeError(f'OCR loads the C++ runtime from {loaded}, not from the package')
     return exe
 
 
@@ -158,15 +175,22 @@ def seed(package, python):
 def scan(package):
     """Nothing tied to this computer or the repo may ship."""
     problems = []
-    markers = {m.encode() for m in (str(REPO), str(REPO).replace('\\', '/'), str(Path.home()), str(Path.home()).replace('\\', '/'))}
+    texts = set()
+    for base in (str(REPO), str(Path.home())):
+        for form in (base, base.replace('\\', '/'), base.replace('\\', '\\\\')):
+            texts |= {form, form.lower()}
+    markers = {t.encode() for t in texts} | {t.encode('utf-16-le') for t in texts}
     for path in package.rglob('*'):
         relative = path.relative_to(package).as_posix()
-        if path.name in ('.git', '.env') or path.suffix == '.env' or 'gemma' in relative.lower():
+        if path.name == '.git' or path.name.startswith('.env') or path.suffix == '.env' or 'gemma' in relative.lower():
             problems.append(f'不應打包：{relative}')
-        if path.is_file() and path.stat().st_size < 50 << 20 and not relative.startswith('runtime/ollama/'):
+        # Model weights and GPU libraries are the only files this large; they are copied, never written here.
+        if path.is_file() and path.stat().st_size < 50 << 20:
             data = path.read_bytes()
             if any(m in data for m in markers):
                 problems.append(f'含本機路徑：{relative}')
+            if SECRET.search(data):
+                problems.append(f'疑似金鑰：{relative}')
     return problems
 
 
@@ -198,7 +222,9 @@ def main():
     step('網頁'); web_build(package / 'app' / 'web')
     step('後端程式'); copy_app(package / 'app')
     step('Ollama')
-    shutil.copytree(args.ollama_dir, package / 'runtime' / 'ollama', ignore=lambda d, names: [n for n in names if n in OLLAMA_SKIP])
+    # Installer shortcuts (*.lnk) point into this user's profile.
+    shutil.copytree(args.ollama_dir, package / 'runtime' / 'ollama',
+                    ignore=lambda d, names: [n for n in names if n in OLLAMA_SKIP or n.lower().endswith('.lnk')])
     version = subprocess.run([str(package / 'runtime' / 'ollama' / 'ollama.exe'), '--version'], capture_output=True, text=True).stdout.strip()
     step('模型'); tags = models(package, args.gguf.resolve(), args.bge_store.resolve(), args.ollama_dir)
     shutil.copytree(args.ocr_models, package / 'models' / 'ocr')

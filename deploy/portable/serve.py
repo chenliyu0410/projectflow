@@ -27,6 +27,10 @@ def create(api, web_root):
 
     @application.get('/{path:path}', include_in_schema=False)
     def web(path: str):
+        # Reject before touching the filesystem: on Windows '//host/share' or 'C:' would open a network or other drive.
+        parts = path.split('/')
+        if path.startswith('/') or ':' in path or '\\' in path or '..' in parts:
+            raise HTTPException(404)
         target = (root / path).resolve()
         if not target.is_relative_to(root):
             raise HTTPException(404)

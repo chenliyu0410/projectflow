@@ -2,13 +2,14 @@
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-$Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).ProviderPath
 $WebPort = 15190
 $ModelPort = 11437
 $DataDir = Join-Path $Root 'data'
 $SeedDir = Join-Path $Root 'seed'
 $LogDir = Join-Path $Root 'logs'
 $PidFile = Join-Path $DataDir 'pids.json'
+$script:Started = $false
 
 function Say([string]$Text) { Write-Host $Text }
 
@@ -16,6 +17,8 @@ function Fail([string]$Text) {
     Write-Host ''
     Write-Host "無法完成：$Text" -ForegroundColor Red
     Write-Host "記錄檔在 $LogDir ，需要協助時請把整個 logs 資料夾傳給提供者。"
+    # Do not leave a hidden model service holding memory after a failed start.
+    if ($script:Started) { [void](Stop-Package) }
     throw $Text
 }
 
@@ -49,6 +52,10 @@ function Test-PortOwner([int]$Port) {
 
 function Copy-Seed {
     if (-not (Test-Path -LiteralPath (Join-Path $SeedDir 'projectflow.sqlite'))) { Fail '找不到 seed 資料夾裡的展示資料，壓縮檔可能沒有完整解開。' }
-    Copy-Item -LiteralPath $SeedDir -Destination $DataDir -Recurse
-    Remove-Item -LiteralPath (Join-Path $DataDir 'seed.json') -Force -ErrorAction SilentlyContinue
+    # Copy beside, then rename: an interrupted copy never looks like complete data.
+    $partial = "$DataDir.tmp"
+    if (Test-Path -LiteralPath $partial) { Remove-Item -LiteralPath $partial -Recurse -Force }
+    Copy-Item -LiteralPath $SeedDir -Destination $partial -Recurse
+    Remove-Item -LiteralPath (Join-Path $partial 'seed.json') -Force -ErrorAction SilentlyContinue
+    Rename-Item -LiteralPath $partial -NewName (Split-Path $DataDir -Leaf)
 }

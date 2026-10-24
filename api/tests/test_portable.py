@@ -66,6 +66,19 @@ def test_frontend_never_serves_files_outside_web_root(web):
             assert 'outside' not in client.get(path).text
 
 
+def test_frontend_rejects_unc_and_drive_paths_before_touching_the_filesystem(web, monkeypatch):
+    serve = load('serve')
+    touched = []
+    original = serve.Path.resolve
+    monkeypatch.setattr(serve.Path, 'resolve', lambda self, *a, **k: touched.append(str(self)) or original(self, *a, **k))
+    with TestClient(serve.create(fake_api([]), web)) as client:
+        touched.clear()
+        # On Windows '//host/share' is a UNC path: resolving it would open an SMB connection and leak the login hash.
+        for path in ('//evil-host/share/x', '/C:/Windows/win.ini', '/assets\\..\\..\\secret.txt'):
+            assert client.get('http://testserver' + path).status_code == 404, path
+        assert not [t for t in touched if 'evil-host' in t or 'Windows' in t or '\\..' in t]
+
+
 def test_server_only_binds_loopback():
     assert load('serve').HOST == '127.0.0.1'
 

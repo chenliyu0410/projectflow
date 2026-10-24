@@ -9,6 +9,7 @@ function Open-Browser { if (-not $env:PF_PORTABLE_NO_BROWSER) { Start-Process $U
 Say '專流展示包：啟動中…'
 
 # 1. Computer checks
+if ($Root -match '^(\\\\|Microsoft\.PowerShell)') { Fail '請先把資料夾複製到這台電腦的磁碟（例如 C: 或 D:），不能從網路磁碟執行。' }
 if (-not [Environment]::Is64BitOperatingSystem -or [Environment]::OSVersion.Version.Major -lt 10) {
     Fail '這台電腦不是 64 位元的 Windows 10／11。'
 }
@@ -27,18 +28,21 @@ if ($web -eq 'ours' -and $model -eq 'ours') {
     Open-Browser
     return
 }
-if ($web -eq 'other') { Fail "連接埠 $WebPort 被其他程式占用，請先關閉該程式。" }
-if ($model -eq 'other') { Fail "連接埠 $ModelPort 被其他程式占用，請先關閉該程式。" }
-if ($web -eq 'ours' -or $model -eq 'ours') { [void](Stop-Package) }  # half-started earlier; start over cleanly
+$hint = '（可能是另一份專流展示包正在執行，請先在那個資料夾執行「停止專流.bat」）'
+if ($web -eq 'other') { Fail "連接埠 $WebPort 被其他程式占用，請先關閉該程式$hint。" }
+if ($model -eq 'other') { Fail "連接埠 $ModelPort 被其他程式占用，請先關閉該程式$hint。" }
+if (@(Get-PackageProcesses).Count) { [void](Stop-Package) }  # half-started earlier; start over cleanly
 
 $gpu = (Get-CimInstance Win32_VideoController | ForEach-Object { $_.Name }) -join '、'
 if ($gpu -match 'NVIDIA|AMD|Radeon') { Say "顯示卡：$gpu，AI 會優先用顯示卡執行。" }
-else { Say "顯示卡：$gpu。AI 會用 CPU 執行，一題可能要 30 秒以上。" }
+else { Say "顯示卡：$gpu。AI 會用 CPU 執行，一題約 5–25 秒（較舊或省電的筆電會更久）。" }
 
 # 2. Data: the first start copies the clean demo data
-if (-not (Test-Path -LiteralPath (Join-Path $DataDir 'projectflow.sqlite'))) {
+if (-not (Test-Path -LiteralPath $DataDir)) {
     Say '第一次啟動：準備展示資料…'
     Copy-Seed
+} elseif (-not (Test-Path -LiteralPath (Join-Path $DataDir 'projectflow.sqlite'))) {
+    Fail 'data 資料夾不完整，請執行「還原展示資料.bat」。'
 }
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 foreach ($name in 'api.log', 'api-error.log', 'ollama.log', 'ollama-error.log') {
@@ -47,7 +51,9 @@ foreach ($name in 'api.log', 'api-error.log', 'ollama.log', 'ollama-error.log') 
 }
 
 # 3. Start the model service and the web/API server, loopback only, with nothing inherited from this computer
-foreach ($name in 'PYTHONPATH', 'PYTHONHOME', 'VIRTUAL_ENV', 'OLLAMA_HOST', 'OLLAMA_MODELS', 'OLLAMA_ORIGINS', 'DATABASE_URL') {
+# Settings this computer may have for its own Ollama or Python must not change the package's behaviour.
+Get-ChildItem Env: | Where-Object { $_.Name -match '^(OLLAMA_|PYTHON|PF_(?!PORTABLE_NO_BROWSER$))' } | ForEach-Object { Remove-Item -LiteralPath "Env:$($_.Name)" }
+foreach ($name in 'VIRTUAL_ENV', 'DATABASE_URL', 'CUDA_VISIBLE_DEVICES', 'HIP_VISIBLE_DEVICES', 'ROCR_VISIBLE_DEVICES', 'GPU_DEVICE_ORDINAL', 'GGML_VK_VISIBLE_DEVICES') {
     Remove-Item -Path "Env:$name" -ErrorAction SilentlyContinue
 }
 $env:OLLAMA_HOST = "127.0.0.1:$ModelPort"
@@ -57,6 +63,7 @@ $env:OLLAMA_NUM_PARALLEL = '1'
 $env:OLLAMA_MAX_LOADED_MODELS = '2'   # chat model and bge-m3 stay loaded together
 $env:OLLAMA_CONTEXT_LENGTH = '8192'
 $env:OLLAMA_NOPRUNE = '1'
+$script:Started = $true
 $ollamaProcess = Start-Process -FilePath $Ollama -ArgumentList 'serve' -WindowStyle Hidden -PassThru `
     -RedirectStandardOutput (Join-Path $LogDir 'ollama.log') -RedirectStandardError (Join-Path $LogDir 'ollama-error.log')
 
