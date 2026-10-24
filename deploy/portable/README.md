@@ -16,7 +16,7 @@ python deploy/portable/build.py `
 - 產物在 repo 外 `output/portable/ProjectFlow-Portable-<日期>/`（`--zip` 另產生同名 .zip），不進 git。
 - 只下載 python-build-standalone 3.12 與鎖版套件；Ollama 從本機安裝版複製（不含會自動更新的系統匣程式）。
 - GGUF 會核對 SHA-256，必須是驗收用的同一個檔；模型以驗收時的 Modelfile（含 `TEMPLATE {{ .Prompt }}`）在包內重建。
-- `build_seed.py` 從空資料庫重建展示資料：migration、`deploy/demo-data` 資料包、AI 入門教材、`demo-docs/` 的四個 AI 示範專案、三份文件樣板，並建好 AI 索引與向量。
+- `build_seed.py` 從空資料庫重建展示資料：migration、`deploy/demo-data` 資料包、AI 入門教材、AI 原有展示資料（[deploy/ai-demo-data](../ai-demo-data/README.md)，Text-to-SQL 用）、`demo-docs/` 的四個 AI 示範專案、三份文件樣板，並建好 AI 索引與向量；6 家公司都啟用本機模型。
 - 最後掃描整包：不得有 `.git`、`.env`、gemma，以及本機或 repo 的絕對路徑；結果寫在包內 `build.json`。
 
 ## 包內結構

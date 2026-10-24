@@ -30,6 +30,11 @@ def main():
                 client.cookies.clear()
                 client.post('/auth/login', json=dict(organization_key=who[0], username=who[1], password='demo-' + who[1])).raise_for_status()
                 active = who
+            # 原有展示資料 ships only with the portable package; elsewhere skip those cases instead of aborting the run.
+            if case['dataset'] == 'dataset-v1' and not client.get('/ai/status', params={'dataset': 'dataset-v1'}).json()['ready']:
+                results.append(dict(case, skipped=True, problems=[]))
+                print(case['id'], 'skipped: 原有展示資料未匯入', flush=True)
+                continue
             payload = dict(question=case['question'], dataset=case['dataset'], mode=case.get('mode', 'rag'),
                            include_history=case.get('include_history', False))
             if 'project_title' in case:
@@ -56,7 +61,8 @@ def main():
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding='utf-8')
     failed = [r['id'] for r in results if r['problems']]
-    print(json.dumps(dict(cases=len(results), failed=failed), ensure_ascii=False))
+    skipped = [r['id'] for r in results if r.get('skipped')]
+    print(json.dumps(dict(cases=len(results), failed=failed, skipped=skipped), ensure_ascii=False))
     if failed:
         raise SystemExit(1)
 

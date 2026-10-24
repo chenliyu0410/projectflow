@@ -8,7 +8,7 @@
 
 本機入口 `http://127.0.0.1:15176`，帳號 `yu`／`demo-yu`。AI副手選「入門文件：報到與教育訓練」，上方顯示 `pf-qwen3-rag:latest`。實際模型為 Qwen3-4B-Instruct-2507 Q4_K_M，使用 Ollama 0.40.6 與 RTX 4060 8GB；新API18006、模型11436均僅綁回環，雲端關閉。
 
-示範題目、預期答案與權限示範見[AI副手示範題目](ai-demo-questions.md)；示範前可跑 `deploy/check_demo_questions.py` 自動確認13題。正式文件／附件資料集也可用同一模型回答，權限與來源檢查仍由API執行。
+示範題目、預期答案與權限示範見[AI副手示範題目](ai-demo-questions.md)；示範前可跑 `deploy/check_demo_questions.py` 自動確認19題（隔離版沒有原有展示資料，D22–D25會標示略過）。正式文件／附件資料集也可用同一模型回答，權限與來源檢查仍由API執行。
 
 **過度拒答改善（2026-10-23）**：提示加入「說法不同視為同一事實」（中文／阿拉伯數字、人名與身分、單位）；模型回答開頭即「資料未記載」時伺服器改為固定拒答；問題點名其他公司而可見來源未提及時直接回覆無該公司資料、不呼叫模型。第一份題庫37→42/43，凍結的第二份獨立題庫29→30/32（必須拒答8/8維持）。
 
@@ -144,10 +144,10 @@ docker exec projectflow-formal-api-1 python -m app.ai.import_cli /tmp/rag-starte
 
 ### 舊資料（dataset-v1）
 
-資料包位於workspace的 `ai-demo-data/pack`（另有ZIP與生成器）。先備份正式DB與附件，再更新API/web映像。不可重設DB或重新seed正式環境。
+原本2026-10-11在workspace產生的 `ai-demo-data`（144專案）不在git，已無法取得。2026-10-24依同一資料規格重建小型虛構版，產生器、驗證器與資料包在repo的 [deploy/ai-demo-data](../deploy/ai-demo-data/README.md)（6公司×4專案、78份文件，16種分析都有結果）；可攜展示包自動匯入。正式環境若已匯入舊版，匯入器會拒絕覆蓋。先備份正式DB與附件，再更新API/web映像。不可重設DB或重新seed正式環境。
 
 ```powershell
-docker cp ../ai-demo-data/pack projectflow-formal-api-1:/tmp/ai-pack
+docker cp deploy/ai-demo-data/pack projectflow-formal-api-1:/tmp/ai-pack
 docker exec projectflow-formal-api-1 python -m app.ai.import_cli /tmp/ai-pack
 ```
 

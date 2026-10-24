@@ -12,6 +12,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import sqlite3
 import sys
 import tempfile
 from contextlib import closing
@@ -100,8 +101,43 @@ def verify(pack):
             else:
                 os.environ['PF_AI_ROOT'] = previous
         regenerated = Path(temp) / 'regenerated'
-        if generator().write(regenerated)['files'] != manifest['files']:
+        fresh = generator().write(regenerated)['files']
+        # The SQLite header records the library version that wrote it, so compare the database by content.
+        database = 'projectflow_demo.sqlite'
+        if {k: v for k, v in fresh.items() if k != database} != {k: v for k, v in manifest['files'].items() if k != database} \
+                or dump(regenerated / database) != dump(pack / database):
             problems.append('重新產生的內容與資料包不同')
+    problems += consistency(pack)
+    return problems
+
+
+def dump(path):
+    with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        return list(db.iterdump())
+
+
+def consistency(pack):
+    """Rules the schema cannot express: timelines and who may read which document."""
+    from app.ai.starter import ROLES
+    problems = []
+    with closing(sqlite3.connect((pack / 'projectflow_demo.sqlite').resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        checks = {
+            '進行中的任務開始日晚於基準日': "SELECT COUNT(*) FROM tasks WHERE status NOT IN ('todo','done') AND start_date>:d",
+            '完成或成本或抽查日期晚於基準日': "SELECT (SELECT COUNT(*) FROM tasks WHERE completed_date>:d)+(SELECT COUNT(*) FROM expenses WHERE booked_date>:d)"
+                                       "+(SELECT COUNT(*) FROM quality_checks WHERE checked_date>:d)",
+            '未開始的任務已有工時': "SELECT COUNT(*) FROM tasks WHERE status='todo' AND actual_hours>0",
+            '收貨日早於下單日或晚於基準日': "SELECT COUNT(*) FROM purchase_orders WHERE received_date<ordered_date OR received_date>:d",
+            '筆記早於任務開始或晚於基準日': "SELECT COUNT(*) FROM notes n JOIN tasks t USING(company_id,task_id) WHERE n.created_date<t.start_date OR n.created_date>:d",
+        }
+        for text, sql in checks.items():
+            if db.execute(sql, {'d': '2026-10-11'}).fetchone()[0]:
+                problems.append(text)
+    for line in (pack / 'rag' / 'documents.jsonl').read_text(encoding='utf-8').splitlines():
+        d = json.loads(line)
+        cost = d['document_type'] == 'cost'
+        expected = (['admin', 'project_owner'], 'confidential') if cost else (sorted(ROLES), 'internal')
+        if (sorted(d['allowed_roles']), d['classification']) != (sorted(expected[0]), expected[1]):
+            problems.append(f'{d["document_id"]} 權限或等級不對')
     return problems
 
 

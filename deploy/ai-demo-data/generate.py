@@ -22,8 +22,17 @@ SCHEMA = HERE.parents[1] / 'api' / 'tests' / 'fixtures' / 'ai_schema.sql'
 QUERIES = HERE.parents[1] / 'api' / 'app' / 'ai' / 'queries.json'
 AS_OF = datetime.date(2026, 10, 11)
 WEEK = (datetime.date(2026, 10, 5), datetime.date(2026, 10, 11))  # q13 has this week hard-coded
-ALL_ROLES = ['admin', 'project_owner', 'member']
+ALL_ROLES = ['admin', 'member', 'project_owner', 'readonly', 'reviewer']  # every product role (app/ai/starter.py ROLES)
 MANAGERS = ['admin', 'project_owner']
+# Delivery spec and quality wording per industry: (screenshot subject, attached record, screenshot must show, quality action).
+WORDING = {
+    'food': ('產品', '檢驗表', '正面、背面、標籤與包裝', '加嚴進料檢驗'),
+    'hemu': ('產品', '檢驗報告', '瓶身、標籤、成分表與外盒', '加嚴原料檢驗'),
+    'electronics': ('產品', '測試報告', '正面、背面、銘牌與包裝', '加嚴零件進料檢驗'),
+    'events': ('現場', '驗收單', '入口、主舞台、動線與餐檯', '活動前加做彩排檢查'),
+    'software': ('系統畫面', '測試紀錄', '登入、主要功能、報表與錯誤訊息', '上線前加做回歸測試'),
+    'construction': ('施工', '自主檢查表', '施工前、施工中、完工與安全設施', '加嚴材料進場檢驗'),
+}
 
 COMPANIES = {
     'food': dict(name='毛研食品', business='寵物食品研發與製造', departments=['研發', '品保', '採購', '行銷'],
@@ -107,6 +116,10 @@ def build_company(cid, spec):
                     due = datetime.date(2026, 10, 14) + datetime.timedelta(days=rng.randint(0, 45))
                 start = due - datetime.timedelta(days=duration)
                 completed, actual = None, max(0, estimated - rng.randint(2, 10))
+                if status == 'todo':
+                    actual = 0  # not started yet; it may also start after the as-of date
+                else:
+                    start = min(start, AS_OF)  # work in progress has already started
                 owner = rng.choice(focus) if bucket != 'future' and rng.random() < 0.7 else rng.choice(staff)['person_id']
             data['tasks'].append(dict(company_id=cid, task_id=f'{project["project_id"]}-T{j + 1:02d}', project_id=project['project_id'],
                 owner_id=owner, title=f'{TASK_WORK[j]}', phase=PHASES[min(j // 4, 3)], status=status, start_date=day(start),
@@ -119,7 +132,7 @@ def build_company(cid, spec):
         cuts = sorted(rng.sample(range(1, total // 1000), 4))
         parts = [b - a for a, b in zip([0, *cuts], [*cuts, total // 1000])]
         for n, part in enumerate(parts):
-            month = 8 + n * 3 // 5  # August to October; October bookings stay before the as-of date
+            month = 8 + n * 3 // 5  # the five parts fall in Aug, Aug, Sep, Sep, Oct; October stays before the as-of date
             booked = datetime.date(2026, month, rng.randint(1, 10 if month == 10 else 28))
             data['expenses'].append(dict(company_id=cid, expense_id=f'{project["project_id"]}-E{n + 1}', project_id=project['project_id'],
                                          category=CATEGORIES[(k + n) % 4], booked_date=day(booked), amount_twd=part * 1000))
@@ -162,7 +175,7 @@ def build_company(cid, spec):
 
     risks = [('high', 'open', 1, '成本超出預算', '專案費用已超過核定預算', '凍結非必要支出並提報追加預算'),
              ('high', 'open', 0, f'{spec["suppliers"][1]}交期延遲', '後續驗證時程延後', '每週追蹤交期並啟動替代供應商'),
-             ('medium', 'open', 3, '抽查不良率偏高', '可能需要重工', '加嚴進料檢驗並與供應商檢討'),
+             ('medium', 'open', 3, '抽查不良率偏高', '可能需要重工', f'{WORDING[cid][3]}並與供應商檢討'),
              ('low', 'closed', 2, '文件版本不一致', '溝通成本增加', '統一由專案負責人發布'),
              ('high', 'closed', 2, '關鍵人力請假', '進度可能延後', '已安排代理人'),
              ('medium', 'open', 2, '需求變更頻繁', '任務退回增加', '變更需經週會核准')]
@@ -171,7 +184,8 @@ def build_company(cid, spec):
             status=state, cause=cause, impact=impact, action=action, owner_id=projects[k]['owner_id'],
             next_review_date=day(AS_OF + datetime.timedelta(days=7 + r))))
 
-    notes = rng.sample(data['tasks'], 30)
+    # Notes only on work that has started, so no note predates its task.
+    notes = rng.sample([t for t in data['tasks'] if t['start_date'] <= day(AS_OF)], 30)
     for m, task in enumerate(sorted(notes, key=lambda t: t['task_id'])):
         written = min(datetime.date.fromisoformat(task['start_date']) + datetime.timedelta(days=2), AS_OF)
         data['notes'].append(dict(company_id=cid, note_id=f'{cid}-N{m + 1:02d}', task_id=task['task_id'], created_date=day(written),
@@ -182,15 +196,16 @@ def build_company(cid, spec):
 
 
 def documents(cid, spec, projects, data):
+    shots, record, parts, quality = WORDING[cid]
     p1, p2, p3, p4 = (p['project_id'] for p in projects)
     over = summary(data)['q04'][0]  # PRJ2 is the only overspent project
     s2_late = [o for o in data['purchase_orders'] if o['supplier_id'] == 'S2' and o['status'] == 'pending' and o['promised_date'] < day(AS_OF)]
     high = max((q for q in data['quality_checks'] if q['project_id'] == p4), key=lambda q: q['defect_count'])
     rows = [
         ('SPEC-1', p1, '交付規範', 'spec', False, 1, ALL_ROLES, 'internal',
-         f'舊版交付規範：{projects[0]["title"]}交付時需附產品截圖2張與檢驗表1份。此版本已於2026-09-20停用。'),
+         f'舊版交付規範：{projects[0]["title"]}交付時需附{shots}截圖2張與{record}1份。此版本已於2026-09-20停用。'),
         ('SPEC-2', p1, '交付規範', 'spec', True, 2, ALL_ROLES, 'internal',
-         f'現行交付規範（第2版，2026-09-20起適用）：{projects[0]["title"]}交付時需附產品截圖4張與檢驗表1份，截圖需含正面、背面、標籤與包裝。'),
+         f'現行交付規範（第2版，2026-09-20起適用）：{projects[0]["title"]}交付時需附{shots}截圖4張與{record}1份，截圖需含{parts}。'),
         ('MEET-1', p1, '專案週會紀錄', 'meeting', True, 1, ALL_ROLES, 'internal',
          f'2026-10-07週會：{projects[0]["title"]}樣品準備完成，客戶確認排在下週。決議依現行交付規範準備截圖。'),
         ('MEET-2', p2, '專案週會紀錄', 'meeting', True, 1, ALL_ROLES, 'internal',
@@ -210,7 +225,7 @@ def documents(cid, spec, projects, data):
         ('COST-2', p1, '成本報告', 'cost', True, 1, MANAGERS, 'confidential',
          f'機密：{projects[0]["title"]}目前在預算內，預算{projects[0]["budget_twd"]:,}元。'),
         ('QC-1', p4, '品質抽查報告', 'quality', True, 1, ALL_ROLES, 'internal',
-         f'品質抽查：{projects[3]["title"]}批次{high["check_id"]}抽查{high["sample_count"]}件，不良{high["defect_count"]}件，已要求加嚴進料檢驗。'),
+         f'品質抽查：{projects[3]["title"]}批次{high["check_id"]}抽查{high["sample_count"]}件，不良{high["defect_count"]}件，已要求{quality}。'),
         ('GUIDE-1', None, '專案管理通則', 'guide', True, 1, ALL_ROLES, 'internal',
          f'{spec["name"]}專案管理通則：任務逾期需在週會說明原因；需求變更需經週會核准；成本報告僅限管理者與專案負責人查閱。'),
     ]
