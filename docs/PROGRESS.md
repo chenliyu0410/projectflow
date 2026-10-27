@@ -16,7 +16,7 @@
 | 目前工作項目 | **PORTABLE＋AI-DEMO-DATA 🟢 待人類第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR、乾淨展示資料與重建的「原有展示資料」Text-to-SQL，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
 | 下一個動作 | 待人類：用repo外`output/portable/ProjectFlow-Portable-20261024.zip`在另一台電腦照[檢查表](../deploy/portable/另一台電腦檢查表.md)做第三層驗證；決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
-| 分支 | `feature/rag-starter-import`；保留供隔離試用，未合併main。 |
+| 分支 | `main`。2026-10-27 依人類指示把`feature/rag-starter-import`（58個commit，到`72e0d8d`）`--ff-only`合併進main，並推上origin main，PR #6 隨之合併。 |
 | 最新程式 commit | ACCOUNTS（本筆）；DOC-TEMPLATE `012ec59`。 |
 | 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
 | 測試基準 | ACCOUNTS：後端全量（不含需本地模型的test_ai_local_model）766 pass、15 skip（需專用PostgreSQL）、1 fail；該fail為`test_child_creation_matrix`，原因是DOC-TEMPLATE新增資料表後舊資料包（revision 0019）匯入找不到新表檔案，已修`demo_pack.import_pack`只匯入資料包列出的表，重跑matrix＋demo_pack 3 pass。帳號相關API 12 pass；前端Vitest全量34檔330 pass（一次偶發1 fail重跑通過）、build exit0；Playwright帳號3＋樣板4＋文件2 pass（1280／375，隔離SQLite升到`20261024_0021`）。既有`health.spec`在SQLite環境3 fail：readiness只認PostgreSQL（環境限制）；另2項卡在「進入階段：小量試作」按鈕停用，為PHASE-CARDS（10/13，只開放進行中階段）後測試未更新的既有問題，與本次無關、未修。AI題庫基準不變。 |
@@ -1227,6 +1227,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+
+### 2026-10-27｜Claude Code（Opus 5.5）｜合併 feature/rag-starter-import 進 main
+
+- **做了什麼**：人類指示「推上GitHub，開PR合併進main」，接著指示「照WORKFLOW G5在本地用--ff-only合併進main，然後push origin main」。先推分支（`ae332ad..72e0d8d`）並開[PR #6](https://github.com/chenliyu0410/projectflow/pull/6)，確認origin/main仍是`3c1294e`、為分支祖先，再`git merge --ff-only`（無merge commit），最後在main做這筆G6收尾並push。
+- **驗證**：合併前完整pytest 804 pass／14 skip、exit 0（見下一筆）。repo沒有設定CI。
+- **沒做的事**：沒有部署；沒有刪除遠端分支；Vitest／E2E與PostgreSQL本輪未重跑。
 
 ### 2026-10-27｜Claude Code（Opus 5.5）｜UTC-TIME 修正SQLite時間少8小時
 
