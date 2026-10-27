@@ -4,10 +4,23 @@ from datetime import date, datetime, timezone
 from sqlalchemy import Integer, false, BigInteger, Boolean, CheckConstraint, Date, DateTime, Index, event, text, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship, with_loader_criteria
+from sqlalchemy.types import TypeDecorator
 
 from app.database import Base
 
 JsonType = JSON().with_variant(JSONB(), "postgresql")
+
+
+class UTCDateTime(TypeDecorator):
+    """Timezone-aware timestamp on every database: SQLite drops the offset, so values are stored as UTC and read back as UTC."""
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        return value.astimezone(timezone.utc) if value is not None and value.tzinfo else value
+
+    def process_result_value(self, value, dialect):
+        return value.replace(tzinfo=timezone.utc) if value is not None and value.tzinfo is None else value
 
 
 class OperationsRecord(Base):
@@ -31,8 +44,8 @@ class OperationsRecord(Base):
     revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     updated_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
 class InventoryBalance(Base):
@@ -59,11 +72,11 @@ class PurchaseOrder(Base):
     organization_id: Mapped[str] = mapped_column(String(36), primary_key=True)
     order_id: Mapped[str] = mapped_column(String(36), primary_key=True)
     revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    closed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     closed_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     close_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
     updated_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
 class PurchaseOrderLine(Base):
@@ -86,8 +99,8 @@ class PurchaseOrderLine(Base):
     received_milli: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     note: Mapped[str] = mapped_column(String(500), nullable=False, default='')
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
 class WorkOrder(Base):
@@ -109,11 +122,11 @@ class WorkOrder(Base):
     completed_milli: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     note: Mapped[str] = mapped_column(String(500), nullable=False, default='')
     revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    closed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     closed_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     close_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
     updated_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
 INVENTORY_KINDS = ("(kind = 'receipt' AND order_id IS NOT NULL AND work_id IS NULL AND delta_milli > 0)"
@@ -168,7 +181,7 @@ class InventoryMovement(Base):
     reason: Mapped[str] = mapped_column(String(500), nullable=False)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     actor_name: Mapped[str] = mapped_column(String(120), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
 class OperationLink(Base):
@@ -187,7 +200,7 @@ class OperationLink(Base):
     node_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     record_id: Mapped[str] = mapped_column(String(36), nullable=False)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
 
 class Document(Base):
@@ -221,7 +234,7 @@ class DocumentVersion(Base):
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
     comment: Mapped[str] = mapped_column(String(500), nullable=False)
     # Set only for versions generated from a document template; uploads and text edits keep NULL.
     template_version_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
@@ -242,7 +255,7 @@ class DocumentTemplate(Base):
     current_version: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
 
 
 class DocumentTemplateVersion(Base):
@@ -269,7 +282,7 @@ class DocumentTemplateVersion(Base):
     rounding: Mapped[str] = mapped_column(String(10), nullable=False)
     has_lines: Mapped[bool] = mapped_column(Boolean, nullable=False)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
 
 
 class DocumentTemplateCounter(Base):
@@ -316,12 +329,12 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String(120), nullable=False)
     role: Mapped[str] = mapped_column(String(40), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(200), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
     # Disabled accounts keep their history but cannot sign in; temporary passwords must be changed first.
     status: Mapped[str] = mapped_column(String(16), default="active", server_default="active", nullable=False)
     must_change_password: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), nullable=False)
-    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    password_changed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
     organization: Mapped[Organization] = relationship(back_populates="users")
 
@@ -332,8 +345,8 @@ class SessionToken(Base):
     token: Mapped[str] = mapped_column(String(128), primary_key=True)
     organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
     user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
     __table_args__ = (
         ForeignKeyConstraint(["organization_id", "user_id"], ["users.organization_id", "users.id"]),
@@ -379,8 +392,8 @@ class Project(Base):
     organization_id: Mapped[str] = mapped_column(ForeignKey("organizations.id"), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     owner_user_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
 
 class Node(Base):
@@ -420,10 +433,10 @@ class Node(Base):
     # TP-A rollup: weight for the parent's weighted average; manual progress only for doing leaf tasks.
     weight: Mapped[int] = mapped_column(default=1, server_default="1", nullable=False)
     progress: Mapped[int | None] = mapped_column(nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
     # TP-B soft delete: records, notes, attachments and audit rows keep pointing at a deleted node.
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     deleted_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
 
@@ -454,9 +467,9 @@ class Workflow(Base):
     name: Mapped[str] = mapped_column(String(160), nullable=False)
     kind: Mapped[str] = mapped_column(String(16), default="workflow", server_default="workflow", nullable=False)
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     content: Mapped[dict] = mapped_column(JsonType, default=dict, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
 
 class WorkflowVersion(Base):
@@ -473,7 +486,7 @@ class WorkflowVersion(Base):
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     snapshot: Mapped[dict] = mapped_column(JsonType, nullable=False)
     created_by: Mapped[str | None] = mapped_column(String(36))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
 
 class WorkflowNode(Base):
@@ -507,7 +520,7 @@ class Gate(Base):
     project_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     node_id: Mapped[str] = mapped_column(String(36), nullable=False)
     status: Mapped[str] = mapped_column(String(40), default="pending", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
 
 class TaskReport(Base):
@@ -536,14 +549,14 @@ class TaskReport(Base):
     version: Mapped[int | None] = mapped_column(nullable=True)
     finished_on: Mapped[date | None] = mapped_column(Date, nullable=True)
     reviewed_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     review_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     self_approved: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"), nullable=False)
     result: Mapped[str] = mapped_column(String(80), nullable=False)
     summary: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(40), default="submitted", nullable=False)
     submitted_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    submitted_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
 
 
@@ -561,7 +574,7 @@ class AuditLog(Base):
     node_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     action: Mapped[str] = mapped_column(String(80), nullable=False)
     payload: Mapped[dict] = mapped_column(JsonType, default=dict, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
 
 class NodeCollaborator(Base):
@@ -581,7 +594,7 @@ class NodeCollaborator(Base):
     user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     department_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
 
 class TaskNote(Base):
@@ -598,8 +611,8 @@ class TaskNote(Base):
     body: Mapped[str] = mapped_column(Text, nullable=False)
     author_id: Mapped[str] = mapped_column(String(36), nullable=False)
     revision: Mapped[int] = mapped_column(default=1, server_default="1", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
-    edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
+    edited_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
 
 class Attachment(Base):
@@ -624,8 +637,8 @@ class Attachment(Base):
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
     state: Mapped[str] = mapped_column(String(16), default="pending", server_default="pending", nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     deleted_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     report_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     note_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
@@ -660,7 +673,7 @@ class NodeDependency(Base):
     lag_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
     enforcement: Mapped[str] = mapped_column(String(4), nullable=False, default="hard", server_default="hard")
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
 
 class NodeCondition(Base):
@@ -679,10 +692,10 @@ class NodeCondition(Base):
     enforcement: Mapped[str] = mapped_column(String(4), nullable=False, default="hard", server_default="hard")
     is_met: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
     confirmed_by: Mapped[str | None] = mapped_column(String(36))
-    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    confirmed_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     reason: Mapped[str | None] = mapped_column(String(1000))
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
 
 
 class CollaborationRequest(Base):
@@ -706,9 +719,9 @@ class CollaborationRequest(Base):
     snapshot: Mapped[dict] = mapped_column(JsonType, nullable=False, default=dict)
     decided_by: Mapped[str | None] = mapped_column(String(36))
     comment: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
-    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    restored_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
+    decided_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    restored_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
 
 
 class Notification(Base):
@@ -724,5 +737,5 @@ class Notification(Base):
     node_id: Mapped[str] = mapped_column(String(36), nullable=False)
     event_key: Mapped[str] = mapped_column(String(160), nullable=False)
     message: Mapped[str] = mapped_column(String(200), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
-    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
+    read_at: Mapped[datetime | None] = mapped_column(UTCDateTime)

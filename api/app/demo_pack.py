@@ -15,6 +15,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import Boolean, Date, DateTime, func, inspect, select, text
+from sqlalchemy.types import TypeDecorator
 
 from app.database import Base, get_engine
 import app.models  # noqa: F401  (registers every table)
@@ -47,12 +48,13 @@ def encode(value):
 def decode(column, value):
     if value is None:
         return None
-    if isinstance(column.type, DateTime):
+    kind = column.type.impl if isinstance(column.type, TypeDecorator) else column.type
+    if isinstance(kind, DateTime):
         parsed = datetime.fromisoformat(value)
-        return parsed if parsed.tzinfo or not column.type.timezone else parsed.replace(tzinfo=timezone.utc)
-    if isinstance(column.type, Date):
+        return parsed if parsed.tzinfo or not kind.timezone else parsed.replace(tzinfo=timezone.utc)
+    if isinstance(kind, Date):
         return date.fromisoformat(value)
-    if isinstance(column.type, Boolean):
+    if isinstance(kind, Boolean):
         return bool(value)
     return value
 

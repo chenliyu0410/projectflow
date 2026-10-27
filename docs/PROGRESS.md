@@ -1228,6 +1228,13 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
 
+### 2026-10-27｜Claude Code（Opus 5.5）｜UTC-TIME 修正SQLite時間少8小時
+
+- **做了什麼**：人類直接指示「先修」TEMPLATE-TRIAL發現的時間少8小時。根因：SQLite存`DateTime(timezone=True)`時丟掉時區，讀回是無時區值，`.isoformat()`沒有`+00:00`，瀏覽器當成本地時間。PostgreSQL回傳含時區，不受影響。`models.py`新增`UTCDateTime`（寫入轉UTC、讀回無時區補UTC），43個時間欄位改用它，所以文件版本、通知、稽核、附件等約20處輸出一次修正；`records`／`ai`原有的個別補丁保留（冪等）。`demo_pack.decode`改為先拆`TypeDecorator`再判斷時間欄位。不改schema、不加migration。
+- **驗證**：`test_version_times_are_explicit_utc`先RED（`utcoffset()`為None）再GREEN。完整pytest（從repo根目錄）804 pass／14 skip、exit 0；第一次在`api/`目錄跑有19個相對路徑失敗（alembic script_location、`web/src/progress.vectors.json`），改根目錄後通過，另5個`demo_pack`失敗為本修正引起並已修。15176重啟API後實看：10/27產生的會議紀錄顯示下午2:48:14（原上午6:48），與瀏覽器現在時間一致。
+- **沒做的事**：Vitest／E2E未跑（前端未改）；PostgreSQL未實測（只靠既有含時區行為）；未push。
+- **注意**：pytest要從repo根目錄執行；本機`%TEMP%\pytest-of-User`無權限時加`--basetemp`。
+
 ### 2026-10-24｜Claude Code（Opus 5.5）｜AI-DEMO-DATA 重建原有展示資料
 
 - **做了什麼**：人類要可攜包含Text-to-SQL；原始`ai-demo-data`在這台電腦、這台Docker（無任何專流volume）、git都找不到，人類表示另一台拿不到。依核准短規格重建小型虛構版：每家公司照同一劇本（PRJ2超支、S2逾期未交、S3延遲最高、PRJ4不良率最高、PRJ3退回受阻最多、本週到期未完成4筆、至少2批零不良），文件依產業用詞，成本報告只限管理者與專案負責人，其他文件五種角色都可讀。可攜包重新打包（6家都啟用本機模型）。
