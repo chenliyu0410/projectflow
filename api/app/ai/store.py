@@ -35,9 +35,42 @@ def tokens(text):
     return result
 
 
-def connect(company):
+CN_DIGITS = {'零': 0, '〇': 0, '一': 1, '二': 2, '兩': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+CN_TIME = re.compile(r'(上午|早上|中午|下午|晚上)?\s*([零〇一二兩三四五六七八九十\d]{1,3})\s*點(?:鐘)?\s*(半|([零〇一二兩三四五六七八九十\d]{1,3})\s*分)?')
+
+
+def cn_number(text):
+    if text.isdigit():
+        return int(text)
+    if '十' in text:
+        tens, _, ones = text.partition('十')
+        return (CN_DIGITS.get(tens, 0) if tens else 1) * 10 + (CN_DIGITS.get(ones, 0) if ones else 0)
+    return CN_DIGITS.get(text, -1)
+
+
+def time_hints(question):
+    """Clock times written in words ("十點半", "下午三點") as HH:MM, the way documents write them."""
+    hints = []
+    for period, hour_text, minute_part, minute_text in CN_TIME.findall(question):
+        hour = cn_number(hour_text)
+        minute = 30 if minute_part == '半' else cn_number(minute_text) if minute_text else 0
+        if period in ('下午', '晚上') and 1 <= hour < 12:
+            hour += 12
+        if 0 <= hour <= 23 and 0 <= minute <= 59:
+            hints.append(f'{hour:02d}:{minute:02d}')
+    return list(dict.fromkeys(hints))
+
+
+def search_text(question):
+    """Question used for retrieval only: the original words plus normalized clock times."""
+    hints = time_hints(question)
+    return question + (' ' + ' '.join(hints) if hints else '')
+
+
+def connect(company, dataset='dataset-v1'):
+    if dataset not in {'dataset-v1', 'starter-v1'}: raise ValueError('Unknown dataset')
     if company not in COMPANIES: raise FileNotFoundError('Unknown company')
-    path = root() / 'dataset-v1' / f'{company}.sqlite'
+    path = root() / dataset / f'{company}.sqlite'
     db = sqlite3.connect(path.resolve().as_uri()+'?mode=ro', uri=True, timeout=5)
     db.row_factory = sqlite3.Row
     db.execute('PRAGMA query_only=ON')
@@ -105,15 +138,16 @@ def catalog():
     return json.loads(Path(__file__).with_name('queries.json').read_text(encoding='utf-8'))
 
 
-def search(db, question, role, project_id=None):
+def search(db, question, role, project_id=None, include_history=False, limit=6):
+    question = search_text(question)
     clean = re.sub('目前|有哪些|請問|一下|幫我|什麼|多少|資料|專案', ' ', question)
     words = list(dict.fromkeys(tokens(clean)))[:60]
     if not words: return []
     match = ' OR '.join('"'+w.replace('"','""')+'"' for w in words)
     query = '''SELECT d.*, bm25(search) AS rank FROM search JOIN documents d ON d.document_id=search.document_id
-        WHERE search MATCH ? AND d.current=1 AND EXISTS (SELECT 1 FROM json_each(d.roles) WHERE value=?)
-        AND (? IS NULL OR d.project_id=? OR d.project_id IS NULL) ORDER BY rank,d.document_id LIMIT 6'''
-    return [dict(r) for r in db.execute(query,(match,role,project_id,project_id))]
+        WHERE search MATCH ? AND (d.current=1 OR ?) AND EXISTS (SELECT 1 FROM json_each(d.roles) WHERE value=?)
+        AND (? IS NULL OR d.project_id=? OR d.project_id IS NULL) ORDER BY rank,d.document_id LIMIT ?'''
+    return [dict(r) for r in db.execute(query,(match,int(include_history),role,project_id,project_id,limit))]
 
 
 def execute_query(db, query_id, company, project_id=None):

@@ -57,7 +57,8 @@ def out(row, context):
     return dict(document_id=row.document_id, version=row.version, filename=row.filename,
         size_bytes=row.size_bytes, sha256=row.sha256, created_at=row.created_at.isoformat(),
         created_by=author.display_name if author else '使用者', comment=row.comment,
-        editable=Path(row.filename).suffix.lower() in {'.txt', '.csv'} and row.size_bytes <= TEXT_LIMIT)
+        editable=Path(row.filename).suffix.lower() in {'.txt', '.csv'} and row.size_bytes <= TEXT_LIMIT,
+        from_template=row.template_version_id is not None)
 
 
 def check_expected(doc, expected):
@@ -65,7 +66,8 @@ def check_expected(doc, expected):
         raise HTTPException(409, '文件已有新版本，請重新載入後再編輯')
 
 
-async def save(db, current, node_id, chunks, filename, comment, *, document_id=None, expected=0, project_id=None):
+async def save(db, current, node_id, chunks, filename, comment, *, document_id=None, expected=0, project_id=None, template=None):
+    """template: optional (template_version_id, fill_values, field names) for versions generated from a document template."""
     extension = files.validate_filename(filename)
     if len(comment) > 500:
         raise HTTPException(422, '版本說明過長')
@@ -114,6 +116,12 @@ async def save(db, current, node_id, chunks, filename, comment, *, document_id=N
         quota.charged_bytes += total
         log_audit(db, current, 'document.version', node_id=node_id,
             payload={'project_id': project_id, 'document_id': doc.id, 'version': row.version, 'filename': filename, 'sha256': row.sha256})
+        if template:
+            row.template_version_id, row.fill_values, names = template
+            # Field names only; the filled content stays in the document version, never in the audit log.
+            log_audit(db, current, 'doc_template.generate', node_id=node_id, payload={'project_id': project_id,
+                'document_id': doc.id, 'version': row.version, 'template_id': row.fill_values['template_id'],
+                'template_version': row.fill_values['template_version'], 'fields': names})
         result = out(row, context)
         db.flush()
         os.replace(temporary, files.storage_path(root, key))

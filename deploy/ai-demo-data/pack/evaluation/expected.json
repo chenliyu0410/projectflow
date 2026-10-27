@@ -1,0 +1,2458 @@
+{
+ "construction": {
+  "q01": [
+   {
+    "count": 2,
+    "status": "blocked"
+   },
+   {
+    "count": 11,
+    "status": "doing"
+   },
+   {
+    "count": 30,
+    "status": "done"
+   },
+   {
+    "count": 4,
+    "status": "rejected"
+   },
+   {
+    "count": 4,
+    "status": "review"
+   },
+   {
+    "count": 9,
+    "status": "todo"
+   }
+  ],
+  "q02": [
+   {
+    "department": "採購",
+    "overdue_count": 8
+   },
+   {
+    "department": "工務",
+    "overdue_count": 2
+   },
+   {
+    "department": "設計",
+    "overdue_count": 2
+   }
+  ],
+  "q03": [
+   {
+    "completion_pct": 60.0,
+    "done_count": 9,
+    "project_id": "construction-PRJ1",
+    "total": 15
+   },
+   {
+    "completion_pct": 53.33,
+    "done_count": 8,
+    "project_id": "construction-PRJ2",
+    "total": 15
+   },
+   {
+    "completion_pct": 40.0,
+    "done_count": 6,
+    "project_id": "construction-PRJ3",
+    "total": 15
+   },
+   {
+    "completion_pct": 46.67,
+    "done_count": 7,
+    "project_id": "construction-PRJ4",
+    "total": 15
+   }
+  ],
+  "q04": [
+   {
+    "actual_twd": 1104000,
+    "budget_twd": 930000,
+    "overrun_twd": 174000,
+    "project_id": "construction-PRJ2"
+   }
+  ],
+  "q05": [
+   {
+    "amount_twd": 2717900,
+    "overdue_count": 3,
+    "supplier_id": "S2"
+   }
+  ],
+  "q06": [
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 5,
+    "supplier_id": "S1"
+   },
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 2,
+    "supplier_id": "S2"
+   },
+   {
+    "late_count": 4,
+    "late_pct": 80.0,
+    "received_count": 5,
+    "supplier_id": "S3"
+   },
+   {
+    "late_count": 1,
+    "late_pct": 33.33,
+    "received_count": 3,
+    "supplier_id": "S4"
+   }
+  ],
+  "q07": [
+   {
+    "defect_pct": 8.5,
+    "defects": 17,
+    "project_id": "construction-PRJ4",
+    "samples": 200
+   },
+   {
+    "defect_pct": 2.22,
+    "defects": 2,
+    "project_id": "construction-PRJ1",
+    "samples": 90
+   },
+   {
+    "defect_pct": 2.0,
+    "defects": 3,
+    "project_id": "construction-PRJ2",
+    "samples": 150
+   },
+   {
+    "defect_pct": 1.25,
+    "defects": 2,
+    "project_id": "construction-PRJ3",
+    "samples": 160
+   }
+  ],
+  "q08": [
+   {
+    "amount_twd": 196000,
+    "category": "人力",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 365000,
+    "category": "委外",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 67000,
+    "category": "差旅",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 337000,
+    "category": "材料",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 665000,
+    "category": "人力",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 96000,
+    "category": "委外",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 129000,
+    "category": "差旅",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 129000,
+    "category": "材料",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 120000,
+    "category": "人力",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 241000,
+    "category": "委外",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 142000,
+    "category": "差旅",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 421000,
+    "category": "材料",
+    "month": "2026-10"
+   }
+  ],
+  "q09": [
+   {
+    "action": "凍結非必要支出並提報追加預算",
+    "cause": "成本超出預算",
+    "project_id": "construction-PRJ2",
+    "risk_id": "construction-R1"
+   },
+   {
+    "action": "每週追蹤交期並啟動替代供應商",
+    "cause": "水泥砂石交期延遲",
+    "project_id": "construction-PRJ1",
+    "risk_id": "construction-R2"
+   }
+  ],
+  "q10": [
+   {
+    "name": "郭欣怡",
+    "open_tasks": 6,
+    "person_id": "P07"
+   },
+   {
+    "name": "黃宜蓁",
+    "open_tasks": 6,
+    "person_id": "P08"
+   },
+   {
+    "name": "謝俊傑",
+    "open_tasks": 5,
+    "person_id": "P04"
+   },
+   {
+    "name": "蔡家豪",
+    "open_tasks": 4,
+    "person_id": "P02"
+   },
+   {
+    "name": "鄭雅婷",
+    "open_tasks": 3,
+    "person_id": "P10"
+   }
+  ],
+  "q11": [
+   {
+    "actual_hours": 26,
+    "estimated_hours": 16,
+    "extra_hours": 10,
+    "task_id": "construction-PRJ2-T01"
+   },
+   {
+    "actual_hours": 26,
+    "estimated_hours": 16,
+    "extra_hours": 10,
+    "task_id": "construction-PRJ2-T07"
+   },
+   {
+    "actual_hours": 26,
+    "estimated_hours": 16,
+    "extra_hours": 10,
+    "task_id": "construction-PRJ4-T01"
+   },
+   {
+    "actual_hours": 38,
+    "estimated_hours": 32,
+    "extra_hours": 6,
+    "task_id": "construction-PRJ3-T05"
+   },
+   {
+    "actual_hours": 38,
+    "estimated_hours": 32,
+    "extra_hours": 6,
+    "task_id": "construction-PRJ4-T05"
+   },
+   {
+    "actual_hours": 10,
+    "estimated_hours": 8,
+    "extra_hours": 2,
+    "task_id": "construction-PRJ1-T01"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 12,
+    "extra_hours": 2,
+    "task_id": "construction-PRJ1-T04"
+   },
+   {
+    "actual_hours": 26,
+    "estimated_hours": 24,
+    "extra_hours": 2,
+    "task_id": "construction-PRJ1-T06"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 16,
+    "extra_hours": 2,
+    "task_id": "construction-PRJ2-T05"
+   },
+   {
+    "actual_hours": 26,
+    "estimated_hours": 24,
+    "extra_hours": 2,
+    "task_id": "construction-PRJ3-T01"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 32,
+    "extra_hours": 2,
+    "task_id": "construction-PRJ3-T04"
+   },
+   {
+    "actual_hours": 10,
+    "estimated_hours": 8,
+    "extra_hours": 2,
+    "task_id": "construction-PRJ4-T02"
+   },
+   {
+    "actual_hours": 10,
+    "estimated_hours": 8,
+    "extra_hours": 2,
+    "task_id": "construction-PRJ4-T04"
+   }
+  ],
+  "q12": [
+   {
+    "committed_twd": 3323500,
+    "project_id": "construction-PRJ1"
+   },
+   {
+    "committed_twd": 3013300,
+    "project_id": "construction-PRJ2"
+   },
+   {
+    "committed_twd": 1299900,
+    "project_id": "construction-PRJ3"
+   },
+   {
+    "committed_twd": 1653500,
+    "project_id": "construction-PRJ4"
+   }
+  ],
+  "q13": [
+   {
+    "due_date": "2026-10-06",
+    "status": "todo",
+    "task_id": "construction-PRJ3-T15"
+   },
+   {
+    "due_date": "2026-10-07",
+    "status": "rejected",
+    "task_id": "construction-PRJ3-T09"
+   },
+   {
+    "due_date": "2026-10-08",
+    "status": "doing",
+    "task_id": "construction-PRJ1-T12"
+   },
+   {
+    "due_date": "2026-10-10",
+    "status": "doing",
+    "task_id": "construction-PRJ1-T10"
+   }
+  ],
+  "q14": [
+   {
+    "blocked_count": 0,
+    "project_id": "construction-PRJ1",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "construction-PRJ2",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 2,
+    "project_id": "construction-PRJ3",
+    "rejected_count": 3
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "construction-PRJ4",
+    "rejected_count": 1
+   }
+  ],
+  "q15": [
+   {
+    "amount_twd": 477000,
+    "order_id": "construction-PO19",
+    "promised_date": "2026-10-25"
+   },
+   {
+    "amount_twd": 342200,
+    "order_id": "construction-PO21",
+    "promised_date": "2026-10-28"
+   },
+   {
+    "amount_twd": 291900,
+    "order_id": "construction-PO20",
+    "promised_date": "2026-11-04"
+   },
+   {
+    "amount_twd": 536200,
+    "order_id": "construction-PO18",
+    "promised_date": "2026-11-07"
+   }
+  ],
+  "q16": [
+   {
+    "zero_defect_batches": 5
+   }
+  ]
+ },
+ "electronics": {
+  "q01": [
+   {
+    "count": 2,
+    "status": "blocked"
+   },
+   {
+    "count": 11,
+    "status": "doing"
+   },
+   {
+    "count": 30,
+    "status": "done"
+   },
+   {
+    "count": 4,
+    "status": "rejected"
+   },
+   {
+    "count": 4,
+    "status": "review"
+   },
+   {
+    "count": 9,
+    "status": "todo"
+   }
+  ],
+  "q02": [
+   {
+    "department": "測試",
+    "overdue_count": 11
+   },
+   {
+    "department": "採購",
+    "overdue_count": 1
+   }
+  ],
+  "q03": [
+   {
+    "completion_pct": 60.0,
+    "done_count": 9,
+    "project_id": "electronics-PRJ1",
+    "total": 15
+   },
+   {
+    "completion_pct": 53.33,
+    "done_count": 8,
+    "project_id": "electronics-PRJ2",
+    "total": 15
+   },
+   {
+    "completion_pct": 40.0,
+    "done_count": 6,
+    "project_id": "electronics-PRJ3",
+    "total": 15
+   },
+   {
+    "completion_pct": 46.67,
+    "done_count": 7,
+    "project_id": "electronics-PRJ4",
+    "total": 15
+   }
+  ],
+  "q04": [
+   {
+    "actual_twd": 668000,
+    "budget_twd": 570000,
+    "overrun_twd": 98000,
+    "project_id": "electronics-PRJ2"
+   }
+  ],
+  "q05": [
+   {
+    "amount_twd": 838900,
+    "overdue_count": 3,
+    "supplier_id": "S2"
+   }
+  ],
+  "q06": [
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 5,
+    "supplier_id": "S1"
+   },
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 2,
+    "supplier_id": "S2"
+   },
+   {
+    "late_count": 4,
+    "late_pct": 80.0,
+    "received_count": 5,
+    "supplier_id": "S3"
+   },
+   {
+    "late_count": 1,
+    "late_pct": 33.33,
+    "received_count": 3,
+    "supplier_id": "S4"
+   }
+  ],
+  "q07": [
+   {
+    "defect_pct": 10.0,
+    "defects": 18,
+    "project_id": "electronics-PRJ4",
+    "samples": 180
+   },
+   {
+    "defect_pct": 5.56,
+    "defects": 5,
+    "project_id": "electronics-PRJ2",
+    "samples": 90
+   },
+   {
+    "defect_pct": 1.05,
+    "defects": 2,
+    "project_id": "electronics-PRJ3",
+    "samples": 190
+   },
+   {
+    "defect_pct": 0.0,
+    "defects": 0,
+    "project_id": "electronics-PRJ1",
+    "samples": 170
+   }
+  ],
+  "q08": [
+   {
+    "amount_twd": 74000,
+    "category": "人力",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 424000,
+    "category": "委外",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 646000,
+    "category": "差旅",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 342000,
+    "category": "材料",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 317000,
+    "category": "人力",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 166000,
+    "category": "委外",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 206000,
+    "category": "差旅",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 374000,
+    "category": "材料",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 146000,
+    "category": "人力",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 107000,
+    "category": "委外",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 13000,
+    "category": "差旅",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 53000,
+    "category": "材料",
+    "month": "2026-10"
+   }
+  ],
+  "q09": [
+   {
+    "action": "凍結非必要支出並提報追加預算",
+    "cause": "成本超出預算",
+    "project_id": "electronics-PRJ2",
+    "risk_id": "electronics-R1"
+   },
+   {
+    "action": "每週追蹤交期並啟動替代供應商",
+    "cause": "機構件交期延遲",
+    "project_id": "electronics-PRJ1",
+    "risk_id": "electronics-R2"
+   }
+  ],
+  "q10": [
+   {
+    "name": "鄭承翰",
+    "open_tasks": 9,
+    "person_id": "P07"
+   },
+   {
+    "name": "周承翰",
+    "open_tasks": 5,
+    "person_id": "P08"
+   },
+   {
+    "name": "洪詩涵",
+    "open_tasks": 3,
+    "person_id": "P03"
+   },
+   {
+    "name": "郭思妤",
+    "open_tasks": 3,
+    "person_id": "P04"
+   },
+   {
+    "name": "蔡冠宇",
+    "open_tasks": 2,
+    "person_id": "P02"
+   }
+  ],
+  "q11": [
+   {
+    "actual_hours": 18,
+    "estimated_hours": 8,
+    "extra_hours": 10,
+    "task_id": "electronics-PRJ3-T05"
+   },
+   {
+    "actual_hours": 26,
+    "estimated_hours": 16,
+    "extra_hours": 10,
+    "task_id": "electronics-PRJ4-T05"
+   },
+   {
+    "actual_hours": 42,
+    "estimated_hours": 32,
+    "extra_hours": 10,
+    "task_id": "electronics-PRJ4-T07"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 8,
+    "extra_hours": 6,
+    "task_id": "electronics-PRJ1-T03"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 8,
+    "extra_hours": 6,
+    "task_id": "electronics-PRJ2-T03"
+   },
+   {
+    "actual_hours": 22,
+    "estimated_hours": 16,
+    "extra_hours": 6,
+    "task_id": "electronics-PRJ3-T02"
+   },
+   {
+    "actual_hours": 38,
+    "estimated_hours": 32,
+    "extra_hours": 6,
+    "task_id": "electronics-PRJ3-T04"
+   },
+   {
+    "actual_hours": 38,
+    "estimated_hours": 32,
+    "extra_hours": 6,
+    "task_id": "electronics-PRJ4-T06"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 12,
+    "extra_hours": 2,
+    "task_id": "electronics-PRJ1-T07"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 32,
+    "extra_hours": 2,
+    "task_id": "electronics-PRJ1-T09"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 16,
+    "extra_hours": 2,
+    "task_id": "electronics-PRJ3-T01"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 12,
+    "extra_hours": 2,
+    "task_id": "electronics-PRJ4-T02"
+   }
+  ],
+  "q12": [
+   {
+    "committed_twd": 1547200,
+    "project_id": "electronics-PRJ1"
+   },
+   {
+    "committed_twd": 3065200,
+    "project_id": "electronics-PRJ2"
+   },
+   {
+    "committed_twd": 2565800,
+    "project_id": "electronics-PRJ3"
+   },
+   {
+    "committed_twd": 2335500,
+    "project_id": "electronics-PRJ4"
+   }
+  ],
+  "q13": [
+   {
+    "due_date": "2026-10-06",
+    "status": "doing",
+    "task_id": "electronics-PRJ4-T10"
+   },
+   {
+    "due_date": "2026-10-07",
+    "status": "doing",
+    "task_id": "electronics-PRJ4-T08"
+   },
+   {
+    "due_date": "2026-10-08",
+    "status": "doing",
+    "task_id": "electronics-PRJ3-T07"
+   },
+   {
+    "due_date": "2026-10-10",
+    "status": "todo",
+    "task_id": "electronics-PRJ1-T15"
+   }
+  ],
+  "q14": [
+   {
+    "blocked_count": 0,
+    "project_id": "electronics-PRJ1",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "electronics-PRJ2",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 2,
+    "project_id": "electronics-PRJ3",
+    "rejected_count": 3
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "electronics-PRJ4",
+    "rejected_count": 1
+   }
+  ],
+  "q15": [
+   {
+    "amount_twd": 525000,
+    "order_id": "electronics-PO19",
+    "promised_date": "2026-10-27"
+   },
+   {
+    "amount_twd": 800800,
+    "order_id": "electronics-PO21",
+    "promised_date": "2026-11-04"
+   },
+   {
+    "amount_twd": 93600,
+    "order_id": "electronics-PO20",
+    "promised_date": "2026-11-07"
+   },
+   {
+    "amount_twd": 240000,
+    "order_id": "electronics-PO18",
+    "promised_date": "2026-11-08"
+   }
+  ],
+  "q16": [
+   {
+    "zero_defect_batches": 5
+   }
+  ]
+ },
+ "events": {
+  "q01": [
+   {
+    "count": 2,
+    "status": "blocked"
+   },
+   {
+    "count": 11,
+    "status": "doing"
+   },
+   {
+    "count": 30,
+    "status": "done"
+   },
+   {
+    "count": 4,
+    "status": "rejected"
+   },
+   {
+    "count": 4,
+    "status": "review"
+   },
+   {
+    "count": 9,
+    "status": "todo"
+   }
+  ],
+  "q02": [
+   {
+    "department": "執行",
+    "overdue_count": 9
+   },
+   {
+    "department": "企劃",
+    "overdue_count": 2
+   },
+   {
+    "department": "設計",
+    "overdue_count": 1
+   }
+  ],
+  "q03": [
+   {
+    "completion_pct": 60.0,
+    "done_count": 9,
+    "project_id": "events-PRJ1",
+    "total": 15
+   },
+   {
+    "completion_pct": 53.33,
+    "done_count": 8,
+    "project_id": "events-PRJ2",
+    "total": 15
+   },
+   {
+    "completion_pct": 40.0,
+    "done_count": 6,
+    "project_id": "events-PRJ3",
+    "total": 15
+   },
+   {
+    "completion_pct": 46.67,
+    "done_count": 7,
+    "project_id": "events-PRJ4",
+    "total": 15
+   }
+  ],
+  "q04": [
+   {
+    "actual_twd": 1106000,
+    "budget_twd": 900000,
+    "overrun_twd": 206000,
+    "project_id": "events-PRJ2"
+   }
+  ],
+  "q05": [
+   {
+    "amount_twd": 3818700,
+    "overdue_count": 3,
+    "supplier_id": "S2"
+   }
+  ],
+  "q06": [
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 5,
+    "supplier_id": "S1"
+   },
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 2,
+    "supplier_id": "S2"
+   },
+   {
+    "late_count": 4,
+    "late_pct": 80.0,
+    "received_count": 5,
+    "supplier_id": "S3"
+   },
+   {
+    "late_count": 1,
+    "late_pct": 33.33,
+    "received_count": 3,
+    "supplier_id": "S4"
+   }
+  ],
+  "q07": [
+   {
+    "defect_pct": 10.56,
+    "defects": 19,
+    "project_id": "events-PRJ4",
+    "samples": 180
+   },
+   {
+    "defect_pct": 2.14,
+    "defects": 3,
+    "project_id": "events-PRJ2",
+    "samples": 140
+   },
+   {
+    "defect_pct": 0.5,
+    "defects": 1,
+    "project_id": "events-PRJ3",
+    "samples": 200
+   },
+   {
+    "defect_pct": 0.0,
+    "defects": 0,
+    "project_id": "events-PRJ1",
+    "samples": 170
+   }
+  ],
+  "q08": [
+   {
+    "amount_twd": 218000,
+    "category": "人力",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 329000,
+    "category": "委外",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 56000,
+    "category": "差旅",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 562000,
+    "category": "材料",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 398000,
+    "category": "人力",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 368000,
+    "category": "委外",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 194000,
+    "category": "差旅",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 391000,
+    "category": "材料",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 15000,
+    "category": "人力",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 54000,
+    "category": "委外",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 221000,
+    "category": "差旅",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 292000,
+    "category": "材料",
+    "month": "2026-10"
+   }
+  ],
+  "q09": [
+   {
+    "action": "凍結非必要支出並提報追加預算",
+    "cause": "成本超出預算",
+    "project_id": "events-PRJ2",
+    "risk_id": "events-R1"
+   },
+   {
+    "action": "每週追蹤交期並啟動替代供應商",
+    "cause": "印刷輸出交期延遲",
+    "project_id": "events-PRJ1",
+    "risk_id": "events-R2"
+   }
+  ],
+  "q10": [
+   {
+    "name": "吳詩涵",
+    "open_tasks": 7,
+    "person_id": "P08"
+   },
+   {
+    "name": "鄭思妤",
+    "open_tasks": 5,
+    "person_id": "P07"
+   },
+   {
+    "name": "郭欣怡",
+    "open_tasks": 4,
+    "person_id": "P06"
+   },
+   {
+    "name": "林志明",
+    "open_tasks": 3,
+    "person_id": "P02"
+   },
+   {
+    "name": "葉品妍",
+    "open_tasks": 3,
+    "person_id": "P03"
+   }
+  ],
+  "q11": [
+   {
+    "actual_hours": 34,
+    "estimated_hours": 24,
+    "extra_hours": 10,
+    "task_id": "events-PRJ1-T01"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 24,
+    "extra_hours": 10,
+    "task_id": "events-PRJ1-T09"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 24,
+    "extra_hours": 10,
+    "task_id": "events-PRJ3-T02"
+   },
+   {
+    "actual_hours": 22,
+    "estimated_hours": 12,
+    "extra_hours": 10,
+    "task_id": "events-PRJ3-T03"
+   },
+   {
+    "actual_hours": 22,
+    "estimated_hours": 16,
+    "extra_hours": 6,
+    "task_id": "events-PRJ1-T02"
+   },
+   {
+    "actual_hours": 30,
+    "estimated_hours": 24,
+    "extra_hours": 6,
+    "task_id": "events-PRJ1-T07"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 8,
+    "extra_hours": 6,
+    "task_id": "events-PRJ2-T05"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 12,
+    "extra_hours": 6,
+    "task_id": "events-PRJ3-T04"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 12,
+    "extra_hours": 6,
+    "task_id": "events-PRJ4-T06"
+   },
+   {
+    "actual_hours": 10,
+    "estimated_hours": 8,
+    "extra_hours": 2,
+    "task_id": "events-PRJ2-T01"
+   },
+   {
+    "actual_hours": 10,
+    "estimated_hours": 8,
+    "extra_hours": 2,
+    "task_id": "events-PRJ2-T07"
+   },
+   {
+    "actual_hours": 10,
+    "estimated_hours": 8,
+    "extra_hours": 2,
+    "task_id": "events-PRJ2-T08"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 32,
+    "extra_hours": 2,
+    "task_id": "events-PRJ3-T01"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 32,
+    "extra_hours": 2,
+    "task_id": "events-PRJ4-T01"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 16,
+    "extra_hours": 2,
+    "task_id": "events-PRJ4-T03"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 12,
+    "extra_hours": 2,
+    "task_id": "events-PRJ4-T04"
+   }
+  ],
+  "q12": [
+   {
+    "committed_twd": 2664700,
+    "project_id": "events-PRJ1"
+   },
+   {
+    "committed_twd": 4686800,
+    "project_id": "events-PRJ2"
+   },
+   {
+    "committed_twd": 2230200,
+    "project_id": "events-PRJ3"
+   },
+   {
+    "committed_twd": 3468900,
+    "project_id": "events-PRJ4"
+   }
+  ],
+  "q13": [
+   {
+    "due_date": "2026-10-06",
+    "status": "rejected",
+    "task_id": "events-PRJ4-T12"
+   },
+   {
+    "due_date": "2026-10-07",
+    "status": "doing",
+    "task_id": "events-PRJ4-T08"
+   },
+   {
+    "due_date": "2026-10-08",
+    "status": "todo",
+    "task_id": "events-PRJ3-T14"
+   },
+   {
+    "due_date": "2026-10-10",
+    "status": "rejected",
+    "task_id": "events-PRJ3-T11"
+   }
+  ],
+  "q14": [
+   {
+    "blocked_count": 0,
+    "project_id": "events-PRJ1",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "events-PRJ2",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 2,
+    "project_id": "events-PRJ3",
+    "rejected_count": 3
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "events-PRJ4",
+    "rejected_count": 1
+   }
+  ],
+  "q15": [
+   {
+    "amount_twd": 250800,
+    "order_id": "events-PO21",
+    "promised_date": "2026-10-15"
+   },
+   {
+    "amount_twd": 291000,
+    "order_id": "events-PO18",
+    "promised_date": "2026-10-16"
+   },
+   {
+    "amount_twd": 321100,
+    "order_id": "events-PO20",
+    "promised_date": "2026-10-17"
+   },
+   {
+    "amount_twd": 370800,
+    "order_id": "events-PO19",
+    "promised_date": "2026-11-09"
+   }
+  ],
+  "q16": [
+   {
+    "zero_defect_batches": 6
+   }
+  ]
+ },
+ "food": {
+  "q01": [
+   {
+    "count": 2,
+    "status": "blocked"
+   },
+   {
+    "count": 11,
+    "status": "doing"
+   },
+   {
+    "count": 30,
+    "status": "done"
+   },
+   {
+    "count": 4,
+    "status": "rejected"
+   },
+   {
+    "count": 4,
+    "status": "review"
+   },
+   {
+    "count": 9,
+    "status": "todo"
+   }
+  ],
+  "q02": [
+   {
+    "department": "採購",
+    "overdue_count": 10
+   },
+   {
+    "department": "品保",
+    "overdue_count": 1
+   },
+   {
+    "department": "研發",
+    "overdue_count": 1
+   }
+  ],
+  "q03": [
+   {
+    "completion_pct": 60.0,
+    "done_count": 9,
+    "project_id": "food-PRJ1",
+    "total": 15
+   },
+   {
+    "completion_pct": 53.33,
+    "done_count": 8,
+    "project_id": "food-PRJ2",
+    "total": 15
+   },
+   {
+    "completion_pct": 40.0,
+    "done_count": 6,
+    "project_id": "food-PRJ3",
+    "total": 15
+   },
+   {
+    "completion_pct": 46.67,
+    "done_count": 7,
+    "project_id": "food-PRJ4",
+    "total": 15
+   }
+  ],
+  "q04": [
+   {
+    "actual_twd": 1210000,
+    "budget_twd": 990000,
+    "overrun_twd": 220000,
+    "project_id": "food-PRJ2"
+   }
+  ],
+  "q05": [
+   {
+    "amount_twd": 732300,
+    "overdue_count": 3,
+    "supplier_id": "S2"
+   }
+  ],
+  "q06": [
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 5,
+    "supplier_id": "S1"
+   },
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 2,
+    "supplier_id": "S2"
+   },
+   {
+    "late_count": 4,
+    "late_pct": 80.0,
+    "received_count": 5,
+    "supplier_id": "S3"
+   },
+   {
+    "late_count": 1,
+    "late_pct": 33.33,
+    "received_count": 3,
+    "supplier_id": "S4"
+   }
+  ],
+  "q07": [
+   {
+    "defect_pct": 10.59,
+    "defects": 18,
+    "project_id": "food-PRJ4",
+    "samples": 170
+   },
+   {
+    "defect_pct": 2.5,
+    "defects": 4,
+    "project_id": "food-PRJ2",
+    "samples": 160
+   },
+   {
+    "defect_pct": 1.0,
+    "defects": 2,
+    "project_id": "food-PRJ3",
+    "samples": 200
+   },
+   {
+    "defect_pct": 0.91,
+    "defects": 1,
+    "project_id": "food-PRJ1",
+    "samples": 110
+   }
+  ],
+  "q08": [
+   {
+    "amount_twd": 173000,
+    "category": "人力",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 502000,
+    "category": "委外",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 261000,
+    "category": "差旅",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 332000,
+    "category": "材料",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 179000,
+    "category": "人力",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 70000,
+    "category": "委外",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 305000,
+    "category": "差旅",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 330000,
+    "category": "材料",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 45000,
+    "category": "人力",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 159000,
+    "category": "委外",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 86000,
+    "category": "差旅",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 419000,
+    "category": "材料",
+    "month": "2026-10"
+   }
+  ],
+  "q09": [
+   {
+    "action": "凍結非必要支出並提報追加預算",
+    "cause": "成本超出預算",
+    "project_id": "food-PRJ2",
+    "risk_id": "food-R1"
+   },
+   {
+    "action": "每週追蹤交期並啟動替代供應商",
+    "cause": "海鮮冷鏈交期延遲",
+    "project_id": "food-PRJ1",
+    "risk_id": "food-R2"
+   }
+  ],
+  "q10": [
+   {
+    "name": "王建宏",
+    "open_tasks": 10,
+    "person_id": "P08"
+   },
+   {
+    "name": "賴冠宇",
+    "open_tasks": 5,
+    "person_id": "P10"
+   },
+   {
+    "name": "徐思妤",
+    "open_tasks": 4,
+    "person_id": "P04"
+   },
+   {
+    "name": "劉志明",
+    "open_tasks": 2,
+    "person_id": "P01"
+   },
+   {
+    "name": "徐冠宇",
+    "open_tasks": 2,
+    "person_id": "P06"
+   }
+  ],
+  "q11": [
+   {
+    "actual_hours": 22,
+    "estimated_hours": 12,
+    "extra_hours": 10,
+    "task_id": "food-PRJ1-T03"
+   },
+   {
+    "actual_hours": 42,
+    "estimated_hours": 32,
+    "extra_hours": 10,
+    "task_id": "food-PRJ2-T05"
+   },
+   {
+    "actual_hours": 22,
+    "estimated_hours": 12,
+    "extra_hours": 10,
+    "task_id": "food-PRJ4-T01"
+   },
+   {
+    "actual_hours": 42,
+    "estimated_hours": 32,
+    "extra_hours": 10,
+    "task_id": "food-PRJ4-T07"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 8,
+    "extra_hours": 6,
+    "task_id": "food-PRJ1-T02"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 8,
+    "extra_hours": 6,
+    "task_id": "food-PRJ2-T03"
+   },
+   {
+    "actual_hours": 38,
+    "estimated_hours": 32,
+    "extra_hours": 6,
+    "task_id": "food-PRJ3-T01"
+   },
+   {
+    "actual_hours": 30,
+    "estimated_hours": 24,
+    "extra_hours": 6,
+    "task_id": "food-PRJ4-T04"
+   },
+   {
+    "actual_hours": 26,
+    "estimated_hours": 24,
+    "extra_hours": 2,
+    "task_id": "food-PRJ1-T01"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 16,
+    "extra_hours": 2,
+    "task_id": "food-PRJ2-T06"
+   }
+  ],
+  "q12": [
+   {
+    "committed_twd": 1543100,
+    "project_id": "food-PRJ1"
+   },
+   {
+    "committed_twd": 1700700,
+    "project_id": "food-PRJ2"
+   },
+   {
+    "committed_twd": 2768400,
+    "project_id": "food-PRJ3"
+   },
+   {
+    "committed_twd": 2395700,
+    "project_id": "food-PRJ4"
+   }
+  ],
+  "q13": [
+   {
+    "due_date": "2026-10-06",
+    "status": "todo",
+    "task_id": "food-PRJ4-T14"
+   },
+   {
+    "due_date": "2026-10-07",
+    "status": "doing",
+    "task_id": "food-PRJ4-T08"
+   },
+   {
+    "due_date": "2026-10-08",
+    "status": "todo",
+    "task_id": "food-PRJ1-T14"
+   },
+   {
+    "due_date": "2026-10-10",
+    "status": "doing",
+    "task_id": "food-PRJ1-T10"
+   }
+  ],
+  "q14": [
+   {
+    "blocked_count": 0,
+    "project_id": "food-PRJ1",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "food-PRJ2",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 2,
+    "project_id": "food-PRJ3",
+    "rejected_count": 3
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "food-PRJ4",
+    "rejected_count": 1
+   }
+  ],
+  "q15": [
+   {
+    "amount_twd": 307700,
+    "order_id": "food-PO18",
+    "promised_date": "2026-10-29"
+   },
+   {
+    "amount_twd": 210000,
+    "order_id": "food-PO21",
+    "promised_date": "2026-11-04"
+   },
+   {
+    "amount_twd": 853600,
+    "order_id": "food-PO19",
+    "promised_date": "2026-11-05"
+   },
+   {
+    "amount_twd": 15000,
+    "order_id": "food-PO20",
+    "promised_date": "2026-11-10"
+   }
+  ],
+  "q16": [
+   {
+    "zero_defect_batches": 4
+   }
+  ]
+ },
+ "hemu": {
+  "q01": [
+   {
+    "count": 2,
+    "status": "blocked"
+   },
+   {
+    "count": 11,
+    "status": "doing"
+   },
+   {
+    "count": 30,
+    "status": "done"
+   },
+   {
+    "count": 4,
+    "status": "rejected"
+   },
+   {
+    "count": 4,
+    "status": "review"
+   },
+   {
+    "count": 9,
+    "status": "todo"
+   }
+  ],
+  "q02": [
+   {
+    "department": "生產",
+    "overdue_count": 6
+   },
+   {
+    "department": "研發",
+    "overdue_count": 4
+   },
+   {
+    "department": "法規",
+    "overdue_count": 2
+   }
+  ],
+  "q03": [
+   {
+    "completion_pct": 60.0,
+    "done_count": 9,
+    "project_id": "hemu-PRJ1",
+    "total": 15
+   },
+   {
+    "completion_pct": 53.33,
+    "done_count": 8,
+    "project_id": "hemu-PRJ2",
+    "total": 15
+   },
+   {
+    "completion_pct": 40.0,
+    "done_count": 6,
+    "project_id": "hemu-PRJ3",
+    "total": 15
+   },
+   {
+    "completion_pct": 46.67,
+    "done_count": 7,
+    "project_id": "hemu-PRJ4",
+    "total": 15
+   }
+  ],
+  "q04": [
+   {
+    "actual_twd": 1308000,
+    "budget_twd": 1060000,
+    "overrun_twd": 248000,
+    "project_id": "hemu-PRJ2"
+   }
+  ],
+  "q05": [
+   {
+    "amount_twd": 1191900,
+    "overdue_count": 3,
+    "supplier_id": "S2"
+   }
+  ],
+  "q06": [
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 5,
+    "supplier_id": "S1"
+   },
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 2,
+    "supplier_id": "S2"
+   },
+   {
+    "late_count": 4,
+    "late_pct": 80.0,
+    "received_count": 5,
+    "supplier_id": "S3"
+   },
+   {
+    "late_count": 1,
+    "late_pct": 33.33,
+    "received_count": 3,
+    "supplier_id": "S4"
+   }
+  ],
+  "q07": [
+   {
+    "defect_pct": 12.63,
+    "defects": 24,
+    "project_id": "hemu-PRJ4",
+    "samples": 190
+   },
+   {
+    "defect_pct": 3.13,
+    "defects": 5,
+    "project_id": "hemu-PRJ2",
+    "samples": 160
+   },
+   {
+    "defect_pct": 1.33,
+    "defects": 2,
+    "project_id": "hemu-PRJ3",
+    "samples": 150
+   },
+   {
+    "defect_pct": 0.63,
+    "defects": 1,
+    "project_id": "hemu-PRJ1",
+    "samples": 160
+   }
+  ],
+  "q08": [
+   {
+    "amount_twd": 304000,
+    "category": "人力",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 873000,
+    "category": "委外",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 116000,
+    "category": "差旅",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 623000,
+    "category": "材料",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 206000,
+    "category": "人力",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 268000,
+    "category": "委外",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 247000,
+    "category": "差旅",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 95000,
+    "category": "材料",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 45000,
+    "category": "人力",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 502000,
+    "category": "委外",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 151000,
+    "category": "差旅",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 58000,
+    "category": "材料",
+    "month": "2026-10"
+   }
+  ],
+  "q09": [
+   {
+    "action": "凍結非必要支出並提報追加預算",
+    "cause": "成本超出預算",
+    "project_id": "hemu-PRJ2",
+    "risk_id": "hemu-R1"
+   },
+   {
+    "action": "每週追蹤交期並啟動替代供應商",
+    "cause": "菌種供應交期延遲",
+    "project_id": "hemu-PRJ1",
+    "risk_id": "hemu-R2"
+   }
+  ],
+  "q10": [
+   {
+    "name": "賴思妤",
+    "open_tasks": 6,
+    "person_id": "P07"
+   },
+   {
+    "name": "賴冠宇",
+    "open_tasks": 5,
+    "person_id": "P02"
+   },
+   {
+    "name": "黃詩涵",
+    "open_tasks": 5,
+    "person_id": "P08"
+   },
+   {
+    "name": "蔡家豪",
+    "open_tasks": 3,
+    "person_id": "P01"
+   },
+   {
+    "name": "蔡詩涵",
+    "open_tasks": 3,
+    "person_id": "P05"
+   }
+  ],
+  "q11": [
+   {
+    "actual_hours": 18,
+    "estimated_hours": 8,
+    "extra_hours": 10,
+    "task_id": "hemu-PRJ1-T03"
+   },
+   {
+    "actual_hours": 22,
+    "estimated_hours": 12,
+    "extra_hours": 10,
+    "task_id": "hemu-PRJ2-T08"
+   },
+   {
+    "actual_hours": 22,
+    "estimated_hours": 12,
+    "extra_hours": 10,
+    "task_id": "hemu-PRJ3-T01"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 24,
+    "extra_hours": 10,
+    "task_id": "hemu-PRJ3-T05"
+   },
+   {
+    "actual_hours": 30,
+    "estimated_hours": 24,
+    "extra_hours": 6,
+    "task_id": "hemu-PRJ1-T02"
+   },
+   {
+    "actual_hours": 38,
+    "estimated_hours": 32,
+    "extra_hours": 6,
+    "task_id": "hemu-PRJ1-T04"
+   },
+   {
+    "actual_hours": 30,
+    "estimated_hours": 24,
+    "extra_hours": 6,
+    "task_id": "hemu-PRJ3-T03"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 8,
+    "extra_hours": 6,
+    "task_id": "hemu-PRJ4-T03"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 16,
+    "extra_hours": 2,
+    "task_id": "hemu-PRJ1-T07"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 16,
+    "extra_hours": 2,
+    "task_id": "hemu-PRJ2-T04"
+   },
+   {
+    "actual_hours": 10,
+    "estimated_hours": 8,
+    "extra_hours": 2,
+    "task_id": "hemu-PRJ2-T06"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 32,
+    "extra_hours": 2,
+    "task_id": "hemu-PRJ2-T07"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 32,
+    "extra_hours": 2,
+    "task_id": "hemu-PRJ4-T01"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 12,
+    "extra_hours": 2,
+    "task_id": "hemu-PRJ4-T02"
+   }
+  ],
+  "q12": [
+   {
+    "committed_twd": 1964900,
+    "project_id": "hemu-PRJ1"
+   },
+   {
+    "committed_twd": 3263100,
+    "project_id": "hemu-PRJ2"
+   },
+   {
+    "committed_twd": 2722900,
+    "project_id": "hemu-PRJ3"
+   },
+   {
+    "committed_twd": 3427900,
+    "project_id": "hemu-PRJ4"
+   }
+  ],
+  "q13": [
+   {
+    "due_date": "2026-10-06",
+    "status": "doing",
+    "task_id": "hemu-PRJ2-T10"
+   },
+   {
+    "due_date": "2026-10-07",
+    "status": "todo",
+    "task_id": "hemu-PRJ1-T14"
+   },
+   {
+    "due_date": "2026-10-08",
+    "status": "review",
+    "task_id": "hemu-PRJ1-T13"
+   },
+   {
+    "due_date": "2026-10-10",
+    "status": "doing",
+    "task_id": "hemu-PRJ1-T12"
+   }
+  ],
+  "q14": [
+   {
+    "blocked_count": 0,
+    "project_id": "hemu-PRJ1",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "hemu-PRJ2",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 2,
+    "project_id": "hemu-PRJ3",
+    "rejected_count": 3
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "hemu-PRJ4",
+    "rejected_count": 1
+   }
+  ],
+  "q15": [
+   {
+    "amount_twd": 1296000,
+    "order_id": "hemu-PO21",
+    "promised_date": "2026-10-18"
+   },
+   {
+    "amount_twd": 585200,
+    "order_id": "hemu-PO19",
+    "promised_date": "2026-10-22"
+   },
+   {
+    "amount_twd": 46200,
+    "order_id": "hemu-PO20",
+    "promised_date": "2026-11-04"
+   },
+   {
+    "amount_twd": 271600,
+    "order_id": "hemu-PO18",
+    "promised_date": "2026-11-09"
+   }
+  ],
+  "q16": [
+   {
+    "zero_defect_batches": 4
+   }
+  ]
+ },
+ "software": {
+  "q01": [
+   {
+    "count": 2,
+    "status": "blocked"
+   },
+   {
+    "count": 11,
+    "status": "doing"
+   },
+   {
+    "count": 30,
+    "status": "done"
+   },
+   {
+    "count": 4,
+    "status": "rejected"
+   },
+   {
+    "count": 4,
+    "status": "review"
+   },
+   {
+    "count": 9,
+    "status": "todo"
+   }
+  ],
+  "q02": [
+   {
+    "department": "測試",
+    "overdue_count": 9
+   },
+   {
+    "department": "產品",
+    "overdue_count": 2
+   },
+   {
+    "department": "客服",
+    "overdue_count": 1
+   }
+  ],
+  "q03": [
+   {
+    "completion_pct": 60.0,
+    "done_count": 9,
+    "project_id": "software-PRJ1",
+    "total": 15
+   },
+   {
+    "completion_pct": 53.33,
+    "done_count": 8,
+    "project_id": "software-PRJ2",
+    "total": 15
+   },
+   {
+    "completion_pct": 40.0,
+    "done_count": 6,
+    "project_id": "software-PRJ3",
+    "total": 15
+   },
+   {
+    "completion_pct": 46.67,
+    "done_count": 7,
+    "project_id": "software-PRJ4",
+    "total": 15
+   }
+  ],
+  "q04": [
+   {
+    "actual_twd": 1070000,
+    "budget_twd": 930000,
+    "overrun_twd": 140000,
+    "project_id": "software-PRJ2"
+   }
+  ],
+  "q05": [
+   {
+    "amount_twd": 527800,
+    "overdue_count": 3,
+    "supplier_id": "S2"
+   }
+  ],
+  "q06": [
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 5,
+    "supplier_id": "S1"
+   },
+   {
+    "late_count": 0,
+    "late_pct": 0.0,
+    "received_count": 2,
+    "supplier_id": "S2"
+   },
+   {
+    "late_count": 4,
+    "late_pct": 80.0,
+    "received_count": 5,
+    "supplier_id": "S3"
+   },
+   {
+    "late_count": 1,
+    "late_pct": 33.33,
+    "received_count": 3,
+    "supplier_id": "S4"
+   }
+  ],
+  "q07": [
+   {
+    "defect_pct": 10.0,
+    "defects": 21,
+    "project_id": "software-PRJ4",
+    "samples": 210
+   },
+   {
+    "defect_pct": 2.0,
+    "defects": 4,
+    "project_id": "software-PRJ2",
+    "samples": 200
+   },
+   {
+    "defect_pct": 1.67,
+    "defects": 3,
+    "project_id": "software-PRJ3",
+    "samples": 180
+   },
+   {
+    "defect_pct": 0.83,
+    "defects": 1,
+    "project_id": "software-PRJ1",
+    "samples": 120
+   }
+  ],
+  "q08": [
+   {
+    "amount_twd": 112000,
+    "category": "人力",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 517000,
+    "category": "委外",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 461000,
+    "category": "差旅",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 251000,
+    "category": "材料",
+    "month": "2026-08"
+   },
+   {
+    "amount_twd": 278000,
+    "category": "人力",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 273000,
+    "category": "委外",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 672000,
+    "category": "差旅",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 290000,
+    "category": "材料",
+    "month": "2026-09"
+   },
+   {
+    "amount_twd": 120000,
+    "category": "人力",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 20000,
+    "category": "委外",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 36000,
+    "category": "差旅",
+    "month": "2026-10"
+   },
+   {
+    "amount_twd": 93000,
+    "category": "材料",
+    "month": "2026-10"
+   }
+  ],
+  "q09": [
+   {
+    "action": "凍結非必要支出並提報追加預算",
+    "cause": "成本超出預算",
+    "project_id": "software-PRJ2",
+    "risk_id": "software-R1"
+   },
+   {
+    "action": "每週追蹤交期並啟動替代供應商",
+    "cause": "外包開發交期延遲",
+    "project_id": "software-PRJ1",
+    "risk_id": "software-R2"
+   }
+  ],
+  "q10": [
+   {
+    "name": "陳欣怡",
+    "open_tasks": 8,
+    "person_id": "P07"
+   },
+   {
+    "name": "陳怡君",
+    "open_tasks": 6,
+    "person_id": "P08"
+   },
+   {
+    "name": "許雅婷",
+    "open_tasks": 4,
+    "person_id": "P02"
+   },
+   {
+    "name": "林建宏",
+    "open_tasks": 3,
+    "person_id": "P01"
+   },
+   {
+    "name": "蔡佩珊",
+    "open_tasks": 3,
+    "person_id": "P09"
+   }
+  ],
+  "q11": [
+   {
+    "actual_hours": 42,
+    "estimated_hours": 32,
+    "extra_hours": 10,
+    "task_id": "software-PRJ2-T04"
+   },
+   {
+    "actual_hours": 26,
+    "estimated_hours": 16,
+    "extra_hours": 10,
+    "task_id": "software-PRJ2-T06"
+   },
+   {
+    "actual_hours": 42,
+    "estimated_hours": 32,
+    "extra_hours": 10,
+    "task_id": "software-PRJ3-T04"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 24,
+    "extra_hours": 10,
+    "task_id": "software-PRJ3-T05"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 24,
+    "extra_hours": 10,
+    "task_id": "software-PRJ4-T02"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 24,
+    "extra_hours": 10,
+    "task_id": "software-PRJ4-T03"
+   },
+   {
+    "actual_hours": 22,
+    "estimated_hours": 16,
+    "extra_hours": 6,
+    "task_id": "software-PRJ1-T01"
+   },
+   {
+    "actual_hours": 22,
+    "estimated_hours": 16,
+    "extra_hours": 6,
+    "task_id": "software-PRJ1-T05"
+   },
+   {
+    "actual_hours": 38,
+    "estimated_hours": 32,
+    "extra_hours": 6,
+    "task_id": "software-PRJ1-T08"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 12,
+    "extra_hours": 6,
+    "task_id": "software-PRJ3-T03"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 32,
+    "extra_hours": 2,
+    "task_id": "software-PRJ1-T09"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 16,
+    "extra_hours": 2,
+    "task_id": "software-PRJ2-T01"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 32,
+    "extra_hours": 2,
+    "task_id": "software-PRJ2-T02"
+   },
+   {
+    "actual_hours": 14,
+    "estimated_hours": 12,
+    "extra_hours": 2,
+    "task_id": "software-PRJ2-T08"
+   },
+   {
+    "actual_hours": 18,
+    "estimated_hours": 16,
+    "extra_hours": 2,
+    "task_id": "software-PRJ4-T01"
+   },
+   {
+    "actual_hours": 34,
+    "estimated_hours": 32,
+    "extra_hours": 2,
+    "task_id": "software-PRJ4-T06"
+   }
+  ],
+  "q12": [
+   {
+    "committed_twd": 2136100,
+    "project_id": "software-PRJ1"
+   },
+   {
+    "committed_twd": 2957400,
+    "project_id": "software-PRJ2"
+   },
+   {
+    "committed_twd": 1625800,
+    "project_id": "software-PRJ3"
+   },
+   {
+    "committed_twd": 3313300,
+    "project_id": "software-PRJ4"
+   }
+  ],
+  "q13": [
+   {
+    "due_date": "2026-10-06",
+    "status": "rejected",
+    "task_id": "software-PRJ4-T12"
+   },
+   {
+    "due_date": "2026-10-07",
+    "status": "todo",
+    "task_id": "software-PRJ3-T15"
+   },
+   {
+    "due_date": "2026-10-08",
+    "status": "doing",
+    "task_id": "software-PRJ2-T10"
+   },
+   {
+    "due_date": "2026-10-10",
+    "status": "doing",
+    "task_id": "software-PRJ1-T12"
+   }
+  ],
+  "q14": [
+   {
+    "blocked_count": 0,
+    "project_id": "software-PRJ1",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "software-PRJ2",
+    "rejected_count": 0
+   },
+   {
+    "blocked_count": 2,
+    "project_id": "software-PRJ3",
+    "rejected_count": 3
+   },
+   {
+    "blocked_count": 0,
+    "project_id": "software-PRJ4",
+    "rejected_count": 1
+   }
+  ],
+  "q15": [
+   {
+    "amount_twd": 212500,
+    "order_id": "software-PO20",
+    "promised_date": "2026-10-15"
+   },
+   {
+    "amount_twd": 188000,
+    "order_id": "software-PO19",
+    "promised_date": "2026-10-20"
+   },
+   {
+    "amount_twd": 883200,
+    "order_id": "software-PO18",
+    "promised_date": "2026-10-24"
+   },
+   {
+    "amount_twd": 160000,
+    "order_id": "software-PO21",
+    "promised_date": "2026-11-01"
+   }
+  ],
+  "q16": [
+   {
+    "zero_defect_batches": 3
+   }
+  ]
+ }
+}

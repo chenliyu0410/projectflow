@@ -8,11 +8,14 @@ from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.ai import store
 from app.main import create_app
+from app.models import Organization, User
 from app.routes import auth as auth_routes
-from app.security import verify_password
+from app.security import hash_password, verify_password
 from test_ai import pack, installed, login  # noqa: F401  共用 AI 展示資料 fixture
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -50,9 +53,14 @@ def test_local_model_config_refused_when_web_is_open_to_lan(client, installed, m
     assert client.get('/ai/model', headers={'Host': 'localhost'}).status_code == 403
 
 
-def test_forged_loopback_host_from_public_entry_is_not_local(client, installed):
+def test_forged_loopback_host_from_public_entry_is_not_local(client, engine, installed):
+    # 公開網址不接受示範密碼（ACCOUNTS），所以先換成正式密碼，才測得到登入後的本機判斷。
+    with Session(engine) as db:
+        user = db.scalar(select(User).join(Organization).where(Organization.key == 'food', User.username == 'yu'))
+        user.password_hash = hash_password('trial-Pass-2026')
+        db.commit()
     client.base_url = 'https://pf.example.ts.net:10000'
-    assert client.post('/auth/login', json=CREDENTIALS).status_code == 200
+    assert client.post('/auth/login', json={**CREDENTIALS, 'password': 'trial-Pass-2026'}).status_code == 200
     assert client.get('/ai/status').json()['can_configure'] is False
     assert client.get('/ai/model').status_code == 403
 

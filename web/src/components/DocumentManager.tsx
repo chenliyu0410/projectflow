@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, requestJson } from '../api';
+import DocTemplateFill, { type SavedVersion } from './DocTemplateFill';
 
-type Version = { document_id: string; version: number; filename: string; size_bytes: number; created_at: string; created_by: string; comment: string; editable: boolean };
+type Version = { document_id: string; version: number; filename: string; size_bytes: number; created_at: string; created_by: string; comment: string; editable: boolean; from_template?: boolean };
 type Listing = { items: Version[]; can_write: boolean };
 type History = Listing & { current_version: number };
 const ACCEPT = '.txt,.csv,.pdf,.png,.jpg,.jpeg,.docx,.xlsx,.pptx,.zip';
@@ -16,6 +17,7 @@ export default function DocumentManager({ scopePath, expired, leaveGuard }: { sc
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [filling, setFilling] = useState<'new' | 'again' | null>(null);
   const controller = useRef<AbortController | null>(null);
   const inFlight = useRef(false);
   useEffect(() => {
@@ -77,16 +79,23 @@ export default function DocumentManager({ scopePath, expired, leaveGuard }: { sc
       await load(signal); await open(saved, signal);
     });
   }
+  async function generated(saved: SavedVersion) {
+    setFilling(null); setDraft(null); setNotice('');
+    // Announce only after the new document is open, so its download link is the one on screen.
+    await run(async signal => { await load(signal); const latest = await requestJson<History>(`/documents/${saved.document_id}/versions`, { signal }); if (latest.items[0]) await open(latest.items[0], signal); if (!signal.aborted) setNotice(`已產生 ${saved.filename}，版本 v${saved.version}`); });
+  }
   return <section className="panel document-manager" aria-label="正式文件管理">
     <h2>文件管理</h2><p className="muted">此專案或任務的文件會正式保存。TXT／CSV（1 MB 內）可直接編輯；其他格式請下載修改後上傳新版本。單檔上限 10 MB。</p>
     {error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
     <div className="record-actions"><button disabled={busy} onClick={() => { if (discard()) void run(async signal => { await load(signal); if (selected) { const latest = await requestJson<History>(`/documents/${selected.document_id}/versions`, { signal }); if (latest.items[0]) await open(latest.items[0], signal); } }); }}>重新載入文件</button>
+      {listing?.can_write && !filling && <button disabled={busy} onClick={() => { if (discard()) { setDraft(null); setFilling('new'); } }}>用樣板建立</button>}
       {listing?.can_write && <label>上傳新文件<input aria-label="上傳新文件" type="file" accept={ACCEPT} disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; void upload(file, false); }} /></label>}
     </div>
+    {filling === 'new' && <DocTemplateFill scopePath={scopePath} done={saved => void generated(saved)} cancel={() => setFilling(null)} expired={expired} />}
     {!listing ? <p>{busy ? '載入文件中…' : '尚未載入文件，請重試。'}</p> : <>
       {!listing.can_write && <p>目前僅可檢視與下載文件。</p>}
       {listing.items.length === 0 && <p>目前沒有文件。有編輯權限的人員可上傳第一份文件。</p>}
-      <div className="document-list">{listing.items.map(v => <button key={v.document_id} disabled={busy} aria-pressed={selected?.document_id === v.document_id} onClick={() => { if (discard()) void run(signal => open(v, signal)); }}><strong>{v.filename}</strong><span>v{v.version} · {v.created_by} · {new Date(v.created_at).toLocaleString('zh-TW')}</span></button>)}</div>
+      <div className="document-list">{listing.items.map(v => <button key={v.document_id} disabled={busy} aria-pressed={selected?.document_id === v.document_id} onClick={() => { if (discard()) { setFilling(null); void run(signal => open(v, signal)); } }}><strong>{v.filename}</strong><span>v{v.version} · {v.created_by} · {new Date(v.created_at).toLocaleString('zh-TW')}</span></button>)}</div>
     </>}
     {selected && history && <article className="document-detail"><h3>{selected.filename}</h3>
       <label>版本紀錄<select aria-label="版本紀錄" disabled={busy} value={selected.version} onChange={e => { const v = history.items.find(row => row.version === Number(e.target.value)); if (v && discard()) void run(signal => open(v, signal)); }}>{history.items.map(v => <option key={v.version} value={v.version}>v{v.version} · {v.created_by} · {new Date(v.created_at).toLocaleString('zh-TW')}</option>)}</select></label>
@@ -95,6 +104,9 @@ export default function DocumentManager({ scopePath, expired, leaveGuard }: { sc
       <a href={`/api/documents/${selected.document_id}/versions/${selected.version}/download`}>下載 v{selected.version}</a>
       {content !== null && draft === null && <pre className="document-text">{content}</pre>}
       {content === null && <p>此檔案請下載查看；原始檔案與歷史版本均已保存。</p>}
+      {history.can_write && selected.version === history.current_version && selected.from_template && (filling === 'again'
+        ? <DocTemplateFill scopePath={scopePath} documentId={selected.document_id} expectedVersion={history.current_version} done={saved => void generated(saved)} cancel={() => setFilling(null)} expired={expired} />
+        : <button disabled={busy || draft !== null} onClick={() => setFilling('again')}>修改內容重新產生</button>)}
       {history.can_write && selected.version === history.current_version && <>
         {draft !== null ? <><label>編輯文件內容<textarea aria-label="編輯文件內容" rows={14} value={draft} disabled={busy} onChange={e => setDraft(e.target.value)} /></label></> : selected.editable && content !== null && <button disabled={busy} onClick={() => setDraft(content)}>編輯文字</button>}
         <label>新版本說明<input maxLength={500} value={comment} disabled={busy} onChange={e => setComment(e.target.value)} /></label>

@@ -1,0 +1,2 @@
+# Optional OCR for isolated previews; the Traditional Chinese model is downloaded separately (see docs/ai-assistant.md).
+rapidocr-onnxruntime==1.4.4
