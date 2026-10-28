@@ -13,7 +13,7 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **OCR-PIPE 🟢 待人類排練Demo**（2026-10-28）：依人類架構圖做一日展示版文件解析管線，計畫見[plan](superpowers/plans/2026-10-28-ocr-pipeline.md)，成果與報告亮點見[成果報告](ocr-pipeline-report.md)。逐頁分路（文字層／OCR／Office）、前處理、清理正規化、檔名＋頁碼metadata、1−CER與分路秒數報告；`PF_AI_OCR`開關＋可選OCR Docker映像，斷網Linux容器實測與Windows結果一致。未接正式索引與網頁上傳。前一項：**PORTABLE＋AI-DEMO-DATA 🟢 待人類第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR、乾淨展示資料與重建的「原有展示資料」Text-to-SQL，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
+| 目前工作項目 | **OCR-PIPE 🟢 待人類排練Demo**（2026-10-28）：依人類架構圖做一日展示版文件解析管線，計畫見[plan](superpowers/plans/2026-10-28-ocr-pipeline.md)，成果與報告亮點見[成果報告](ocr-pipeline-report.md)。逐頁分路（文字層／OCR／Office）、前處理、清理正規化、檔名＋頁碼metadata、1−CER與分路秒數報告；`PF_AI_OCR`開關＋可選OCR Docker映像，斷網Linux容器實測與Windows結果一致。人類指示（2026-10-28）：正式文件索引改走ingest()（3df25c6，索引版本4，相關測試161 pass）；本機Docker已用OCR映像重啟（PF_AI_OCR=true、模型唯讀掛載、雜湊OK）。**待人類決定**：正式文件索引仍限SQLite隔離環境，Docker（PostgreSQL）網頁上傳不會建索引，故瀏覽器展示需選「隔離版預覽」或「解除限制讓Docker也建索引」。前一項：**PORTABLE＋AI-DEMO-DATA 🟢 待人類第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR、乾淨展示資料與重建的「原有展示資料」Text-to-SQL，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
 | 下一個動作 | OCR-PIPE待人類：照成果報告的講稿排練Demo、可選加1～2張真實翻拍樣本、決定是否push `feature/ocr-pipeline`／合併main。PORTABLE待人類：用repo外`output/portable/ProjectFlow-Portable-20261024.zip`在另一台電腦照[檢查表](../deploy/portable/另一台電腦檢查表.md)做第三層驗證；決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
 | 分支 | `feature/ocr-pipeline`（自main `4a45d10`分出，未push）。2026-10-27 依人類指示把`feature/rag-starter-import`（58個commit，到`72e0d8d`）`--ff-only`合併進main，並推上origin main，PR #6 隨之合併。 |
