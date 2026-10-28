@@ -72,8 +72,9 @@ def preprocess(image):
 
 
 def normalize(text):
-    # The model reads a full-width comma between Chinese characters as a middle dot.
-    return re.sub(r"(?<=[一-鿿])[·•](?=[一-鿿])", "，", text).strip()
+    # The model reads a full-width comma between Chinese characters, and a full stop ending a Chinese line, as a middle dot.
+    text = re.sub(r"(?<=[一-鿿])[·•](?=[一-鿿])", "，", text.strip())
+    return re.sub(r"(?<=[一-鿿])[·•]$", "。", text)
 
 
 def recognize(data):

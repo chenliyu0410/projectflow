@@ -130,3 +130,9 @@ def test_route_stats_report_seconds_per_page():
     stats = ocr_metrics.route_stats(pages)
     assert stats["ocr"] == {"pages": 2, "seconds": 2.0, "per_page": 1.0}
     assert stats["text_pdf"]["pages"] == 1
+
+
+def test_a_line_final_dot_after_chinese_is_a_full_stop():
+    assert ocr.normalize("請準時報到·") == "請準時報到。"
+    assert ocr.normalize("新人·報到") == "新人，報到"  # Existing rule between characters is kept.
+    assert ocr.normalize("v1.2 ·") == "v1.2 ·"  # Only after Chinese text.
