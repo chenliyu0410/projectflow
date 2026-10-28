@@ -987,6 +987,9 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ## 5. 待處理問題（Issue register）
 
+**OPS-LOCAL新增（2026-10-28）**
+- OPS-LOCAL-m1（important，OPEN，不阻塞，需人類：否，大小S）：照 `deploy/demo-data/README.md` 在 0019 schema 匯入資料包會失敗。`demo_pack.import_pack` 用目前 ORM 的 `users` 表插入，SQLAlchemy 會帶入 0021 新欄位 `status`、`must_change_password` 的 Python 端預設值，但 0019 沒有這兩欄，報 `sqlalchemy.exc` f405 錯誤。所以程式比資料包新時，README 的「先用相同版本還原，再 start.py 升級」走不通。2026-10-28 本機 15173 的繞法：`alembic upgrade head` → 暫把 `alembic_version` 改成 `20261012_0019` → `demo_data.py import` → 改回 `20261024_0021`。0020／0021 只新增表和欄位，結果等同「先匯入再升級」；匯入 27 表（80 帳號、39 專案、500 節點），yu／demo-yu 登入可見 8 個專案。修法擇一：插入時只帶資料庫實際存在的欄位（`inspect(conn).get_columns`），或改成在目前 schema 匯入、允許資料包版本較舊，或以 head 重新匯出資料包。位置 `api/app/demo_pack.py:129-136`。
+
 **P1b新增**
 - P1b-T1-m1（minor，OPEN，不阻塞）：API client未設timeout；pending請求須等代理或連線結束，取消目前涵蓋換請求與卸載。後續網路韌性工作補強，位置 `web/src/api.ts:12`。
 - P1b-T3-m1（minor，已人工驗證，不阻塞）：Vitest未直接覆蓋gate核准成功／reload失敗／重試；主代理Playwright1280注入reload500→重試成功與401→返回登入均pass。可於後續網路韌性工作補自動回歸，位置 `web/src/App.test.tsx`。
