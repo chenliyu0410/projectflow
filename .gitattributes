@@ -8,3 +8,7 @@ deploy/rag-starter/** -text whitespace=cr-at-eol,-blank-at-eof
 deploy/portable/demo-docs/** -text
 # The AI demo pack is verified by SHA-256 on import; keep its bytes unchanged.
 deploy/ai-demo-data/pack/** -text
+# OCR samples and their labels are scored byte-for-byte; keep them identical on every clone.
+deploy/ocr-eval/samples/** -text
+# sha256sum -c on Linux needs LF lines.
+*.sha256 text eol=lf

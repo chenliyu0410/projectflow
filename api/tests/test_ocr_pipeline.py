@@ -3,7 +3,7 @@ import io
 import pytest
 from pypdf import PdfReader, PdfWriter
 
-from app.ai import cleanup, extractors, ingest, ocr
+from app.ai import cleanup, extractors, ingest, ocr, ocr_metrics
 from test_ai_ocr import STARTER_PDF, png
 
 PIL = pytest.importorskip("PIL.Image")
@@ -116,3 +116,17 @@ def test_word_documents_use_the_office_route():
 def test_unknown_format_is_rejected():
     with pytest.raises(extractors.ExtractionError, match="不支援"):
         ingest.ingest(b"x", "a.exe")
+
+
+def test_cer_ignores_whitespace_and_counts_edits():
+    assert ocr_metrics.cer("新人 報到\n五樓", "新人報到五樓") == 0
+    assert ocr_metrics.cer("新人報到五樓", "新入報到五樓") == pytest.approx(1 / 6)
+    assert ocr_metrics.accuracy("新人報到", "") == 0
+    assert ocr_metrics.accuracy("新人", "新人報到五樓多出很多字") == 0  # Never negative.
+
+
+def test_route_stats_report_seconds_per_page():
+    pages = [ingest.Page(1, "text_pdf", "a", 0.01), ingest.Page(2, "ocr", "b", 1.2), ingest.Page(3, "ocr", "c", 0.8)]
+    stats = ocr_metrics.route_stats(pages)
+    assert stats["ocr"] == {"pages": 2, "seconds": 2.0, "per_page": 1.0}
+    assert stats["text_pdf"]["pages"] == 1
