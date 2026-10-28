@@ -135,13 +135,16 @@ function startWater(canvas: HTMLCanvasElement, sprayCanvas: HTMLCanvasElement): 
   if (typeof WebGLRenderingContext === 'undefined') return null;
   const gl = canvas.getContext('webgl', { antialias: false, premultipliedAlpha: false });
   const sctx = sprayCanvas.getContext('2d');
-  if (!gl || !sctx) return null;
-  const vs = gl.createShader(gl.VERTEX_SHADER)!, fs = gl.createShader(gl.FRAGMENT_SHADER)!;
+  if (!gl || !sctx || gl.isContextLost()) return null;
+  const vs = gl.createShader(gl.VERTEX_SHADER), fs = gl.createShader(gl.FRAGMENT_SHADER), prog = gl.createProgram(), buffer = gl.createBuffer();
+  if (!vs || !fs || !prog || !buffer) return null;
   gl.shaderSource(vs, 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0., 1.); }'); gl.compileShader(vs);
   gl.shaderSource(fs, FRAGMENT); gl.compileShader(fs);
-  if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) return null;
-  const prog = gl.createProgram()!; gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog); gl.useProgram(prog);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+  // A GPU that cannot build the shader keeps the gradient background and skips the departure wait.
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { gl.deleteProgram(prog); gl.deleteShader(vs); gl.deleteShader(fs); gl.deleteBuffer(buffer); return null; }
+  gl.useProgram(prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   const U = Object.fromEntries(['uRes', 'uDpr', 'uTime', 'uPart', 'uSurge', 'uGap', 'uRip'].map(k => [k, gl.getUniformLocation(prog, k)]));
@@ -212,7 +215,8 @@ function startWater(canvas: HTMLCanvasElement, sprayCanvas: HTMLCanvasElement): 
       rip.set([x, H - y, now(), amp], slot * 4); slot = (slot + 1) % 6;
     },
     part() { part = { from: 0, to: 1, t0: now(), dur: PART_MS / 1000 }; if (reduce) draw(now()); },
-    stop() { waterActive = false; cancelAnimationFrame(raf); removeEventListener('resize', resize); gl!.getExtension('WEBGL_lose_context')?.loseContext(); },
+    // The context itself stays: StrictMode re-runs this effect on the same canvas, and a lost context cannot be reused.
+    stop() { waterActive = false; cancelAnimationFrame(raf); removeEventListener('resize', resize); gl!.deleteProgram(prog); gl!.deleteShader(vs); gl!.deleteShader(fs); gl!.deleteBuffer(buffer); },
   };
 }
 

@@ -1085,14 +1085,14 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .water-login label { display: grid; gap: 7px; font-size: 15px; color: #3D3A35; letter-spacing: .4px; }
 .water-login .wl-field { position: relative; overflow: hidden; border-radius: 11px; background: rgba(255,255,255,.94); border: 1px solid rgba(28,27,25,.10); box-shadow: inset 0 1px 2px rgba(28,27,25,.05); transition: border-color .25s, box-shadow .25s; isolation: isolate; }
 .water-login .wl-field::before { content: ""; position: absolute; left: -10%; right: -10%; bottom: 0; height: 100%; z-index: -1; background: linear-gradient(to top, rgba(31,95,91,.08), rgba(31,95,91,.015)); border-radius: 45% 55% 0 0 / 14px 14px 0 0; transform: translateY(100%); transition: transform .7s cubic-bezier(.2,.8,.2,1); }
-.water-login .wl-field:focus-within { border-color: rgba(31,95,91,.8); box-shadow: inset 0 1px 2px rgba(28,27,25,.04), 0 0 0 4px rgba(31,95,91,.12); }
+.water-login .wl-field:focus-within { border-color: rgba(31,95,91,.8); box-shadow: inset 0 1px 2px rgba(28,27,25,.04), 0 0 0 4px rgba(31,95,91,.3); }
 .water-login .wl-field:focus-within::before { transform: translateY(30%); animation: wl-lap 3.4s ease-in-out infinite alternate; }
 @keyframes wl-lap { from { border-radius: 45% 55% 0 0 / 14px 14px 0 0; } to { border-radius: 58% 42% 0 0 / 10px 16px 0 0; } }
 .water-login .wl-field input { display: block; width: 100%; min-height: 50px; margin: 0; padding: 10px 15px; font: inherit; font-size: 17px; color: #1C1B19; border: 0; border-radius: 0; background: transparent; box-shadow: none; outline: none; }
 .water-login .wl-submit { position: relative; overflow: hidden; width: 100%; min-height: 54px; margin-top: 10px; border-radius: 11px; border: 0; background: linear-gradient(180deg, #276C67, #1B524E); color: #fff; font: inherit; font-size: 18px; font-weight: 600; letter-spacing: 4px; text-align: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(0,0,0,.15), 0 14px 28px -14px rgba(11,42,41,.9); cursor: pointer; transition: filter .2s, transform .15s; }
 .water-login .wl-submit::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.18) 50%, transparent 65%); transform: translateX(-120%); transition: transform .9s ease; }
 .water-login .wl-submit:hover:not(:disabled)::after { transform: translateX(120%); }
-.water-login .wl-submit:hover:not(:disabled) { filter: brightness(1.06); }
+.water-login .wl-submit:hover:not(:disabled) { filter: brightness(1.06); background: linear-gradient(180deg, #276C67, #1B524E); border-color: transparent; color: #fff; }
 .water-login .wl-submit:active:not(:disabled) { transform: translateY(1px); }
 .water-login .wl-submit:focus-visible { outline: 3px solid #1F5F5B; outline-offset: 3px; }
 .water-login .wl-submit:disabled { cursor: progress; opacity: 1; }
