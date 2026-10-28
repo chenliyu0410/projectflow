@@ -1,8 +1,15 @@
 FROM python:3.13-slim
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-COPY api/requirements.lock ./requirements.lock
+COPY api/requirements.lock api/requirements-ocr.lock ./
 RUN pip install --no-cache-dir -r requirements.lock
+# OCR is optional: opencv needs libGL/glib on slim images. Models are mounted at runtime, never baked in.
+ARG WITH_OCR=false
+RUN if [ "$WITH_OCR" = "true" ]; then \
+      apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 \
+      && rm -rf /var/lib/apt/lists/* \
+      && pip install --no-cache-dir -r requirements-ocr.lock; \
+    fi
 COPY api/app ./app
 COPY api/alembic.ini ./alembic.ini
 COPY api/alembic ./alembic

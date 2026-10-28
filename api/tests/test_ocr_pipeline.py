@@ -136,3 +136,16 @@ def test_a_line_final_dot_after_chinese_is_a_full_stop():
     assert ocr.normalize("請準時報到·") == "請準時報到。"
     assert ocr.normalize("新人·報到") == "新人，報到"  # Existing rule between characters is kept.
     assert ocr.normalize("v1.2 ·") == "v1.2 ·"  # Only after Chinese text.
+
+
+def test_ocr_switch_works_outside_acceptance_mode(monkeypatch, tmp_path):
+    (tmp_path / ocr.MODEL).write_bytes(b"model")
+    (tmp_path / ocr.KEYS).write_text("keys", encoding="utf-8")
+    monkeypatch.delenv("PF_ACCEPTANCE_MODE", raising=False)
+    monkeypatch.delenv("PF_AI_OCR", raising=False)
+    monkeypatch.setenv("PF_AI_OCR_MODEL_DIR", str(tmp_path))
+    assert not ocr.enabled()  # Off by default, so existing deployments do not change.
+    monkeypatch.setenv("PF_AI_OCR", "true")
+    assert ocr.enabled()
+    monkeypatch.setenv("PF_AI_OCR_MODEL_DIR", str(tmp_path / "missing"))
+    assert not ocr.enabled()  # A missing model folder turns OCR off instead of failing.

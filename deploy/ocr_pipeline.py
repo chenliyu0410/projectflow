@@ -81,7 +81,7 @@ def main():
     parser.add_argument('--compare-preprocess', action='store_true')
     args = parser.parse_args()
     if args.models:
-        os.environ['PF_ACCEPTANCE_MODE'] = 'true'  # The OCR switch is only honoured in isolated runs.
+        os.environ['PF_AI_OCR'] = 'true'
         os.environ['PF_AI_OCR_MODEL_DIR'] = str(args.models.resolve())
     print('OCR', 'on' if ocr.enabled() else 'off (images and scanned pages are skipped)')
     files = sorted(p for p in args.folder.iterdir()

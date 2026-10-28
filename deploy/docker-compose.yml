@@ -17,6 +17,8 @@ services:
     build:
       context: ..
       dockerfile: deploy/api.Dockerfile
+      args:
+        WITH_OCR: ${PF_AI_OCR:-false}
     environment:
       DATABASE_URL: postgresql://projectflow:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}@db:5432/projectflow
       PF_SHOWCASE_MODE: ${PF_SHOWCASE_MODE:-false}
@@ -26,9 +28,12 @@ services:
       PF_ATTACHMENT_ROOT: ${PF_ATTACHMENT_ROOT:-/var/lib/projectflow-files}
       PF_ATTACHMENT_QUOTA_BYTES: ${PF_ATTACHMENT_QUOTA_BYTES:-1000000000}
       PF_AI_ROOT: /var/lib/projectflow-ai
+      PF_AI_OCR: ${PF_AI_OCR:-false}
+      PF_AI_OCR_MODEL_DIR: /opt/ocr-models
     volumes:
       - files:/var/lib/projectflow-files
       - ai_data:/var/lib/projectflow-ai
+      - ${PF_OCR_MODELS_HOST:-./ocr-models}:/opt/ocr-models:ro
     ports:
       - '127.0.0.1:${API_PORT:-18000}:8000'
     depends_on:

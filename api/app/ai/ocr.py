@@ -1,4 +1,4 @@
-"""Local OCR for isolated previews: RapidOCR with the Traditional Chinese recognition model.
+"""Local OCR: RapidOCR on CPU with the Traditional Chinese recognition model; nothing leaves the machine.
 
 The OCR packages are optional (api/requirements-ocr.txt) and are imported only when OCR is enabled.
 """
@@ -26,8 +26,8 @@ class OCRError(ValueError):
 
 
 def model_dir():
-    if os.environ.get("PF_ACCEPTANCE_MODE") != "true":
-        return None
+    if os.environ.get("PF_AI_OCR") != "true" and os.environ.get("PF_ACCEPTANCE_MODE") != "true":
+        return None  # OCR stays off unless switched on explicitly (any deployment) or in isolated acceptance runs.
     value = os.environ.get("PF_AI_OCR_MODEL_DIR", "").strip()
     if not value:
         return None
