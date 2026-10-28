@@ -992,8 +992,8 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 **COPILOT-SIMPLIFY新增（2026-10-28，審查記錄，皆不阻塞）**
 - COPILOT-SIMPLIFY-m1（minor，OPEN）：E2E `ai-starter.spec.ts`、`ai-local-model.spec.ts` 拿掉 TRAIN-10 專案範圍後，「新人課程目前哪天上？」可能撈到機密文件，使「資料等級：內部」斷言失敗；未在驗收環境實跑。不穩時改用 `page.request` 驗分級。
 - COPILOT-SIMPLIFY-m2（minor，OPEN）：`ai-auto-history.spec.ts` 拿掉正式文件歷史段落開啟與「歷史版本，請勿當作現行規定」的畫面驗證，目前只有 Vitest 覆蓋；可用正式文件分類的歷史快捷題補一條 E2E。
-- COPILOT-SIMPLIFY-m3（minor，OPEN，需人類：否）：`docs/ai-demo-questions.md:20,25,30,47,67,76` 仍寫選「AI資料集／查詢方式／分析種類」、勾「包含歷史版本」，應改成「點分類→點快捷題」；不在本次允許清單。
-- COPILOT-SIMPLIFY-m4（minor，OPEN）：`api/app/ai/service.py:56,58` SQL 無法辨識時提示「請選擇分析種類」「請從分析選單選擇查詢」，選單已移除，應改成「請點下方快捷題或換個問法」；後端檔不在本次允許清單。
+- COPILOT-SIMPLIFY-m3（minor，FIXED 2026-10-28，人類「修掉」；示範腳本改為點分類／快捷題，D15改為在正式文件分類輸入後於⚙預覽，未限定專案、未實跑）：`docs/ai-demo-questions.md:20,25,30,47,67,76` 仍寫選「AI資料集／查詢方式／分析種類」、勾「包含歷史版本」，應改成「點分類→點快捷題」；不在本次允許清單。
+- COPILOT-SIMPLIFY-m4（minor，FIXED 2026-10-28；兩句提示改為「請點下方快捷題…」，模型建議句的「上方公司／AI專案範圍」改為「目前公司可見的AI專案範圍」；新增`test_sql_guidance_points_to_shortcuts_not_removed_menus`先RED後GREEN，AI相關後端204 pass／2 skip，15173實測建議句已更新）：`api/app/ai/service.py:56,58` SQL 無法辨識時提示「請選擇分析種類」「請從分析選單選擇查詢」，選單已移除，應改成「請點下方快捷題或換個問法」；後端檔不在本次允許清單。
 - COPILOT-SIMPLIFY-m5（trivial，OPEN）：`CopilotPanel.tsx` 快捷題專案以標題開頭比對取第一個；跑過正式文件 E2E 的環境有「隔離索引展示 …」「增量索引展示 …」測試專案，可能對到測試專案。展示環境不受影響；可改為優先完全相符或比對「（虛構）」。
 
 **OPS-LOCAL新增（2026-10-28）**
