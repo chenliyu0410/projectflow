@@ -147,6 +147,16 @@ def test_model_sql_can_only_choose_catalog_id(installed,monkeypatch):
         assert db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]==4
 
 
+def test_sql_guidance_points_to_shortcuts_not_removed_menus(installed,monkeypatch):
+    # The copilot no longer has an analysis menu; unsupported and failed recognition point to its shortcut questions.
+    model.save('food',dict(enabled=True,base_url='http://127.0.0.1:11434',model='test'))
+    monkeypatch.setattr(model,'chat',lambda *args: (_ for _ in ()).throw(TimeoutError()))
+    with closing(store.connect('food')) as db:
+        result=service.ask(db,'food','admin','幫我看看','sql')
+    for text in [result['answer'],result['warning']]:
+        assert '快捷題' in text and '選單' not in text and '分析種類' not in text
+
+
 def test_natural_language_exact_aliases_and_model_suggestion_need_explicit_choice(installed,monkeypatch):
     for q in store.catalog(): assert service.infer(q['label'])==q['query_id']
     assert service.infer('請問各部門有幾件逾期任務？')=='q02'

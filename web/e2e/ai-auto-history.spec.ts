@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openSettings, openSources } from './copilot';
+import { chooseCategory, openAdvanced } from './copilot';
 
 test.use(process.platform === 'win32' ? { channel: 'msedge' } : {});
 
@@ -41,39 +41,19 @@ for (const width of [1280, 375]) test(`automatic index and historical citations 
   expect((await page.request.get(`/api/ai/documents/${old.document_id}?dataset=formal-v1`)).status()).toBe(404);
   await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const panel = page.getByLabel('AI 專案副手', { exact: true });
-  await openSettings(panel);
-  await panel.getByLabel('AI資料集').selectOption('formal-v1');
-  await openSettings(panel);
-  await panel.getByLabel('查詢專案').selectOption(project.id);
-  await openSettings(panel);
-  await expect(panel.getByLabel('包含歷史版本')).not.toBeChecked();
-  await openSettings(panel);
-  await panel.getByLabel('包含歷史版本').check();
+  // Typed questions search current versions of every visible project; history is covered through the API above.
+  await chooseCategory(panel, '正式文件');
   await panel.getByLabel('詢問 AI').fill('新人報到');
+  await openAdvanced(panel);
   await panel.getByRole('button', { name: '預覽提供給模型的資料' }).click();
-  await expect(panel.getByLabel('模型資料預覽', { exact: true })).toContainText('歷史版本');
-  await panel.getByRole('button', { name: '送出 AI 問題' }).click();
-  const oldSource = panel.locator('.ai-sources details').filter({ has: page.locator('summary', { hasText: '第1版／第1段（歷史版本）' }) });
-  await openSources(panel);
-  await oldSource.locator('summary').click();
-  await oldSource.getByRole('button', { name: '開啟索引段落：報到地點版本說明.txt／1' }).click();
-  await expect(panel.getByLabel('引用原文')).toContainText('三樓');
-  await expect(panel.getByLabel('引用原文')).toContainText('歷史版本，請勿當作現行規定');
-  // Allow subpixel rounding at the scroll boundary (Edge reports ~0.999 on 375px).
-  await expect(panel.getByLabel('引用原文').getByText('第1版・歷史版本，請勿當作現行規定')).toBeInViewport({ ratio: 0.99 });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  expect(await panel.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
-  await page.screenshot({ path: info.outputPath(`auto-history-${width}.png`), fullPage: true });
-  await openSettings(panel);
-  await panel.getByLabel('包含歷史版本').uncheck();
-  await expect(panel.locator('.copilot-message')).toHaveCount(0);
-  await expect(panel.getByLabel('引用原文')).toHaveCount(0);
-  await panel.getByLabel('詢問 AI').fill('新人報到');
+  await expect(panel.getByLabel('模型資料預覽', { exact: true })).not.toContainText('歷史版本，請勿當作現行規定');
   await panel.getByRole('button', { name: '送出 AI 問題' }).click();
   await expect(panel.locator('.ai-sources')).toContainText('第2版');
   await expect(panel.locator('.ai-sources')).not.toContainText('歷史版本');
-  await openSettings(panel);
-  await panel.getByLabel('AI資料集').selectOption('starter-v1');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await panel.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath(`auto-history-${width}.png`), fullPage: true });
+  await chooseCategory(panel, '新人報到');
   await expect(panel.locator('.copilot-message')).toHaveCount(0);
   await expect(panel).toContainText('23 份可見文件');
   expect(errors).toEqual([]);
