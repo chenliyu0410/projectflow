@@ -1,0 +1,21 @@
+[
+  {"id": "D01", "login": "yu", "dataset": "starter-v1", "question": "新人課程目前什麼時候、在哪裡上？", "must_contain": ["10月28日|10-28", "B會議室"], "must_not_contain": ["10月27日上課"], "point": "回答現行版本，來源可展開。"},
+  {"id": "D02", "login": "yu", "dataset": "starter-v1", "include_history": true, "question": "新人課程原本哪天？為什麼改期？", "must_contain": ["10月27日|10-27", "講師"], "point": "勾選「包含歷史版本」才會用舊版，回答區分原訂與現行。"},
+  {"id": "D03", "login": "yu", "dataset": "starter-v1", "question": "李小晴的月薪是多少？", "kind": "refuse", "point": "資料沒有就拒答，不猜測。"},
+  {"id": "D04", "login": "yu", "dataset": "starter-v1", "question": "只有2位新人，為什麼做20份歡迎包？", "must_contain": ["18"], "point": "跨文件說明原因：2份給新人、18份備用。"},
+  {"id": "D05", "login": "yu", "dataset": "starter-v1", "question": "給新同事用的電腦弄好了沒？", "must_contain": ["1台|一台"], "sources_include": ["WO-001"], "point": "換句話說：問題沒有「筆電」「新人」，關鍵字找不到筆電工單，語意檢索找到了。"},
+  {"id": "D06", "login": "yu", "dataset": "starter-v1", "question": "迎新禮物準備到哪裡了？", "must_contain": ["18", "20|2份|2張|兩份|兩張"], "point": "換句話說：「迎新禮物」對應到歡迎包。"},
+  {"id": "D07", "login": "yu", "dataset": "starter-v1", "mode": "work_orders", "question": "列出全部未完成工單", "must_contain": ["6張", "WO-006", "逾期1天"], "point": "完整工單清單由系統規則產生，不靠模型摘要，不會漏列。"},
+  {"id": "D08", "login": "yu", "dataset": "starter-v1", "question": "人資訓練預算草案金額是多少？", "must_contain": ["12,000|12000", "草案"], "point": "管理者看得到人資限定文件，回答標明草案、未核准。"},
+  {"id": "D09", "login": "ming", "dataset": "starter-v1", "question": "人資訓練預算草案金額是多少？", "kind": "refuse", "must_not_contain": ["12,000", "12000"], "sources_exclude": ["PDF-006"], "point": "一般成員問同一題：看不到人資文件，也不會透露金額。"},
+  {"id": "D10", "login": "elaine", "company": "electronics", "dataset": "starter-v1", "question": "新人課程什麼時候上？", "must_contain": ["10月29日|10-29"], "sources_only": ["MAIL-004"], "point": "另一家公司只看到自己的文件（峰曜科技10月29日），不會混入毛研食品。"},
+  {"id": "D11", "login": "yu", "dataset": "formal-v1", "project_title": "增量索引展示", "question": "新人報到地點在哪一樓？", "must_contain": ["五樓"], "must_not_contain": ["三樓"], "point": "正式文件與附件：預設只查現行第2版。"},
+  {"id": "D12", "login": "yu", "dataset": "formal-v1", "project_title": "增量索引展示", "include_history": true, "question": "新人報到地點原本和現在分別在哪一樓？", "must_contain": ["三樓", "五樓"], "point": "勾選歷史版本：舊版三樓、現行五樓。"},
+  {"id": "D13", "login": "yu", "dataset": "formal-v1", "project_title": "隔離索引展示", "question": "設備申請流程怎麼做？", "must_contain": ["人資", "資訊"], "source_type": "attachment", "point": "來源是上傳的附件，引用可開啟原段落。"},
+  {"id": "D20", "login": "yu", "dataset": "formal-v1", "project_title": "OCR 示範", "question": "新人報到要先去哪裡換證？", "must_contain": ["警衛室"], "point": "答案來自圖片公告：OCR 把圖片裡的字變成可搜尋的文字。"},
+  {"id": "D21", "login": "yu", "dataset": "formal-v1", "project_title": "OCR 示範", "question": "投影機預定什麼時候歸還？", "must_contain": ["10月29日|10-29"], "point": "答案來自只有影像的掃描 PDF；來源段落標示 OCR 辨識、可能有錯字。"},
+  {"id": "D22", "login": "yu", "dataset": "dataset-v1", "mode": "sql", "question": "各部門逾期未完成數", "must_contain": ["各部門逾期未完成數"], "point": "Text-to-SQL：固定分析，畫面顯示表格與實際執行的 SQL；模型不寫 SQL。"},
+  {"id": "D23", "login": "yu", "dataset": "dataset-v1", "mode": "sql", "question": "請問有哪些專案超支？", "must_contain": ["超支專案及超支金額"], "point": "口語問法也對應到同一種分析，結果是資料庫實際計算。"},
+  {"id": "D24", "login": "yu", "dataset": "dataset-v1", "question": "現行交付需要幾張截圖？", "must_contain": ["4張|4 張|四張"], "must_not_contain": ["2張|兩張"], "sources_include": ["food-SPEC-2"], "sources_exclude": ["food-SPEC-1"], "point": "原有展示資料的文件問答：只用現行版交付規範。"},
+  {"id": "D25", "login": "ming", "dataset": "dataset-v1", "kind": "refuse", "question": "犬用凍乾零食的成本報告超支多少？", "must_not_contain": ["220,000", "220000", "22萬"], "sources_exclude": ["food-COST-1"], "point": "一般成員看不到成本報告，不出現金額；Text-to-SQL 選項也停用。"}
+]

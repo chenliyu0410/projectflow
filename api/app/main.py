@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 
 from app.routes import collaboration, notifications, report_fields, ai, rag, documents, operations, operation_links, inventory, purchasing, production
+from app.routes import collaboration, notifications, report_fields, ai, documents, doc_templates, accounts, operations, operation_links, inventory, purchasing, production
 from app.routes import audit_logs, auth, departments, projects, reports, workflows, workspace, records, collaborators, attachments, dependencies, conditions
 
 
@@ -57,6 +58,13 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
                 yield
         else:
             with worker_lifecycle():
+        from app.ai.index_worker import running
+        if os.environ.get("PF_ATTACHMENT_ROOT"):
+            from app.services.attachment_store import storage_root, runtime_lock
+            with runtime_lock(storage_root()), running():
+                yield
+        else:
+            with running():
                 yield
 
     # 公開試用時不要把完整 API 清單送給任何人；開發要看再設 PF_API_DOCS=true。
@@ -67,6 +75,8 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     application.include_router(ai.router)
     application.include_router(rag.router)
     application.include_router(documents.router)
+    application.include_router(doc_templates.router)
+    application.include_router(accounts.router)
     application.include_router(operations.router)
     application.include_router(operation_links.router)
     application.include_router(inventory.router)

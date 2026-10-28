@@ -1,4 +1,5 @@
 import hashlib
+from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -41,6 +42,16 @@ def test_document_versions_persist_with_history_and_audit(client, engine):
     with Session(engine) as db:
         assert db.scalar(select(AttachmentQuota.charged_bytes)) == len(b'original') + len('新版內容'.encode())
         assert len(db.scalars(select(AuditLog).where(AuditLog.action == 'document.version')).all()) == 2
+
+
+def test_version_times_are_explicit_utc(client, engine):
+    # SQLite drops the offset on storage; without it browsers read UTC as local time (8 hours early in Taiwan).
+    nid, _, _ = setup(client, engine)
+    before = datetime.now(timezone.utc)
+    doc = upload(client, nid).json()['document_id']
+    created = datetime.fromisoformat(client.get(f'/documents/{doc}/versions').json()['items'][0]['created_at'])
+    assert created.utcoffset() == timedelta(0)
+    assert abs(created - before) < timedelta(minutes=1)
 
 
 def test_conflict_preserves_history_and_rejects_stale_upload(client, engine, files):

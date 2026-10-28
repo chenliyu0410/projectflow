@@ -1,0 +1,12 @@
+{"question_id": "P01", "question": "識別證什麼時候會做好？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["WO-002"]}
+{"question_id": "P02", "question": "第一天上班要幾點到公司？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["MAIL-002", "PDF-001", "MTG-001"]}
+{"question_id": "P03", "question": "給新同事用的電腦弄好了沒？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["WO-001"]}
+{"question_id": "P04", "question": "上課用的投影機能不能用？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["WO-004"]}
+{"question_id": "P05", "question": "身體不舒服沒辦法來公司要怎麼辦？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["PDF-002"]}
+{"question_id": "P06", "question": "跟公司借的機器想晚幾天還要找誰？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["PDF-003"]}
+{"question_id": "P07", "question": "迎新禮物準備到哪裡了？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["WO-007", "MTG-004", "PDF-005"]}
+{"question_id": "P08", "question": "還有幾張卡片沒送到？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["MAIL-003", "WO-008"]}
+{"question_id": "P09", "question": "練習用的登入帳密弄好沒？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["WO-006"]}
+{"question_id": "P10", "question": "上課點名單是誰負責？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["WO-005"]}
+{"question_id": "P11", "question": "新人訓練為什麼換了時間？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["MTG-003", "MAIL-001"]}
+{"question_id": "P12", "question": "到職前要核對的那張清單現在卡在哪？", "company_id": "food", "role": "employee", "include_history": false, "acceptable_source_ids": ["WO-003"]}

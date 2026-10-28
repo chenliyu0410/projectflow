@@ -18,6 +18,8 @@ class UserOut(BaseModel):
     username: str
     display_name: str
     role: str
+    # Present only while a temporary password is in use, so the usual login body is unchanged.
+    must_change_password: bool | None = None
 
 
 class OrganizationOut(BaseModel):

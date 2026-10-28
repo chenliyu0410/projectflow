@@ -1,6 +1,6 @@
 export type Role = 'admin' | 'project_owner' | 'reviewer' | 'member' | 'readonly';
 export type NodeStatus = 'todo' | 'doing' | 'review' | 'done' | 'skipped';
-export interface User { id: string; username: string; display_name: string; role: Role | string; }
+export interface User { id: string; username: string; display_name: string; role: Role | string; must_change_password?: boolean; }
 export interface Organization { id: string; key: string; name: string; }
 export interface SessionInfo { user: User; organization: Organization; showcase?: { active: boolean; companies: { key: string; name: string; industry: string }[] }; }
 export interface ProjectSummary { id: string; title: string; organization_key: string; owner_user_id: string | null; }
@@ -23,7 +23,7 @@ export interface DeleteResult { undo_id: string; project_id: string; parent_id: 
 export interface UndoResult { action: 'node.create' | 'node.delete' | 'node.move' | 'node.copy' | 'template.apply'; project_id: string; node_id: string; parent_id: string | null; }
 export interface GateItem { id: string; project_id: string; node_id: string; status: 'pending' | 'approved'; }
 export interface ProjectDetail extends ProjectSummary { owner_display_name?:string|null; collaborators?:{user_id:string|null;department_id:string|null;display_name:string}[]; nodes: NodeItem[]; gates: GateItem[]; capabilities: { create_node: boolean }; }
-export type WorkspaceRoute = { page: 'overview' | 'my-tasks' | 'reviews' | 'audit' | 'workflows' | 'operations' | 'governance' } | { page: 'project'; projectId: string | null; nodeId: string | null };
+export type WorkspaceRoute = { page: 'overview' | 'my-tasks' | 'reviews' | 'audit' | 'workflows' | 'operations' | 'governance' | 'accounts' } | { page: 'project'; projectId: string | null; nodeId: string | null };
 export interface WorkflowSummary { kind?: "workflow" | "task"; version?: number; phase_count?: number; task_count?: number; phase_titles?: string[]; id: string; name: string; requires_start_date?: boolean; capabilities?: { edit: boolean; copy: boolean; delete?: boolean }; }
 export interface AssignmentOptions { users: { id: string; display_name: string }[]; departments: { id: string; name: string }[]; }
 export interface NodeMetadata { title: string; owner_user_id: string | null; department_id: string | null; start_date: string | null; due_date: string | null; }

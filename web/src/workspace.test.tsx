@@ -355,6 +355,9 @@ describe('UI3 Demo home pages', () => {
     expect(copilot.getByRole('button', { name: '管理與設定' })).toBeEnabled();
     expect(copilot.getByRole('button', { name: '送出正式文件問題' })).toBeDisabled();
     expect(copilot.getByLabelText('正式文件問題')).toBeEnabled();
+    // Actions wait for data; closing the panel and opening its settings (to pick another dataset) stay available.
+    for (const button of copilot.getAllByRole('button').filter(item => item.getAttribute('aria-label') !== '關閉 AI 副手' && item.getAttribute('aria-controls') !== 'copilot-settings')) expect(button).toBeDisabled();
+    expect(copilot.getByLabelText('詢問 AI')).toBeEnabled();
     const toggle = screen.getByRole('button', { name: '切換 AI 副手' });
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     fireEvent.keyDown(document, { key: 'Escape' });

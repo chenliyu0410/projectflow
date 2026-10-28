@@ -1,0 +1,27 @@
+{
+ "as_of": "2026-10-11",
+ "counts": {
+  "counts": {
+   "companies": 6,
+   "documents": 78,
+   "expenses": 120,
+   "notes": 180,
+   "people": 60,
+   "projects": 24,
+   "purchase_orders": 144,
+   "quality_checks": 72,
+   "risks": 36,
+   "suppliers": 24,
+   "tasks": 360
+  }
+ },
+ "dataset": "dataset-v1",
+ "files": {
+  "evaluation/expected.json": "fbf5b5e57dce949ae3a129630879aca9473d5633052b93fbd6f13387de9740aa",
+  "evaluation/sql_questions.jsonl": "2c0a558ced2040e0c07d59c5fd7205915209318e4b7bf18a4c28577f9dd978a0",
+  "projectflow_demo.sqlite": "7f13146eca7c434bab17e4393249c26a7b9570067244277ce9a202d0bdafb56e",
+  "rag/documents.jsonl": "3fe0411937db78e2ec11479835fb22c4826cb40a49154b58f80f5971ac63b439"
+ },
+ "generator": "deploy/ai-demo-data/generate.py",
+ "synthetic": true
+}

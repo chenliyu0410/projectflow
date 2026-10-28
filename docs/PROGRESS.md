@@ -24,6 +24,17 @@
 | 認領中 | 無；RAG-V1已交付本機，等待人類試用。 |
 | 阻塞／待人類 | 待人類：外部網路實測兩個公開網址；公開試用期間密碼`demo-<帳號>`可推得，用完請停止；8443本地共用版沒有登入，任何拿到網址的人都能修改或重置資料；PR #3列出的後續UI／UX建議待人類檢視。 |
 | 遠端 | 依D50發布main，push後核對遠端SHA；不force。PR #3已合併。 |
+| 目前工作項目 | **PORTABLE＋AI-DEMO-DATA 🟢 待人類第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR、乾淨展示資料與重建的「原有展示資料」Text-to-SQL，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
+| 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
+| 下一個動作 | 待人類：用repo外`output/portable/ProjectFlow-Portable-20261024.zip`在另一台電腦照[檢查表](../deploy/portable/另一台電腦檢查表.md)做第三層驗證；決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
+| 分支 | `main`。2026-10-27 依人類指示把`feature/rag-starter-import`（58個commit，到`72e0d8d`）`--ff-only`合併進main，並推上origin main，PR #6 隨之合併。 |
+| 最新程式 commit | ACCOUNTS（本筆）；DOC-TEMPLATE `012ec59`。 |
+| 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
+| 測試基準 | ACCOUNTS：後端全量（不含需本地模型的test_ai_local_model）766 pass、15 skip（需專用PostgreSQL）、1 fail；該fail為`test_child_creation_matrix`，原因是DOC-TEMPLATE新增資料表後舊資料包（revision 0019）匯入找不到新表檔案，已修`demo_pack.import_pack`只匯入資料包列出的表，重跑matrix＋demo_pack 3 pass。帳號相關API 12 pass；前端Vitest全量34檔330 pass（一次偶發1 fail重跑通過）、build exit0；Playwright帳號3＋樣板4＋文件2 pass（1280／375，隔離SQLite升到`20261024_0021`）。既有`health.spec`在SQLite環境3 fail：readiness只認PostgreSQL（環境限制）；另2項卡在「進入階段：小量試作」按鈕停用，為PHASE-CARDS（10/13，只開放進行中階段）後測試未更新的既有問題，與本次無關、未修。AI題庫基準不變。 |
+| 資料版本 | 新增migration `20261024_0021`（users加status、must_change_password、last_login_at、password_changed_at，舊帳號維持啟用）與 `20261024_0020`（3張樣板表＋document_versions兩個可為空欄位；只新增，降級遇資料拒絕）。新依賴docxtpl 0.20.2（＋Jinja2、lxml、python-docx）已鎖版。AI隔離索引INDEX_VERSION仍為3；OCR模型在repo外。 |
+| 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
+| 阻塞／待人類 | 人類試用簽核：2026-10-24 人類表示「簽核都沒問題了」（依repo外`output/專流試用簽核重點.html`的10段重點，以本機SQLite一鍵啟動版`output/projectflow-local/start-projectflow.bat`試用；人類表示不匯出簽核表）。限制：此環境沒有本地模型，AI問答段沒有在本機實測；mvp-trial-checklist逐項勾選未由AI代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
+| 遠端 | 2026-10-24 依人類「github可以推」推上 `origin/feature/rag-starter-import`；同日DOC-TEMPLATE `012ec59` 依人類「Push feature/rag-starter-import to GitHub (branch only, no merge or PR)」再推一次；同日ACCOUNTS `e9b2db6`（含試用簽核紀錄與帳號規格）依人類同樣指示再推（只推分支，未合併main、未開PR、未部署）；同日TEMPLATE-TRIAL與PORTABLE（含本筆紀錄）依人類同樣指示再推，可攜包壓縮檔在repo外、不在git；同日AI-DEMO-DATA（含`deploy/ai-demo-data/pack`）依人類同樣指示再推；同日COPILOT-LAYOUT兩輪版面調整依人類同樣指示再推；同日COPILOT-SCENARIOS示範情境選單依人類同樣指示再推。mina201199的兩個遠端分支依決定暫不處理。 |
 
 ---
 
@@ -116,6 +127,51 @@
 - PITCH-DECK 🟢 本機交付（2026-10-21）：人類要求企業老闆／主管提案PPT，涵蓋企業痛點、風險急迫感與價值貢獻。已完成14頁／約10分鐘、逐頁講稿、可編輯文字與4張原生表格，位於`artifacts/pitch-2026-10-21/output/專流_ProjectFlow_企業主管提案.pptx`；深色商務視覺與AI生成封面意象。以README §2／§6／§8為事實來源，AI展示／ERP未串接／部署試用級明確標示，24人×15分鐘×220天等效益數字明列情境假設。14頁逐頁渲染目視；PPTX結構、版面、字型與重新匯入均pass、0 findings／0 warnings；一次獨立內容審查無阻擋，採納標題前提與工時說法修正。只改簡報交付檔與本看板，未跑產品測試、未以原生PowerPoint驗證、未部署或推送；REVIEW-FIX原排程維持。
 
 - REVIEW-FIX 🔍：人類2026-10-20先要求檢視專案「有要再修正或補齊的地方嗎」，Claude做唯讀審查（兩位子代理分別審後端與前端，主代理回原始碼核對前幾項）並條列約40項；人類指示「全部開始修，可以同時進行的就直接開分支」，故依檔案範圍拆成四個平行session、各自worktree分支（D2例外，人類指示平行），各分支不改PROGRESS／README以免衝突，短計畫與結果寫在`docs/superpowers/plans/2026-10-20-{api-security,api-correctness,ci-tests,web-fixes}.md`。**api-security**（`4fffaba`）：cookie依HTTPS加Secure、AI模型設定改用不可偽造的本機判斷、寫入請求統一Origin／Sec-Fetch-Site檢查、非開發環境關閉OpenAPI文件、nginx安全標頭、`verify_password`用雜湊記錄的rounds、帳號不存在時跑假雜湊消除時間差、AI SQL逾時改回可理解訊息。**api-correctness**（`fa3af45`）：engine依URL快取、階段狀態採人類2026-10-20選定的規則A（階段可直接改review／skipped但子節點須全部done／skipped，否則409；專案根節點不能用PATCH改skipped／review）、同一請求共用授權資料（送出略過申請342–482ms→89–117ms）、GET改不加鎖讀取、稽核SQL分頁。**ci-tests**（`8797a66`）：新增`.github/workflows/ci.yml`（API SQLite、專用PostgreSQL 14個測試、web），`test_migrations`路徑不依賴cwd、`test_health`補11個邊界案例、web依賴升patch；Playwright E2E未納入CI。**web-fixes**（至`5471b5c`）：回報草稿不再被其他紀錄儲存清空、API逾時釋放鎖、節點／時程日期表單未存離開提醒、副手跨導覽保留對話、預覽頁lazy載入（主bundle 587→489kB）、Escape與tab無障礙、捲軸量測節流、下載URL延後釋放、待辦搜尋debounce、未開始空階段可新增第一個任務等。整合：`feature/review-fixes`由main依序`--no-ff`合併四個分支（web只合到`5471b5c`，其後3個UX commit留待另開PR），兩兩合併無衝突。整合測試：API全量716pass／14skip exit0（14個為專用PG，ci-tests在Linux容器實跑全過）；Vitest 35檔332pass、build（含tsc）exit0，無>500kB警告。未做：真瀏覽器E2E、實際Funnel驗證、GitHub Actions實際執行（push後確認）。遺留（不阻塞）：cookie不分埠號只能靠獨立主機名稱解決；`operation_links` GET仍加鎖；Windows上PG races受`msvcrt.locking`影響；`tree.test.tsx`高負載可能逾時；Starlette httpx棄用警告建議另案。
+- REVIEW-FIX 🔍：人類2026-10-20先要求檢視專案「有要再修正或補齊的地方嗎」，Claude做唯讀審查（兩位子代理分別審後端與前端，主代理回原始碼核對前幾項）並條列約40項；人類指示「全部開始修，可以同時進行的就直接開分支」，故依檔案範圍拆成四個平行session、各自worktree分支（D2例外，人類指示平行），各分支不改PROGRESS／README以免衝突，短計畫與結果寫在`docs/superpowers/plans/2026-10-20-{api-security,api-correctness,ci-tests,web-fixes}.md`。**api-security**（`4fffaba`）：cookie依HTTPS加Secure、AI模型設定改用不可偽造的本機判斷、寫入請求統一Origin／Sec-Fetch-Site檢查、非開發環境關閉OpenAPI文件、nginx安全標頭、`verify_password`用雜湊記錄的rounds、帳號不存在時跑假雜湊消除時間差、AI SQL逾時改回可理解訊息。**api-correctness**（`fa3af45`）：engine依URL快取、階段狀態採人類2026-10-20選定的規則A（階段可直接改review／skipped但子節點須全部done／skipped，否則409；專案根節點不能用PATCH改skipped／review）、同一請求共用授權資料（送出略過申請342–482ms→89–117ms）、GET改不加鎖讀取、稽核SQL分頁。**ci-tests**（`8797a66`）：新增`.github/workflows/ci.yml`（API SQLite、專用PostgreSQL 14個測試、web），`test_migrations`路徑不依賴cwd、`test_health`補11個邊界案例、web依賴升patch；Playwright E2E未納入CI。**web-fixes**（至`5471b5c`）：回報草稿不再被其他紀錄儲存清空、API逾時釋放鎖、節點／時程日期表單未存離開提醒、副手跨導覽保留對話、預覽頁lazy載入（主bundle 587→489kB）、Escape與tab無障礙、捲軸量測節流、下載URL延後釋放、待辦搜尋debounce、未開始空階段可新增第一個任務等。整合：`feature/review-fixes`由main依序`--no-ff`合併四個分支（web只合到`5471b5c`，其後3個UX commit留待另開PR），兩兩合併無衝突。整合測試：API全量716pass／14skip exit0（14個為專用PG，ci-tests在Linux容器實跑全過）；Vitest 35檔332pass、build（含tsc）exit0，無>500kB警告。未做：真瀏覽器E2E、實際Funnel驗證、GitHub Actions實際執行（push後確認）。遺留（不阻塞）：cookie不分埠號只能靠獨立主機名稱解決；`operation_links` GET仍加鎖；Windows上PG races受`msvcrt.locking`影響；`tree.test.tsx`高負載可能逾時；Starlette httpx棄用警告建議另案。2026-10-27 GitHub回報PR #4與main衝突（main新增59個commit，含ACCOUNTS、AI閘道、可攜包等）：在暫存worktree合併`origin/main`解衝突——`auth.py`登入改用main的`account_service`（已含假雜湊與失敗紀錄），保留本PR的Secure cookie；`ai.py`採main新介面並保留`local_request`與AI SQL錯誤處理（`can_set_policy`一併改用`local_request`）；前端保留預覽頁lazy載入、AIGovernance，副手保留main新功能並補回401登出與舊原文請求中止，AI長請求（ask／preview／refreshIndex）給180秒逾時。
+
+- COPILOT-SCENARIOS 🟢 已併入可攜包（2026-10-24）：人類問「不同的情境可以有不同的示範問題讓使用者選嗎」，看過方案後指示「照方案做示範情境選單，做完測試並重新打包可攜包」。新增`web/src/components/copilotScenarios.ts`（題目取自示範腳本）：副手設定區最上方「示範情境」選單，選了自動切好資料集、查詢方式、歷史版本，並在資料載入後依標題選好專案；列出該情境的題目（空白時在對話區、對話後在輸入框上方）。7個可自動的情境（新人報到、改期與歷史版本、未完成工單、正式文件現行／新舊對照／附件、OCR、Text-to-SQL、交付與成本文件）加2個「示範步驟」提示卡（換帳號看權限、AI政策與遮罩）。毛研食品以外的公司只列出有資料的情境（Text-to-SQL、交付規範文件）。手動改設定時情境回到「自行設定」。測試：新增2項先RED後GREEN；Vitest 34檔333 pass（一次`returns.test`偶發失敗，單獨重跑3次與全量重跑皆pass）、tsc exit0；15176實測選OCR情境自動切到正式文件與「OCR 示範（虛構）」，點題目答「一樓警衛室」。
+
+- COPILOT-LAYOUT 🟢 已併入可攜包（2026-10-24）：人類表示AI助手「現在有點複雜，看不清楚答案跟問題」，看過前後對照圖後指示「照右邊的方案做，做完重新打包可攜包」。實測原版面：設定區約450px、對話區只剩120px（桌面面板整體捲動且對話區`flex: 1 0 120px`）。改為：設定收成一行「資料集・查詢方式・專案」，第一次回答後自動收合、可再展開；問題靠右色塊、答案15px卡片；來源收成「來源 N 份」、處理紀錄維持可展開；建議問題在空白時列在對話區、對話後變成輸入框上方一排；預覽改為輸入框下方的小連結。只改`CopilotPanel.tsx`與`styles.css`，欄位名稱與功能不變。測試：新增版面測試先RED後GREEN；`workspace.test`改為允許「查詢設定」按鈕在無資料時可用（刻意的行為改變）；Vitest 34檔331 pass、tsc exit0；E2E加`e2e/copilot.ts`輔助（展開設定、展開來源），對15176跑`ai-local-model` 1280／375 pass；`ai-starter`失敗為既有問題（10/23 `ed9bce5`改了快捷問題文字但該spec停在10/20，且假設無模型），本次未修；其他AI E2E依賴已遺失的原始144專案資料，無法在此環境執行。第二輪（人類：「還是有很多空間被浪費了，盡量讓重點對話能看清楚」）：標題與設定摘要併成一行、「預覽」改為輸入列內的小按鈕、回答下方的處理方式／來源／處理紀錄並排一行、內距與間距縮小、建議問題列變細、桌面面板寬520→640px。1024×768實測：對話區455→589px、單行回答卡125→75px；375px：標題30px一行、對話區645px、無水平捲動。Vitest 331 pass、tsc exit0、`ai-local-model` 1280／375再跑pass。另：包上一次示範題D05在剛啟動、模型未載入時答得過短（「沒有。」），重問5次皆完整，屬偶發。
+
+- AI-DEMO-DATA 🟢 已併入可攜包（2026-10-24）：完成`deploy/ai-demo-data/`（`generate.py`固定種子產生器、`verify.py`、`pack/`進git：6公司×4專案、1,050筆、78份文件、336KB），`build_seed.py`以正式匯入器匯入並對6家都啟用本機模型，示範題新增D22–D25。驗證見§7。一次獨立唯讀審查：初審無阻擋、3項應修（重產比對受SQLite版本影響、reviewer／readonly看不到文件、隔離版跑示範題會因D22中斷）＋3項輕微，全部修正後複核Ready。偏離：允許清單外改了`deploy/check_demo_questions.py`（隔離版略過D22–D25，可攜包不略過）與檢查表。產品程式未改。背景：人類要求可攜包含Text-to-SQL，但原始`ai-demo-data`（10/11產生、144專案）不在git、這台電腦與其Docker都找不到（Docker無任何專流volume），人類表示「另一台拿不到」，指示「先寫一份短規格：重新產生一份較小的虛構資料給 16 種分析用，給我確認後再做」。[短規格與計畫](superpowers/plans/2026-10-24-ai-demo-data.md)人類回覆「4 項都照建議：照規格做、資料量照寫的、資料包進 git、新增 4 題示範題」。順帶發現：副手預設選「原有展示資料」，資料不存在時一打開就顯示「資料尚未就緒」。
+
+- PORTABLE 🟢 第一、二層驗證通過，待人類第三層（2026-10-24）：人類指示「之後要包成一包，放在別人的電腦上跑」；[短規格與計畫](superpowers/plans/2026-10-24-portable.md)人類回覆「7 項都照建議」（照規格做、只支援Windows、只綁127.0.0.1、從空資料庫重建、含OCR、第三層由人類找電腦測、可用python-build-standalone）。完成：`deploy/portable/`（`serve.py`單一回環程序提供網頁與`/api`並明確執行API lifespan、`build_seed.py`從空資料庫重建乾淨資料、啟動／停止／還原腳本、`build.py`打包與掃描、使用說明、授權說明、[另一台電腦檢查表](../deploy/portable/另一台電腦檢查表.md)）。產物在repo外`output/portable/ProjectFlow-Portable-20261024/`與同名.zip（約7GB）。驗證見§7。一次獨立唯讀審查：初審Not ready（OCR缺VC++執行階段、serve.py會解析UNC路徑、繼承OLLAMA_*等），修正後複核Ready。AI代決與偏離：模型改在打包時建好放入包內（規格原寫第一次啟動時建立），GGUF核對SHA-256、Modelfile照驗收版（含`TEMPLATE {{ .Prompt }}`）；允許清單外改了`deploy/check_demo_questions.py`（多允許15190/api）並新增檢查表；`start.ps1`加`PF_PORTABLE_NO_BROWSER`供自動測試不開瀏覽器。已知限制：正式文件索引的變更判斷含檔案建立時間與OCR模型修改時間（`api/app/ai/formal_index.py`、`ocr.py`），解壓後第一次啟動與每次還原都會重建索引（實測約5秒、含OCR）；改它要動產品程式，未改。未push。
+
+- TEMPLATE-TRIAL 🟢 小修（2026-10-24）：人類指示「加入三份樣板測試」並「修正：按產生文件時被擋下的錯誤訊息要出現在使用者看得到的位置」。15176隔離版另建專案「文件樣板試用（虛構）」，三份樣板各產生一份：必填擋下（前端與API 422）、編號MTG-2026-001／Q-2026-1024-01／WO-001、報價小計3,970、稅198.5進位199、總計4,169，Word內容核對一致。修正：`DocTemplateFill`表單顯示時錯誤訊息改放在「產生文件」按鈕正上方（原在表單頂端，捲到底按時在畫面外約600px）。驗證見§7。未push。
+
+- ACCOUNTS 🟢 隔離交付（2026-10-24）：人類核准[短規格](superpowers/plans/2026-10-24-accounts.md)（照規格做、「不用鎖」、公開時自動關閉示範密碼），並說「照你的建議繼續做下去，不用停下來問我」。完成：帳號與密碼頁（管理者新增／改角色／停用與啟用／重設密碼；臨時密碼只顯示一次、無易混字元，首次登入強制改密碼；每人可改自己的密碼）、停用即登出、至少保留一位管理者、`*.ts.net`公開入口或`PF_DISABLE_DEMO_PASSWORDS=true`拒絕`demo-`密碼、同一來源＋同一帳號一分鐘失敗20次暫停（不鎖帳號）。一次獨立唯讀審查：初審Not ready（nginx後所有人共用位址，按位址限流會讓任何人擋住全公司），改為位址＋帳號並修最後管理者競態、帳號是否存在的時間差、重複帳號500；複核Ready。審查提醒：公開入口上有人持續猜某一帳號，可讓該帳號暫時無法從公開網址登入（本機不受影響）。驗證見▶現在。偏離：允許清單外改了NavIcons.tsx、types.ts、WorkspaceShell.tsx（新導覽頁）、AuditLogView.tsx（事件名稱）、`api/app/demo_pack.py`（修DOC-TEMPLATE造成的舊資料包匯入回歸）。未push／合併／部署。
+
+- DOC-TEMPLATE 🟢 隔離交付（2026-10-24）：人類核准[短規格與計畫](superpowers/plans/2026-10-24-doc-templates.md)四項（照規格做、只開管理者、可加docxtpl、沿用AI分支），AI代決細節記在該文件末。完成：樣板庫（上傳.docx掃描代號、欄位設定、編號格式、稅率與進位、換檔改版、停用／刪除、三份虛構範例）、文件分頁「用樣板建立」（必填擋下、自動欄位、明細即時計算）、產生Word存成文件版本、「修改內容重新產生」新版本、稽核只記欄位名稱。一次獨立唯讀審查：初審Not ready（XML屬性／孤立頁首可夾帶Jinja、字元參照`&#123;`繞過），已改為檢查lxml正規化後每個XML部分並加5個測試，兩輪複核Ready；非阻擋：刪除樣板不退容量、產生失敗會跳號、還原版本不保留樣板關聯。驗證見▶現在。偏離：允許清單外改了App.tsx（掛樣板庫）與AuditLogView.tsx（事件中文名稱）；因主checkout停在舊main且有他人未提交文件，改用worktree `../projectflow-rag`開發。正式Docker／PostgreSQL未實測、未push／合併／部署。
+
+- TIME-FIX 🟢 隔離交付（2026-10-23）：人類指示「A03跟S01繼續修」。依[短計畫](superpowers/plans/2026-10-23-time-fix.md)：改前先凍結第三份獨立題庫`51544c5`；檢索前中文時間轉HH:MM、question_times入模型內容、時間區間與是非題規則、未記載回答無引用也轉固定拒答。結果含誤判與無法比較的限制如實記錄。未push／合併／部署。
+
+- REFUSAL-FIX 🟢 隔離交付（2026-10-23）：人類指示「先改善過度拒答」。依[短計畫](superpowers/plans/2026-10-23-refusal-fix.md)：改提示前先凍結第二份獨立題庫`08637eb`並只看總分基準；以開發題庫調整：等價規則、移除「未記載也拒答」句、伺服器把開頭即「資料未記載」的回答轉固定拒答、他公司規則（點名他公司且可見來源未提及時不呼叫模型）。結果與退步（S01）如實記錄。未push／合併／部署。
+
+- HOLDOUT-EVAL 🟢 隔離交付（2026-10-23）：人類指示「繼續做獨立題庫」。依[短計畫](superpowers/plans/2026-10-23-holdout-eval.md)：只依教材原文另寫43題（措辭不沿用開發題庫）＋`deploy/check_holdout.py`自動評分；**第一次執行前commit凍結**`4f4bf9d`，執行後git diff為空。首輪37/43，結果與限制（開發者撰寫、非第三方盲測；自動判定非完整語意評分）如實記錄；本輪不改提示，避免題庫被污染。
+
+- OCR 🟢 隔離交付（2026-10-23）：人類指示「繼續做OCR」，選RapidOCR套件；預設簡體模型把繁體認成簡體或漏字，人類同意（「可以繼續」）改下載RapidAI官方繁中辨識模型（ModelScope，SHA-256核對）。依[短計畫](superpowers/plans/2026-10-23-ocr.md)：圖片與無文字層PDF頁OCR、低信心行丟棄與整份略過、OCR標示與信心、像素／頁數上限、OCR開關或模型變更自動重解析、OCR套件另列不進正式主依賴。示範題加D20／D21。驗證見▶現在。未push／合併／部署。
+
+- CLASSIFY-MASK 🟢 隔離交付（2026-10-23）：人類指示「繼續做資料分級與遮罩」（README F9／§8.5）。依[短計畫](superpowers/plans/2026-10-23-classification-masking.md)：公司→專案→節點→文件繼承、只能更嚴格（放寬回422）、公司預設機密（AI代決：沿用原本未分級從嚴）；規則遮罩（比例、金額、電話、Email、合作夥伴名）與還原；政策三選一但無雲端供應商、任何政策都不送出（AI代決：混合與允許雲端都遮罩內部內容）；含機密整題只限本地；預覽列遮罩後雲端內容；真實「AI政策與稽核」頁（非隔離時維持原示意）；AI稽核查詢。延後：雲端供應商、欄位級分級、本地小模型偵測、正式PG資料表。驗證見▶現在。未push／合併／部署。
+
+- VECTOR-RETRIEVAL 🟢 隔離交付（2026-10-23）：人類指示「要有可以示範查詢的題目，並繼續把這份架構完成」，選README架構圖的「向量檢索」並同意下載本地embedding模型。依[短計畫](superpowers/plans/2026-10-23-vector-retrieval.md)：bge-m3（隔離Ollama，雙模型常駐）、入門文件向量側檔、正式索引向量表（增量／補齊／換模型重算）、關鍵字前3名保留＋RRF補足、向量只在已授權候選中計分、失敗退回關鍵字並標示。純RRF使Q10退步（retrieval-1）已撤回。新增[示範題目](ai-demo-questions.md)、`deploy/check_demo_questions.py`、`deploy/check_retrieval.py`與換句話說題庫；副手快捷鈕改用示範題。驗證見▶現在。未push／合併／部署。
+
+- LOCAL-MODEL-POLISH 🟢 隔離交付（2026-10-23）：人類指示「先不要碰（遠端新分支），先把我目前本地的rag分支，審查後繼續完成」。high審查9項；人類選「放得下的先送」修正位元組當token的輸入預算（正式文件4段以上整題降級）。依[短計畫](superpowers/plans/2026-10-23-local-model-polish.md)：字元估算＋依排名送完整段落、`sent_count`與畫面標示、`as_of`入提示、Q09／Q28／Q32措辭；單一來源檔不存在只略過、Windows發布重試、document 503、starter原文依include_history、狀態錯誤自動清除。提示三版比較，第2版退步撤回；Q07仍為已知限制。延後：來源雜湊效能、峰曜一般成員驗收帳號。驗證見▶現在。未push／合併／部署。
+
+- LOCAL-AI-HANDOFF（2026-10-21）：依人類「做好交接檔 commit」整理[本地AI／RAG交接檔](LOCAL_AI_HANDOFF.md)，涵蓋啟動、隔離路徑、程式入口、canonical驗收、三項語意限制及後續工作。僅文件提交；核對路徑與差異，不重跑產品測試、不改執行資料、不push／合併／部署。
+
+- LOCAL-MODEL 🟢 隔離交付（2026-10-21）：依[短規格／計畫](superpowers/plans/2026-10-21-local-model-acceptance.md)完成Qwen3 4B本地串接、嚴格完成／拒答結構、限定引用、版本metadata與真模型驗收。15176／18006／11436新副本。41例與4權限檢查、API57／前端15／Edge2及原資料保留證據見▶現在；三項輕微語意限制留後續，不宣稱完美或獨立測試。未push／合併／正式部署。
+
+- INDEX-INCREMENTAL 🟢 隔離交付（2026-10-21）：依[短計畫](superpowers/plans/2026-10-20-incremental-index.md)完成逐來源變動判斷、未變文字與FTS沿用、刪除清理、無變動零發布、舊格式一次建置及管理者統計。API43pass、前端15pass、build與Edge桌面／手機4pass；獨立審查無實質問題。新incremental副本，原DB／檔案hash不變、30表411筆核對保留。未push／合併／正式部署。
+
+- INDEX-AUTO-HISTORY 🟢 隔離交付（2026-10-20）：依[短計畫](superpowers/plans/2026-10-20-index-auto-history.md)完成10秒背景變動檢查、無變動不重建、失敗保留／重試、現行／歷史選項、引用與模型資料版本警語、即時權限。新auto-history隔離副本，原DB／檔案hash不變。相關API／前端／Edge證據見▶現在；獨立審查P2已修並複核。不push／合併／正式部署。
+
+- FORMAL-INDEX 🟢 隔離交付（2026-10-20）：依[短規格／計畫](superpowers/plans/2026-10-20-formal-document-index.md)完成正式文件／附件手動索引、TXT／CSV／文字PDF／DOCX／XLSX解析、最新版本／即時權限、分段引用與機密預覽。另複製隔離DB及獨立檔案區，原資料hash與30表81筆原資料核對保留。API79pass及審查修正後相關8pass、前端316pass、build與新舊資料集Edge4pass；獨立審查P2已修並複核。僅本機分支交付，未合併／推送／正式部署。
+
+- AI-GATEWAY-LOCAL 🟢 隔離交付（2026-10-20）：人類授權繼續後續工作，按[本地閘道短計畫](superpowers/plans/2026-10-20-ai-gateway-local.md)完成模型統一出口、教材分級、零模型預覽與摘要稽核，程式`c964f97`。API25pass、前端全量314pass／最後相關11pass、tsc/build及桌面／手機2pass、32題來源／權限評測無退步，獨立審查與複核無實質問題。只隔離交付，正式繼承／遮罩／雲端／向量索引留後續。
+
+- RAG-STARTER 🟢 隔離交付（2026-10-20）：人類授權接續匯入後續工作，並指定假資料改用現有公司。依[短規格／計畫](superpowers/plans/2026-10-20-rag-starter-import.md)，改成毛研食品／峰曜科技，新增獨立starter-v1資料集、PDF文字解析、搜尋與來源、新舊版本及完整工單查詢。舊AI資料與正式DB保留；人資限定資料暫限admin。已在repo外獨立AI區匯入24份並完成17項API、前端全量311及最後相關9項、桌面／手機2項驗證；32題來源／權限驗證通過，模型答案品質未測。使用者確認Docker仍出錯，先交付15175隔離SQLite版；未匯入正式環境、未push／合併。
+
+- RAG-SAMPLE（2026-10-20，獨立素材交付，非產品功能完成）：依人類要求產生一般人資易讀的RAG假資料與尚未完成工作清單。產物位於repo外的`../output/projectflow-rag-starter-20261020/`：6份會議紀錄、8份工單、4份通知／郵件、6份中文PDF，共24份文件；另附32題預期問答、來源與權限metadata、SHA-256、ZIP及系統待辦盤點。情境為新人報到、教育訓練與歡迎包，含舊版／新版、人資限定與跨公司隔離案例。以本機main `3c1294e`的README／看板／AI文件與匯入程式盤點；現有文字RAG已實作，AI閘道與正式文件索引仍待完成。本包不是既有`app.ai.import_cli`契約，需另外轉接及隔離驗證。24份來源、32題引用／公司／角色／指定證據片段與6份單頁PDF完整中文擷取檢查通過；6頁已渲染目視確認。未匯入系統、未改產品程式／正式資料、未跑RAG模型評測或產品回歸，未部署／提交／推送。
 
 - DOCS-CLEAN ✅：人類2026-10-20指示同步git、整理本地內容、把已完成的進度從README移除並精簡、依目前進度更新架構圖，確認後再push。fetch後origin沒有新commit，本機main領先1個（`d3fc44e` OPS-PUBLIC紀錄）。README（1045→約810行）刪除頂部逐次交付公告、協作者分支段、目前進度表與UI／TP逐段說明、Demo功能總覽；改為目前狀態、快速開始（本機／給別人試用／自動驗收／單檔Demo）、正式版功能總覽、§8只列正式版還沒做的項目；§3–§5規格保留，§9「已決定」修正前端（實際未用dnd-kit／React Flow）與文件編輯兩列。架構圖改為正式版現況：web／api／db容器、files與ai_data volume已完成，區網與Tailscale試用、AI副手與Ollama為試用級，內網HTTPS、AI閘道、pgvector待建置，備份／NAS、ERP／AD、雲端LLM為外部目標。AGENTS.md文件地圖的README列同步更新。`docs/technical-roadmap.md`（人類本機2026-10-19的技術路線圖，原未追蹤）一併提交，只把一句對話用語改成中性說法。
 
@@ -1181,7 +1237,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | D7 | F11（W4） | F11-T5-m2：被硬性前置擋下時，要不要保留回報草稿。W1 之後更常發生：有硬性前置的葉任務，在回報卡上就看得到醒目的「回報完成」（W1 整體審查的觀察） | 建議把草稿暫存在 `ui`，跳過前置後自動重開回報對話框 | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
 | D8 | F11（W4） | F11-T6-m1：「部分恢復」要怎麼記錄 | 建議補寫稽核紀錄，並新增 `o.restoredNodes` | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
 | D9 | W3 | W3 流程控制的 brainstorming（spec 內容） | 需要人類參與問答，AI 不可以自行定稿 | 已決定 2026-10-05：改照 D31，W3 精簡版由 AI 依 D13 甘特圖起草短版 spec，人類看一次就定稿，不做完整的 brainstorming |
-| D10 | P 軌 | README §9 #5–#14（模型硬體、雲端供應商、預設分級、帳號、通知、協作部門權限、ERP 介面、工單、編碼規則、庫存與採購核准） | 正式導入前再決定。W2 會在 Demo 層級回答 #10（同部門的其他成員看不到） | 待人類 |
+| D10 | P 軌 | README §9 #5–#14（模型硬體、雲端供應商、預設分級、帳號、通知、協作部門權限、ERP 介面、工單、編碼規則、庫存與採購核准） | 正式導入前再決定 | 已決定2026-10-23（人類在簽核台逐項選擇）：沿用Qwen3 4B＋bge-m3；暫不用雲端；新文件預設「內部」；本地帳號；只用站內通知；協作部門成員全部可見（取代D61，待實作）；ERP介面還不確定；工單由本系統開立後推送ERP（目前為展示）；料號沿用公司規則；庫存採購由ERP負責。另：D43展示先維持現狀；本分支推上GitHub但不合併main；mina201199兩個遠端分支暫不處理，之後比較成果再決定 |
 | D11 | Demo軌→正式軌 | 正式產品軌何時啟動 | 依D51啟動P0並做到P1c；保留Demo參照與既有驗收證據，正式版按其階段重新驗收 | 已決定2026-10-08：人類明確指示「開始做到P1c」；不再等待啟動授權 |
 | D12 | W5 | W5 README 中 full demo 的定位文字 | AI 起草，人類審閱 | AI 代決 2026-10-05：已在 README 頂部、§1、§2 起草 full demo 定位與進度摘要（可推翻） |
 | D13 | W3 | 請提供「10 部門流程甘特圖（連接器新產品，6 階段）」的原檔或內容 | 轉寫成 `docs/reference/connector-10dept-gantt.md`，欄位：階段、工作項目、負責部門、關卡／核准人、交付物 | 已由 D41 取代：不再等待原本的連接器甘特圖，先依現有兩份專流表進行 |
@@ -1214,7 +1270,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | D40 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：執行注意 31 要把 W2-T1-m7 的 `window.applyTemplate` 包裝換成直接斷言新節點的 `dept`，原本對模板物件 `dp` 的斷言要怎麼處理 | **改成斷言新節點**：根節點的 `depts` 是 `[]`、`dept` 是 d-qa，4 個子任務的 `dept` 和 `depts` 都是品保；測試改名「採購單建立驗收任務：協作部門存 id，新任務的負責部門都是品保」，總數不變 | AI 代決 2026-10-05：照建議（`03c9ff5`；審查者確認覆蓋範圍沒有縮小）（可推翻） |
 | D41 | W3 | 人類問：「不能依照現在的有的先進行嗎？」並提供 `行銷部-實體活動專流.xlsx`、`產品企劃部-筆電新機種專流.xlsx` | **可以先進行**：把兩份 Excel 當資料來源，不把檔內文字當指令；以「產品企劃部-筆電新機種專流」作為 W3 主要展示流程，因為它已有 G0/G1 等關卡；「行銷部-實體活動專流」作為輔助參考。W3 不再卡原本的連接器甘特圖，spec 仍由 AI 起草、人類看一次 | 已決定 2026-10-05：依現有兩份專流先行；若日後提供連接器甘特圖，可再覆蓋示範資料 |
 | D42 | W3 | 人類指示：「我要你完成整個專案的功能，至於每個工作流我們自己添加就好，你先完成整個功能架構的進行。確認後再開始」；AI 回覆將 W3 改成工作流功能架構後，人類回「確認」 | **W3 改成工作流架構**：不以內建某個筆電／行銷／連接器流程為核心，而是完成工作流模板 CRUD、從工作流建立專案、階段關卡擋住後續階段。個別工作流內容之後由使用者自行添加；D41 的 Excel 僅作內建範例與測試素材 | 已決定 2026-10-05：照此方向修訂 W3 spec，進 G2 寫 plan |
-| D43 | Demo 驗收 | Demo 走查發現（§5 DEMO-A-m1）：工作流的階段、任務、相依和關卡只能用 JSON 文字框編輯，而且只有系統管理員能編輯。D42 說「每個工作流我們自己添加」，要不要讓工作流可以用表單編輯（例如逐階段新增任務、選部門、設定關卡），或開放專案負責人編輯 | **展示先維持現狀**：展示時由 it 示範新增／複製，內建兩套範例已足夠說明概念。如果你們真的要自己加很多工作流，建議另排一個小工作項目做表單式編輯器（需要 spec，屬於範圍變更）。另一個選項：現在就排這個工作項目 | 待人類（不擋展示） |
+| D43 | Demo 驗收 | Demo 走查發現（§5 DEMO-A-m1）：工作流的階段、任務、相依和關卡只能用 JSON 文字框編輯，而且只有系統管理員能編輯。D42 說「每個工作流我們自己添加」，要不要讓工作流可以用表單編輯（例如逐階段新增任務、選部門、設定關卡），或開放專案負責人編輯 | **展示先維持現狀**：展示時由 it 示範新增／複製，內建兩套範例已足夠說明概念。如果你們真的要自己加很多工作流，建議另排一個小工作項目做表單式編輯器（需要 spec，屬於範圍變更）。另一個選項：現在就排這個工作項目 | 已決定2026-10-23：人類選「展示先維持現狀」 |
 | D44 | W6 | 多公司 Demo 的範圍、產業、資料深度、隔離方式、舊資料與附件遷移 | **五個固定、完整隔離的公司空間**：毛研食品、峰曜科技、光點企劃、雲序軟體、築衡工程；採平衡版種子資料與產業化營運模組；成員、部門、權限、專案、工作流、營運資料、稽核與附件皆按公司隔離；v5 舊資料歸入毛研食品；用單一 localStorage key 的 v6 公司容器，不做公司 CRUD 或正式後端多租戶 | 已決定 2026-10-08：人類逐項採用建議並批准完整設計，可寫 written spec |
 | D45 | 全專案（流程） | W6 和目前 `feature/p0-formal-product-plan` 的優先順序 | **先暫停 P0 規劃，優先完成 W6**；保留 P0 的 spec、plan 與 commit，W6 完成後恢復 | 已決定 2026-10-08：人類批准 W6 完整設計時同意此執行順序；P0 分支已保留為 `paused/p0-formal-product-plan` |
 | D46 | W6 執行 | W6 plan 的執行方式 | 由目前 session 依 Task 0–6 直接實作；主 checkout、每 Task TDD 與審查、PROGRESS 為唯一進度來源 | 已決定 2026-10-08：人類選擇「Native execution」，授權開始 W6 plan |
@@ -1372,3 +1428,125 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - 人類明確指示完成後直接 commit and push；本輪審查、驗收、備份及本機更新已完成。
 - 已成功推送 codex/rag-quality-handoff：遠端由 f1d7a8d 前進至程式提交 4db3317。本次僅補推送紀錄，不改產品、不重跑已通過的驗收。
 - 保留其他未提交草稿；未合併 main。本紀錄另提交並推送同一分支，完成後核對遠端 SHA。
+
+### 2026-10-27｜Claude Code（Opus 5.5）｜合併 feature/rag-starter-import 進 main
+
+- **做了什麼**：人類指示「推上GitHub，開PR合併進main」，接著指示「照WORKFLOW G5在本地用--ff-only合併進main，然後push origin main」。先推分支（`ae332ad..72e0d8d`）並開[PR #6](https://github.com/chenliyu0410/projectflow/pull/6)，確認origin/main仍是`3c1294e`、為分支祖先，再`git merge --ff-only`（無merge commit），最後在main做這筆G6收尾並push。
+- **驗證**：合併前完整pytest 804 pass／14 skip、exit 0（見下一筆）。repo沒有設定CI。
+- **沒做的事**：沒有部署；沒有刪除遠端分支；Vitest／E2E與PostgreSQL本輪未重跑。
+
+### 2026-10-27｜Claude Code（Opus 5.5）｜UTC-TIME 修正SQLite時間少8小時
+
+- **做了什麼**：人類直接指示「先修」TEMPLATE-TRIAL發現的時間少8小時。根因：SQLite存`DateTime(timezone=True)`時丟掉時區，讀回是無時區值，`.isoformat()`沒有`+00:00`，瀏覽器當成本地時間。PostgreSQL回傳含時區，不受影響。`models.py`新增`UTCDateTime`（寫入轉UTC、讀回無時區補UTC），43個時間欄位改用它，所以文件版本、通知、稽核、附件等約20處輸出一次修正；`records`／`ai`原有的個別補丁保留（冪等）。`demo_pack.decode`改為先拆`TypeDecorator`再判斷時間欄位。不改schema、不加migration。
+- **驗證**：`test_version_times_are_explicit_utc`先RED（`utcoffset()`為None）再GREEN。完整pytest（從repo根目錄）804 pass／14 skip、exit 0；第一次在`api/`目錄跑有19個相對路徑失敗（alembic script_location、`web/src/progress.vectors.json`），改根目錄後通過，另5個`demo_pack`失敗為本修正引起並已修。15176重啟API後實看：10/27產生的會議紀錄顯示下午2:48:14（原上午6:48），與瀏覽器現在時間一致。
+- **沒做的事**：Vitest／E2E未跑（前端未改）；PostgreSQL未實測（只靠既有含時區行為）；未push。
+- **注意**：pytest要從repo根目錄執行；本機`%TEMP%\pytest-of-User`無權限時加`--basetemp`。
+
+### 2026-10-24｜Claude Code（Opus 5.5）｜AI-DEMO-DATA 重建原有展示資料
+
+- **做了什麼**：人類要可攜包含Text-to-SQL；原始`ai-demo-data`在這台電腦、這台Docker（無任何專流volume）、git都找不到，人類表示另一台拿不到。依核准短規格重建小型虛構版：每家公司照同一劇本（PRJ2超支、S2逾期未交、S3延遲最高、PRJ4不良率最高、PRJ3退回受阻最多、本週到期未完成4筆、至少2批零不良），文件依產業用詞，成本報告只限管理者與專案負責人，其他文件五種角色都可讀。可攜包重新打包（6家都啟用本機模型）。
+- **驗證**：`verify.py`以正式匯入器匯入、6家×16種分析與不經SQL算出的預期結果一致（修正一處：SQLite ROUND是四捨五入，Python round是銀行家捨入）、劇本、權限、時間順序、重產一致（SQLite以內容比對）；新檢查對舊資料包先RED後GREEN。pytest相關19 pass。可攜包解壓到含中文與空白路徑、精簡PATH：示範題19/19（D22／D23規則引擎＋實際SQL、D24只引用現行版「4張」、D25一般成員拒答且無成本來源）；6家管理者副手預設都「就緒」（4專案／13文件）、加權不良率最高皆PRJ4；「上週逾期任務」只給建議不執行；ming的SQL選項停用且API回403；reviewer（chen）與readonly（lin）各看到11份文件（不含2份成本報告）並答「4張」；以上19/19與角色檢查是在最終包（`52b3314`、資料包指紋`8f8cc6c629e1`）上重跑的結果；瀏覽器看到表格（採購10、品保1、研發1）與可展開的SQL。隔離版18006跑示範題：15題通過、D22–D25略過、exit 0。
+- **審查**：一位獨立唯讀審查者，初審3應修3輕微，修正後複核Ready；剩一項輕微（可攜包上不得略過）已修。
+- **沒做的事**：第三層（另一台電腦）待人類；正式Docker未匯入新資料（這台Docker沒有專流環境）；原本144專案資料無法還原；未push。
+- **注意**：資料包內容改變後指紋也變，已匯入舊版`dataset-v1`的環境會拒絕新版；正式環境原本就沒有匯入，不受影響。Docker Desktop在本輪被啟動，仍在執行。
+
+### 2026-10-24｜Claude Code（Opus 5.5）｜PORTABLE 可攜展示包
+
+- **做了什麼**：依核准短規格完成`deploy/portable/`。打包只下載python-build-standalone 3.12.14與鎖版套件；Ollama 0.40.7從本機安裝版複製（不含會自動更新的系統匣程式與`.lnk`）；問答模型由驗收用GGUF（SHA-256 `2fde00…`）以驗收Modelfile重建，與15176內容一致（同權重檔、模板、參數；bge-m3同`daec91…`）。乾淨資料從空資料庫重建：43個專案（資料包39＋AI示範4），索引9份含OCR與向量，無測試殘留。
+- **驗證**：pytest `test_portable.py` 6 pass（UNC路徑先RED後GREEN）；相關回歸28 pass。第一層：zip解壓到含中文與空白的`C:/Users/Public/專流 展示測試/`、PATH只留System32、刻意注入`OLLAMA_KEEP_ALIVE=0`／`CUDA_VISIBLE_DEVICES=-1`／`PYTHONPATH`仍被清除；啟動6秒，兩個服務都綁127.0.0.1且執行檔在包內；15題自動示範題15/15（14題本地模型＋混合檢索、D07規則）；D14–D19以頁面同一API走過（遮罩後雲端內容無原值、不送出）；三份樣板產生、報價3,970／199／4,169；停止無殘留、重啟資料保留、還原回乾淨並保留備份、資料不完整時拒絕啟動且無殘留；API程序的MSVCP140.dll由包內載入。第二層：遮蔽所有顯示卡後ollama記錄`id=cpu`，15/15通過，一題5–22秒（Ryzen 5 9600 6核），共189秒。
+- **審查**：一位獨立唯讀審查者；初審Not ready（VC++執行階段、UNC、環境變數繼承、非原子複製、掃描盲點等），修正後複核Ready；剩授權來源（已加授權說明）與重複停止（無害）兩項輕微。
+- **沒做的事**：第三層（另一台電腦）待人類；`.bat`的`pause`互動只在第一次啟動實跑，其餘以同一`.ps1`驗證；Windows沙箱不可用（Home版）；未改索引變更判斷（見§2已知限制）；未push。`d39ee59`的訊息寫「delivered」但實際只含授權說明，PROGRESS在下一筆commit。
+- **注意**：瀏覽器若先開過15176，同主機cookie會讓15190第一次顯示「登入已失效」，重新登入即可（對方電腦不會發生）。文件版本時間少8小時的問題在包內同樣存在。
+
+### 2026-10-24｜Claude Code（Opus 5.5）｜TEMPLATE-TRIAL 樣板試用與擋下訊息位置
+
+- **做了什麼**：在15176／18006隔離版（SQLite已在`20261024_0021`、樣板表原本為空）以yu在模板庫加入三份範例；另建空白專案「文件樣板試用（虛構）」，避免影響AI驗收用專案，用三份樣板各產生一份文件。修正`web/src/components/DocTemplateFill.tsx`：載入失敗時訊息仍在上方，表單顯示時改放在送出按鈕正上方。
+- **驗證**：必填擋下（會議紀錄、報價單無明細、工單漏「完成條件」）在畫面上都有訊息，直接呼叫API也回422；三份Word以python-docx讀出，欄位、自動帶入、特殊字元`& < {{}}`原樣、SHA-256一致。Vitest先RED（`docTemplates.test.tsx`新增訊息位置斷言）再GREEN；全量34檔330 pass exit0。15176實點：捲到底按「產生文件」，訊息在按鈕正上方、位於畫面內。
+- **沒做的事**：Playwright E2E未重跑（需15175驗收環境；樣板spec以整個區塊找alert，不受位置影響）。375px寬未實測。
+- **注意**：Vite在Windows上一度只套用兩處修改中的第一處（畫面完全沒有訊息），touch檔案後才正常。另發現文件版本時間在SQLite隔離版顯示少8小時（API回傳未帶時區的UTC時間），影響所有文件版本，PostgreSQL未驗證，未修。
+
+### 2026-10-24｜Claude Code（Opus 5.5）｜DOC-TEMPLATE隔離交付
+
+- **做了什麼**：依核准短規格完成文件樣板第一階段。後端`doc_template_service.py`／`routes/doc_templates.py`、migration `20261024_0020`、`document_store.save`可寫入樣板版本與填寫值；前端`DocTemplateLibrary`（模板庫頁，限管理者）、`DocTemplateFill`（文件分頁）；`deploy/demo-templates/`三份範例與產生腳本。
+- **驗證**：見▶現在測試基準。樣板API初跑14pass，審查修正後19pass；E2E修了一個「成功訊息早於切換文件」的畫面時序問題。
+- **審查**：一位獨立唯讀審查者；阻擋項（模板語法藏在屬性、孤立頁首、字元參照）已修並複核Ready。
+- **環境**：本機另建`api/.venv`與`web/node_modules`、安裝Playwright chromium 1248；隔離測試資料在session暫存區，已關閉15177／18007。主checkout `D:\@spin\work_flow\projectflow`（舊main＋他人未提交文件）未動。
+- **未做**：PDF等延後項目；正式Docker／PostgreSQL實跑；push（需人類同意）。
+
+### 2026-10-21｜Codex｜LOCAL-MODEL隔離版
+- **交接補充**：程式已提交`65f42a6`；依人類要求另建[交接檔](LOCAL_AI_HANDOFF.md)並本機commit，集中記錄啟動／驗收／待辦。特別註明repo外output不在Git內、單靠clone無法還原測試環境；本次僅文件檢查，未重跑或變更服務。
+- **完成**：沿用本地閘道，Qwen3-4B-Instruct-2507 Q4_K_M與Ollama0.40.6真生成，實際設定16384、temperature0、think=false、1200輸出。來源含版本／專案metadata；嚴格done與answerable、引用enum與後端驗證，資料不足固定拒答，失敗降級原文。網頁保留答案換行及預覽版本標記。
+- **驗證**：新增初跑5fail／2pass；嚴格欄位審查補測6fail／7pass，修正後相關API57pass、最後模型14pass。前端15pass、型別／build exit0、Edge桌面／手機2pass。新環境79原檔hash一致、30表492原列保留，新增虛構文件容量核對。
+- **模型品質**：交付`answers-delivery.json`41例，37次模型、2次無來源、1次規則工單、1次真斷線，另4權限檢查通過。中位1.828秒。Gemma首輪漏答／錯誤前提與Qwen候選結果保留；未採用的短提示變體有拒答格式退步，已恢復選定提示。一次獨立唯讀審查與複核工程可展示；Q07時態、Q09無據專案關係補述、Q28窗口措辭三項限制明列，非獨立盲測。
+- **交付**：`../output/rag-starter-acceptance/local-model/試用說明.md`與`問答驗收報告.md`，入口15176，yu／demo-yu；啟動器只使用副本，原15175保留。模型原權重SHA256核對一致，載入GPU約5.1GB；無下載新權重。
+- **未做**：正式PG／Docker／多worker／OCR／向量／正式部署，未push或合併。下一步由使用者試用後決定，三項措辭改善及獨立題庫仍待做。
+
+
+### 2026-10-21｜Codex｜INDEX-INCREMENTAL隔離版
+
+- **做了什麼**：`d62e54e`，來源版本signature包含metadata及檔案狀態；相容索引先backup到暫存副本，只修改changed／removed來源列，未變chunk與FTS沿用。新版本不重解析舊版，無變動不發布；管理者可看上次處理／沿用／移除數。首次及舊格式一次建置，只動衍生索引。
+- **驗證**：相關API43pass、前端15pass、tsc/build0、Edge1280／375增量與教材4pass；獨立唯讀審查及純記憶體FTS差異probe無問題。RED與測資調整見▶現在。原auto-history及更早DB／檔案／教材hash不變，原30表411筆核對保留，副本新增quota差額符合新增測試檔。健康200，啟動器沿用正常。
+- **限制**：仍單程序／SQLite／500來源版本，背景掃描metadata，發布前仍複製SQLite檔；不是零複製或大量資料佇列。現行與歷史權限／SHA-256查詢保護不變。未部署正式PG或測真模型。
+- **交付／下一步**：15175／18005使用incremental.sqlite及incremental-files；原資料完整保留。repo外試用說明、啟動器、incremental-preservation.json、verify_incremental_preservation.py、增量索引驗證結果.json及incremental-browser截圖。保留feature分支、本機commit，未push／合併；後續見▶現在。
+
+
+### 2026-10-20｜Codex｜INDEX-AUTO-HISTORY隔離版
+
+- **做了什麼**：`449ddf1`，FastAPI lifespan管理單程序10秒背景檢查，獨立Session只讀來源、變動才原子重建；手動更新保留。DocumentVersion各版本納入，預設現行、歷史明確選入，引用與預覽重新驗權限並標示版本。介面自動更新狀態、切換清理及引用定位。
+- **驗證**：相關API96pass／路由清單1fail後修正健康13pass；暫時讀檔P2先RED再修，索引13pass。前端全量317pass／測試等待1fail後相關15pass，最終tsc/build0；Edge自動／歷史與教材4pass、手動索引2pass，引用捲動另驗。獨立審查及局部複核通過。原DB／檔案／教材hash相同；30表134筆原資料核對，副本quota增加與新增上傳精確相符。
+- **限制／偏離**：三開關與SQLite限定；單程序、500來源版本、變動後全量重建，無PG／多worker／增量或真模型品質驗證。沒有admin公司不自動建置；自動檢查紀錄只在記憶體。健康測試只補前階段漏列的兩個路由，沒有新增路由。手機可見性採99%容差處理子像素誤差。
+- **交付／下一步**：15175／18005使用auto-history.sqlite／auto-history-files；原正式環境及前兩階段隔離資料都保留。repo外試用說明／啟動器、auto-history-preservation.json、verify_auto_history_preservation.py及自動索引與歷史版本驗證結果.json。保留feature分支，本機commit，未merge／push；後續見▶現在。
+
+### 2026-10-20｜Codex｜FORMAL-INDEX隔離版
+
+- **做了什麼**：`9a3801a`正式文件最新版本及可用附件加入獨立formal-v1分段索引，支援五種文字格式、管理者手動更新、原子替換、即時公司／節點權限、來源版本與段落預覽。保留舊教材及查詢功能，未新增migration。
+- **驗證**：相關API79pass，XLSX資源上限審查修正後8pass；前端316pass、tsc/build exit0、真Edge1280／375新舊資料集4pass。獨立唯讀審查與P2複核通過；原DB／教材hash不變，複製版保留原30表81筆資料。健康200、啟動器沿用服務正常。不是LLM品質或正式PG驗收。
+- **限制**：僅雙開關啟用的SQLite隔離環境；最新版本、手動更新、500來源、單檔10MB／20萬字、PDF30頁。無OCR、歷史索引、向量檢索、自動更新或正式部署。已顯示對話不做遠端撤回。
+- **交付／下一步**：15175／18005使用另複製的formal-index.sqlite與formal-index-files；原acceptance.sqlite保留。repo外試用說明、啟動器及正式索引驗證結果.json已更新，截圖在formal-index-browser。保留feature分支、本機commit，未merge／push；後續見▶現在。
+
+### 2026-10-20｜Codex｜AI-GATEWAY-LOCAL隔離版
+
+- **做了什麼**：依人類要求接續AI後續工作，`c964f97`加入本地閘道、教材分級、內容預覽、結果摘要稽核；RAG與SQL辨識統一出口。設定直接改檔仍擋公開IP／cloud模型。一般成員不能預覽人資預算；未知分級從嚴，正式節點分級尚未實作。
+- **驗證**：相關API25pass、前端31檔314pass，最後捲動／勾選框調整後11pass與tsc/build重驗，真Edge1280／375兩條E2E2pass。32題版本／權限通過、29來源29找到；教材SQLite兩公司hash前後不變、入口健康200。獨立唯讀審查及小改複核無實質問題；不是實際LLM品質驗收。
+- **限制**：雲端固定關閉；無遮罩、完整繼承、正式附件索引、向量檢索或真模型。預覽不呼叫模型，只呈現業務資料，不含固定系統指令；正式送出重新查權限。查詢後稽核不記正文，未做送出前持久化或稽核管理頁。Docker仍按先前阻塞處理，未動正式環境。
+- **交付／下一步**：15175／18005保留試用，啟動器與更新說明在`../output/rag-starter-acceptance/`；新證據`閘道驗證結果.json`、`gateway-retrieval-evaluation.json`、`gateway-browser-delivery/`。維持feature分支、本機commit，未merge／push；後續依▶現在繼續。
+
+### 2026-10-20｜Codex｜RAG-STARTER隔離版
+
+- 人類授權新資料改成現有毛研食品／峰曜科技再匯入；後續確認Docker仍出錯，先交付隔離版。
+- `fb9640e`：獨立starter-v1、24份來源、PDF解析、來源引用／歷史版本／完整工單、角色與公司隔離；短計畫及操作文件已保存。
+- 最終證據見「▶ 現在」與repo外`output/rag-starter-acceptance/驗證結果.json`；檢索評估在`output/rag-starter-evaluation.json`。全量前端311pass後最後相關9pass、API17pass、E2E2pass；沒有宣稱模型答案通過。
+- 隔離入口15175，API18005，只使用本次新建SQLite；原資料保留。啟動腳本與PID在`../output/rag-starter-acceptance/`，保持服務供試用。
+- Docker socket改名失敗，沒有完成任何Docker資料修改。待引擎恢復後再備份／整合／部署，保留本機feature分支，未推送。
+
+
+### 2026-10-20｜Claude Code Opus 5.5｜DOCS-CLEAN README精簡與架構圖更新
+- **做了什麼**：同步git（origin無新commit）；README移除交付紀錄並重整為目前狀態／快速開始／功能總覽／規格／未完成路線圖（D82）；重畫`docs/projectflow-system-architecture.svg`為正式版現況；更新AGENTS.md文件地圖；提交人類本機的`docs/technical-roadmap.md`。
+- **驗證**：只改文件。SVG XML解析通過，headless Edge渲染2400×1350目視無重疊；README連結與錨點核對。未跑產品測試。
+- **沒做的事**：§3–§5規格內容未改寫，只修F11儲存位置註記與§5開頭說明；`docs/formal-feature-roadmap.md`等其他文件的歷史段落未整理。
+- **下一步**：方向待人類指示；外部網路實測公開網址仍待人類。
+
+### 2026-10-15｜Claude Code Opus 5.5｜OPS-PUBLIC恢復公開網址
+- **做了什麼**：查出8443（repo外projectflow-local）打不開，是因為`tailscale serve`只限tailnet，而且會移除既有Funnel；已改為Funnel，並修改該資料夾的`start.bat`和README。用`public_trial.py`重新啟動10000正式版試用（容器未重建）；依人類指示在`shell:startup`加入`ProjectFlow 公開試用.lnk`。
+- **驗證**：用公網DoH解析出的Funnel中繼IP直連，8443與10000皆200；用cmd實跑修改後的`start.bat` Tailscale段，exit0且AllowFunnel含8443；捷徑讀回後目標存在。
+- **沒做的事**：沒有登出重登測試捷徑；沒有從真正的外部裝置開畫面；projectflow-local不在git，修改沒有版控。
+- **下一步**：人類用外部網路實測兩個網址；方向待人類指示。
+
+### 2026-10-14｜Claude Code Opus 5.5｜同步PR #3並部署本機
+- **做了什麼**：fetch後把main ff到`28dbecb`（人類合併的PR #3）；用`deploy/public_trial.py`重新部署，維持公開模式；整併合併後重複的▶現在表、補回README網際網路試用說明、PR #3各列🟢改✅。
+- **驗證**：本機與公開health 200；只重建web，API／DB容器未重建；新bundle含PR樣式；127.0.0.1以yu登入看到新專案總覽，無新主控台錯誤，之後登出。
+- **沒做的事**：未重跑Vitest／E2E／API測試（沿用PR #3紀錄）；未刪除遠端`feature/ux-child-modules-navigation`。
+- **下一步**：人類外部網路實測公開網址；方向待人類指示。
+
+### 2026-10-14｜Claude Code Opus 5.5｜PUBLIC-TRIAL交付
+- **做了什麼**：`de8a547`短計畫；`b1e209b` Funnel 10000→nginx 81（只收ts.net Host、標https）、`deploy/docker-compose.public.yml`、`start.py public`、`deploy/public_trial.py`、根目錄`開機自動啟動-公開試用.bat`／`停止公開試用.bat`、`.gitattributes`固定.bat為CRLF；`fa49437`找使用者目錄的Docker Desktop。
+- **驗證**：RED 10fail／17error→73pass exit0；nginx暫存容器與正式部署實測Host過濾；兩個.bat經cmd實跑exit0；公開health 200；資料列數一致、DB容器未重建。唯讀獨立審查Ready。
+- **沒做的事**：沒有替人類把捷徑放進`shell:startup`（持續性系統設定）；沒有在公開網址輸入密碼；內建瀏覽器擋公開網址的JS／CSS，未能親眼看到公開畫面；未跑API全量（API程式未改）。
+- **下一步**：人類用外部網路開公開網址確認畫面與登入，決定是否放開機捷徑；方向待人類指示。
+- **注意**：15173目前是公開模式（Funnel 10000 開著、`PF_SHOWCASE_LAN=true`）。直接執行`deploy/start.py`（含`--lan`）會拿掉15174，公開網址回502；要恢復就再跑啟動器。審查非阻擋：15174被占用時啟動器失敗後要手動`start.py`；X-Forwarded-For覆寫成nginx看到的位址（目前無功能使用訪客IP）。備份在`.superpowers/public-trial/`。
+
+### 2026-10-14｜Codex｜PROJECT-DRAWER PR 更新
+
+使用者確認我的待辦範圍為指派本人或參與協作的未完成任務，並要求開 PR 推送；將已確認互動整合正式前端，沿用 PR #3。資料仍由既有帳號／公司 API 授權，無後端或資料庫變更。固定左側專案區、原生待辦抽屜、相依路徑高亮固定與清除、固定藍色返回及分頁保留已交付。離線 HTML 不納入儲存庫。
+
+驗證與初跑修正見上方測試基準；一次獨立只讀審查與拖線修正複核。紀錄位於 `.superpowers/ux-check/drawer-*.log`，截圖位於 `web/test-results/`。只推送功能分支及更新 PR，不合併 main、不部署。

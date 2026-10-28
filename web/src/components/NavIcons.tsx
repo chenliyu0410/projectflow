@@ -8,6 +8,7 @@ const paths = {
   templates: <><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></>,
   ai: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>,
   audit: <><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/></>,
+  account: <><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></>,
   plus: <path d="M12 5v14M5 12h14"/>,
   send: <path d="M5 12h14M13 6l6 6-6 6"/>,
 };

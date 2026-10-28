@@ -9,6 +9,8 @@ from app.database import get_session
 from app.models import Organization, SessionToken, User
 
 COOKIE_NAME = "pf_session"
+# Kept here (not imported from account_service) to avoid an import cycle.
+PASSWORD_PENDING_PATHS = ('/auth/me', '/auth/logout', '/auth/password')
 SESSION_DAYS = 7
 
 
@@ -36,6 +38,10 @@ def require_session(request: Request, db: Session = Depends(get_session)) -> Cur
     if row is None:
         raise HTTPException(status_code=401, detail="請先登入")
     _, user, organization = row
+    if user.status != 'active':
+        raise HTTPException(status_code=401, detail="請先登入")
+    if user.must_change_password and not request.url.path.endswith(PASSWORD_PENDING_PATHS):
+        raise HTTPException(status_code=403, detail="請先修改臨時密碼")
     from app import showcase
     if showcase.dedicated(user, organization) and (not showcase.enabled() or not showcase.allowed_request(request)):
         raise HTTPException(status_code=401, detail="展示登入已失效")

@@ -1,10 +1,14 @@
 import { childCreationReason } from './child-creation';
 import LinkedOperations from './components/LinkedOperations';
+import AIGovernance from './components/AIGovernance';
 import DocumentManager from './components/DocumentManager';
 import OperationsManager from './components/OperationsManager';
 import TemplateDialogs from './components/TemplateDialogs';
 import Dropdown from './components/Dropdown';
 import WorkflowLibrary from './components/WorkflowLibrary';
+import DocTemplateLibrary from './components/DocTemplateLibrary';
+import AccountManager from './components/AccountManager';
+import ChangePassword from './components/ChangePassword';
 import TimelineView from './components/TimelineView';
 import DependencyPanel from './components/DependencyPanel';
 import ReviewCenter from './components/ReviewCenter';
@@ -27,9 +31,9 @@ import type { LeaveGuards } from './leave-guard';
 const PreviewBoundary = lazy(() => import('./components/PreviewBoundary'));
 const previewLoading = <p role="status">載入展示預覽中</p>;
 const ROLE_LABELS: Record<string, string> = { admin: '系統管理員', project_owner: '專案負責人', reviewer: '階段審核人', member: '成員', readonly: '唯讀' };
-const PAGE_SCOPES: Record<string, string> = { overview: '所有可見專案', 'my-tasks': '我的任務', reviews: '審核中心', workflows: '模板庫', audit: '活動與稽核紀錄', operations: '公司營運資料', governance: 'AI 政策展示預覽' };
+const PAGE_SCOPES: Record<string, string> = { overview: '所有可見專案', 'my-tasks': '我的任務', reviews: '審核中心', workflows: '模板庫', audit: '活動與稽核紀錄', accounts: '帳號與密碼', operations: '公司營運資料', governance: 'AI 政策展示預覽' };
 
-type State = 'checking-session' | 'login' | 'loading' | 'ready' | 'error';
+type State = 'checking-session' | 'login' | 'password' | 'loading' | 'ready' | 'error';
 export default function App() {
   const [state, setState] = useState<State>('checking-session');
   const [switchTarget, setSwitchTarget] = useState('');
@@ -100,6 +104,8 @@ export default function App() {
   async function loadProjects(request: ReturnType<typeof begin>, value: SessionInfo) {
     if (!current(request)) return;
     setLastUndo(null); setNotice(null);
+    // A temporary password must be replaced before any workspace data is requested.
+    if (value.user.must_change_password) { setSession(value); setState('password'); return; }
     setSession(value); setState('loading');
     setProject(null); setRoute({ page: 'overview' });
     try {
@@ -477,6 +483,8 @@ export default function App() {
         <button type="submit" disabled={busy}>{busy ? '登入中' : '登入'}</button>
       </form> : <>
         {session ? <WorkspaceShell key={`${session.organization.id}:${session.user.id}`} route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} copilotScope={copilotScope} food={session.organization.key === 'food'} companyName={session.organization.name} accountName={session.user.display_name}
+      </form> : state === 'password' && session ? <ChangePassword forced done={() => void restore()} expired={clearSession} logout={() => void logout()} /> : <>
+        {session ? <WorkspaceShell key={session.organization.id} route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} copilotScope={copilotScope} food={session.organization.key === 'food'} companyName={session.organization.name} accountName={session.user.display_name}
           headerActions={state === 'ready' && route.page === 'project' && project && canAddNode && <Dropdown key={`${project.id}:${selectedNodeId}`} className="project-actions-menu" name="專案操作" closeOnAction label="新增子節點">
               {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen || closedParent} title={selectedNode?.milestone ? '里程碑不能有子任務，請先取消里程碑' : closedParent ? '不能在已完成、待確認或已略過的節點底下新增' : undefined} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}
               {['admin','project_owner'].includes(session.user.role) && <>
@@ -490,7 +498,7 @@ export default function App() {
         {message && <p role="alert" className={notice?.text === message ? 'notice' : undefined}>{message}
           {notice?.text === message && notice.open && <button type="button" disabled={busy || mutating} onClick={() => { const id = notice.open!; selectNode(id); }}>開啟</button>}
           {notice?.text === message && notice.undo && lastUndo && <button type="button" disabled={busy || mutating} onClick={() => void undoLast()}>復原</button>}</p>}
-        <section aria-label={route.page === 'project' ? '專案' : route.page === 'overview' ? '總覽頁面' : route.page === 'my-tasks' ? '我的任務頁面' : route.page === 'reviews' ? '審核中心頁面' : route.page === 'audit' ? '稽核紀錄頁面' : '模板庫頁面'}>
+        <section aria-label={route.page === 'project' ? '專案' : route.page === 'overview' ? '總覽頁面' : route.page === 'my-tasks' ? '我的任務頁面' : route.page === 'reviews' ? '審核中心頁面' : route.page === 'audit' ? '稽核紀錄頁面' : route.page === 'accounts' ? '帳號與密碼頁面' : '模板庫頁面'}>
           {creationOpen && <form ref={creationForm} tabIndex={-1} className="creation-form" aria-label="建立新專案" onSubmit={event => void createProject(event)}>
             <h2>建立新專案</h2>
             {session?.user.role === 'admin' && <div className="creation-modes" role="group" aria-label="建立方式"><button type="button" aria-pressed={creationMode === 'workflow'} disabled={mutating} onClick={() => void openCreation()}>從模板建立</button><button type="button" aria-pressed={creationMode === 'blank'} disabled={mutating} onClick={() => { setCreationMode('blank'); setMessage(''); }}>空白專案</button></div>}
@@ -509,11 +517,14 @@ export default function App() {
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
           {state === 'ready' && !creationOpen && route.page === 'operations' && !operationsPreview && <OperationsManager key={session.organization.id} expired={expireSession} leaveGuard={documentLeaveGuard} preview={() => setOperationsPreview(true)} />}
-          {state === 'ready' && (route.page === 'governance' || (route.page === 'operations' && operationsPreview)) && <Suspense fallback={previewLoading}><PreviewBoundary initialPage={route.page as 'operations' | 'governance'} companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => route.page === 'operations' ? setOperationsPreview(false) : navigate({ page: 'overview' })} /></Suspense>}
+          {state === 'ready' && route.page === 'operations' && operationsPreview && <Suspense fallback={previewLoading}><PreviewBoundary initialPage="operations" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setOperationsPreview(false)} /></Suspense>}
+          {state === 'ready' && route.page === 'governance' && <AIGovernance key={session.organization.id} expired={expireSession} fallback={<Suspense fallback={previewLoading}><PreviewBoundary initialPage="governance" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => navigate({ page: 'overview' })} /></Suspense>} />}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview showAssignHint={canCreate} openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} createProject={canCreate ? id => void openCreation(id) : undefined} />}
+          {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && session?.user.role === 'admin' && <DocTemplateLibrary key={session.organization.id} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'audit' && <AuditLogView openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
+          {state === 'ready' && route.page === 'accounts' && <><ChangePassword done={() => undefined} expired={expireSession} />{session.user.role === 'admin' && <AccountManager key={session.organization.id} expired={expireSession} />}</>}
           {state === 'ready' && route.page === 'my-tasks' && <MyTasks userName={session.user.display_name} openNode={(projectId, nodeId) => navigate({ page: 'project', projectId, nodeId })} expired={expireSession} />}
           {state==='ready'&&route.page==='project'&&project&&templateDialog&&<TemplateDialogs key={`${project.id}:${selectedNodeId}:${templateDialog}`} mode={templateDialog}
             target={selectedNode&&selectedNode.kind!=='project'?`/nodes/${selectedNode.id}`:`/projects/${project.id}`} title={selectedNode?.title??project.title} projectTarget={!selectedNode||selectedNode.kind==='project'}

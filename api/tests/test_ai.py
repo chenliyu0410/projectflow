@@ -126,12 +126,12 @@ def test_model_context_is_scoped_and_invalid_citations_fall_back(client,installe
     def fake(config,system,prompt,schema):
         context=json.loads(prompt)
         assert [d['document_id'] for d in context['sources']]==['food-current']
-        return {'answer':'需4張截圖','citations':['food-current']}
+        return {'answerable':True,'answer':'需4張截圖','citations':['food-current']}
     monkeypatch.setattr(model,'chat',fake)
     payload={'question':'交付截圖','project_id':'food-P1'}
     r=client.post('/ai/ask',json=payload).json()
     assert r['kind']=='rag' and r['citations']==['food-current']
-    monkeypatch.setattr(model,'chat',lambda *args: {'answer':'其他公司秘密','citations':['electronics-current']})
+    monkeypatch.setattr(model,'chat',lambda *args: {'answerable':True,'answer':'其他公司秘密','citations':['electronics-current']})
     r=client.post('/ai/ask',json=payload).json()
     assert r['kind']=='retrieval' and r['warning'] and '其他公司秘密' not in r['answer']
     monkeypatch.setattr(model,'chat',lambda *args: (_ for _ in ()).throw(TimeoutError()))
@@ -167,7 +167,7 @@ def test_ollama_http_contract_no_proxy_redirect_and_json_validation(installed,mo
         body=json.loads(request.content)
         assert body['stream'] is False and body['format']['type']=='object'
         assert body['messages'][0]['role']=='system'
-        return httpx.Response(200,json={'message':{'content':json.dumps({'answer':'4張','citations':['d1']})}})
+        return httpx.Response(200,json={'done':True,'done_reason':'stop','message':{'content':json.dumps({'answerable':True,'answer':'4張','citations':['d1']})}})
     def client(**kwargs):
         assert kwargs['trust_env'] is False and kwargs['follow_redirects'] is False
         return original(transport=httpx.MockTransport(transport),**kwargs)
