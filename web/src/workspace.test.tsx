@@ -349,8 +349,12 @@ describe('UI3 Demo home pages', () => {
     render(<App />);
     fireEvent.click(await screen.findByRole('button', {name:'切換 AI 副手'}));
     const copilot = within(await screen.findByRole('complementary', { name: 'AI 專案副手' }));
-    expect(copilot.getByText('模型未啟用・檢索與資料查詢可用')).toBeInTheDocument();
+    expect(copilot.getByLabelText('正式文件問答')).toBeInTheDocument();
+    expect(copilot.getByLabelText('查詢範圍')).toHaveValue('');
     expect(copilot.getByText(/目前位置：所有可見專案/)).toBeInTheDocument();
+    expect(copilot.getByRole('button', { name: '管理與設定' })).toBeEnabled();
+    expect(copilot.getByRole('button', { name: '送出正式文件問題' })).toBeDisabled();
+    expect(copilot.getByLabelText('正式文件問題')).toBeEnabled();
     // Actions wait for data; closing the panel and opening its settings (to pick another dataset) stay available.
     for (const button of copilot.getAllByRole('button').filter(item => item.getAttribute('aria-label') !== '關閉 AI 副手' && item.getAttribute('aria-controls') !== 'copilot-settings')) expect(button).toBeDisabled();
     expect(copilot.getByLabelText('詢問 AI')).toBeEnabled();

@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-22",
+  "scope": "Existing local service restarted without rebuild; quality candidate NOT deployed.",
+  "business_counts": {
+    "organizations": 6,
+    "users": 80,
+    "projects": 41,
+    "nodes": 502,
+    "documents": 11,
+    "document_versions": 12
+  },
+  "protected_entries_unchanged": 36,
+  "unexpected_changes": [],
+  "attachment_files_unchanged": 13,
+  "rag_indexes_unchanged": true,
+  "sessions_excluded": "Authentication sessions may change during login/logout; no session contents published.",
+  "backup_manifest": {
+    "backup_readable": true,
+    "files": {
+      "before.dump": "1f253ad90789f1acd48b9f6b4af4cae7e5c9e491013f36d8b4afec3740644eef",
+      "before-storage.tar": "4b32b02bdaad769af8ee9b8b158c2009e50d9d35a4e769dd8a375d1606144842"
+    }
+  }
+}

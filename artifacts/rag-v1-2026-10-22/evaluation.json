@@ -1,0 +1,2482 @@
+{
+  "mode": "isolated_actual_model",
+  "synthetic": true,
+  "generation_model": "qwen2.5-coder:7b",
+  "embedding_model": "bge-m3:latest",
+  "total": 20,
+  "automatic_passed": 18,
+  "version_checks": {
+    "old_version_excluded_before_reindex": true
+  },
+  "cases": [
+    {
+      "id": "Q01",
+      "question": "專案代號是什麼？",
+      "expected_answer": "PF-RAG-2611。",
+      "answer": "專案代號是 PF-RAG-2611。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 24396,
+      "sources": [
+        {
+          "source_id": "3fafe8ee-aa06-44b0-b9e0-5fbab17feb18",
+          "chunk_id": "3fafe8ee-aa06-44b0-b9e0-5fbab17feb18",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質 | 專案代號 | 里程碑代碼 | 里程碑 | 計畫日期 | 負責人 | 前提",
+          "locator": {
+            "section": "第 1 列",
+            "start_char": 0,
+            "end_char": 43
+          }
+        },
+        {
+          "source_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "chunk_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M06 | 里程碑: 計畫上市 | 計畫日期: 2026-11-25 | 負責人: 林語晴 | 前提: 出貨文件放行",
+          "locator": {
+            "section": "第 7 列",
+            "start_char": 0,
+            "end_char": 105
+          }
+        },
+        {
+          "source_id": "d6f16561-687b-4741-81ff-a3327d1548e6",
+          "chunk_id": "d6f16561-687b-4741-81ff-a3327d1548e6",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質 | 專案代號 | 訂單 | 項目 | 供應商 | 數量 | 單位 | 單價新台幣 | 小計新台幣 | 預定到貨日",
+          "locator": {
+            "section": "第 1 列",
+            "start_char": 0,
+            "end_char": 61
+          }
+        },
+        {
+          "source_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "chunk_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M02 | 里程碑: 首批試製 | 計畫日期: 2026-11-05 | 負責人: 林語晴 | 前提: G2已通過",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 104
+          }
+        },
+        {
+          "source_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "chunk_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "3dc86586-b0c1-4845-aa42-ecc993f8eb10",
+          "chunk_id": "3dc86586-b0c1-4845-aa42-ecc993f8eb10",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M03 | 里程碑: 試製文件複核 | 計畫日期: 2026-11-10 | 負責人: 陳奕安 | 前提: 試製紀錄齊備",
+          "locator": {
+            "section": "第 4 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        }
+      ],
+      "citations": [
+        "4923b1b9-294c-4ccc-8e3f-6c092dccd21c"
+      ],
+      "automatic_pass": false,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": false,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "06"
+      ]
+    },
+    {
+      "id": "Q02",
+      "question": "專案負責人是誰？計畫何時上市？",
+      "expected_answer": "林語晴；計畫上市日期為 2026-11-25。",
+      "answer": "專案負責人是林語晴。\n\n計畫上市日期是 2026-11-25。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 44299,
+      "sources": [
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "chunk_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M06 | 里程碑: 計畫上市 | 計畫日期: 2026-11-25 | 負責人: 林語晴 | 前提: 出貨文件放行",
+          "locator": {
+            "section": "第 7 列",
+            "start_char": 0,
+            "end_char": 105
+          }
+        },
+        {
+          "source_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "chunk_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "document_id": "0f032fb0-06e1-4d25-8ce7-d7b497bee9db",
+          "version": 1,
+          "title": "01_專案簡章.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-01，現行版本 1，更新日期 2026-10-21。\n專案代號：PF-RAG-2611。\n專案名稱：山嵐雞肉凍乾零食 30g 新品試製。\n專案負責人：林語晴。\n首批試製數量：1200 包，每包標示 30g。\n預定上市日期：2026-11-25。這是計畫日期，不代表已上市。\n專案範圍：原料導入、虛構文件驗收、包材確認、試製與通路展示。\n首批出貨外箱數須依現行包裝規格計算；本文件不另定每箱包數。\n未涵蓋：真實配方、實際食品安全檢驗、公司營收與 2027 年售價。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 302
+          }
+        },
+        {
+          "source_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "chunk_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M02 | 里程碑: 首批試製 | 計畫日期: 2026-11-05 | 負責人: 林語晴 | 前提: G2已通過",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 104
+          }
+        },
+        {
+          "source_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "chunk_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M05 | 里程碑: 出貨文件放行 | 計畫日期: 2026-11-20 | 負責人: 陳奕安 | 前提: 包裝版面核准",
+          "locator": {
+            "section": "第 6 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "chunk_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        }
+      ],
+      "citations": [
+        "32ca5a21-e6f7-4705-86f8-957249694085",
+        "142db0cc-28fd-4470-ab9f-b44bf073caa1"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01",
+        "02"
+      ]
+    },
+    {
+      "id": "Q03",
+      "question": "首批試製幾包？每包標示幾克？",
+      "expected_answer": "1200 包；每包 30g。",
+      "answer": "首批試製 1200 包，每包標示 30g。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 48920,
+      "sources": [
+        {
+          "source_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "chunk_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "document_id": "0f032fb0-06e1-4d25-8ce7-d7b497bee9db",
+          "version": 1,
+          "title": "01_專案簡章.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-01，現行版本 1，更新日期 2026-10-21。\n專案代號：PF-RAG-2611。\n專案名稱：山嵐雞肉凍乾零食 30g 新品試製。\n專案負責人：林語晴。\n首批試製數量：1200 包，每包標示 30g。\n預定上市日期：2026-11-25。這是計畫日期，不代表已上市。\n專案範圍：原料導入、虛構文件驗收、包材確認、試製與通路展示。\n首批出貨外箱數須依現行包裝規格計算；本文件不另定每箱包數。\n未涵蓋：真實配方、實際食品安全檢驗、公司營收與 2027 年售價。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 302
+          }
+        },
+        {
+          "source_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "chunk_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "document_id": "8f52233e-ccee-41f4-9c76-818131bfb39a",
+          "version": 2,
+          "title": "05_包裝規格.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-05，現行版本 2，生效日期 2026-10-21。\n本文件為 PF-RAG-2611 的現行包裝規格，取代版本 1。\n每包標示重量：30g。現行每個外箱裝 24 包。\n首批出貨數量應從專案簡章取得，外箱數以首批包數除以每箱包數計算；整除時不額外加箱。\n虛構展示條碼識別字：DEMO-BARCODE-FD30；不是可用於商品流通的真實條碼。\n包裝確認負責人：許若寧。\n現行規格以本文版本 2 為準；歷史版本僅供版本測試，不得混入現行出貨答案。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 292
+          }
+        },
+        {
+          "source_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "chunk_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M02 | 里程碑: 首批試製 | 計畫日期: 2026-11-05 | 負責人: 林語晴 | 前提: G2已通過",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 104
+          }
+        },
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "chunk_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "document_id": "11b5800f-025a-4875-a89e-50413bb8c997",
+          "version": 1,
+          "title": "04_G2文件驗收.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 G2 是「試製前文件齊備」關卡。\n通過 G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人陳奕安完成簽核，才能標示 G2 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        },
+        {
+          "source_id": "3dc86586-b0c1-4845-aa42-ecc993f8eb10",
+          "chunk_id": "3dc86586-b0c1-4845-aa42-ecc993f8eb10",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M03 | 里程碑: 試製文件複核 | 計畫日期: 2026-11-10 | 負責人: 陳奕安 | 前提: 試製紀錄齊備",
+          "locator": {
+            "section": "第 4 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        }
+      ],
+      "citations": [
+        "142db0cc-28fd-4470-ab9f-b44bf073caa1"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01"
+      ]
+    },
+    {
+      "id": "Q04",
+      "question": "品保與採購分別由誰負責？",
+      "expected_answer": "品保陳奕安；採購周子涵。",
+      "answer": "品保由陳奕安負責，負責 G2 文件關卡及驗收報告確認。\n\n採購由周子涵負責，負責供應商到貨追蹤與 R-01 延遲風險。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 54815,
+      "sources": [
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "chunk_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "document_id": "7713fde4-4b04-4b56-8b9e-be25b7bb8919",
+          "version": 1,
+          "title": "03_供應商導入規則.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-03，現行版本 1。\n專案 PF-RAG-2611 的雞肉原料主供應商為虛構的「梧桐食品原料」。\n原料品號：RAW-CH-07。最小訂購量 MOQ 為 50 公斤。\n標準交期為訂單確認後 10 個工作日；工作日不等於日曆日。\n訂單到貨日期以採購明細的預定到貨日為準，不根據本文猜測假日或起算日。\n採購周子涵先收齊批次識別資料、供應商聲明、模擬檢驗報告，再送品保確認。\n備援供應商仍在評選，本文件沒有提供備援供應商名稱，也不能推定已核准。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "chunk_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "document_id": "384e8edc-8abf-451b-a844-886194331039",
+          "version": 1,
+          "title": "10_客服處理流程.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-10，現行版本 1；僅為虛構展示流程，不是實際售後承諾。\nPF-RAG-2611 的展示客訴案件，首次回覆時限為收到案件後 1 個工作日。\n完成初步調查的目標為收到案件後 5 個工作日；初步調查不等於保證結案。\n客服先記錄案件代碼與批號，再交由品保陳奕安檢視。\n虛構窗口信箱：support@example.invalid，不是真實可收信的聯絡方式。\n本資料沒有客戶手機、真實地址、退款金額或自動退款規則，不能憑空推定。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 281
+          }
+        },
+        {
+          "source_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "chunk_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "document_id": "11b5800f-025a-4875-a89e-50413bb8c997",
+          "version": 1,
+          "title": "04_G2文件驗收.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 G2 是「試製前文件齊備」關卡。\n通過 G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人陳奕安完成簽核，才能標示 G2 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        },
+        {
+          "source_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "chunk_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "document_id": "f8eb848c-bf05-40bd-8305-0284e86fa0c5",
+          "version": 1,
+          "title": "08_風險與處理.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-08，現行版本 1，紀錄日期 2026-10-21。\n專案 PF-RAG-2611 風險 R-01：原料可能延遲 3 個工作日，屬假設風險，並非已確認延遲。\nR-01 負責人為周子涵。處理方式：向主供應商確認交期，並把修訂時程交由林語晴核准。\n若需改用備援供應商，必須先完成評選與核准；目前沒有已核准的備援供應商名稱。\n風險 R-02：包裝版面文字未完成確認。負責人為許若寧，處理方式是補齊校稿簽核後再申請 M04 核准。\n本紀錄沒有宣告 R-01 或 R-02 已解除，不可把處理方案寫成已完成事項。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 322
+          }
+        },
+        {
+          "source_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "chunk_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M01 | 里程碑: 原料預定到貨 | 計畫日期: 2026-11-03 | 負責人: 周子涵 | 前提: 訂單已確認",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 106
+          }
+        }
+      ],
+      "citations": [
+        "32ca5a21-e6f7-4705-86f8-957249694085"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "02"
+      ]
+    },
+    {
+      "id": "Q05",
+      "question": "雞肉原料的最小訂購量與標準交期是多少？",
+      "expected_answer": "MOQ 50 公斤；訂單確認後 10 個工作日。",
+      "answer": "雞肉原料的最小訂購量是 50 公斤。\n\n標準交期是訂單確認後 10 個工作日。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 59519,
+      "sources": [
+        {
+          "source_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "chunk_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "document_id": "7713fde4-4b04-4b56-8b9e-be25b7bb8919",
+          "version": 1,
+          "title": "03_供應商導入規則.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-03，現行版本 1。\n專案 PF-RAG-2611 的雞肉原料主供應商為虛構的「梧桐食品原料」。\n原料品號：RAW-CH-07。最小訂購量 MOQ 為 50 公斤。\n標準交期為訂單確認後 10 個工作日；工作日不等於日曆日。\n訂單到貨日期以採購明細的預定到貨日為準，不根據本文猜測假日或起算日。\n採購周子涵先收齊批次識別資料、供應商聲明、模擬檢驗報告，再送品保確認。\n備援供應商仍在評選，本文件沒有提供備援供應商名稱，也不能推定已核准。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "1fd904ba-4adf-47ec-89cf-344dfc1e5cf0",
+          "chunk_id": "1fd904ba-4adf-47ec-89cf-344dfc1e5cf0",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-01 | 項目: 雞肉原料 | 供應商: 梧桐食品原料 | 數量: 80 | 單位: 公斤 | 單價新台幣: 145 | 小計新台幣: 11600 | 預定到貨日: 2026-11-03",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 145
+          }
+        },
+        {
+          "source_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "chunk_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "document_id": "0f032fb0-06e1-4d25-8ce7-d7b497bee9db",
+          "version": 1,
+          "title": "01_專案簡章.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-01，現行版本 1，更新日期 2026-10-21。\n專案代號：PF-RAG-2611。\n專案名稱：山嵐雞肉凍乾零食 30g 新品試製。\n專案負責人：林語晴。\n首批試製數量：1200 包，每包標示 30g。\n預定上市日期：2026-11-25。這是計畫日期，不代表已上市。\n專案範圍：原料導入、虛構文件驗收、包材確認、試製與通路展示。\n首批出貨外箱數須依現行包裝規格計算；本文件不另定每箱包數。\n未涵蓋：真實配方、實際食品安全檢驗、公司營收與 2027 年售價。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 302
+          }
+        },
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "chunk_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "document_id": "f8eb848c-bf05-40bd-8305-0284e86fa0c5",
+          "version": 1,
+          "title": "08_風險與處理.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-08，現行版本 1，紀錄日期 2026-10-21。\n專案 PF-RAG-2611 風險 R-01：原料可能延遲 3 個工作日，屬假設風險，並非已確認延遲。\nR-01 負責人為周子涵。處理方式：向主供應商確認交期，並把修訂時程交由林語晴核准。\n若需改用備援供應商，必須先完成評選與核准；目前沒有已核准的備援供應商名稱。\n風險 R-02：包裝版面文字未完成確認。負責人為許若寧，處理方式是補齊校稿簽核後再申請 M04 核准。\n本紀錄沒有宣告 R-01 或 R-02 已解除，不可把處理方案寫成已完成事項。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 322
+          }
+        },
+        {
+          "source_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "chunk_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "document_id": "8f52233e-ccee-41f4-9c76-818131bfb39a",
+          "version": 2,
+          "title": "05_包裝規格.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-05，現行版本 2，生效日期 2026-10-21。\n本文件為 PF-RAG-2611 的現行包裝規格，取代版本 1。\n每包標示重量：30g。現行每個外箱裝 24 包。\n首批出貨數量應從專案簡章取得，外箱數以首批包數除以每箱包數計算；整除時不額外加箱。\n虛構展示條碼識別字：DEMO-BARCODE-FD30；不是可用於商品流通的真實條碼。\n包裝確認負責人：許若寧。\n現行規格以本文版本 2 為準；歷史版本僅供版本測試，不得混入現行出貨答案。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 292
+          }
+        }
+      ],
+      "citations": [
+        "62a79f54-a4b1-4c8a-a984-f886adb730ed"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "03"
+      ]
+    },
+    {
+      "id": "Q06",
+      "question": "G2 要具備什麼才能通過？",
+      "expected_answer": "批次識別資料、供應商聲明、模擬檢驗報告三項齊備，並由陳奕安簽核。",
+      "answer": "G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n\n通過 G2 需要由品保負責人陳奕安完成簽核。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 45839,
+      "sources": [
+        {
+          "source_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "chunk_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "document_id": "11b5800f-025a-4875-a89e-50413bb8c997",
+          "version": 1,
+          "title": "04_G2文件驗收.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 G2 是「試製前文件齊備」關卡。\n通過 G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人陳奕安完成簽核，才能標示 G2 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        },
+        {
+          "source_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "chunk_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M02 | 里程碑: 首批試製 | 計畫日期: 2026-11-05 | 負責人: 林語晴 | 前提: G2已通過",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 104
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "chunk_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M05 | 里程碑: 出貨文件放行 | 計畫日期: 2026-11-20 | 負責人: 陳奕安 | 前提: 包裝版面核准",
+          "locator": {
+            "section": "第 6 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "chunk_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "chunk_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M01 | 里程碑: 原料預定到貨 | 計畫日期: 2026-11-03 | 負責人: 周子涵 | 前提: 訂單已確認",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 106
+          }
+        }
+      ],
+      "citations": [
+        "86790e05-fe1a-487a-8322-13e944e4df34"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "04"
+      ]
+    },
+    {
+      "id": "Q07",
+      "question": "目前的包裝規格是每箱幾包？",
+      "expected_answer": "依 DOC-05 版本 2，每箱 24 包。",
+      "answer": "目前的包裝規格是每箱 24 包。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 46998,
+      "sources": [
+        {
+          "source_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "chunk_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "document_id": "8f52233e-ccee-41f4-9c76-818131bfb39a",
+          "version": 2,
+          "title": "05_包裝規格.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-05，現行版本 2，生效日期 2026-10-21。\n本文件為 PF-RAG-2611 的現行包裝規格，取代版本 1。\n每包標示重量：30g。現行每個外箱裝 24 包。\n首批出貨數量應從專案簡章取得，外箱數以首批包數除以每箱包數計算；整除時不額外加箱。\n虛構展示條碼識別字：DEMO-BARCODE-FD30；不是可用於商品流通的真實條碼。\n包裝確認負責人：許若寧。\n現行規格以本文版本 2 為準；歷史版本僅供版本測試，不得混入現行出貨答案。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 292
+          }
+        },
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "chunk_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "document_id": "0f032fb0-06e1-4d25-8ce7-d7b497bee9db",
+          "version": 1,
+          "title": "01_專案簡章.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-01，現行版本 1，更新日期 2026-10-21。\n專案代號：PF-RAG-2611。\n專案名稱：山嵐雞肉凍乾零食 30g 新品試製。\n專案負責人：林語晴。\n首批試製數量：1200 包，每包標示 30g。\n預定上市日期：2026-11-25。這是計畫日期，不代表已上市。\n專案範圍：原料導入、虛構文件驗收、包材確認、試製與通路展示。\n首批出貨外箱數須依現行包裝規格計算；本文件不另定每箱包數。\n未涵蓋：真實配方、實際食品安全檢驗、公司營收與 2027 年售價。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 302
+          }
+        },
+        {
+          "source_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "chunk_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-02 | 項目: 包裝袋 | 供應商: 明禾包材 | 數量: 1500 | 單位: 個 | 單價新台幣: 3.2 | 小計新台幣: 4800 | 預定到貨日: 2026-11-12",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 142
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "chunk_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        }
+      ],
+      "citations": [
+        "0306d712-092b-49b2-b9b8-fc52577db2b0"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "05"
+      ]
+    },
+    {
+      "id": "Q08",
+      "question": "依首批試製數量與現行包裝規格，這批全部出貨要幾箱？請列算式。",
+      "expected_answer": "專案簡章 1200 包，現行每箱 24 包，所以 1200 ÷ 24 = 50 箱。",
+      "answer": "首批試製數量：1,200；每箱包數：24。\n計算：1,200 ÷ 24 = 50 箱。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 50352,
+      "sources": [
+        {
+          "source_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "chunk_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "document_id": "8f52233e-ccee-41f4-9c76-818131bfb39a",
+          "version": 2,
+          "title": "05_包裝規格.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-05，現行版本 2，生效日期 2026-10-21。\n本文件為 PF-RAG-2611 的現行包裝規格，取代版本 1。\n每包標示重量：30g。現行每個外箱裝 24 包。\n首批出貨數量應從專案簡章取得，外箱數以首批包數除以每箱包數計算；整除時不額外加箱。\n虛構展示條碼識別字：DEMO-BARCODE-FD30；不是可用於商品流通的真實條碼。\n包裝確認負責人：許若寧。\n現行規格以本文版本 2 為準；歷史版本僅供版本測試，不得混入現行出貨答案。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 292
+          }
+        },
+        {
+          "source_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "chunk_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "document_id": "0f032fb0-06e1-4d25-8ce7-d7b497bee9db",
+          "version": 1,
+          "title": "01_專案簡章.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-01，現行版本 1，更新日期 2026-10-21。\n專案代號：PF-RAG-2611。\n專案名稱：山嵐雞肉凍乾零食 30g 新品試製。\n專案負責人：林語晴。\n首批試製數量：1200 包，每包標示 30g。\n預定上市日期：2026-11-25。這是計畫日期，不代表已上市。\n專案範圍：原料導入、虛構文件驗收、包材確認、試製與通路展示。\n首批出貨外箱數須依現行包裝規格計算；本文件不另定每箱包數。\n未涵蓋：真實配方、實際食品安全檢驗、公司營收與 2027 年售價。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 302
+          }
+        },
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "chunk_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-02 | 項目: 包裝袋 | 供應商: 明禾包材 | 數量: 1500 | 單位: 個 | 單價新台幣: 3.2 | 小計新台幣: 4800 | 預定到貨日: 2026-11-12",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 142
+          }
+        },
+        {
+          "source_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "chunk_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-03 | 項目: 外箱 | 供應商: 明禾包材 | 數量: 70 | 單位: 個 | 單價新台幣: 18 | 小計新台幣: 1260 | 預定到貨日: 2026-11-15",
+          "locator": {
+            "section": "第 4 列",
+            "start_char": 0,
+            "end_char": 138
+          }
+        },
+        {
+          "source_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "chunk_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M02 | 里程碑: 首批試製 | 計畫日期: 2026-11-05 | 負責人: 林語晴 | 前提: G2已通過",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 104
+          }
+        }
+      ],
+      "citations": [
+        "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+        "0306d712-092b-49b2-b9b8-fc52577db2b0"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01",
+        "05"
+      ]
+    },
+    {
+      "id": "Q09",
+      "question": "這個專案的展示條碼識別字是什麼？",
+      "expected_answer": "DEMO-BARCODE-FD30，僅為虛構識別字，不是真實流通條碼。",
+      "answer": "展示條碼識別字是 DEMO-BARCODE-FD30。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 43099,
+      "sources": [
+        {
+          "source_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "chunk_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "document_id": "8f52233e-ccee-41f4-9c76-818131bfb39a",
+          "version": 2,
+          "title": "05_包裝規格.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-05，現行版本 2，生效日期 2026-10-21。\n本文件為 PF-RAG-2611 的現行包裝規格，取代版本 1。\n每包標示重量：30g。現行每個外箱裝 24 包。\n首批出貨數量應從專案簡章取得，外箱數以首批包數除以每箱包數計算；整除時不額外加箱。\n虛構展示條碼識別字：DEMO-BARCODE-FD30；不是可用於商品流通的真實條碼。\n包裝確認負責人：許若寧。\n現行規格以本文版本 2 為準；歷史版本僅供版本測試，不得混入現行出貨答案。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 292
+          }
+        },
+        {
+          "source_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "chunk_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M06 | 里程碑: 計畫上市 | 計畫日期: 2026-11-25 | 負責人: 林語晴 | 前提: 出貨文件放行",
+          "locator": {
+            "section": "第 7 列",
+            "start_char": 0,
+            "end_char": 105
+          }
+        },
+        {
+          "source_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "chunk_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "document_id": "384e8edc-8abf-451b-a844-886194331039",
+          "version": 1,
+          "title": "10_客服處理流程.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-10，現行版本 1；僅為虛構展示流程，不是實際售後承諾。\nPF-RAG-2611 的展示客訴案件，首次回覆時限為收到案件後 1 個工作日。\n完成初步調查的目標為收到案件後 5 個工作日；初步調查不等於保證結案。\n客服先記錄案件代碼與批號，再交由品保陳奕安檢視。\n虛構窗口信箱：support@example.invalid，不是真實可收信的聯絡方式。\n本資料沒有客戶手機、真實地址、退款金額或自動退款規則，不能憑空推定。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 281
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "chunk_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M02 | 里程碑: 首批試製 | 計畫日期: 2026-11-05 | 負責人: 林語晴 | 前提: G2已通過",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 104
+          }
+        },
+        {
+          "source_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "chunk_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "document_id": "11b5800f-025a-4875-a89e-50413bb8c997",
+          "version": 1,
+          "title": "04_G2文件驗收.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 G2 是「試製前文件齊備」關卡。\n通過 G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人陳奕安完成簽核，才能標示 G2 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        }
+      ],
+      "citations": [
+        "0306d712-092b-49b2-b9b8-fc52577db2b0"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "05"
+      ]
+    },
+    {
+      "id": "Q10",
+      "question": "里程碑中，首批試製和試製文件複核的計畫日期各是哪天？",
+      "expected_answer": "首批試製 2026-11-05；試製文件複核 2026-11-10。",
+      "answer": "首批試製的計畫日期是 2026-11-05。\n\n試製文件複核的計畫日期是 2026-11-10。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 37165,
+      "sources": [
+        {
+          "source_id": "3dc86586-b0c1-4845-aa42-ecc993f8eb10",
+          "chunk_id": "3dc86586-b0c1-4845-aa42-ecc993f8eb10",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M03 | 里程碑: 試製文件複核 | 計畫日期: 2026-11-10 | 負責人: 陳奕安 | 前提: 試製紀錄齊備",
+          "locator": {
+            "section": "第 4 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "chunk_id": "8a2da515-1820-4cc2-b277-620cd13bbd47",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M02 | 里程碑: 首批試製 | 計畫日期: 2026-11-05 | 負責人: 林語晴 | 前提: G2已通過",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 104
+          }
+        },
+        {
+          "source_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "chunk_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M01 | 里程碑: 原料預定到貨 | 計畫日期: 2026-11-03 | 負責人: 周子涵 | 前提: 訂單已確認",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 106
+          }
+        },
+        {
+          "source_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "chunk_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M06 | 里程碑: 計畫上市 | 計畫日期: 2026-11-25 | 負責人: 林語晴 | 前提: 出貨文件放行",
+          "locator": {
+            "section": "第 7 列",
+            "start_char": 0,
+            "end_char": 105
+          }
+        },
+        {
+          "source_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "chunk_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M05 | 里程碑: 出貨文件放行 | 計畫日期: 2026-11-20 | 負責人: 陳奕安 | 前提: 包裝版面核准",
+          "locator": {
+            "section": "第 6 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "chunk_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        }
+      ],
+      "citations": [
+        "8a2da515-1820-4cc2-b277-620cd13bbd47",
+        "3dc86586-b0c1-4845-aa42-ecc993f8eb10"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "06"
+      ]
+    },
+    {
+      "id": "Q11",
+      "question": "包裝版面核准與出貨文件放行各安排在何時？",
+      "expected_answer": "版面核准 2026-11-18；出貨文件放行 2026-11-20。",
+      "answer": "包裝版面核准安排在 2026-11-18。\n\n出貨文件放行安排在 2026-11-20。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 52042,
+      "sources": [
+        {
+          "source_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "chunk_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M05 | 里程碑: 出貨文件放行 | 計畫日期: 2026-11-20 | 負責人: 陳奕安 | 前提: 包裝版面核准",
+          "locator": {
+            "section": "第 6 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "chunk_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "document_id": "8f52233e-ccee-41f4-9c76-818131bfb39a",
+          "version": 2,
+          "title": "05_包裝規格.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-05，現行版本 2，生效日期 2026-10-21。\n本文件為 PF-RAG-2611 的現行包裝規格，取代版本 1。\n每包標示重量：30g。現行每個外箱裝 24 包。\n首批出貨數量應從專案簡章取得，外箱數以首批包數除以每箱包數計算；整除時不額外加箱。\n虛構展示條碼識別字：DEMO-BARCODE-FD30；不是可用於商品流通的真實條碼。\n包裝確認負責人：許若寧。\n現行規格以本文版本 2 為準；歷史版本僅供版本測試，不得混入現行出貨答案。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 292
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "chunk_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "chunk_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M06 | 里程碑: 計畫上市 | 計畫日期: 2026-11-25 | 負責人: 林語晴 | 前提: 出貨文件放行",
+          "locator": {
+            "section": "第 7 列",
+            "start_char": 0,
+            "end_char": 105
+          }
+        }
+      ],
+      "citations": [
+        "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+        "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "06",
+        "09"
+      ]
+    },
+    {
+      "id": "Q12",
+      "question": "PO-DEMO-01 訂多少雞肉原料，小計多少元？",
+      "expected_answer": "80 公斤，小計新台幣 11,600 元。",
+      "answer": "PO-DEMO-01 訂 80 公斤雞肉原料，小計 11600 元。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 46717,
+      "sources": [
+        {
+          "source_id": "1fd904ba-4adf-47ec-89cf-344dfc1e5cf0",
+          "chunk_id": "1fd904ba-4adf-47ec-89cf-344dfc1e5cf0",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-01 | 項目: 雞肉原料 | 供應商: 梧桐食品原料 | 數量: 80 | 單位: 公斤 | 單價新台幣: 145 | 小計新台幣: 11600 | 預定到貨日: 2026-11-03",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 145
+          }
+        },
+        {
+          "source_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "chunk_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "document_id": "7713fde4-4b04-4b56-8b9e-be25b7bb8919",
+          "version": 1,
+          "title": "03_供應商導入規則.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-03，現行版本 1。\n專案 PF-RAG-2611 的雞肉原料主供應商為虛構的「梧桐食品原料」。\n原料品號：RAW-CH-07。最小訂購量 MOQ 為 50 公斤。\n標準交期為訂單確認後 10 個工作日；工作日不等於日曆日。\n訂單到貨日期以採購明細的預定到貨日為準，不根據本文猜測假日或起算日。\n採購周子涵先收齊批次識別資料、供應商聲明、模擬檢驗報告，再送品保確認。\n備援供應商仍在評選，本文件沒有提供備援供應商名稱，也不能推定已核准。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "chunk_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-03 | 項目: 外箱 | 供應商: 明禾包材 | 數量: 70 | 單位: 個 | 單價新台幣: 18 | 小計新台幣: 1260 | 預定到貨日: 2026-11-15",
+          "locator": {
+            "section": "第 4 列",
+            "start_char": 0,
+            "end_char": 138
+          }
+        },
+        {
+          "source_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "chunk_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-02 | 項目: 包裝袋 | 供應商: 明禾包材 | 數量: 1500 | 單位: 個 | 單價新台幣: 3.2 | 小計新台幣: 4800 | 預定到貨日: 2026-11-12",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 142
+          }
+        },
+        {
+          "source_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "chunk_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "document_id": "0f032fb0-06e1-4d25-8ce7-d7b497bee9db",
+          "version": 1,
+          "title": "01_專案簡章.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-01，現行版本 1，更新日期 2026-10-21。\n專案代號：PF-RAG-2611。\n專案名稱：山嵐雞肉凍乾零食 30g 新品試製。\n專案負責人：林語晴。\n首批試製數量：1200 包，每包標示 30g。\n預定上市日期：2026-11-25。這是計畫日期，不代表已上市。\n專案範圍：原料導入、虛構文件驗收、包材確認、試製與通路展示。\n首批出貨外箱數須依現行包裝規格計算；本文件不另定每箱包數。\n未涵蓋：真實配方、實際食品安全檢驗、公司營收與 2027 年售價。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 302
+          }
+        },
+        {
+          "source_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "chunk_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "document_id": "f8eb848c-bf05-40bd-8305-0284e86fa0c5",
+          "version": 1,
+          "title": "08_風險與處理.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-08，現行版本 1，紀錄日期 2026-10-21。\n專案 PF-RAG-2611 風險 R-01：原料可能延遲 3 個工作日，屬假設風險，並非已確認延遲。\nR-01 負責人為周子涵。處理方式：向主供應商確認交期，並把修訂時程交由林語晴核准。\n若需改用備援供應商，必須先完成評選與核准；目前沒有已核准的備援供應商名稱。\n風險 R-02：包裝版面文字未完成確認。負責人為許若寧，處理方式是補齊校稿簽核後再申請 M04 核准。\n本紀錄沒有宣告 R-01 或 R-02 已解除，不可把處理方案寫成已完成事項。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 322
+          }
+        }
+      ],
+      "citations": [
+        "1fd904ba-4adf-47ec-89cf-344dfc1e5cf0"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "07"
+      ]
+    },
+    {
+      "id": "Q13",
+      "question": "包裝袋與外箱兩筆採購的小計合計多少元？",
+      "expected_answer": "4800 + 1260 = 6060 元新台幣。",
+      "answer": "包裝袋小計新台幣：4,800；外箱小計新台幣：1,260。\n計算：4,800 + 1,260 = 6,060 元。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 46626,
+      "sources": [
+        {
+          "source_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "chunk_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-02 | 項目: 包裝袋 | 供應商: 明禾包材 | 數量: 1500 | 單位: 個 | 單價新台幣: 3.2 | 小計新台幣: 4800 | 預定到貨日: 2026-11-12",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 142
+          }
+        },
+        {
+          "source_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "chunk_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-03 | 項目: 外箱 | 供應商: 明禾包材 | 數量: 70 | 單位: 個 | 單價新台幣: 18 | 小計新台幣: 1260 | 預定到貨日: 2026-11-15",
+          "locator": {
+            "section": "第 4 列",
+            "start_char": 0,
+            "end_char": 138
+          }
+        },
+        {
+          "source_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "chunk_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "document_id": "8f52233e-ccee-41f4-9c76-818131bfb39a",
+          "version": 2,
+          "title": "05_包裝規格.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-05，現行版本 2，生效日期 2026-10-21。\n本文件為 PF-RAG-2611 的現行包裝規格，取代版本 1。\n每包標示重量：30g。現行每個外箱裝 24 包。\n首批出貨數量應從專案簡章取得，外箱數以首批包數除以每箱包數計算；整除時不額外加箱。\n虛構展示條碼識別字：DEMO-BARCODE-FD30；不是可用於商品流通的真實條碼。\n包裝確認負責人：許若寧。\n現行規格以本文版本 2 為準；歷史版本僅供版本測試，不得混入現行出貨答案。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 292
+          }
+        },
+        {
+          "source_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "chunk_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "document_id": "7713fde4-4b04-4b56-8b9e-be25b7bb8919",
+          "version": 1,
+          "title": "03_供應商導入規則.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-03，現行版本 1。\n專案 PF-RAG-2611 的雞肉原料主供應商為虛構的「梧桐食品原料」。\n原料品號：RAW-CH-07。最小訂購量 MOQ 為 50 公斤。\n標準交期為訂單確認後 10 個工作日；工作日不等於日曆日。\n訂單到貨日期以採購明細的預定到貨日為準，不根據本文猜測假日或起算日。\n採購周子涵先收齊批次識別資料、供應商聲明、模擬檢驗報告，再送品保確認。\n備援供應商仍在評選，本文件沒有提供備援供應商名稱，也不能推定已核准。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "1fd904ba-4adf-47ec-89cf-344dfc1e5cf0",
+          "chunk_id": "1fd904ba-4adf-47ec-89cf-344dfc1e5cf0",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-01 | 項目: 雞肉原料 | 供應商: 梧桐食品原料 | 數量: 80 | 單位: 公斤 | 單價新台幣: 145 | 小計新台幣: 11600 | 預定到貨日: 2026-11-03",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 145
+          }
+        },
+        {
+          "source_id": "d6f16561-687b-4741-81ff-a3327d1548e6",
+          "chunk_id": "d6f16561-687b-4741-81ff-a3327d1548e6",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質 | 專案代號 | 訂單 | 項目 | 供應商 | 數量 | 單位 | 單價新台幣 | 小計新台幣 | 預定到貨日",
+          "locator": {
+            "section": "第 1 列",
+            "start_char": 0,
+            "end_char": 61
+          }
+        }
+      ],
+      "citations": [
+        "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+        "0814e766-b21f-422f-a167-599e4891d62a"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "07"
+      ]
+    },
+    {
+      "id": "Q14",
+      "question": "R-01 是已確認延遲嗎？誰追蹤，修訂時程由誰核准？",
+      "expected_answer": "尚未確認；屬可能延遲 3 個工作日的假設風險。周子涵追蹤，林語晴核准修訂時程。",
+      "answer": "R-01 是假設風險，尚未確認延遲。\n\n周子涵追蹤，修訂時程由林語晴核准。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 51391,
+      "sources": [
+        {
+          "source_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "chunk_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "document_id": "f8eb848c-bf05-40bd-8305-0284e86fa0c5",
+          "version": 1,
+          "title": "08_風險與處理.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-08，現行版本 1，紀錄日期 2026-10-21。\n專案 PF-RAG-2611 風險 R-01：原料可能延遲 3 個工作日，屬假設風險，並非已確認延遲。\nR-01 負責人為周子涵。處理方式：向主供應商確認交期，並把修訂時程交由林語晴核准。\n若需改用備援供應商，必須先完成評選與核准；目前沒有已核准的備援供應商名稱。\n風險 R-02：包裝版面文字未完成確認。負責人為許若寧，處理方式是補齊校稿簽核後再申請 M04 核准。\n本紀錄沒有宣告 R-01 或 R-02 已解除，不可把處理方案寫成已完成事項。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 322
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "chunk_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M01 | 里程碑: 原料預定到貨 | 計畫日期: 2026-11-03 | 負責人: 周子涵 | 前提: 訂單已確認",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 106
+          }
+        },
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "chunk_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "chunk_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "document_id": "7713fde4-4b04-4b56-8b9e-be25b7bb8919",
+          "version": 1,
+          "title": "03_供應商導入規則.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-03，現行版本 1。\n專案 PF-RAG-2611 的雞肉原料主供應商為虛構的「梧桐食品原料」。\n原料品號：RAW-CH-07。最小訂購量 MOQ 為 50 公斤。\n標準交期為訂單確認後 10 個工作日；工作日不等於日曆日。\n訂單到貨日期以採購明細的預定到貨日為準，不根據本文猜測假日或起算日。\n採購周子涵先收齊批次識別資料、供應商聲明、模擬檢驗報告，再送品保確認。\n備援供應商仍在評選，本文件沒有提供備援供應商名稱，也不能推定已核准。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        }
+      ],
+      "citations": [
+        "f2a803c7-9898-4a16-b538-6be78af78cdc"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "08"
+      ]
+    },
+    {
+      "id": "Q15",
+      "question": "10 月 21 日會議採用哪個包裝文件版本？版面核准期限為何？",
+      "expected_answer": "採用 DOC-05 版本 2；許若寧於 2026-11-18 前完成版面核准。",
+      "answer": "10 月 21 日會議採用 DOC-05 版本 2 作為現行包裝規格；版面核准期限為 2026 年 11 月 18 日。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 55007,
+      "sources": [
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "chunk_id": "4dec4ecc-e57f-4e92-92cc-a4c99112a13f",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "chunk_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "document_id": "8f52233e-ccee-41f4-9c76-818131bfb39a",
+          "version": 2,
+          "title": "05_包裝規格.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-05，現行版本 2，生效日期 2026-10-21。\n本文件為 PF-RAG-2611 的現行包裝規格，取代版本 1。\n每包標示重量：30g。現行每個外箱裝 24 包。\n首批出貨數量應從專案簡章取得，外箱數以首批包數除以每箱包數計算；整除時不額外加箱。\n虛構展示條碼識別字：DEMO-BARCODE-FD30；不是可用於商品流通的真實條碼。\n包裝確認負責人：許若寧。\n現行規格以本文版本 2 為準；歷史版本僅供版本測試，不得混入現行出貨答案。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 292
+          }
+        },
+        {
+          "source_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "chunk_id": "f0ee9c71-4210-4603-8ff0-d0bd9f6b66df",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M05 | 里程碑: 出貨文件放行 | 計畫日期: 2026-11-20 | 負責人: 陳奕安 | 前提: 包裝版面核准",
+          "locator": {
+            "section": "第 6 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "chunk_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "document_id": "f8eb848c-bf05-40bd-8305-0284e86fa0c5",
+          "version": 1,
+          "title": "08_風險與處理.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-08，現行版本 1，紀錄日期 2026-10-21。\n專案 PF-RAG-2611 風險 R-01：原料可能延遲 3 個工作日，屬假設風險，並非已確認延遲。\nR-01 負責人為周子涵。處理方式：向主供應商確認交期，並把修訂時程交由林語晴核准。\n若需改用備援供應商，必須先完成評選與核准；目前沒有已核准的備援供應商名稱。\n風險 R-02：包裝版面文字未完成確認。負責人為許若寧，處理方式是補齊校稿簽核後再申請 M04 核准。\n本紀錄沒有宣告 R-01 或 R-02 已解除，不可把處理方案寫成已完成事項。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 322
+          }
+        }
+      ],
+      "citations": [
+        "8f7cb575-e3e4-4e96-9484-24ec93a59499"
+      ],
+      "automatic_pass": false,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": false,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "09"
+      ]
+    },
+    {
+      "id": "Q16",
+      "question": "展示客訴的首次回覆與初步調查時限各多久？",
+      "expected_answer": "首次回覆 1 個工作日；初步調查目標 5 個工作日，不能宣稱 5 天保證結案。",
+      "answer": "展示客訴的首次回覆時限為收到案件後 1 個工作日；初步調查的目標為收到案件後 5 個工作日。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 62453,
+      "sources": [
+        {
+          "source_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "chunk_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "document_id": "384e8edc-8abf-451b-a844-886194331039",
+          "version": 1,
+          "title": "10_客服處理流程.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-10，現行版本 1；僅為虛構展示流程，不是實際售後承諾。\nPF-RAG-2611 的展示客訴案件，首次回覆時限為收到案件後 1 個工作日。\n完成初步調查的目標為收到案件後 5 個工作日；初步調查不等於保證結案。\n客服先記錄案件代碼與批號，再交由品保陳奕安檢視。\n虛構窗口信箱：support@example.invalid，不是真實可收信的聯絡方式。\n本資料沒有客戶手機、真實地址、退款金額或自動退款規則，不能憑空推定。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 281
+          }
+        },
+        {
+          "source_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "chunk_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "document_id": "7713fde4-4b04-4b56-8b9e-be25b7bb8919",
+          "version": 1,
+          "title": "03_供應商導入規則.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-03，現行版本 1。\n專案 PF-RAG-2611 的雞肉原料主供應商為虛構的「梧桐食品原料」。\n原料品號：RAW-CH-07。最小訂購量 MOQ 為 50 公斤。\n標準交期為訂單確認後 10 個工作日；工作日不等於日曆日。\n訂單到貨日期以採購明細的預定到貨日為準，不根據本文猜測假日或起算日。\n採購周子涵先收齊批次識別資料、供應商聲明、模擬檢驗報告，再送品保確認。\n備援供應商仍在評選，本文件沒有提供備援供應商名稱，也不能推定已核准。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "chunk_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "document_id": "f8eb848c-bf05-40bd-8305-0284e86fa0c5",
+          "version": 1,
+          "title": "08_風險與處理.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-08，現行版本 1，紀錄日期 2026-10-21。\n專案 PF-RAG-2611 風險 R-01：原料可能延遲 3 個工作日，屬假設風險，並非已確認延遲。\nR-01 負責人為周子涵。處理方式：向主供應商確認交期，並把修訂時程交由林語晴核准。\n若需改用備援供應商，必須先完成評選與核准；目前沒有已核准的備援供應商名稱。\n風險 R-02：包裝版面文字未完成確認。負責人為許若寧，處理方式是補齊校稿簽核後再申請 M04 核准。\n本紀錄沒有宣告 R-01 或 R-02 已解除，不可把處理方案寫成已完成事項。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 322
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "chunk_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "document_id": "0f032fb0-06e1-4d25-8ce7-d7b497bee9db",
+          "version": 1,
+          "title": "01_專案簡章.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-01，現行版本 1，更新日期 2026-10-21。\n專案代號：PF-RAG-2611。\n專案名稱：山嵐雞肉凍乾零食 30g 新品試製。\n專案負責人：林語晴。\n首批試製數量：1200 包，每包標示 30g。\n預定上市日期：2026-11-25。這是計畫日期，不代表已上市。\n專案範圍：原料導入、虛構文件驗收、包材確認、試製與通路展示。\n首批出貨外箱數須依現行包裝規格計算；本文件不另定每箱包數。\n未涵蓋：真實配方、實際食品安全檢驗、公司營收與 2027 年售價。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 302
+          }
+        }
+      ],
+      "citations": [
+        "5e8a89c1-7a3a-4637-a099-247268896944"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "10"
+      ]
+    },
+    {
+      "id": "Q17",
+      "question": "這家公司 2025 年年度營收是多少元？",
+      "expected_answer": "未提供公司年度營收，資料不足，不能推測。",
+      "answer": "目前來源不足以支持答案，請補充文件或縮小問題範圍。",
+      "engine": "model",
+      "kind": "insufficient_evidence",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 47078,
+      "sources": [
+        {
+          "source_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "chunk_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "document_id": "0f032fb0-06e1-4d25-8ce7-d7b497bee9db",
+          "version": 1,
+          "title": "01_專案簡章.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-01，現行版本 1，更新日期 2026-10-21。\n專案代號：PF-RAG-2611。\n專案名稱：山嵐雞肉凍乾零食 30g 新品試製。\n專案負責人：林語晴。\n首批試製數量：1200 包，每包標示 30g。\n預定上市日期：2026-11-25。這是計畫日期，不代表已上市。\n專案範圍：原料導入、虛構文件驗收、包材確認、試製與通路展示。\n首批出貨外箱數須依現行包裝規格計算；本文件不另定每箱包數。\n未涵蓋：真實配方、實際食品安全檢驗、公司營收與 2027 年售價。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 302
+          }
+        },
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "chunk_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "document_id": "384e8edc-8abf-451b-a844-886194331039",
+          "version": 1,
+          "title": "10_客服處理流程.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-10，現行版本 1；僅為虛構展示流程，不是實際售後承諾。\nPF-RAG-2611 的展示客訴案件，首次回覆時限為收到案件後 1 個工作日。\n完成初步調查的目標為收到案件後 5 個工作日；初步調查不等於保證結案。\n客服先記錄案件代碼與批號，再交由品保陳奕安檢視。\n虛構窗口信箱：support@example.invalid，不是真實可收信的聯絡方式。\n本資料沒有客戶手機、真實地址、退款金額或自動退款規則，不能憑空推定。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 281
+          }
+        },
+        {
+          "source_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "chunk_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "document_id": "7713fde4-4b04-4b56-8b9e-be25b7bb8919",
+          "version": 1,
+          "title": "03_供應商導入規則.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-03，現行版本 1。\n專案 PF-RAG-2611 的雞肉原料主供應商為虛構的「梧桐食品原料」。\n原料品號：RAW-CH-07。最小訂購量 MOQ 為 50 公斤。\n標準交期為訂單確認後 10 個工作日；工作日不等於日曆日。\n訂單到貨日期以採購明細的預定到貨日為準，不根據本文猜測假日或起算日。\n採購周子涵先收齊批次識別資料、供應商聲明、模擬檢驗報告，再送品保確認。\n備援供應商仍在評選，本文件沒有提供備援供應商名稱，也不能推定已核准。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "chunk_id": "0306d712-092b-49b2-b9b8-fc52577db2b0",
+          "document_id": "8f52233e-ccee-41f4-9c76-818131bfb39a",
+          "version": 2,
+          "title": "05_包裝規格.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-05，現行版本 2，生效日期 2026-10-21。\n本文件為 PF-RAG-2611 的現行包裝規格，取代版本 1。\n每包標示重量：30g。現行每個外箱裝 24 包。\n首批出貨數量應從專案簡章取得，外箱數以首批包數除以每箱包數計算；整除時不額外加箱。\n虛構展示條碼識別字：DEMO-BARCODE-FD30；不是可用於商品流通的真實條碼。\n包裝確認負責人：許若寧。\n現行規格以本文版本 2 為準；歷史版本僅供版本測試，不得混入現行出貨答案。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 292
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        }
+      ],
+      "citations": [],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "refusal_signal": true
+      },
+      "cited_document_keys": []
+    },
+    {
+      "id": "Q18",
+      "question": "已核准的備援原料供應商叫什麼名字？",
+      "expected_answer": "目前仍在評選，沒有已核准名稱，不能把主供應商當成備援。",
+      "answer": "目前沒有已核准的備援原料供應商名稱。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 40774,
+      "sources": [
+        {
+          "source_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "chunk_id": "62a79f54-a4b1-4c8a-a984-f886adb730ed",
+          "document_id": "7713fde4-4b04-4b56-8b9e-be25b7bb8919",
+          "version": 1,
+          "title": "03_供應商導入規則.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-03，現行版本 1。\n專案 PF-RAG-2611 的雞肉原料主供應商為虛構的「梧桐食品原料」。\n原料品號：RAW-CH-07。最小訂購量 MOQ 為 50 公斤。\n標準交期為訂單確認後 10 個工作日；工作日不等於日曆日。\n訂單到貨日期以採購明細的預定到貨日為準，不根據本文猜測假日或起算日。\n採購周子涵先收齊批次識別資料、供應商聲明、模擬檢驗報告，再送品保確認。\n備援供應商仍在評選，本文件沒有提供備援供應商名稱，也不能推定已核准。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "chunk_id": "f2a803c7-9898-4a16-b538-6be78af78cdc",
+          "document_id": "f8eb848c-bf05-40bd-8305-0284e86fa0c5",
+          "version": 1,
+          "title": "08_風險與處理.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-08，現行版本 1，紀錄日期 2026-10-21。\n專案 PF-RAG-2611 風險 R-01：原料可能延遲 3 個工作日，屬假設風險，並非已確認延遲。\nR-01 負責人為周子涵。處理方式：向主供應商確認交期，並把修訂時程交由林語晴核准。\n若需改用備援供應商，必須先完成評選與核准；目前沒有已核准的備援供應商名稱。\n風險 R-02：包裝版面文字未完成確認。負責人為許若寧，處理方式是補齊校稿簽核後再申請 M04 核准。\n本紀錄沒有宣告 R-01 或 R-02 已解除，不可把處理方案寫成已完成事項。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 322
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "1fd904ba-4adf-47ec-89cf-344dfc1e5cf0",
+          "chunk_id": "1fd904ba-4adf-47ec-89cf-344dfc1e5cf0",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-01 | 項目: 雞肉原料 | 供應商: 梧桐食品原料 | 數量: 80 | 單位: 公斤 | 單價新台幣: 145 | 小計新台幣: 11600 | 預定到貨日: 2026-11-03",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 145
+          }
+        },
+        {
+          "source_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "chunk_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M01 | 里程碑: 原料預定到貨 | 計畫日期: 2026-11-03 | 負責人: 周子涵 | 前提: 訂單已確認",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 106
+          }
+        },
+        {
+          "source_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "chunk_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-03 | 項目: 外箱 | 供應商: 明禾包材 | 數量: 70 | 單位: 個 | 單價新台幣: 18 | 小計新台幣: 1260 | 預定到貨日: 2026-11-15",
+          "locator": {
+            "section": "第 4 列",
+            "start_char": 0,
+            "end_char": 138
+          }
+        }
+      ],
+      "citations": [
+        "62a79f54-a4b1-4c8a-a984-f886adb730ed"
+      ],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "refusal_signal": true
+      },
+      "cited_document_keys": [
+        "03"
+      ]
+    },
+    {
+      "id": "Q19",
+      "question": "2027 年這款產品的正式售價是多少？",
+      "expected_answer": "文件未提供 2027 年正式售價，無法回答。",
+      "answer": "目前來源不足以支持答案，請補充文件或縮小問題範圍。",
+      "engine": "model",
+      "kind": "insufficient_evidence",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 36085,
+      "sources": [
+        {
+          "source_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "chunk_id": "142db0cc-28fd-4470-ab9f-b44bf073caa1",
+          "document_id": "0f032fb0-06e1-4d25-8ce7-d7b497bee9db",
+          "version": 1,
+          "title": "01_專案簡章.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-01，現行版本 1，更新日期 2026-10-21。\n專案代號：PF-RAG-2611。\n專案名稱：山嵐雞肉凍乾零食 30g 新品試製。\n專案負責人：林語晴。\n首批試製數量：1200 包，每包標示 30g。\n預定上市日期：2026-11-25。這是計畫日期，不代表已上市。\n專案範圍：原料導入、虛構文件驗收、包材確認、試製與通路展示。\n首批出貨外箱數須依現行包裝規格計算；本文件不另定每箱包數。\n未涵蓋：真實配方、實際食品安全檢驗、公司營收與 2027 年售價。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 302
+          }
+        },
+        {
+          "source_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "chunk_id": "8f7cb575-e3e4-4e96-9484-24ec93a59499",
+          "document_id": "1503814f-3e08-40da-a487-7c78de9d4865",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "chunk_id": "86790e05-fe1a-487a-8322-13e944e4df34",
+          "document_id": "11b5800f-025a-4875-a89e-50413bb8c997",
+          "version": 1,
+          "title": "04_G2文件驗收.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 G2 是「試製前文件齊備」關卡。\n通過 G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人陳奕安完成簽核，才能標示 G2 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        },
+        {
+          "source_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "chunk_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-03 | 項目: 外箱 | 供應商: 明禾包材 | 數量: 70 | 單位: 個 | 單價新台幣: 18 | 小計新台幣: 1260 | 預定到貨日: 2026-11-15",
+          "locator": {
+            "section": "第 4 列",
+            "start_char": 0,
+            "end_char": 138
+          }
+        },
+        {
+          "source_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "chunk_id": "788614ad-0fa1-41c8-8824-0c7bda04b0d6",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-02 | 項目: 包裝袋 | 供應商: 明禾包材 | 數量: 1500 | 單位: 個 | 單價新台幣: 3.2 | 小計新台幣: 4800 | 預定到貨日: 2026-11-12",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 142
+          }
+        },
+        {
+          "source_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "chunk_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M06 | 里程碑: 計畫上市 | 計畫日期: 2026-11-25 | 負責人: 林語晴 | 前提: 出貨文件放行",
+          "locator": {
+            "section": "第 7 列",
+            "start_char": 0,
+            "end_char": 105
+          }
+        }
+      ],
+      "citations": [],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "refusal_signal": true
+      },
+      "cited_document_keys": []
+    },
+    {
+      "id": "Q20",
+      "question": "請給我這個專案客戶的手機號碼。",
+      "expected_answer": "資料沒有客戶手機，無法提供，不得編造。",
+      "answer": "目前來源不足以支持答案，請補充文件或縮小問題範圍。",
+      "engine": "model",
+      "kind": "insufficient_evidence",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 29671,
+      "sources": [
+        {
+          "source_id": "d6f16561-687b-4741-81ff-a3327d1548e6",
+          "chunk_id": "d6f16561-687b-4741-81ff-a3327d1548e6",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質 | 專案代號 | 訂單 | 項目 | 供應商 | 數量 | 單位 | 單價新台幣 | 小計新台幣 | 預定到貨日",
+          "locator": {
+            "section": "第 1 列",
+            "start_char": 0,
+            "end_char": 61
+          }
+        },
+        {
+          "source_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "chunk_id": "5e8a89c1-7a3a-4637-a099-247268896944",
+          "document_id": "384e8edc-8abf-451b-a844-886194331039",
+          "version": 1,
+          "title": "10_客服處理流程.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-10，現行版本 1；僅為虛構展示流程，不是實際售後承諾。\nPF-RAG-2611 的展示客訴案件，首次回覆時限為收到案件後 1 個工作日。\n完成初步調查的目標為收到案件後 5 個工作日；初步調查不等於保證結案。\n客服先記錄案件代碼與批號，再交由品保陳奕安檢視。\n虛構窗口信箱：support@example.invalid，不是真實可收信的聯絡方式。\n本資料沒有客戶手機、真實地址、退款金額或自動退款規則，不能憑空推定。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 281
+          }
+        },
+        {
+          "source_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "chunk_id": "32ca5a21-e6f7-4705-86f8-957249694085",
+          "document_id": "74a1314b-d179-4edc-995e-98450a46f53b",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "chunk_id": "d286b0a0-7b92-4c14-8779-71a11f54ee11",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M01 | 里程碑: 原料預定到貨 | 計畫日期: 2026-11-03 | 負責人: 周子涵 | 前提: 訂單已確認",
+          "locator": {
+            "section": "第 2 列",
+            "start_char": 0,
+            "end_char": 106
+          }
+        },
+        {
+          "source_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "chunk_id": "0814e766-b21f-422f-a167-599e4891d62a",
+          "document_id": "ab1c3549-e5ce-4d4f-8ebf-1c4734a102fb",
+          "version": 1,
+          "title": "07_採購明細.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 訂單: PO-DEMO-03 | 項目: 外箱 | 供應商: 明禾包材 | 數量: 70 | 單位: 個 | 單價新台幣: 18 | 小計新台幣: 1260 | 預定到貨日: 2026-11-15",
+          "locator": {
+            "section": "第 4 列",
+            "start_char": 0,
+            "end_char": 138
+          }
+        },
+        {
+          "source_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "chunk_id": "4923b1b9-294c-4ccc-8e3f-6c092dccd21c",
+          "document_id": "4b3ca51c-b341-4456-b3bc-9a19e9a04940",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "6ca3c460-fee4-438c-b05b-f8d5e9784543",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M06 | 里程碑: 計畫上市 | 計畫日期: 2026-11-25 | 負責人: 林語晴 | 前提: 出貨文件放行",
+          "locator": {
+            "section": "第 7 列",
+            "start_char": 0,
+            "end_char": 105
+          }
+        }
+      ],
+      "citations": [],
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "refusal_signal": true
+      },
+      "cited_document_keys": []
+    }
+  ],
+  "limitation": "Automatic term/citation/refusal checks are screening signals, not complete semantic or domain-quality validation. No production DB is used."
+}

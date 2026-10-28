@@ -3,9 +3,59 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import uuid
+import time
+import urllib.request
+import urllib.error
 from unittest.mock import MagicMock
 
 import pytest
+
+
+@pytest.mark.skipif(os.environ.get('PF_RAG_PROXY_TESTS') != '1', reason='Opt-in isolated Docker proxy test')
+def test_rag_proxy_allows_slow_model_without_extending_regular_api(tmp_path):
+    """Exercise nginx routing with a 9-second upstream; the regular API stays bounded."""
+    prefix = 'pf-rag-proxy-test-' + uuid.uuid4().hex[:12]
+    network, upstream, proxy = prefix, prefix + '-api', prefix + '-web'
+    root = Path(__file__).resolve().parents[2]
+    def docker(*args):
+        return subprocess.check_output(['docker', *args], stderr=subprocess.STDOUT, text=True).strip()
+    # Reuse installed images; no service recreation or database is involved.
+    api_image = docker('inspect', '--format', '{{.Image}}', 'projectflow-formal-api-1')
+    web_image = docker('inspect', '--format', '{{.Image}}', 'projectflow-formal-web-1')
+    server = '''from http.server import BaseHTTPRequestHandler, HTTPServer
+import time
+class Handler(BaseHTTPRequestHandler):
+ def do_GET(self):
+  if self.path != '/ready': time.sleep(9)
+  self.send_response(200); self.end_headers(); self.wfile.write(self.path.encode())
+HTTPServer(('0.0.0.0',8000),Handler).serve_forever()
+'''
+    docker('network', 'create', network)
+    try:
+        docker('run', '-d', '--name', upstream, '--network', network, '--network-alias', 'api', api_image, 'python', '-u', '-c', server)
+        docker('run', '-d', '--name', proxy, '--network', network, '-p', '127.0.0.1::80',
+               '--mount', f'type=bind,source={root / "deploy/nginx.conf"},target=/etc/nginx/conf.d/default.conf,readonly', web_image)
+        base = 'http://' + docker('port', proxy, '80').splitlines()[0]
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        for attempt in range(30):
+            try:
+                with opener.open(base + '/api/ready', timeout=2) as r:
+                    assert r.status == 200
+                break
+            except (OSError, urllib.error.URLError):
+                time.sleep(.2)
+        else:
+            pytest.fail('Isolated proxy did not become ready')
+        with opener.open(base + '/api/rag/ask', timeout=15) as r:
+            assert r.status == 200 and r.read() == b'/rag/ask'
+        with pytest.raises(urllib.error.HTTPError) as error:
+            opener.open(base + '/api/slow', timeout=15)
+        assert error.value.code == 504
+    finally:
+        for name in (proxy, upstream):
+            subprocess.run(['docker', 'rm', '-f', name], capture_output=True)
+        subprocess.run(['docker', 'network', 'rm', network], capture_output=True)
 
 
 @pytest.fixture

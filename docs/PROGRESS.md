@@ -13,6 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
+| 目前工作項目 | **RAG-V1 🟢 本機已更新供試用**：七項範圍完成，獨立審查、20題內容／引用20/20與追問3/3通過；備份、更新與資料保存核對完成。 |
+| 模式 | **展示優先精簡流程（D81）**：UI5一次審查／相關整合驗收／交付，見WORKFLOW §14.1；人類試用另簽核。 |
+| 下一個動作 | 人類於 http://127.0.0.1:15173/ 試用food／yu／demo-yu；AI副手直接問正式文件。先問G2條件，再問誰簽核，核對句旁引用。人類簽核未代勾，本輪已依人類授權推送GitHub；尚未合併。 |
+| 分支 | `codex/rag-quality-handoff`（PR #5，base feature/review-fixes）。原 feature/review-fixes 本機歷史與其他草稿完整保留；無 force push／main 合併。 |
+| 最新程式 commit | RAG-V1程式4db3317（已推送GitHub）；原品質版提交及歷史完整保留。 |
+| 行號基準 | `dfc0126`。§5「位置」欄和 §3「執行注意」的行號都以這個 commit 為準，此欄固定不改。程式改動後行號會位移，請用函式名或程式片段搜尋 |
+| 測試基準 | RAG-V1：20題獨立AI複核20/20（auto18/20）、追問3/3、4live；相關API95pass、PG10pass、Vitest114pass、E2E4pass、build及最終部署驗收pass。見本輪完整報告，各批次不加總。歷史：RAG-Q06：原20題真模型自動19/20、獨立語意與引用20/20；65相關回歸pass／4opt-in skip（4live另實跑通過）；部署回歸57pass含隔離9秒上游RED 504→GREEN200；nginx -t及web build通過。桌面1280／手機375實際Q06／Q18與引用原文、無overflow／JS errors通過。未重跑歷史全量API／Vitest。 RAG-IMPL：新API／pipeline／治理／評測／migration共32pass exit0；相關既有文件／AI／權限／migration 59pass／10skip exit0（10項為歷史專用PG測試）；全Vitest36檔336pass，收尾相關12pass，build exit0。隔離真PG 0019→0020七表列數保存，Edge E2E上傳→索引→問答→原文→回饋桌面1280／手機375共2pass。實際服務評測5/5、fixture契約7/7；bge-m3 1024維語意首位命中、qwen2.5:3b-instruct-q4_K_M合法引用真推論通過（各1合成案例，非領域品質門檻）。獨立審查3項P2修正並複核通過。 REVIEW-FIX整合（`feature/review-fixes`）：API全量716pass／14skip exit0（約17分鐘，Windows、SQLite；14個需專用PG）；Vitest 35檔332pass、build（含tsc）exit0、主bundle 489kB。各分支自身結果見對應plan檔。DOCS-CLEAN只改文件，沒有跑產品測試：SVG以XML解析通過，並用headless Edge以2400×1350渲染目視檢查文字與箭頭；README內連結的文件與錨點逐一核對存在。OPS-PUBLIC只做營運，沒有改程式也沒有跑測試；以公網DoH解析出的Funnel中繼IP 103.84.155.153／.217用`--resolve`直連，8443首頁與`/api/version`、10000 `/api/health/ready`皆200。OPS-SYNC只部署，未重跑測試（PR #3只改web與文件、另加一個API測試檔，API程式未改）；合併時docs衝突已由人類解決，本機只修正看板與README。PROJECT-DRAWER（PR #3）：PROJECT-DRAWER：完整前端31檔309pass；桌面／手機專案抽屜、相依追蹤、返回、頂欄與五尺寸側欄共9pass；型別與build exit0。獨立審查發現高亮節點遮住拖線按鈕，已修正層級並以左側命中及pointerdown回歸。初跑單元306pass／3fail（2項旧導覽斷言、1項既有入庫測試等待），修正後全量通過；初跑瀏覽器5pass／4fail為手機測試定位忽略隱藏元素，修正後9pass。歷史端對端僅載入檢查，未全量執行；本輪未改後端、未重跑歷史API與部署測試。保留既有產物大於500kB警告。 PUBLIC-TRIAL：PUBLIC-TRIAL：test_deployment＋新test_public_trial RED 10fail／17error exit1→73pass exit0（審查後修正再跑73pass exit0）；`nginx -t` ok；暫存nginx容器實測81埠只收ts.net Host（127.0.0.1／localhost／127.0.0.1.ts.net／無Host／絕對URI＋假Host皆421），80埠不變；未跑API全量（API程式未改）。LAN-SWITCH：showcase七檔＋deployment RED 9fail exit1→81pass exit0；API全量636pass／14skip exit0（19分45秒）。LAN-TRIAL：test_deployment RED 7fail exit1→46pass exit0；新Vitest new-id RED 3fail exit1→全前端27檔292pass exit0；build exit0；未跑API全量與E2E（只改啟動腳本、compose與三處前端id產生）。DATA-PACK（`258ca1e`）後只跑相關：test_demo_pack 2pass、整合後相關API 68pass、migration 23pass，未重跑全量。以下為F1-RET全量：全API 619pass／14skip exit0（專用PG環境未設定），其中新test_returns 13pass、新0019 migration保存舊流水／每筆只沖銷一次／拒降級1pass；審查後修正再跑退貨／採購／庫存相關40pass exit0。全前端Vitest 289pass exit0，build（含tsc）exit0。RED：改動前程式（暫存匯出）跑新pytest 13fail exit1、新migration測試1fail exit1、新Vitest 4fail exit1。E2E（15175隔離真PG）新退貨／沖銷1280／375共2pass：UI退貨、超退擋下、併發退貨200／409不超退、UI沖銷與已沖銷標記、同一筆併發沖銷200／409、工單退料、重載保存；採購、工單計畫、工單流水、收貨庫存、營運相關E2E 10pass。獨立唯讀審查Ready（非阻擋見§7 F1-RET）。 |
+| 資料版本 | RAG-V1已升至20261022_0021：query project可空、自動索引排程欄位；舊queued不自動補建，啟用PF_RAG_AUTO_INDEX=true。33表原欄位／13檔／32歷史引用保存，DB及mounts不變。歷史：RAG-Q06無migration（仍0020）：更新API與web代理、food生成模型改7B、11文件重建衍生索引；原29表／13檔／env／mounts保存、2歷史引用200且內容不變，DB容器未重建，web靜態資源SHA相同。備份.superpowers/rag-q06-20261022，6公司80帳號41專案502節點11文件12版本不變。 本機RAG已升級0020：以GitHub資料包還原0019之27表1758列至新projectflow-formal volumes，升級前pg_dump、30張既有表逐值指紋前後一致；另新增1個試用專案／文件。原正式DB未找到，不能將10/12快照視為最新完整資料。備份見.superpowers/rag-deploy-20261021。以下為舊環境歷史紀錄： OPS-PUBLIC無migration：`public_trial.py`只啟動既有容器（web `9df836f2145c`、API `e60becf4b227`、DB `d43b3c315aa0`與10-14相同，未重建、不seed）。OPS-SYNC無migration：`public_trial.py`只重建web（映像`78be54ef96bd`、容器`9df836f2145c`，bundle `index-wScy0RyV.js`含PR新樣式），API `e60becf4b227`與DB `d43b3c315aa0`未重建；本機與公開health 200，127.0.0.1以yu登入看到新專案總覽與「選擇專案，查看我的待辦」，主控台只有登入前的401，之後登出。PUBLIC-TRIAL無migration：部署前pg_dump存.superpowers/public-trial/before-public.dump；啟動器重建web（nginx 81）、API帶`PF_SHOWCASE_LAN=true`與`FORWARDED_ALLOW_IPS=*`重建，DB容器`d43b3c315aa0`未重建，6公司／80帳號／39專案／500節點／0019部署前後一致。LAN-SWITCH無migration：`--lan`重啟後API容器帶`PF_SHOWCASE_LAN=true`重建，web／DB容器未重建，部署前pg_dump存.superpowers/lan-trial/before-switch.dump。2026-10-12 LAN-TRIAL無migration：本機15173改以`--lan`啟動，web綁0.0.0.0、API仍127.0.0.1；只重建web容器，API／DB容器未重建，部署前pg_dump存.superpowers/lan-trial。migration `20261012_0019`：流水新增nullable `reversal_of`（同公司自參照FK、唯一，每筆最多沖銷一次），新種類return／issue_return／reversal，重建種類／明細／計畫CHECK並新增沖銷CHECK。舊流水保留、不seed、不回推；有新種類流水時拒絕降級。本機15173（人類2026-10-12指示「在這台部署15173」）由`20261008_0001`升到`0019`：部署前pg_dump（81項可列）與列數／env指紋存.superpowers/f1-ret-deploy，部署後原13表列數一致（13專案、47節點、7帳號等）、env未變、DB容器未重建，原本無files volume。之後依人類選擇以`deploy/demo-data`去敏資料包取代本機資料（見§2 OPS-RESTORE）：6家公司、39專案、1758列，0019；另一台部署未動。 |
+| 認領中 | 無；RAG-V1已交付本機，等待人類試用。 |
+| 阻塞／待人類 | 待人類：外部網路實測兩個公開網址；公開試用期間密碼`demo-<帳號>`可推得，用完請停止；8443本地共用版沒有登入，任何拿到網址的人都能修改或重置資料；PR #3列出的後續UI／UX建議待人類檢視。 |
+| 遠端 | 依D50發布main，push後核對遠端SHA；不force。PR #3已合併。 |
 | 目前工作項目 | **PORTABLE＋AI-DEMO-DATA 🟢 待人類第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR、乾淨展示資料與重建的「原有展示資料」Text-to-SQL，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
 | 下一個動作 | 待人類：用repo外`output/portable/ProjectFlow-Portable-20261024.zip`在另一台電腦照[檢查表](../deploy/portable/另一台電腦檢查表.md)做第三層驗證；決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
@@ -67,6 +78,55 @@
 
 ## 2. 工作佇列（由上往下執行）
 
+- RAG-V1 🟢 本機已更新（2026-10-22）：七項核准範圍完成；固定20題獨立AI內容／引用20/20（原自動18/20）、追問3/3、4live通過。獨立審查及相關驗收通過後備份並升級0021；33表原欄位／13檔／32歷史引用保存，原資料與功能保留。詳見artifacts/rag-v1-2026-10-22/驗收結果.md；未push／合併，人類試用待本人。
+
+- RAG-Q06 🟢（2026-10-22）：必要條件與來源明載未定狀態的通用prompt修正，原題／改名／免簽核／有據否定4個live案例通過；65項相關回歸通過；原20題自動19/20（Q01替代來源誤判）、獨立語意20/20。部署另修nginx8秒504，隔離慢上游RED→部署回歸57pass，RAG專用195秒／前端仍180秒。備份可讀且13檔逐值一致；29張既有資料表／env／mounts與2筆歷史引用保存；6公司80帳號41專案502節點11文件12版本不變。API／web代理更新、DB不動，靜態資源SHA相同；11份文件重索引，7B真模型桌面1280／手機375試用通過。程式8f8ba9e，本機未push；原SYS-PACK4草稿與解壓資料保留。
+
+- RAG-HANDOFF 🔨（2026-10-22）：人類要求完成驗證後開 PR 供換機接續。65項相關測試通過，7B重點8題正確，完整20題自動17/20、AI內容複核19/20，Q06待修；品質新版尚未部署。交接見 docs/rag-quality-handoff.md。遠端PR #4與本機歷史分岔但E2E修正內容一致，以遠端分支為基底建立獨立codex/rag-quality-handoff快照PR，保留原本機提交／未提交草稿，不force或改寫PR #4。
+
+- RAG-QUALITY 🔨（2026-10-21）：人類授權修正 Q04／Q05／Q07／Q10／Q13，保持原題庫與基線，重跑 20 題真模型、獨立複核；備份並比對原資料後更新本機試用。只改 CSV 證據、回答引用／計算及相關驗證，不 seed／還原／覆蓋既有檔案。
+
+- RAG-DATA 🟢 假資料已匯入（2026-10-21）：完成artifacts/rag-demo-data-2026-10-21/的10份現行虛構文件（8TXT／2CSV）、1份舊版、20題標準問答、可下載ZIP及可重跑產製／隔離評測工具。暫存SQLite＋真實bge-m3／qwen2.5:3b模型跑20題，自動粗篩16/20、AI逐題複核15/20；Q04引用不足、Q05/Q07矛盾、Q10日期錯、Q13算錯，Q18是自動拒答誤判。升版後舊內容退出檢索；題庫未匯入。獨立資料／工具審查及結果複核完成。已新增獨立專案「【虛構展示】山嵐新品 RAG 知識驗證」並索引10文件11版本，原40專案501節點1文件1版本及檔案指紋全數不變；先備份，收據與保存證據在ignored .superpowers/rag-demo-data-20261021。未改產品、未重跑歷史全套、未push／合併。建議後續優先改善證據對應、引用支持、計算與回答一致性，再評估OCR等新功能。
+
+- RAG-DEPLOY 🟢 本機可試用（2026-10-21）：人類再次指定GitHub倉庫最新版，fetch與兩遠端ff-only均Already up to date。保留本機RAG提交，於新projectflow-formal資料卷還原倉庫10/12展示包27表1758列（6公司80帳號39專案500節點），0019→0020前pg_dump，30張既有表逐值指紋相同。food公司配置qwen2.5:3b-instruct-q4_K_M與bge-m3，新增獨立虛構RAG試用專案與文件；真模型混合檢索／引用原文／回饋及Edge UI問答通過，頁面無JS錯誤，健康檢查200。15173僅loopback，已開啟Edge停在正式問答；原Chrome與舊檔／其他服務不變。未找到原正式DB完整備份，資料包不含10/12後修改／歷史audit／通知／session。升級前與完成後dump、files／AI tar、本機env及證據於ignored .superpowers/rag-deploy-20261021，dump可讀；未push／合併。
+
+- RAG-SYNC（2026-10-21）：依人類指示先保留修改再同步。`.superpowers/rag-sync-20261021/changes.zip` 保存主目錄及三分身交付共37檔，逐檔SHA256核對。`git fetch origin` exit0；`HEAD...origin/main`為38/0、`HEAD...origin/feature/review-fixes`為16/0，本機已包含兩遠端全部提交，無待合併／無同步衝突。主基準f9d37b2、遠端main 3c1294e、review-fixes c9ad212；三個隔離副本已寫入SYNC-BASE.json確認同基準。保留未完成RAG修改後繼續整合，沒有推送、部署或改動既有worktree。
+
+- RAG-IMPL 🟢（2026-10-21）：完成四模組正式文件初版：安全解析與版本索引、BM25＋真向量／RRF、Ollama證據回答與版本引用、live ACL與回饋／無全文trace／評測。分身在隔離副本交付，由主代理整合。短規格與計畫見`docs/superpowers/plans/2026-10-21-rag-impl.md`，操作與限制見`docs/formal-rag.md`。完成獨立審查與相關回歸；未推送／合併／部署。
+
+- RAG-PROMPTS 🟢 對話交付（2026-10-21）：人類要求四位組員各自明確的正反面prompt。依新版A知識生命週期／B檢索上下文／C生成應用／D治理評估，提供四份可貼給開發AI的工作指令，正面列目標、範圍、介面、交付與驗收，反面列禁止事項；姓名不預先指定。共用規則要求先讀repo指示與現況、對齊契約、以模擬資料獨立驗證、依核准檔案範圍實作，不假稱測試通過或將本次prompt當成產品實作授權。未改產品／Word／圖檔，未跑產品測試或推送。
+
+- RAG-ARCH-V2 🟢 本機交付（2026-10-21）：完成artifacts/rag-architecture-v2-2026-10-21/企業級RAG_新版四模組架構圖.png（3840×2160）與同名SVG（2560×1440）。A知識生命週期、B檢索與上下文、C生成與互動並列，D治理／運維評估橫跨三者；標示8個命名契約、上傳／狀態連線、責任與六層映射，4姓名留白。尺寸、契約／姓名檢查與SVG XML解析通過，最終預覽目視及獨立內容複核無阻擋；父片段再授權明列，頂部連線無交叉。保留上一版與Word，未改產品／跑產品測試／推送。
+
+- RAG-PACK4-V2 🟢 分工修訂提案（2026-10-21）：人類提供Downloads/企業級RAG_教學簡報.html並要求依內容重新切4模組。唯讀擷取45頁，依第14至20頁六層架構、第26至32頁檢索及第37至40頁治理重切為A知識接入與資料生命週期、B智慧檢索與上下文建構、C生成服務與應用互動、D安全治理與運維評估。C承接前端、D專責治理；上下文組裝移至B；A管理原文與結構化元資料、B管理Embedding及檢索索引。列六層映射、交接契約、權限與更新跨模組責任及每包20相對點的限縮估算。僅對話提案，未改舊Word／架構圖／產品，不把教學示例門檻當成既定驗收或已達成結果。
+
+- RAG-ARCH 🟢 本機交付（2026-10-21）：完成artifacts/rag-architecture-2026-10-21/RAG四模組詳細架構圖.png（3840×2160）與同名SVG（1920×1080），沿用深色青綠簡報視覺。四人A至D姓名留白、每包20點；標出內部責任、9項資料契約、建索引／查詢／回傳方向，含B→A索引完成或失敗。明列向量與正式附件索引待建、接口為建議契約。SVG XML解析、尺寸／欄位檢查、視覺檢查及獨立內容複核通過；未改既有Word／簡報／產品，未跑產品測試或推送。
+
+- RAG-CLAIM-DOC 🟢 本機交付（2026-10-21）：完成6頁可編輯Word認領表，位於artifacts/rag-claim-2026-10-21/RAG四模組分工認領表.docx；首頁認領總表、四模組各一頁、末頁介面與共同驗收。各包20點、12項交付成果、16項模組驗收標準，姓名／日期／品質門檻留白。結構檢查及獨立內容審查通過；render_docx.py因缺LibreOffice失敗，改以本機Word背景唯讀匯出PDF、Poppler轉PNG，修正末頁溢出後6頁逐頁目視通過。未改既有認領表／產品，未跑產品測試，未推送。
+
+- RAG-PACK4 🟢 架構分工提案（2026-10-21）：人類要求RAG拆四塊並平均分配。以文件問答第一版提出A資料接入與知識整理、B索引與檢索、C回答生成與引用、D問答介面與品質評估，各20相對點（含各自測試與串接），姓名待認領。列內部流程、資料契約、驗收與延後項目；僅為對話提案，非核准實作規格或歷史貢獻聲明。README §6／§8.6顯示現況為FTS5＋BM25與可選內網Ollama，正式附件索引、向量檢索與OCR待做。未改產品／既有簡報，REVIEW-FIX原排程維持。
+
+- PITCH-TABLES 🟢 本機交付（2026-10-21）：依人類確認方向更新求職版第18頁競品比較表與第19頁差異化價值表，各一頁。專流以第一個產品欄、加寬欄位、青綠標題及深色整欄突出；四項主管問題對應現有機制與管理價值。22頁與其餘內容保留，表格原生可編輯；版面／結構／字型／重新匯入及獨立複核通過，附兩頁PNG預覽。
+
+- PITCH-CLAIM-DOC 🟢 本機交付（2026-10-21）：完成6頁可編輯Word認領表，位於artifacts/team-claim-2026-10-21/專流_四包分工認領表.docx。首頁姓名總表、四包各一頁（AI粗體淡藍底、三頁簡報與DEMO時段、事前準備、狀態勾選）、末頁6分鐘DEMO與共同工作認領；姓名與日期皆空白。24項唯一完整、19／19／18／19點、AI每包6點已由腳本驗證。render_docx.py因本機無LibreOffice失敗，改用已安裝Word背景匯出PDF、Poppler轉PNG，迭代後6頁逐頁目視無截斷或空白頁；QA產物忽略，不交付。未改產品或既有PPT，未跑產品測試、未推送。
+
+- PITCH-PACK4 🟢 四包認領方案（2026-10-21）：人類要求將AI／非AI工作平均整併成4包並特別標示AI。第一包工作區與檢索：A1/A3＋B1/B2/B8/B9＝19點；第二包工作流與權限：A2/A6＋B4/B5/B6/B7＝19點；第三包營運與分析：A5/A8＋B10/B11/B12/B13＝18點；第四包排程與系統整合：A4/A7＋B3/B14/B15/B16＝19點。每包AI均6點、2項AI＋4項非AI；24項各出現一次無遺漏，合計75點。未指定姓名，點數仍是接手與展示準備負擔初估；含AI支援工程，非每包都直接呼叫模型。內容在本次對話交付，未改舊PPT／責任JSON。
+
+- PITCH-CLAIM 🟢 認領清單草案（2026-10-21）：人類確認25分鐘不含問答，撤回預先配對姓名，要求列出所有分工供組員自行認領，分AI應用與非AI兩類。按正式版現有範圍整理AI相關8包（24點）、非AI16包（51點），共75點，四人以18–20點為初步平衡參考。點數估算接手理解、驗證、維護與報告準備的相對負擔，不是歷史貢獻或開發工時；AI相關包含檢索、資料、權限等支援工作，非每項都呼叫模型。每包主責一人，搭配跨包整合；實際姓名待組員認領，不改舊責任JSON或既有PPT。
+
+- PITCH-25 🟢 內容草案（2026-10-21）：依人類要求在對話交付25分鐘逐頁大綱與講稿方向：團體6頁5分鐘、四人各3頁3分鐘、DEMO引導頁6分鐘、結尾頁1分鐘、換場緩衝1分鐘，共20頁；另提供含3分鐘問答的壓縮配置。食品研發串任務／前置／回報審核／文件／營運，最後明確切入獨立AI展示資料。四人沿用career-responsibilities.json的建議責任，待本人確認，非個人歷史貢獻聲明；問題案例與比較結果需本人補實證。核對README、技術路線圖、AI原始碼與既有E2E案例；競品查官方文件。未製作或修改PPT、未現場演練、未跑產品測試；REVIEW-FIX原排程維持。
+
+- PITCH-CAREER 🟢 本機交付（2026-10-21）：查核repo後另製22頁AI應用工程師求職簡報，加入技術棧、一頁可編輯架構、應用場景與四人工作包。李奕儒負責AI互動／前端、李倫安負責API／權限、廖洪茹負責資料／檢索、劉力瑜負責模型／部署；均為建議責任認領，每人4項12點，不冒充歷史個人貢獻。保留企業版與實機截圖；22頁渲染、版面／結構／字型、重新匯入與獨立審查通過。
+
+- PITCH-FOCUS 🟢 本機交付（2026-10-21）：依人類回饋重寫第14–16頁。第14頁以大面積專流主視覺搭配精簡競品表；第15頁以主管痛點／現有流程／管理依據說明選用理由；第16頁明確適用條件與試用行動。23頁與實機畫面保留，20頁未改畫面逐像素一致。版面／結構／字型、重新匯入與唯讀複核通過；已更新既有PPT並附第14頁預覽。
+
+- PITCH-COMP 🟢 本機交付（2026-10-21）：加入Notion／Asana／monday.com／Odoo定位比較、專流研發交付切入優勢、同案例驗證方式與官方來源附錄，更新為23頁並保留5頁實機截圖。7份官方來源有對應主張與限制；無競品實機橫向評測，不宣稱獨家、較便宜或更安全。23頁渲染、版面／結構／字型檢查、重新匯入與獨立審查完成；來源與產製程式在artifacts/pitch-2026-10-21/。
+
+- PITCH-SHOTS 🟢 本機交付（2026-10-21）：企業主管PPT加入5頁正式版實機畫面，擴為19頁，涵蓋總覽、時程相依、完成回報、文件版本及採購關聯。原始截圖與講稿均標示隔離展示資料；僅在新建隔離資料庫新增示範文件／關聯，既有使用者資料與產品程式未改。19頁渲染、版面／結構／字型檢查、重新匯入與獨立審查完成；交付在 artifacts/pitch-2026-10-21/output/。
+
+- PITCH-DECK 🟢 本機交付（2026-10-21）：人類要求企業老闆／主管提案PPT，涵蓋企業痛點、風險急迫感與價值貢獻。已完成14頁／約10分鐘、逐頁講稿、可編輯文字與4張原生表格，位於`artifacts/pitch-2026-10-21/output/專流_ProjectFlow_企業主管提案.pptx`；深色商務視覺與AI生成封面意象。以README §2／§6／§8為事實來源，AI展示／ERP未串接／部署試用級明確標示，24人×15分鐘×220天等效益數字明列情境假設。14頁逐頁渲染目視；PPTX結構、版面、字型與重新匯入均pass、0 findings／0 warnings；一次獨立內容審查無阻擋，採納標題前提與工時說法修正。只改簡報交付檔與本看板，未跑產品測試、未以原生PowerPoint驗證、未部署或推送；REVIEW-FIX原排程維持。
+
+- REVIEW-FIX 🔍：人類2026-10-20先要求檢視專案「有要再修正或補齊的地方嗎」，Claude做唯讀審查（兩位子代理分別審後端與前端，主代理回原始碼核對前幾項）並條列約40項；人類指示「全部開始修，可以同時進行的就直接開分支」，故依檔案範圍拆成四個平行session、各自worktree分支（D2例外，人類指示平行），各分支不改PROGRESS／README以免衝突，短計畫與結果寫在`docs/superpowers/plans/2026-10-20-{api-security,api-correctness,ci-tests,web-fixes}.md`。**api-security**（`4fffaba`）：cookie依HTTPS加Secure、AI模型設定改用不可偽造的本機判斷、寫入請求統一Origin／Sec-Fetch-Site檢查、非開發環境關閉OpenAPI文件、nginx安全標頭、`verify_password`用雜湊記錄的rounds、帳號不存在時跑假雜湊消除時間差、AI SQL逾時改回可理解訊息。**api-correctness**（`fa3af45`）：engine依URL快取、階段狀態採人類2026-10-20選定的規則A（階段可直接改review／skipped但子節點須全部done／skipped，否則409；專案根節點不能用PATCH改skipped／review）、同一請求共用授權資料（送出略過申請342–482ms→89–117ms）、GET改不加鎖讀取、稽核SQL分頁。**ci-tests**（`8797a66`）：新增`.github/workflows/ci.yml`（API SQLite、專用PostgreSQL 14個測試、web），`test_migrations`路徑不依賴cwd、`test_health`補11個邊界案例、web依賴升patch；Playwright E2E未納入CI。**web-fixes**（至`5471b5c`）：回報草稿不再被其他紀錄儲存清空、API逾時釋放鎖、節點／時程日期表單未存離開提醒、副手跨導覽保留對話、預覽頁lazy載入（主bundle 587→489kB）、Escape與tab無障礙、捲軸量測節流、下載URL延後釋放、待辦搜尋debounce、未開始空階段可新增第一個任務等。整合：`feature/review-fixes`由main依序`--no-ff`合併四個分支（web只合到`5471b5c`，其後3個UX commit留待另開PR），兩兩合併無衝突。整合測試：API全量716pass／14skip exit0（14個為專用PG，ci-tests在Linux容器實跑全過）；Vitest 35檔332pass、build（含tsc）exit0，無>500kB警告。未做：真瀏覽器E2E、實際Funnel驗證、GitHub Actions實際執行（push後確認）。遺留（不阻塞）：cookie不分埠號只能靠獨立主機名稱解決；`operation_links` GET仍加鎖；Windows上PG races受`msvcrt.locking`影響；`tree.test.tsx`高負載可能逾時；Starlette httpx棄用警告建議另案。
 - REVIEW-FIX 🔍：人類2026-10-20先要求檢視專案「有要再修正或補齊的地方嗎」，Claude做唯讀審查（兩位子代理分別審後端與前端，主代理回原始碼核對前幾項）並條列約40項；人類指示「全部開始修，可以同時進行的就直接開分支」，故依檔案範圍拆成四個平行session、各自worktree分支（D2例外，人類指示平行），各分支不改PROGRESS／README以免衝突，短計畫與結果寫在`docs/superpowers/plans/2026-10-20-{api-security,api-correctness,ci-tests,web-fixes}.md`。**api-security**（`4fffaba`）：cookie依HTTPS加Secure、AI模型設定改用不可偽造的本機判斷、寫入請求統一Origin／Sec-Fetch-Site檢查、非開發環境關閉OpenAPI文件、nginx安全標頭、`verify_password`用雜湊記錄的rounds、帳號不存在時跑假雜湊消除時間差、AI SQL逾時改回可理解訊息。**api-correctness**（`fa3af45`）：engine依URL快取、階段狀態採人類2026-10-20選定的規則A（階段可直接改review／skipped但子節點須全部done／skipped，否則409；專案根節點不能用PATCH改skipped／review）、同一請求共用授權資料（送出略過申請342–482ms→89–117ms）、GET改不加鎖讀取、稽核SQL分頁。**ci-tests**（`8797a66`）：新增`.github/workflows/ci.yml`（API SQLite、專用PostgreSQL 14個測試、web），`test_migrations`路徑不依賴cwd、`test_health`補11個邊界案例、web依賴升patch；Playwright E2E未納入CI。**web-fixes**（至`5471b5c`）：回報草稿不再被其他紀錄儲存清空、API逾時釋放鎖、節點／時程日期表單未存離開提醒、副手跨導覽保留對話、預覽頁lazy載入（主bundle 587→489kB）、Escape與tab無障礙、捲軸量測節流、下載URL延後釋放、待辦搜尋debounce、未開始空階段可新增第一個任務等。整合：`feature/review-fixes`由main依序`--no-ff`合併四個分支（web只合到`5471b5c`，其後3個UX commit留待另開PR），兩兩合併無衝突。整合測試：API全量716pass／14skip exit0（14個為專用PG，ci-tests在Linux容器實跑全過）；Vitest 35檔332pass、build（含tsc）exit0，無>500kB警告。未做：真瀏覽器E2E、實際Funnel驗證、GitHub Actions實際執行（push後確認）。遺留（不阻塞）：cookie不分埠號只能靠獨立主機名稱解決；`operation_links` GET仍加鎖；Windows上PG races受`msvcrt.locking`影響；`tree.test.tsx`高負載可能逾時；Starlette httpx棄用警告建議另案。2026-10-27 GitHub回報PR #4與main衝突（main新增59個commit，含ACCOUNTS、AI閘道、可攜包等）：在暫存worktree合併`origin/main`解衝突——`auth.py`登入改用main的`account_service`（已含假雜湊與失敗紀錄），保留本PR的Secure cookie；`ai.py`採main新介面並保留`local_request`與AI SQL錯誤處理（`can_set_policy`一併改用`local_request`）；前端保留預覽頁lazy載入、AIGovernance，副手保留main新功能並補回401登出與舊原文請求中止，AI長請求（ask／preview／refreshIndex）給180秒逾時。
 
 - COPILOT-SCENARIOS 🟢 已併入可攜包（2026-10-24）：人類問「不同的情境可以有不同的示範問題讓使用者選嗎」，看過方案後指示「照方案做示範情境選單，做完測試並重新打包可攜包」。新增`web/src/components/copilotScenarios.ts`（題目取自示範腳本）：副手設定區最上方「示範情境」選單，選了自動切好資料集、查詢方式、歷史版本，並在資料載入後依標題選好專案；列出該情境的題目（空白時在對話區、對話後在輸入框上方）。7個可自動的情境（新人報到、改期與歷史版本、未完成工單、正式文件現行／新舊對照／附件、OCR、Text-to-SQL、交付與成本文件）加2個「示範步驟」提示卡（換帳號看權限、AI政策與遮罩）。毛研食品以外的公司只列出有資料的情境（Text-to-SQL、交付規範文件）。手動改設定時情境回到「自行設定」。測試：新增2項先RED後GREEN；Vitest 34檔333 pass（一次`returns.test`偶發失敗，單獨重跑3次與全量重跑皆pass）、tsc exit0；15176實測選OCR情境自動切到正式文件與「OCR 示範（虛構）」，點題目答「一樓警衛室」。
@@ -1229,6 +1289,145 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 ---
 
 ## 7. 交接紀錄（最新的在最上面，只保留最近 5 筆，更舊的從 git 歷史查）
+### 2026-10-22｜Codex GPT-6｜RAG-Q06 品質修正與本機試用
+- **授權與交付**：修Q06→20題確認→備份→更新本機；完成通用條件完整性與有據否定回答，未硬編題庫，原文件／題庫／報告保留。程式8f8ba9e，未push／merge。
+- **驗證**：Q06 RED摘要1fail（最初wrapper未保留pytest exit），GREEN原題／改名；免簽核及Q18有據否定變體通過。Q18 RED1fail exit1→GREEN1pass exit0；65相關回歸pass exit0，4live分開驗證。第一輪20題自動19／語意19，獨立審查指出Q18舊問題後補強；最終自動19／獨立語意20。Q01有效替代來源誤判。舊accepted報告按完整性應18/20而非舊記19/20，詳見Q06修正驗證結果.md。
+- **部署修正**：實際入口發現nginx8秒504，隔離Docker9秒慢上游RED1fail exit1→57部署回歸pass exit0；新增RAG專用195秒（前端仍180秒）。程式、備份腳本與代理修正獨立審查無阻擋；web build／nginx -t通過。
+- **保存**：pg_dump可列目錄、tar13檔逐個讀回SHA核對，更新前一致性快照；更新後29既有表、13檔、env、掛載全一致，舊chunk/query保留、2歷史引用200且內容相同，DB容器不變，web靜態資源SHA不變。6公司80帳號41專案502節點11文件12版本保留。備份與私密設定留ignored .superpowers/rag-q06-20261022，未提交。
+- **試用**：15173本機入口，7B＋bge-m3，11文件已索引；API真Q06與桌面1280 Q06／手機375 Q18、引用原文及無水平overflow／JS errors通過，ready200。人類試用簽核未代勾。未重跑歷史全套；其他SYS-PACK4草稿與解壓資料保持未暫存。
+
+### 2026-10-21｜Codex｜RAG虛構資料與真模型基線
+- **交付**：artifacts/rag-demo-data-2026-10-21/含10份現行知識文件、1份舊包裝版本、20題標準答案、README、ZIP、build_data.py、run_demo.py、實際evaluation.json與試跑結果.md。公司、人名、業務規則、金額皆虛構；題庫與評測答案不進知識庫。ZIP及manifest SHA256核對、py_compile exit0。
+- **隔離驗證**：預設run_demo以暫存SQLite與獨立文件根目錄，真Ollama bge-m3:latest／qwen2.5:3b-instruct-q4_K_M完成20題，exit0；自動條件16/20，AI逐題內容複核15/20。20題引用ID合法且來源為現行版本，升版未索引時舊版退出。Q04答案正確但引用不支持品保人名、Q05/Q07自相矛盾、Q10把試製日答為上市日、Q13加總錯；Q18拒答正確但自動詞庫漏「並無」。原始結果保留，不修改標準湊全過；非人類簽核或完整品質認證。
+- **獨立審查**：資料、數字、來源與匯入隔離審查；Q07標準答案移除無現行來源支持的舊包數。評測啟動時的expected_answer快照仍留在evaluation.json，題庫已修正，修訂時序明列於結果文件。唯讀分身再複核5題品質分類及Q18誤判，結論一致。
+- **本機資料**：先pg_dump與儲存tar備份，再由API新增「【虛構展示】山嵐新品 RAG 知識驗證」（83040f74-9338-4c61-aab6-226f40ab3f99），10文件11版本全部ready。匯入收據即時保存、既有模型設定只讀；原40專案501節點1文件1版本與原檔案逐值／SHA256不變。現共有41專案502節點11文件12版本。備份及收據在ignored .superpowers/rag-demo-data-20261021；未提交DB或秘密。
+- **後續建議**：先做CSV欄位／日期對應、可驗證計算、引用支持及答案一致性，再評估OCR／背景索引／ANN。本輪未改產品程式、沒有重跑歷史全套或修正上述模型問題；未push／合併。15173仍可試用，重新載入後已顯示新專案。
+
+### 2026-10-21｜Codex｜RAG本機部署與試用完成
+- **人類裁決**：再次指定「直接把 https://github.com/chenliyu0410/projectflow.git 這份pull下來，用現在最新的去改」。依此以倉庫最新版與附帶展示包建本機環境；先fetch，再ff-only整合main／review-fixes均Already up to date，未丟棄本機RAG提交。
+- **部署與資料**：新projectflow-formal DB／files／ai_data資料卷，原Chrome與舊檔案／其他Docker專案未變更。實際PostgreSQL17先升到0019，依反射0019 schema保留原import的空DB／revision／hash檢查還原27表1758列，先dump再升0020，30張既有表列數及逐值指紋完全一致。沒有原正式完整備份，使用10/12去敏快照，不能保證其後修改已復原。
+- **試用**：http://127.0.0.1:15173 ，food／yu／demo-yu；另新增1個「RAG 試用：文件問答與引用」專案及虛構TXT，原39專案保留。food設定qwen2.5:3b-instruct-q4_K_M＋bge-m3:latest，Docker→host.docker.internal:11434。真模型混合檢索正確回答王小明／90天，1筆合法引用，原文與回饋驗證成功；Edge UI再次提問成功，JS errors空。已保留可操作瀏覽器在回答畫面。
+- **備份**：ignored .superpowers/rag-deploy-20261021/ 的before-rag-upgrade.dump SHA256 6ec4b2f203a1ea123267e2cdc96a4f55f829a9b08f23bf369ab54f4bd08c200a；ready-rag.dump SHA256 0d92d757f0662da2908b7e7cb1b38cfbae063c48605054e9501d1d9a6c86a745，pg_restore --list成功；ready-storage.tar保存files／AI，deployment.env為本機私密設定。不提交備份／秘密。
+- **範圍與下一步**：API／DB healthy、web running、health/ready 200；只本機loopback，未開LAN／Funnel，未推送／合併、未重跑歷史全套。README及formal-rag更新試用方式與快照限制，其他工作草稿保持未暫存；人類試用簽核未代勾。重新啟動用python deploy/start.py，不seed、不重跑匯入。
+
+### 2026-10-21｜Codex｜RAG舊資料搜尋與還原預檢
+- **GitHub**：重新fetch origin成功；main 3c1294e與review-fixes c9ad212均已包含於HEAD 69ebaf7，無需合併，保留所有本機RAG提交與其他草稿。
+- **搜尋**：Windows常用目錄、D槽、Codex／Claude worktrees、Docker與WSL未找到原正式部署或完整備份。WindowsPG18名稱目錄無projectflow標記，未繞過認證；孤立Docker卷無projectflow標記。Chrome舊Demo鍵仍在，不碰原瀏覽器儲存；舊Demo副本與GitHub ZIP不是最新正式DB。
+- **可用資料與驗證**：repo／ZIP的2026-10-12去敏匯出包27表1758列已逐檔SHA256核對，另存source-data-20261012.zip（SHA256 5cac9c41df5c9445ac83660ceec6df5be9574b5bbe18977c75e3e2d2cc256b0a）。無網路臨時API容器用SQLite還原0019，再升級0020，27表逐值指紋一致exit0。使用reflect原0019 schema的暫存還原工具，保留原import版本／空DB／hash檢查；未修改產品程式。此為資料包還原預檢，不冒稱正式PG部署或最新完整備份。
+- **待確認**：已發出非同步選項：以10/12快照於全新volume部署RAG，或繼續找其他備份。原正式資料未找到，故未啟動空白正式服務。前回合API/web映像已完成、Docker可連Ollama；使用者確認快照後即可還原並核對、配置模型、打開試用頁。無push或合併。
+
+### 2026-10-21｜Codex｜RAG本機部署準備，待原資料位置
+- **現況**：兩個Docker context均找不到專流容器／資料卷，deploy/.env不存在，舊入口無回應。本機其他專案的容器保持原狀，已向人類詢問原部署或備份位置。
+- **準備與驗證**：API與web Docker build exit0；web建置發現E2E區域document Locator遮蔽全域DOM型別，改用window.document後npm build及Docker build均exit0。臨時無掛載API容器可存取host.docker.internal:11434並取得bge-m3及qwen模型清單。
+- **資料保護**：尚未找到可備份的原DB，故未建立新DB、seed、migration或啟動空白應用；未宣稱部署成功。已保留先前RAG commit e3f614c及其他工作草稿，未push。
+- **下一步**：取得原資料位置，先備份DB／files／AI並記錄基線，再更新API／web、升級0020、核對資料、設定模型與開啟試用頁。
+
+### 2026-10-21｜Codex GPT-6｜RAG-IMPL 四模組正式文件初版
+- **完成**：正式文件解析、版本索引／停用／重試、授權前置檢索、真實向量與Ollama生成、引用、回饋、trace與可重跑服務評測；保留展示AI。GitHub fetch確認無缺少遠端提交，37檔備份雜湊核對，分身確認同基準。
+- **驗證**：新pytest32pass；相關回歸59pass／10歷史PGskip；Vitest336pass，收尾相關12pass與build exit0；真PG0019→0020七表列數一致＋Edge E2E桌面／手機2pass。服務評測5/5、fixture7/7；bge-m3 1024維與qwen2.5:3b實測合法引用。獨立審查修正空引用、chat總期限與parent定位三項P2，複審無阻擋。git diff --check通過。
+- **真實失敗／修正**：API初跑7fail（路由未接）→通過；補定位測試1fail因測試單字不符合中文雙字斷詞，改雙字後32pass。隔離驗收初次缺目錄、接著缺Playwright專用瀏覽器，改建立目錄並用已安裝Edge後通過；首次真模型回傳裝飾引用被正確拒絕，schema限定enum後通過。
+- **限制與下一步**：初版有界exact向量與規則重排，非pgvector／neural reranker；無OCR／Excel／背景worker／附件索引。實模型僅冒煙測試，尚待領域題集；模型設定指紋不辨同標籤權重替換。未部署、未推送或合併，使用中資料未改。
+- **保留其他工作**：同時出現另一工作之SYS-PACK4系列看板／交接草稿；保留在工作目錄、不納入本次commit。為保留尚未提交草稿，此次不刪其交接記錄。測試證據位於ignored `.superpowers/rag-impl/`。
+
+### 2026-10-21｜Codex GPT-6｜RAG-PROMPTS 四人開發AI工作指令
+- **做了什麼**：整理四份含正面任務與反面限制的可複製prompt，沿新版模組責任，附共同開工及交接要求。
+- **驗證**：對照新版四包與契約，確認A／B／C／D分界、檢索前授權、父片段與引用再授權、日誌資料保護及各自驗收責任；僅文字提案，未執行產品測試。
+- **沒做的事／偏離 plan**：未啟動四模組實作、未指定人名、未修改既有Word或圖檔、未推送。
+- **下一步**：組員認領後各自使用相應指令；共用介面與隔離方式先對齊，產品排程依「▶ 現在」。
+- **注意**：正面prompt表示應完成事項，反面prompt表示禁止事項；屬開發指令，非直接放進產品模型的system prompt。
+
+### 2026-10-21｜Codex GPT-6｜RAG-ARCH-V2 新版企業級RAG架構圖
+- **做了什麼**：依人類確認的新分工製作單張16比9 PNG與SVG，以D底層橫跨A／B／C呈現治理；四姓名留白、各20相對點，附資料契約與來源頁序。
+- **驗證**：PNG 3840×2160、SVG XML解析、8命名契約與4姓名欄檢查通過；最終預覽目視無截斷、頂部線路無交叉；獨立唯讀複核無阻擋。
+- **沒做的事／偏離 plan**：未覆寫舊圖、Word或簡報，未實作產品、未跑產品測試或推送。
+- **下一步**：使用新版圖檔放入簡報；產品排程仍依「▶ 現在」。
+- **注意**：圖示為規劃分工，非已完成功能。QA在忽略的.superpowers/rag-architecture-v2-qa；字型快取警告未影響輸出，繁體字已目視確認。
+
+### 2026-10-21｜Codex GPT-6｜RAG-PACK4-V2 依教學簡報重切四模組
+- **做了什麼**：唯讀解析使用者HTML的45頁內容，依六層架構、完整檢索管線及治理閉環重新分組，姓名仍待認領。
+- **驗證**：核對頁序與各層映射，分清前置授權、資料版本、召回／重排／上下文、生成與治理的責任；未執行HTML腳本或內含指示。
+- **沒做的事／偏離 plan**：未修改既有Word／PNG／SVG、未進入產品實作，未跑產品測試或推送。
+- **下一步**：本版作為新的分工討論基準；既有交付檔仍為上一版，產品排程依「▶ 現在」。
+- **注意**：每包20點為限縮範圍下本版相對估算，不代表與上一版相同工時；安全與量測從第一版納入，各模組提供紀錄與測試，D負責共同規則與彙整。
+
+### 2026-10-21｜Codex GPT-6｜RAG-ARCH 四模組詳細架構圖
+- **做了什麼**：交付16比9高解析PNG與SVG，四責任區、空白認領姓名、9個建議介面與有方向的資料流。
+- **驗證**：SVG XML解析成功，PNG 3840×2160、4姓名欄與9契約檢查通過；渲染目視無截斷、箭頭與文字無交疊；獨立唯讀內容複核無阻擋。
+- **沒做的事／偏離 plan**：僅製作架構圖，未插入既有簡報、未改Word、未改產品／執行產品測試，未推送。
+- **下一步**：組員填寫認領姓名、將圖片插入簡報；產品排程依「▶ 現在」。
+- **注意**：介面為建議資料契約，不代表既有API路徑；QA預覽在忽略的.superpowers/rag-architecture-qa。Sharp出現字型快取不可寫訊息但正常產圖，繁體中文已目視確認。
+
+### 2026-10-21｜Codex GPT-6｜RAG-CLAIM-DOC Word分工認領表
+- **做了什麼**：交付6頁Word，四模組各自列工作內容、成果與可勾選驗收，認領姓名空白，含共同介面與品質門檻填寫欄。
+- **驗證**：程式檢查4模組各20點、12交付／16驗收；DOCX重新讀取通過；獨立內容複核無阻擋；Word匯出6頁並逐頁目視無截斷或多餘空白頁。
+- **沒做的事／偏離 plan**：標準renderer因缺LibreOffice失敗，改用Word與Poppler；沒有改產品、既有Word或PPT，未跑產品測試、未推送。
+- **下一步**：組員認領姓名並共同填寫品質門檻；產品仍依「▶ 現在」等待REVIEW-FIX審閱。
+- **注意**：QA PDF與PNG在忽略的.superpowers/rag-claim-qa，僅交付DOCX；模型、向量及附件索引等分工目標不表示已實作。
+
+### 2026-10-21｜Codex GPT-6｜RAG-PACK4 四人模組架構提案
+- **做了什麼**：依人類要求整理四塊RAG工作包、介面與驗收；建議每包20相對點，非實測工時。
+- **驗證**：核對README §6／§8.6與技術路線圖；參考Microsoft RAG設計文件。僅文件記錄，未跑產品測試。
+- **沒做的事／偏離 plan**：未寫正式spec或實作、未指定姓名、未修改既有分工文件／簡報、未推送。
+- **下一步**：本提案待組員認領；產品仍依「▶ 現在」等待REVIEW-FIX審閱。
+- **注意**：向量檢索、附件解析與OCR屬建議後續能力，不能對外說成已完成。
+
+### 2026-10-21｜Codex GPT-6｜PITCH-TABLES 競品與差異化價值雙表
+- **做了什麼**：依使用者認可的對話表格更新求職版第18／19頁，競品比較與差異化價值各一頁。專流產品欄置前並加寬，以青綠表頭與深色整欄強調。四項主管問題對應回報證據、流程條件、任務追查與模板沿用；講者備註保留來源與能力限制。
+- **驗證**：22頁渲染；兩頁逐頁目視，修正第一版比較表三行文字造成的原生表格高度警告。最終finalizer exit0，版面／結構／字型0 findings、0 warnings，9個原生表格，22頁重新匯入成功。其他19頁逐像素一致；架構頁僅虛線28像素的匯入渲染差異，目視無內容與位置變更。獨立唯讀複核通過，無阻擋或重要修正。
+- **交付**：更新原求職版PPT與兩頁PNG預覽。PPT SHA256為71ef7dbf3ccf1ac3d8a5a68cff3b9863e786eb3bb7c8a335f5d88811f199fafa，與已驗證候選檔相同。產製來源為build/update-value-tables.mjs。
+- **沒做的事**：未改其他頁內容、企業版、產品與業務資料；未跑產品回歸、原生PowerPoint、競品帳號橫向實測，未部署、push或合併。既有認領表工作的本機變更另留原狀。
+- **下一步**：人類檢視兩頁與簡報；REVIEW-FIX及其他工作維持原排程。
+
+### 2026-10-21｜Codex｜PITCH-25 團體與個人報告及DEMO大綱
+- **認領文件交付／PITCH-CLAIM-DOC**：依人類要求製作6頁Word認領表，姓名留白，AI標示及各包簡報／DEMO明列；含可重現build_claim.py。數量、點數與完整性斷言通過；使用本機Word匯出、Poppler逐頁渲染目視驗證（LibreOffice不存在，已如實採Word替代），修正分頁與表格後6頁完整。DEMO是待彩排腳本，未冒稱產品實跑。交付檔與產製程式在artifacts/team-claim-2026-10-21/，QA中間檔不提交。
+- **四包整併／PITCH-PACK4**：依後續指示整成19／19／18／19點，每包AI6點，2項AI＋4項非AI；以JS核對A1–A8、B1–B16全部且唯一，總75點。認領姓名留白，正式功能與AI展示資料邊界維持；僅進度文件更新與對話方案，未執行產品測試或修改產品。
+- **後續人類裁決／PITCH-CLAIM**：25分鐘不含問答；姓名分工暫不採用，改交付AI相關8包與非AI16包的認領清單，含相對負擔與交付要求，供四位組員自行選擇。未將認領視為歷史開發實績；未修改既有PPT／責任JSON／產品。點數24＋51＝75，為報告與接手責任的初估。
+- **做了什麼**：整理團體5分鐘六頁（願景、痛點、解法、競品定位、架構、分工），個人12分鐘十二頁（每人架構／關鍵機制／問題比較驗證），DEMO6分鐘、結尾1分鐘、緩衝1分鐘。完整逐頁內容與示範講法在本次對話；不另修改既有簡報。
+- **事實核對**：正式功能依README §2／§6／§8與技術路線圖；AI查核store.py、service.py、model.py、queries.json及web/e2e/ai.spec.ts。文件問答為FTS5／BM25、可選Ollama與檢索回退；SQL為16種受控模板、基準日2026-10-11；AI展示資料與正式業務分開，無向量檢索與ERP串接完成主張。競品使用Notion相依、Asana核准、Odoo BOM官方文件。
+- **待確認**：四人名單與建議分工取自既有career-responsibilities.json，實際貢獻及25分鐘是否含問答待人類確認；先以不含問答安排並附含問答版本。DEMO腳本是待彩排提案，未驗證現場資料、角色與模型可用。
+- **驗證範圍**：僅內容與程式來源核對、時長加總與文件diff檢查；未執行產品測試或DEMO、不冒稱新測試通過。未改產品／PPT／業務資料，未部署、push或合併。
+- **下一步**：依實際分工補個人證據、決定問答時段、在隔離資料準備並彩排主流程；REVIEW-FIX維持原排程。
+
+### 2026-10-21｜Codex GPT-6｜PITCH-CAREER AI應用工程師求職簡報與四人工作包
+- **做了什麼**：另製22頁求職版，保留原企業版。查核前後端依賴、Compose、nginx、權限與AI實作，加入技術棧、原生可編輯架構圖、應用場景、AI工程決策與四人責任總表／明細。每人4項12點，共48點；名單及工作包另存career-responsibilities.json，架構另附PNG。
+- **內容邊界**：四人分工是建議認領的理解、驗證、維護與展示責任，非歷史個人實績；明示共同使用AI agent開發。區分開發代理與產品AI副手、正式PostgreSQL與獨立唯讀SQLite展示資料、選用Ollama與尚未完成的正式資料／向量串接；可延伸場景不當作客戶實績。
+- **驗證**：22頁全數渲染，新增與修改頁目視；10頁沿用畫面排除頁碼後逐像素一致。finalizer exit0，結構／版面／字型0 findings與0 warnings，9個原生表格、22頁重新匯入成功。四人估點另核對為12／12／12／12；獨立唯讀審查通過，並修正架構Ollama方塊下緣留白。交付SHA256為3485c91288a0eb411da30e704d243dffbbb71cd334b230a726c91d5d06f6f919，與已驗證檔一致。
+- **沒做的事**：未改產品或業務資料、未跑產品回歸、未以原生PowerPoint驗證；未部署、push或合併。
+- **下一步**：四人按建議範圍認領並準備程式解說與操作展示；▶現在REVIEW-FIX維持原排程。
+
+### 2026-10-21｜Codex GPT-6｜PITCH-FOCUS 強化專流選用理由與主視覺
+- **做了什麼**：使用者指出專流在競品比較頁不夠顯眼，要求說服主管為何選專流。重寫第14–16頁：左側精簡競品、右側深色大字專流；以交付確認／任務追查／模板沿用呈現已有流程與管理依據；補適用條件與試用CTA。沿用既有23頁，更新3個既有PPT與產製來源，提供第14頁PNG預覽。
+- **內容邊界**：保留競品亦可搭建流程的說明；專流定位是可演示的研發交付起點。未將模板、關聯或審核稱為獨家，未宣稱零設定、已量測更快／更便宜，ERP與正式部署缺口保留。
+- **驗證**：23頁渲染；第14–16頁逐頁目視，其餘20頁與上一版逐像素一致。finalizer exit0，結構／版面／字型0 findings與0 warnings，7個原生表格、23頁重新匯入成功。交付SHA256 d3915c5e…7691de26與已驗證candidate一致。獨立唯讀複核通過，無阻擋或重要修正。
+- **沒做的事**：未新增競品實測或價格主張；未改產品／業務資料，未跑產品回歸、未用原生PowerPoint驗證、未部署／push／合併。
+- **下一步**：人類檢視強化後簡報；▶現在REVIEW-FIX工作維持原排程。
+
+### 2026-10-21｜Codex GPT-6｜PITCH-COMP 差異化優勢分析
+- **做了什麼**：19頁版插入3頁主文（產品情境比較、研發交付整合定位、同案例效益驗證）與1頁官方來源附錄，共23頁。保留全部實機畫面與原內容；更新既有兩個PPT並提供差異化分析版。7份官方來源與查核方法存competition-sources.json，完整網址也在講者備註。
+- **內容邊界**：核對Notion關聯／相依、Asana核准、monday跨看板與鏡像、Odoo製造與部署選項。承認競品相似能力，專流優勢定位為研發交付的既有流程起點；導入／追查／成本屬待驗證假設。自管不是獨有，正式部署、ERP與AI限制保留。Odoo部分頁面直接存取逾時，以官方網域索引已讀內容支持有限主張。
+- **驗證**：23頁全部渲染，4頁新增內容逐頁目視；原19頁排除頁碼後與原渲染完全一致。finalizer exit0，結構／版面／字型0 findings與0 warnings，6個原生可編輯表格、23頁重新匯入成功。交付檔SHA256為9f64eede…18851cc，與candidate一致。獨立唯讀審查無阻擋；已採納Asana「要求修改」與「部署成本更可控」兩項用語精準化，重新渲染檢查正常。
+- **沒做的事**：未實測競品帳號、未比較價格、未以原生PowerPoint檢查；未改產品／業務資料、未跑產品回歸、未部署／push／合併。
+- **下一步**：人類檢視23頁簡報；後續可依實際採購短名單做同案例比較。▶現在REVIEW-FIX工作維持原排程。
+
+### 2026-10-22｜Codex GPT-6｜RAG-HANDOFF PR與驗證交接
+- **完成**：原五題的引用、矛盾、日期及計算修正；CSV附欄名、伺服器證據／數字ID、Decimal、16K上下文；原題庫／文件未改。PR #5 Draft，codex/rag-quality-handoff，base feature/review-fixes；遠端分岔以新父提交＋相同檔案樹保留成果，無force／改寫PR #4；原本機歷史仍在feature分支。
+- **驗證**：相關65pytest pass exit0；7B原20題全數執行exit0，自動17/20，AI逐題複核19/20。Q01替代來源、Q15日期空格為粗篩誤判；Q06確實漏品保簽核。原五題均正確。原始／中間／最終結果分別保留。獨立程式與逐題審查完成；非人類簽核。
+- **資料**：啟動原有db/api/web容器，未部署候選；36項保護資料／環境及13個檔案指紋一致，rag_indexes亦相同；6公司80帳號41專案502節點11文件12版本保留。備份在.superpowers/rag-quality-20261021，未上傳DB／附件／env／模型。
+- **接續**：先修Q06必要條件漏答與變體，重跑20題及語意複核，再備份、更新API／模型與衍生索引、比對舊資料和歷史引用、桌面／手機試用。詳見docs/rag-quality-handoff.md。
+- **保留其他工作**：SYS-PACK4草稿與使用者解壓的RAG虛構資料包資料夾保持原樣，不納入本次提交。先前自動核准服務因額度失敗，本輪已恢復並成功推送PR；未繞過審查。
+
+### 2026-10-22｜Codex GPT-6｜RAG-V1 七項問答體驗
+- **完成**：正式預設／範圍／對話／逐段引用／追問／等待與重試／自動索引管理；依A/B/C/D分責任，共用既有後端。
+- **驗證**：固定20題獨立AI內容引用20/20、自動18/20兩誤判保留；最後真模型追問3/3、4條件變體pass；後端相關95pass/4live skip（另實跑live）、PG10pass，鎖及追問修正另跑受影響回歸；Vitest114pass/build、桌面1280手機375 E2E4pass及目視。獨立審查無剩餘阻擋；各批次不加總成虛構總數。
+- **交付**：備份後0020→0021，API/web更新、DB及mounts保留；33表原欄位逐列、13原檔SHA、32歷史引用核對一致；原6公司80帳號41專案502節點11文件12版本保留。僅啟用自動索引旗標，不seed不批次重建舊索引。更新後Q06/追問/原文實測pass。
+- **證據**：artifacts/rag-v1-2026-10-22/；完整本機備份與部署驗證在ignored .superpowers/rag-v1/deployment/。原草稿／預覽／解壓包保留，未push／合併。
+- **下一步**：人類於15173試用並簽核；後續OCR／持久對話／向量庫等未擅自納入。
+
+### 2026-10-22｜Codex GPT-6｜RAG-V1 GitHub 推送授權
+
+- 人類明確指示完成後直接 commit and push；本輪審查、驗收、備份及本機更新已完成。
+- 已成功推送 codex/rag-quality-handoff：遠端由 f1d7a8d 前進至程式提交 4db3317。本次僅補推送紀錄，不改產品、不重跑已通過的驗收。
+- 保留其他未提交草稿；未合併 main。本紀錄另提交並推送同一分支，完成後核對遠端 SHA。
 
 ### 2026-10-27｜Claude Code（Opus 5.5）｜合併 feature/rag-starter-import 進 main
 

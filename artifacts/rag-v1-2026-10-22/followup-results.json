@@ -1,0 +1,483 @@
+[
+  {
+    "case": "single_subject",
+    "request": {
+      "scope": {
+        "kind": "project",
+        "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b"
+      },
+      "question": "那需要誰簽核？",
+      "history": [
+        {
+          "question": "G2 要具備什麼才能通過？",
+          "query_id": "4224dafb-af13-4bb0-9c9f-8e69a4aeb9fe"
+        }
+      ]
+    },
+    "response": {
+      "query_id": "bebf348a-c781-4ddc-ace9-37d44d88f76f",
+      "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+      "scope": {
+        "kind": "project",
+        "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b"
+      },
+      "source_mode": "formal",
+      "synthetic": false,
+      "kind": "rag",
+      "engine": "model",
+      "answer": "G2需要品保負責人陳奕安完成簽核。",
+      "warning": null,
+      "citations": [
+        "d295860d-9da7-4189-ba87-5d6f2c9e006c"
+      ],
+      "blocks": [
+        {
+          "text": "G2需要品保負責人陳奕安完成簽核。",
+          "source_ids": [
+            "d295860d-9da7-4189-ba87-5d6f2c9e006c"
+          ]
+        }
+      ],
+      "code": null,
+      "coverage": {
+        "ready": 10,
+        "queued": 0,
+        "processing": 0,
+        "failed": 0,
+        "unsupported": 0,
+        "disabled": 0,
+        "partial": false
+      },
+      "sources": [
+        {
+          "source_id": "d295860d-9da7-4189-ba87-5d6f2c9e006c",
+          "chunk_id": "d295860d-9da7-4189-ba87-5d6f2c9e006c",
+          "document_id": "2474f8c0-b6a6-4a51-9e3f-b5da97f5fed8",
+          "version": 1,
+          "title": "04_G2文件驗收.txt",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 G2 是「試製前文件齊備」關卡。\n通過 G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人陳奕安完成簽核，才能標示 G2 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        },
+        {
+          "source_id": "b5eef13e-3fc1-40ef-8274-8b7c264a1899",
+          "chunk_id": "b5eef13e-3fc1-40ef-8274-8b7c264a1899",
+          "document_id": "5b61721f-8c97-46b9-8bff-d1b2110e3901",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M02 | 里程碑: 首批試製 | 計畫日期: 2026-11-05 | 負責人: 林語晴 | 前提: G2已通過",
+          "locator": {
+            "section": "第 3 列",
+            "start_char": 0,
+            "end_char": 104
+          }
+        },
+        {
+          "source_id": "dcf3104e-25aa-481a-8d64-edde34dcf94c",
+          "chunk_id": "dcf3104e-25aa-481a-8d64-edde34dcf94c",
+          "document_id": "6be27a09-39f9-49f1-a10d-78064372994a",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "7d10b307-ffdc-4218-9b55-8e4502d89ac2",
+          "chunk_id": "7d10b307-ffdc-4218-9b55-8e4502d89ac2",
+          "document_id": "23612948-7d7e-4ddc-8a30-a09d770f7a11",
+          "version": 1,
+          "title": "08_風險與處理.txt",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-08，現行版本 1，紀錄日期 2026-10-21。\n專案 PF-RAG-2611 風險 R-01：原料可能延遲 3 個工作日，屬假設風險，並非已確認延遲。\nR-01 負責人為周子涵。處理方式：向主供應商確認交期，並把修訂時程交由林語晴核准。\n若需改用備援供應商，必須先完成評選與核准；目前沒有已核准的備援供應商名稱。\n風險 R-02：包裝版面文字未完成確認。負責人為許若寧，處理方式是補齊校稿簽核後再申請 M04 核准。\n本紀錄沒有宣告 R-01 或 R-02 已解除，不可把處理方案寫成已完成事項。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 322
+          }
+        },
+        {
+          "source_id": "80920eca-4dc1-4e66-9167-274714fc7c84",
+          "chunk_id": "80920eca-4dc1-4e66-9167-274714fc7c84",
+          "document_id": "5b61721f-8c97-46b9-8bff-d1b2110e3901",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M05 | 里程碑: 出貨文件放行 | 計畫日期: 2026-11-20 | 負責人: 陳奕安 | 前提: 包裝版面核准",
+          "locator": {
+            "section": "第 6 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "167a3daf-0b35-412b-992f-b910ba9e18b3",
+          "chunk_id": "167a3daf-0b35-412b-992f-b910ba9e18b3",
+          "document_id": "5b61721f-8c97-46b9-8bff-d1b2110e3901",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        }
+      ],
+      "retrieval_mode": "hybrid_rrf_rules"
+    }
+  },
+  {
+    "case": "two_subjects_context",
+    "request": {
+      "scope": {
+        "kind": "project",
+        "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b"
+      },
+      "question": "G2 與包裝版面核准，各由誰負責？",
+      "history": []
+    },
+    "response": {
+      "query_id": "5be25635-5ed3-432b-bd92-75ff959dbfd2",
+      "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+      "scope": {
+        "kind": "project",
+        "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b"
+      },
+      "source_mode": "formal",
+      "synthetic": false,
+      "kind": "rag",
+      "engine": "model",
+      "answer": "G2 文件由品保負責人陳奕安負責簽核。\n\n包裝版面核准由包裝負責人許若寧負責。",
+      "warning": null,
+      "citations": [
+        "d295860d-9da7-4189-ba87-5d6f2c9e006c",
+        "167a3daf-0b35-412b-992f-b910ba9e18b3"
+      ],
+      "blocks": [
+        {
+          "text": "G2 文件由品保負責人陳奕安負責簽核。",
+          "source_ids": [
+            "d295860d-9da7-4189-ba87-5d6f2c9e006c"
+          ]
+        },
+        {
+          "text": "包裝版面核准由包裝負責人許若寧負責。",
+          "source_ids": [
+            "167a3daf-0b35-412b-992f-b910ba9e18b3"
+          ]
+        }
+      ],
+      "code": null,
+      "coverage": {
+        "ready": 10,
+        "queued": 0,
+        "processing": 0,
+        "failed": 0,
+        "unsupported": 0,
+        "disabled": 0,
+        "partial": false
+      },
+      "sources": [
+        {
+          "source_id": "dcf3104e-25aa-481a-8d64-edde34dcf94c",
+          "chunk_id": "dcf3104e-25aa-481a-8d64-edde34dcf94c",
+          "document_id": "6be27a09-39f9-49f1-a10d-78064372994a",
+          "version": 1,
+          "title": "02_角色與簽核.txt",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-02，現行版本 1。\n專案 PF-RAG-2611 的專案負責人為林語晴，負責跨部門協調與最終上市時程核准。\n品保負責人：陳奕安，負責 G2 文件關卡及驗收報告確認。\n採購負責人：周子涵，負責供應商到貨追蹤與 R-01 延遲風險。\n包裝負責人：許若寧，負責包裝規格與版面確認。\n通路負責人：唐以辰，負責展示素材與通路上架資料。\n一般文件先由所屬角色確認；涉及上市日期變更，最後需林語晴核准。\n本文件不記錄任何人的手機號碼或私人聯絡方式。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 289
+          }
+        },
+        {
+          "source_id": "167a3daf-0b35-412b-992f-b910ba9e18b3",
+          "chunk_id": "167a3daf-0b35-412b-992f-b910ba9e18b3",
+          "document_id": "5b61721f-8c97-46b9-8bff-d1b2110e3901",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M04 | 里程碑: 包裝版面核准 | 計畫日期: 2026-11-18 | 負責人: 許若寧 | 前提: 版面校稿完成",
+          "locator": {
+            "section": "第 5 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "1fb3ee42-82b0-4f14-b4c5-0652a979907e",
+          "chunk_id": "1fb3ee42-82b0-4f14-b4c5-0652a979907e",
+          "document_id": "909ab1ae-0962-45cb-a64d-3b90efd5e013",
+          "version": 1,
+          "title": "09_會議紀錄.txt",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-09，現行版本 1；虛構會議日期 2026-10-21。\n會議專案：PF-RAG-2611。主持人：林語晴。\n決議一：採用 DOC-05 版本 2 作為現行包裝規格；每箱包數請依該規格文件。\n決議二：首批仍按專案簡章的數量執行，本會議不重列包數；包裝規格與計畫上市日期的變更互相獨立。\n決議三：許若寧須於 2026-11-18 完成包裝版面核准；此為待辦期限，不代表已完成。\n決議四：R-01 為尚待確認的交期風險；周子涵持續追蹤，不擅自改寫原料預定到貨日。\n會議未討論公司年度營收、2027 年售價或客戶手機。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 327
+          }
+        },
+        {
+          "source_id": "d295860d-9da7-4189-ba87-5d6f2c9e006c",
+          "chunk_id": "d295860d-9da7-4189-ba87-5d6f2c9e006c",
+          "document_id": "2474f8c0-b6a6-4a51-9e3f-b5da97f5fed8",
+          "version": 1,
+          "title": "04_G2文件驗收.txt",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 G2 是「試製前文件齊備」關卡。\n通過 G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人陳奕安完成簽核，才能標示 G2 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        },
+        {
+          "source_id": "80920eca-4dc1-4e66-9167-274714fc7c84",
+          "chunk_id": "80920eca-4dc1-4e66-9167-274714fc7c84",
+          "document_id": "5b61721f-8c97-46b9-8bff-d1b2110e3901",
+          "version": 1,
+          "title": "06_里程碑.csv",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "資料性質: 完全虛構僅供RAG測試 | 專案代號: PF-RAG-2611 | 里程碑代碼: M05 | 里程碑: 出貨文件放行 | 計畫日期: 2026-11-20 | 負責人: 陳奕安 | 前提: 包裝版面核准",
+          "locator": {
+            "section": "第 6 列",
+            "start_char": 0,
+            "end_char": 107
+          }
+        },
+        {
+          "source_id": "7d10b307-ffdc-4218-9b55-8e4502d89ac2",
+          "chunk_id": "7d10b307-ffdc-4218-9b55-8e4502d89ac2",
+          "document_id": "23612948-7d7e-4ddc-8a30-a09d770f7a11",
+          "version": 1,
+          "title": "08_風險與處理.txt",
+          "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+          "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-08，現行版本 1，紀錄日期 2026-10-21。\n專案 PF-RAG-2611 風險 R-01：原料可能延遲 3 個工作日，屬假設風險，並非已確認延遲。\nR-01 負責人為周子涵。處理方式：向主供應商確認交期，並把修訂時程交由林語晴核准。\n若需改用備援供應商，必須先完成評選與核准；目前沒有已核准的備援供應商名稱。\n風險 R-02：包裝版面文字未完成確認。負責人為許若寧，處理方式是補齊校稿簽核後再申請 M04 核准。\n本紀錄沒有宣告 R-01 或 R-02 已解除，不可把處理方案寫成已完成事項。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 322
+          }
+        }
+      ],
+      "retrieval_mode": "hybrid_rrf_rules"
+    }
+  },
+  {
+    "case": "two_subjects_followup",
+    "request": {
+      "scope": {
+        "kind": "project",
+        "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b"
+      },
+      "question": "那需要誰簽核？",
+      "history": [
+        {
+          "question": "G2 與包裝版面核准，各由誰負責？",
+          "query_id": "5be25635-5ed3-432b-bd92-75ff959dbfd2"
+        }
+      ]
+    },
+    "response": {
+      "query_id": "be3c81ca-381f-44b0-a004-545f6878a453",
+      "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b",
+      "scope": {
+        "kind": "project",
+        "project_id": "c3ee22a3-233d-4c76-91c4-d4521a8d248b"
+      },
+      "source_mode": "formal",
+      "synthetic": false,
+      "kind": "clarification",
+      "engine": "retrieval",
+      "answer": "請補充您指的是哪個專案、階段或文件，以及要查詢的事項。",
+      "warning": null,
+      "citations": [],
+      "blocks": [],
+      "code": "clarification_required",
+      "coverage": {
+        "ready": 10,
+        "queued": 0,
+        "processing": 0,
+        "failed": 0,
+        "unsupported": 0,
+        "disabled": 0,
+        "partial": false
+      },
+      "sources": [],
+      "retrieval_mode": "bm25_rules"
+    }
+  },
+  {
+    "case": "renamed_context",
+    "request": {
+      "scope": {
+        "kind": "project",
+        "project_id": "feee8ba8-762c-489f-8506-775798542c8c"
+      },
+      "question": "K7 要具備什麼才能通過？",
+      "history": []
+    },
+    "response": {
+      "query_id": "7bf8b195-f405-4809-8c87-98e8c41912b4",
+      "project_id": "feee8ba8-762c-489f-8506-775798542c8c",
+      "scope": {
+        "kind": "project",
+        "project_id": "feee8ba8-762c-489f-8506-775798542c8c"
+      },
+      "source_mode": "formal",
+      "synthetic": false,
+      "kind": "rag",
+      "engine": "model",
+      "answer": "K7 需要備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告，並由品保負責人葉子庭完成簽核，才能通過。",
+      "warning": null,
+      "citations": [
+        "027398b0-9cff-4ac4-b1eb-b6c3d836fb6a"
+      ],
+      "blocks": [
+        {
+          "text": "K7 需要備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告，並由品保負責人葉子庭完成簽核，才能通過。",
+          "source_ids": [
+            "027398b0-9cff-4ac4-b1eb-b6c3d836fb6a"
+          ]
+        }
+      ],
+      "code": null,
+      "coverage": {
+        "ready": 1,
+        "queued": 0,
+        "processing": 0,
+        "failed": 0,
+        "unsupported": 0,
+        "disabled": 0,
+        "partial": false
+      },
+      "sources": [
+        {
+          "source_id": "027398b0-9cff-4ac4-b1eb-b6c3d836fb6a",
+          "chunk_id": "027398b0-9cff-4ac4-b1eb-b6c3d836fb6a",
+          "document_id": "4d08fb9f-2999-4fb7-92ef-ddb4689fac7a",
+          "version": 1,
+          "title": "改名關卡.txt",
+          "project_id": "feee8ba8-762c-489f-8506-775798542c8c",
+          "project_title": "完全虛構：追問改名驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 K7 是「試製前文件齊備」關卡。\n通過 K7 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人葉子庭完成簽核，才能標示 K7 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        }
+      ],
+      "retrieval_mode": "hybrid_rrf_rules"
+    }
+  },
+  {
+    "case": "renamed_followup",
+    "request": {
+      "scope": {
+        "kind": "project",
+        "project_id": "feee8ba8-762c-489f-8506-775798542c8c"
+      },
+      "question": "那需要誰簽核？",
+      "history": [
+        {
+          "question": "K7 要具備什麼才能通過？",
+          "query_id": "7bf8b195-f405-4809-8c87-98e8c41912b4"
+        }
+      ]
+    },
+    "response": {
+      "query_id": "49e77343-7940-4342-94fc-93481a7b0eb8",
+      "project_id": "feee8ba8-762c-489f-8506-775798542c8c",
+      "scope": {
+        "kind": "project",
+        "project_id": "feee8ba8-762c-489f-8506-775798542c8c"
+      },
+      "source_mode": "formal",
+      "synthetic": false,
+      "kind": "rag",
+      "engine": "model",
+      "answer": "K7 需要由品保負責人葉子庭完成簽核。",
+      "warning": null,
+      "citations": [
+        "027398b0-9cff-4ac4-b1eb-b6c3d836fb6a"
+      ],
+      "blocks": [
+        {
+          "text": "K7 需要由品保負責人葉子庭完成簽核。",
+          "source_ids": [
+            "027398b0-9cff-4ac4-b1eb-b6c3d836fb6a"
+          ]
+        }
+      ],
+      "code": null,
+      "coverage": {
+        "ready": 1,
+        "queued": 0,
+        "processing": 0,
+        "failed": 0,
+        "unsupported": 0,
+        "disabled": 0,
+        "partial": false
+      },
+      "sources": [
+        {
+          "source_id": "027398b0-9cff-4ac4-b1eb-b6c3d836fb6a",
+          "chunk_id": "027398b0-9cff-4ac4-b1eb-b6c3d836fb6a",
+          "document_id": "4d08fb9f-2999-4fb7-92ef-ddb4689fac7a",
+          "version": 1,
+          "title": "改名關卡.txt",
+          "project_id": "feee8ba8-762c-489f-8506-775798542c8c",
+          "project_title": "完全虛構：追問改名驗證",
+          "node_id": null,
+          "excerpt": "【完全虛構・僅供 RAG 展示與測試】所有公司、人名、金額、規則與時程均為合成資料，不代表真實業務、法規或食品安全標準。\n\n文件代碼 DOC-04，現行版本 1；僅為虛構文件流程，非真實食品安全標準。\nPF-RAG-2611 的 K7 是「試製前文件齊備」關卡。\n通過 K7 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。\n三項文件齊備後，仍必須由品保負責人葉子庭完成簽核，才能標示 K7 通過。\n缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。\n本示例不提供微生物、重金屬、營養或臨床檢驗門檻；不得據此判定產品安全。",
+          "locator": {
+            "section": "全文",
+            "start_char": 0,
+            "end_char": 278
+          }
+        }
+      ],
+      "retrieval_mode": "hybrid_rrf_rules"
+    }
+  }
+]

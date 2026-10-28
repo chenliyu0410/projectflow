@@ -10,6 +10,9 @@ from app.database import Base
 
 JsonType = JSON().with_variant(JSONB(), "postgresql")
 
+# Register derived RAG tables for Base.metadata and Alembic discovery.
+from app.rag.models import RagSettings, RagIndex, RagChunk, RagQuery  # noqa: F401, E402
+
 
 class UTCDateTime(TypeDecorator):
     """Timezone-aware timestamp on every database: SQLite drops the offset, so values are stored as UTC and read back as UTC."""

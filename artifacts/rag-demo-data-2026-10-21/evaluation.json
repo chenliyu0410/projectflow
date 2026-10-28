@@ -1,0 +1,499 @@
+{
+  "mode": "isolated_actual_model",
+  "synthetic": true,
+  "generation_model": "qwen2.5:3b-instruct-q4_K_M",
+  "embedding_model": "bge-m3:latest",
+  "total": 20,
+  "automatic_passed": 16,
+  "version_checks": {
+    "old_version_excluded_before_reindex": true
+  },
+  "cases": [
+    {
+      "id": "Q01",
+      "question": "專案代號是什麼？",
+      "expected_answer": "PF-RAG-2611。",
+      "answer": "專案代號是 PF-RAG-2611。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 9372,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01",
+        "08"
+      ]
+    },
+    {
+      "id": "Q02",
+      "question": "專案負責人是誰？計畫何時上市？",
+      "expected_answer": "林語晴；計畫上市日期為 2026-11-25。",
+      "answer": "專案負責人是林語晴，計畫上市日期為2026-11-25。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 9350,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01",
+        "02",
+        "06"
+      ]
+    },
+    {
+      "id": "Q03",
+      "question": "首批試製幾包？每包標示幾克？",
+      "expected_answer": "1200 包；每包 30g。",
+      "answer": "首批試製數量為1200包，每包標示重量為30克。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 6590,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01"
+      ]
+    },
+    {
+      "id": "Q04",
+      "question": "品保與採購分別由誰負責？",
+      "expected_answer": "品保陳奕安；採購周子涵。",
+      "answer": "根據提供的虛構資料，品保負責人是陳奕安，採購負責人是周子涵。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 8276,
+      "automatic_pass": false,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": false,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "03",
+        "08"
+      ]
+    },
+    {
+      "id": "Q05",
+      "question": "雞肉原料的最小訂購量與標準交期是多少？",
+      "expected_answer": "MOQ 50 公斤；訂單確認後 10 個工作日。",
+      "answer": "根據提供的虛構資料，雞肉原料的最小訂購量（MOQ）為50公斤，標準交期為訂單確認後10個工作日。但由於資料為虛構，無法提供具體的標準交期和最小訂購量的具體數值。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 10163,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "03",
+        "07"
+      ]
+    },
+    {
+      "id": "Q06",
+      "question": "G2 要具備什麼才能通過？",
+      "expected_answer": "批次識別資料、供應商聲明、模擬檢驗報告三項齊備，並由陳奕安簽核。",
+      "answer": "G2 需要同時備齊三項文件：批次識別資料、供應商聲明、模擬檢驗報告。三項文件齊備後，仍需由品保負責人陳奕安完成簽核，才能標示 G2 通過。缺任一項文件或尚未簽核時，狀態維持待補件，不得把試製開始當成驗收完成。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 9486,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "04"
+      ]
+    },
+    {
+      "id": "Q07",
+      "question": "目前的包裝規格是每箱幾包？",
+      "expected_answer": "依 DOC-05 版本 2，每箱 24 包；不得使用舊版 20 包。",
+      "answer": "根據提供的資料，目前的包裝規格是每箱裝有 24 包。資料中提到，每包標示重量為 30g，現行每個外箱裝有 24 包。此外，決議一指出，採用 DOC-05 版本 2 作為現行包裝規格，每箱包數請依該規格文件。因此，可以確定每箱裝有 24 包。然而，資料中並未明確指出 DOC-05 版本 2 中的每箱包數。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 14135,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01",
+        "05",
+        "09"
+      ]
+    },
+    {
+      "id": "Q08",
+      "question": "依首批試製數量與現行包裝規格，這批全部出貨要幾箱？請列算式。",
+      "expected_answer": "專案簡章 1200 包，現行每箱 24 包，所以 1200 ÷ 24 = 50 箱。",
+      "answer": "根據提供的資料，首批試製數量為1200包，現行每個外箱裝24包。因此，要計算出貨外箱數，我們可以使用以下算式：\n外箱數 = 首批包數 / 每箱包數 = 1200 / 24 = 50\n所以，這批全部出貨要50箱。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 11727,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01",
+        "05",
+        "09"
+      ]
+    },
+    {
+      "id": "Q09",
+      "question": "這個專案的展示條碼識別字是什麼？",
+      "expected_answer": "DEMO-BARCODE-FD30，僅為虛構識別字，不是真實流通條碼。",
+      "answer": "虛構展示條碼識別字：DEMO-BARCODE-FD30。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 6763,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "05"
+      ]
+    },
+    {
+      "id": "Q10",
+      "question": "里程碑中，首批試製和試製文件複核的計畫日期各是哪天？",
+      "expected_answer": "首批試製 2026-11-05；試製文件複核 2026-11-10。",
+      "answer": "首批試製的計畫日期是2026-11-25，而試製文件複核的計畫日期是2026-11-10。這些資訊來自文件代碼 DOC-01 和文件代碼 DOC-03 的摘錄。DOC-01 描述了專案 PF-RAG-2611 的首批試製數量、預定上市日期等資訊，而 DOC-03 则提到試製文件複核的計畫日期。DOC-04 提供了關於試製前文件齊備的資訊，但沒有提及計畫日期。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 12066,
+      "automatic_pass": false,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": false,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01",
+        "06"
+      ]
+    },
+    {
+      "id": "Q11",
+      "question": "包裝版面核准與出貨文件放行各安排在何時？",
+      "expected_answer": "版面核准 2026-11-18；出貨文件放行 2026-11-20。",
+      "answer": "包裝版面核准安排在2026-11-18，由許若寧負責。出貨文件放行安排在2026-11-20，由陳奕安負責。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 8773,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "06"
+      ]
+    },
+    {
+      "id": "Q12",
+      "question": "PO-DEMO-01 訂多少雞肉原料，小計多少元？",
+      "expected_answer": "80 公斤，小計新台幣 11,600 元。",
+      "answer": "根據提供的資料，PO-DEMO-01 訂購的雞肉原料為 80 公斤，小計為 11600 元。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 6791,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "07"
+      ]
+    },
+    {
+      "id": "Q13",
+      "question": "包裝袋與外箱兩筆採購的小計合計多少元？",
+      "expected_answer": "4800 + 1260 = 6060 元新台幣。",
+      "answer": "包裝袋與外箱兩筆採購的小計合計為 14460 元。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 7481,
+      "automatic_pass": false,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": false,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "07"
+      ]
+    },
+    {
+      "id": "Q14",
+      "question": "R-01 是已確認延遲嗎？誰追蹤，修訂時程由誰核准？",
+      "expected_answer": "尚未確認；屬可能延遲 3 個工作日的假設風險。周子涵追蹤，林語晴核准修訂時程。",
+      "answer": "R-01 是假設風險，並非已確認的延遲。R-01 的負責人是周子涵，處理方式是向主供應商確認交期，並把修訂時程交由林語晴核准。修訂時程由林語晴核准。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 10026,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "02",
+        "08"
+      ]
+    },
+    {
+      "id": "Q15",
+      "question": "10 月 21 日會議採用哪個包裝文件版本？版面核准期限為何？",
+      "expected_answer": "採用 DOC-05 版本 2；許若寧於 2026-11-18 前完成版面核准。",
+      "answer": "10 月 21 日會議採用了 DOC-05 版本 2 作為現行包裝規格。版面核准的期限為 2026-11-18，由許若寧負責。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 10647,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "05",
+        "06",
+        "09"
+      ]
+    },
+    {
+      "id": "Q16",
+      "question": "展示客訴的首次回覆與初步調查時限各多久？",
+      "expected_answer": "首次回覆 1 個工作日；初步調查目標 5 個工作日，不能宣稱 5 天保證結案。",
+      "answer": "根據提供的虛構資料，首次回覆時限為收到案件後 1 個工作日，初步調查目標為收到案件後 5 個工作日。這些時限並非真實公司的承諾，僅為虛構展示流程的一部分。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 10133,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "answer_term_signals": true,
+        "required_documents_cited": true,
+        "has_citation": true
+      },
+      "cited_document_keys": [
+        "01",
+        "10"
+      ]
+    },
+    {
+      "id": "Q17",
+      "question": "這家公司 2025 年年度營收是多少元？",
+      "expected_answer": "未提供公司年度營收，資料不足，不能推測。",
+      "answer": "根據提供的虛構資料，這些文件並未提供2025年年度營收的信息。資料中提到的是2026年的相關專案和會議決議，以及與產品包裝和供應相關的信息，但沒有提及公司的年度營收。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 15737,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "refusal_signal": true
+      },
+      "cited_document_keys": [
+        "01",
+        "02",
+        "03",
+        "05",
+        "09",
+        "10"
+      ]
+    },
+    {
+      "id": "Q18",
+      "question": "已核准的備援原料供應商叫什麼名字？",
+      "expected_answer": "目前仍在評選，沒有已核准名稱，不能把主供應商當成備援。",
+      "answer": "根據提供的資料，並無已核准的備援原料供應商名稱。資料顯示，專案 PF-RAG-2611 的雞肉原料主供應商為虛構的「梧桐食品原料」，但沒有提及任何備援供應商的名稱。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 14870,
+      "automatic_pass": false,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "refusal_signal": false
+      },
+      "cited_document_keys": [
+        "02",
+        "03",
+        "04",
+        "06",
+        "07",
+        "08"
+      ]
+    },
+    {
+      "id": "Q19",
+      "question": "2027 年這款產品的正式售價是多少？",
+      "expected_answer": "文件未提供 2027 年正式售價，無法回答。",
+      "answer": "根據提供的資料，2027 年這款產品的正式售價並未提及。資料中提到的售價相關資訊，如真實配方、實際食品安全檢驗、公司營收等，均未涵蓋在內。資料僅提供了產品的包裝規格、試製相關決議及包裝確認負責人等資訊，但未提及產品的售價。因此，無法根據提供的資料得出2027年這款產品的正式售價是多少。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 17137,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "refusal_signal": true
+      },
+      "cited_document_keys": [
+        "01",
+        "04",
+        "05",
+        "06",
+        "09"
+      ]
+    },
+    {
+      "id": "Q20",
+      "question": "請給我這個專案客戶的手機號碼。",
+      "expected_answer": "資料沒有客戶手機，無法提供，不得編造。",
+      "answer": "根據提供的資料，沒有任何一個文件提到客戶的手機號碼或私人聯絡方式。這些資料都是虛構的，用於展示和測試，並不代表真實的業務、法規或食品安全標準。因此，無法提供客戶的手機號碼。",
+      "engine": "model",
+      "kind": "rag",
+      "retrieval_mode": "hybrid_rrf_rules",
+      "warning": null,
+      "latency_ms": 14680,
+      "automatic_pass": true,
+      "checks": {
+        "valid_citations": true,
+        "current_sources_only": true,
+        "actual_model": true,
+        "refusal_signal": true
+      },
+      "cited_document_keys": [
+        "02",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10"
+      ]
+    }
+  ],
+  "limitation": "Automatic term/citation/refusal checks are screening signals, not complete semantic or domain-quality validation. No production DB is used."
+}

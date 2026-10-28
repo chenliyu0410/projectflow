@@ -1,0 +1,79 @@
+{
+  "synthetic": true,
+  "project_title": "【虛構展示】山嵐新品 RAG 知識驗證",
+  "created_at": "2026-10-21",
+  "documents": [
+    {
+      "key": "01",
+      "filename": "01_專案簡章.txt",
+      "path": "current/01_專案簡章.txt",
+      "version": 1,
+      "sha256": "72e4c9f3825a8561429b91a630576375e6103be23932c68fd896364f1bb92bb2"
+    },
+    {
+      "key": "02",
+      "filename": "02_角色與簽核.txt",
+      "path": "current/02_角色與簽核.txt",
+      "version": 1,
+      "sha256": "bf0e7c34928996ea4a5cac15f4fcf6f01b6ea4c28a682beaac0940be5d72ac03"
+    },
+    {
+      "key": "03",
+      "filename": "03_供應商導入規則.txt",
+      "path": "current/03_供應商導入規則.txt",
+      "version": 1,
+      "sha256": "3176a03e27d048d57e432e57e70000197e95d6c20646e8f364e4d322f2aca8ee"
+    },
+    {
+      "key": "04",
+      "filename": "04_G2文件驗收.txt",
+      "path": "current/04_G2文件驗收.txt",
+      "version": 1,
+      "sha256": "7a30380ee228ea5d7521fe2dcd35eeb3705b6f1ae17b1f4451d0701a47d1ce87"
+    },
+    {
+      "key": "05",
+      "filename": "05_包裝規格.txt",
+      "path": "current/05_包裝規格.txt",
+      "version": 2,
+      "sha256": "dfafeaed52cab37bfe547baa8e88d8b20b260c5550d22d556f693cc8464e916d",
+      "history_path": "history/05_包裝規格_v1.txt",
+      "history_sha256": "96a243862a787a25e14e01f89b506b32f31fb2c36492fa10854ded44af46511e"
+    },
+    {
+      "key": "06",
+      "filename": "06_里程碑.csv",
+      "path": "current/06_里程碑.csv",
+      "version": 1,
+      "sha256": "b04ab88a9d39202a3710b2c9655154b362ba8eaa7e482f4699cab52543188cc2"
+    },
+    {
+      "key": "07",
+      "filename": "07_採購明細.csv",
+      "path": "current/07_採購明細.csv",
+      "version": 1,
+      "sha256": "d822596bf262487f3061b39c3c5211a39aebbb22d05973d62eb54cd5ab546bc0"
+    },
+    {
+      "key": "08",
+      "filename": "08_風險與處理.txt",
+      "path": "current/08_風險與處理.txt",
+      "version": 1,
+      "sha256": "f2f7001f479b3f365b4760f78dd651271176ce2e54ff27a5b25a5f0f26340537"
+    },
+    {
+      "key": "09",
+      "filename": "09_會議紀錄.txt",
+      "path": "current/09_會議紀錄.txt",
+      "version": 1,
+      "sha256": "95aa011cf734637f34eabeeb29eadedc32965cf5bb5b2f50801daf633622e1e2"
+    },
+    {
+      "key": "10",
+      "filename": "10_客服處理流程.txt",
+      "path": "current/10_客服處理流程.txt",
+      "version": 1,
+      "sha256": "024aeb6ec2a43eaa28c93ec1990b13d7584831723f6b4c3c7844eeee31e2749e"
+    }
+  ]
+}

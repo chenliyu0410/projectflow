@@ -1,0 +1,12 @@
+{"variant": "original", "answer": "G2 �ݭn�ƻ��T�����G�妸�ѧO��ơB�������n���B����������i�A�åѫ~�O�t�d�H�����w����ñ�֡A�~��q�L�C", "citations": ["ad2aa2c6-44ef-4cea-903c-7da20bcc8711"], "blocks": [{"text": "G2 �ݭn�ƻ��T�����G�妸�ѧO��ơB�������n���B����������i�A�åѫ~�O�t�d�H�����w����ñ�֡A�~��q�L�C", "source_ids": ["ad2aa2c6-44ef-4cea-903c-7da20bcc8711"]}]}
+.{"variant": "renamed", "answer": "K7 �ݭn�ƻ��T�����G�]�ƲM��B�ե������B�ާ@���ճ��i�A�åѫ~�O�t�d�H���l�x����ñ�֡A�~��q�L�C", "citations": ["ad2aa2c6-44ef-4cea-903c-7da20bcc8711"], "blocks": [{"text": "K7 �ݭn�ƻ��T�����G�]�ƲM��B�ե������B�ާ@���ճ��i�A�åѫ~�O�t�d�H���l�x����ñ�֡A�~��q�L�C", "source_ids": ["ad2aa2c6-44ef-4cea-903c-7da20bcc8711"]}]}
+.{"variant": "no_approval", "answer": "�禬���d Z9 �n��Ƴ]�ƲM��P�ާ@���ճ��i�A�óq�L�C�Ѫ��[����B�L���`�A�~��q�L�C\n\n�����d���ݥD��ñ�֡C", "citations": ["z9"], "blocks": [{"text": "�禬���d Z9 �n��Ƴ]�ƲM��P�ާ@���ճ��i�A�óq�L�C�Ѫ��[����B�L���`�A�~��q�L�C", "source_ids": ["z9"]}, {"text": "�����d���ݥD��ñ�֡C", "source_ids": ["z9"]}]}
+.{"variant": "known_absence", "answer": "�ثe�S���w�֭㪺�ƴ���ƨ����ӦW�١C", "citations": ["ec5d2b13-c3b4-41e6-8ea7-4439ac3a401c"], "blocks": [{"text": "�ثe�S���w�֭㪺�ƴ���ƨ����ӦW�١C", "source_ids": ["ec5d2b13-c3b4-41e6-8ea7-4439ac3a401c"]}]}
+.
+============================== warnings summary ===============================
+..\..\anaconda3\Lib\site-packages\_pytest\cacheprovider.py:475
+  C:\Users\User\anaconda3\Lib\site-packages\_pytest\cacheprovider.py:475: PytestCacheWarning: could not create cache path C:\Users\User\Desktop\�M�y\api\.pytest_cache\v\cache\nodeids: [WinError 5] �s���Q�ڡC: 'C:\\Users\\User\\Desktop\\�M�y\\api\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+4 passed, 21 deselected, 1 warning in 103.46s (0:01:43)
