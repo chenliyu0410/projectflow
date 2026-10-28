@@ -21,7 +21,7 @@
 **OCR 地端部署**：OCR 全部在本機 CPU 上執行，不呼叫任何雲端服務。設定 `PF_AI_OCR=true` 和 `PF_AI_OCR_MODEL_DIR` 後，任何部署都能開啟 OCR；預設為關閉，模型資料夾缺檔時也會自動關閉，不會報錯。正式文件索引仍需要 `PF_ACCEPTANCE_MODE` 和 `PF_AI_FORMAL_INDEX`。
 - **Docker**：先執行 `docker build -f deploy/api.Dockerfile --build-arg WITH_OCR=true`；也可以在 `deploy/.env` 設 `PF_AI_OCR=true`，compose 會自動帶入這個參數。模型不放進映像檔，而是以唯讀方式把 `deploy/ocr-models/` 掛到 `/opt/ocr-models`（可以用 `PF_OCR_MODELS_HOST` 改成其他路徑）。
 - **離線攜帶**：在有網路的機器上執行 `docker save projectflow-api-ocr -o projectflow-api-ocr.tar`，把 tar 檔、`ocr-models/` 和 `deploy/ocr-models.sha256` 一起帶到目標主機。在目標主機執行 `docker load -i projectflow-api-ocr.tar`，再到模型資料夾執行 `sha256sum -c <repo>/deploy/ocr-models.sha256`，核對通過後才啟用 OCR。
-- **沒有 Docker 的主機**：在有網路的機器上執行 `pip download -r api/requirements.lock -r api/requirements-ocr.lock -d wheelhouse --platform <目標平台> --python-version 3.13 --only-binary=:all:`，到目標主機再執行 `pip install --no-index --find-links wheelhouse -r api/requirements.lock -r api/requirements-ocr.lock`。Windows 免安裝版沿用 `deploy/portable`。
+- **沒有 Docker 的主機**：在有網路的機器上執行 `pip download -r api/requirements.lock -r api/requirements-ocr.lock -d wheelhouse --platform <目標平台> --python-version 3.13 --only-binary=:all:`，到目標主機再執行 `pip install --no-index --find-links wheelhouse -r api/requirements.lock -r api/requirements-ocr.lock`。用 pip 時兩個指令都要加 `--ignore-requires-python`：rapidocr-onnxruntime 1.4.4 宣告只支援 Python 3.13 以下，但已實測可在 3.13 執行；用 uv 則不需要。Windows 免安裝版沿用 `deploy/portable`。
 
 **資料分級、遮罩與 AI 政策（2026-10-23，隔離版）**：側欄「AI 政策與稽核」在隔離環境改為真實頁面（其他環境維持原示意）。正式文件與附件的等級從公司、專案、節點一路繼承到文件，下層只能更嚴格，設定較寬鬆會被拒絕；公司預設「機密」，沿用原本未分級從嚴的行為。政策可選全本地（預設）／混合／允許雲端，只限本機管理者變更；本版**沒有雲端供應商，任何政策下都不送出**。含機密來源時整題只限本地；可送雲端時，預覽另列「雲端送出內容（遮罩後，未送出）」，比例、金額、電話、Email 與營運資料合作夥伴名稱換成佔位符，對照表只留本機。分級與政策存於 `ai/policy/<公司>.json`，變更寫入稽核；調整等級不重建索引。入門教材沿用教材自帶等級。
 
