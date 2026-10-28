@@ -13,6 +13,8 @@ KEYS = "chinese_cht_dict.txt"
 MIN_LINE = 0.5
 MIN_AVERAGE = 0.6
 MAX_PIXELS = 40_000_000
+MIN_WIDTH = 1000
+PREPROCESS = True
 HEADER = "（OCR 辨識文字，可能有錯字；請以原檔核對）"
 _engines = {}
 _load_lock = threading.Lock()
@@ -60,6 +62,15 @@ def engine():
         return _engines[str(path)]
 
 
+def preprocess(image):
+    """Grayscale, stretch contrast and upscale small scans so faint or tiny text reaches the model."""
+    from PIL import ImageOps
+    gray = ImageOps.autocontrast(ImageOps.grayscale(image), cutoff=1)
+    if gray.width < MIN_WIDTH:
+        gray = gray.resize((MIN_WIDTH, round(gray.height * MIN_WIDTH / gray.width)))
+    return gray.convert("RGB")
+
+
 def normalize(text):
     # The model reads a full-width comma between Chinese characters as a middle dot.
     return re.sub(r"(?<=[一-鿿])[·•](?=[一-鿿])", "，", text).strip()
@@ -77,7 +88,7 @@ def recognize(data):
             if width * height > MAX_PIXELS:
                 raise OCRError("影像超過4000萬像素，請縮小後再上傳")
             buffer = io.BytesIO()
-            image.convert("RGB").save(buffer, "PNG")
+            (preprocess(image) if PREPROCESS else image.convert("RGB")).save(buffer, "PNG")
     except OCRError:
         raise
     except Exception:
