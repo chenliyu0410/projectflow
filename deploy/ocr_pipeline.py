@@ -96,8 +96,10 @@ def main():
         for item, path in zip(items, files):
             if 'accuracy' in item and any(p['route'] == 'ocr' for p in item['pages']):
                 ocr.PREPROCESS = False
-                off = run(path).get('accuracy', 0.0)
-                ocr.PREPROCESS = True
+                try:
+                    off = run(path).get('accuracy', 0.0)
+                finally:
+                    ocr.PREPROCESS = True
                 comparison.append((item['filename'], off, item['accuracy']))
     for item in items:
         del item['_pages']

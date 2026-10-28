@@ -18,6 +18,13 @@ def test_preprocess_upscales_small_scans_and_stretches_contrast():
     assert low == 0 and high == 255  # Faint gray text becomes black on white.
 
 
+def test_preprocess_never_amplifies_thin_strips_past_the_pixel_limit():
+    strip = ocr.preprocess(PIL.new("L", (2, 4000)))
+    assert strip.size == (8, 16000)  # At most 4x, never forced to width 1000.
+    tall = ocr.preprocess(PIL.new("L", (500, 40_000)))
+    assert tall.width * tall.height <= ocr.MAX_PIXELS
+
+
 def test_preprocess_keeps_large_scans_at_their_size():
     assert ocr.preprocess(PIL.new("RGB", (1600, 900), "white")).size == (1600, 900)
 

@@ -14,6 +14,7 @@ MIN_LINE = 0.5
 MIN_AVERAGE = 0.6
 MAX_PIXELS = 40_000_000
 MIN_WIDTH = 1000
+MAX_UPSCALE = 4
 PREPROCESS = True
 HEADER = "（OCR 辨識文字，可能有錯字；請以原檔核對）"
 _engines = {}
@@ -67,7 +68,11 @@ def preprocess(image):
     from PIL import ImageOps
     gray = ImageOps.autocontrast(ImageOps.grayscale(image), cutoff=1)
     if gray.width < MIN_WIDTH:
-        gray = gray.resize((MIN_WIDTH, round(gray.height * MIN_WIDTH / gray.width)))
+        # Capped so a thin strip that passed the pixel check cannot be blown up past it.
+        scale = min(MIN_WIDTH / gray.width, MAX_UPSCALE)
+        size = (round(gray.width * scale), round(gray.height * scale))
+        if size[0] * size[1] <= MAX_PIXELS:
+            gray = gray.resize(size)
     return gray.convert("RGB")
 
 
