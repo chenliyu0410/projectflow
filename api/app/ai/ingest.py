@@ -34,6 +34,15 @@ class Result:
         return [{"filename": self.filename, "page": page.page, "route": page.route, "text": chunk}
                 for page in self.pages if page.text for chunk in extractors.chunks(page.text, size, overlap)]
 
+    def note(self):
+        """How the text was obtained, shown next to the index entry; empty for plain text layers."""
+        read = [page.confidence for page in self.pages if page.route == "ocr"]
+        skipped = sum(page.route == "skipped" for page in self.pages)
+        parts = [f"OCR辨識，{len(read)}頁，平均信心{sum(read) / len(read):.2f}"] if read else []
+        if skipped:
+            parts.append(f"{skipped}頁掃描影像無法取得文字，未採用")
+        return "；".join(parts)
+
     def as_dict(self):
         return {"filename": self.filename, "pages": [asdict(page) for page in self.pages], "chunks": self.chunks()}
 
@@ -64,7 +73,7 @@ def pdf_pages(data):
 
 def image_page(data):
     if not ocr.enabled():
-        raise extractors.ExtractionError("圖片需OCR；尚未設定OCR模型")
+        raise extractors.ExtractionError("不支援此格式；圖片需OCR，尚未設定OCR模型")
     start = time.perf_counter()
     try:
         lines = ocr.recognize(data)
@@ -100,4 +109,6 @@ def ingest(data, filename):
         raise extractors.ExtractionError("不支援此格式")
     for page, text in zip(pages, cleanup.clean_pages([page.text for page in pages])):
         page.text = text
-    return Result(filename, pages)
+    result = Result(filename, pages)
+    extractors.checked(result.text())  # Same 200k-character and empty-text limits as every other source.
+    return result

@@ -4,9 +4,11 @@ from collections import Counter
 import re
 
 PAGE_NUMBER = re.compile(
-    r"^\s*(?:第\s*\d+\s*頁(?:\s*[/，,]\s*共\s*\d+\s*頁)?|[-–—]\s*\d+\s*[-–—]|\d+\s*/\s*\d+|\d+|page\s*\d+(?:\s*of\s*\d+)?)\s*$",
+    r"^\s*(?:第\s*\d+\s*頁(?:\s*[/，,]\s*共\s*\d+\s*頁)?|[-–—]\s*\d+\s*[-–—]|page\s*\d+(?:\s*of\s*\d+)?)\s*$",
     re.IGNORECASE,
 )
+# A bare "3" or "3/5" is only a page number when it is this page's number; otherwise it may be a total or a date.
+BARE_NUMBER = re.compile(r"^\s*(\d+)\s*(?:/\s*\d+)?\s*$")
 SENTENCE_END = tuple("。！？；：」』）)!?;:")
 CJK = re.compile(r"[一-鿿]")
 CELL = re.compile(r"^([A-Z]+)\d+=(.*)$")
@@ -23,10 +25,11 @@ def repeated_edges(pages):
     return {line for line, count in counts.items() if count >= max(2, (len(pages) + 1) // 2)}
 
 
-def strip_edges(lines, repeated):
+def strip_edges(lines, repeated, number):
     """Only the first and last two lines are checked, so numbers inside a form are never dropped."""
     def noise(line):
-        return line in repeated or PAGE_NUMBER.match(line)
+        bare = BARE_NUMBER.match(line)
+        return line in repeated or PAGE_NUMBER.match(line) or (bare and int(bare[1]) == number)
     head = 0
     while head < min(2, len(lines)) and noise(lines[head]):
         head += 1
@@ -52,7 +55,7 @@ def merge_lines(lines):
 def clean_pages(texts):
     pages = [[line.strip() for line in text.splitlines() if line.strip()] for text in texts]
     repeated = repeated_edges(pages)
-    return ["\n".join(merge_lines(strip_edges(lines, repeated))) for lines in pages]
+    return ["\n".join(merge_lines(strip_edges(lines, repeated, number))) for number, lines in enumerate(pages, 1)]
 
 
 def sheet_to_text(text):
@@ -69,7 +72,9 @@ def sheet_to_text(text):
             continue
         row = {match[1]: match[2] for match in cells}
         if header is None:
+            # Kept as a line too: a one-row sheet or a title row must not vanish from the index.
             header = row
+            output.append("、".join(row.values()))
             continue
         output.append("；".join(f"{header.get(column, column)}：{value}" for column, value in row.items()))
     return "\n".join(output)

@@ -13,7 +13,7 @@ import time
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from app.ai import extractors, ocr, policy, service, store, vectors
+from app.ai import extractors, ingest, ocr, policy, service, store, vectors
 from app.models import Attachment, Document, DocumentVersion, Node, OperationsRecord, Project
 from app.permissions import can_view_node, can_view_project
 from app.services import attachment_store as files
@@ -21,7 +21,7 @@ from app.services.record_policy import load_policy_context
 
 DATASET = "formal-v1"
 # Bump when extraction, chunking or tokenization rules change.
-INDEX_VERSION = 3
+INDEX_VERSION = 4
 _locks = {}
 _locks_guard = threading.Lock()
 
@@ -172,6 +172,14 @@ def publish(temporary, path, attempts=5):
             time.sleep(0.2)
 
 
+def chunk_body(chunk):
+    """Chunks never cross a page; label PDF and image pages, and warn on every OCR chunk, so each one cites itself."""
+    head = [ocr.HEADER] if chunk["route"] == "ocr" else []
+    if chunk["route"] in {"text_pdf", "ocr"}:
+        head.append(f"第{chunk['page']}頁")
+    return "\n".join(head + [chunk["text"]])
+
+
 MISSING_VECTORS = "SELECT c.document_id, c.source_id, c.body FROM chunks c LEFT JOIN vectors v USING(document_id) WHERE v.document_id IS NULL ORDER BY c.document_id"
 
 
@@ -262,8 +270,10 @@ def refresh(db, current, *, only_if_changed=False):
                         data = handle.read(extractors.MAX_BYTES + 1)
                     if len(data) != source["size"] or hashlib.sha256(data).hexdigest() != source["sha256"]:
                         raise extractors.ExtractionError("檔案完整性不符，請確認原始文件")
-                    text, reason = extractors.extract_document(data, source["title"])
-                    for section, body in enumerate(extractors.chunks(text), 1):
+                    parsed = ingest.ingest(data, source["title"])
+                    reason = parsed.note()
+                    for section, chunk in enumerate(parsed.chunks(), 1):
+                        body = chunk_body(chunk)
                         cid = f"{sid}-c{section}"
                         index.execute("INSERT INTO chunks VALUES (?,?,?,?)", (cid, sid, section, body))
                         index.execute("INSERT INTO search VALUES (?,?)", (cid, " ".join(store.tokens(source["title"] + " " + body))))

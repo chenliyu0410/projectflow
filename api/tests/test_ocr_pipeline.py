@@ -5,6 +5,9 @@ from pypdf import PdfReader, PdfWriter
 
 from app.ai import cleanup, extractors, ingest, ocr, ocr_metrics
 from test_ai_ocr import STARTER_PDF, png
+from test_ai_formal_index import ask, isolated, refresh  # noqa: F401 (fixture)
+from test_attachments import upload as upload_attachment
+from test_report_lifecycle import setup
 
 PIL = pytest.importorskip("PIL.Image")
 
@@ -49,7 +52,7 @@ def test_wrapped_sentences_are_rejoined_but_headings_and_items_stay_apart():
 
 def test_sheet_rows_become_field_sentences():
     text = "工作表：sheet1（儲存值；公式不重新計算）\nA1=品名 | B1=數量 | C1=單價\nA2=鮪魚罐 | B2=3 | C2=45\nA3=歡迎卡 | C3=12"
-    assert cleanup.sheet_to_text(text) == "工作表：sheet1\n品名：鮪魚罐；數量：3；單價：45\n品名：歡迎卡；單價：12"
+    assert cleanup.sheet_to_text(text) == "工作表：sheet1\n品名、數量、單價\n品名：鮪魚罐；數量：3；單價：45\n品名：歡迎卡；單價：12"
 
 
 def mixed_pdf():
@@ -107,7 +110,7 @@ def test_spreadsheets_become_sentences(monkeypatch):
     monkeypatch.setattr(extractors, "extract_document",
                         lambda data, name: ("工作表：s（儲存值；公式不重新計算）\nA1=品名 | B1=數量\nA2=鮪魚罐 | B2=3", ""))
     result = ingest.ingest(b"zip", "清單.xlsx")
-    assert result.pages[0].route == "office" and result.text() == "工作表：s\n品名：鮪魚罐；數量：3"
+    assert result.pages[0].route == "office" and result.text() == "工作表：s\n品名、數量\n品名：鮪魚罐；數量：3"
 
 
 def test_word_documents_use_the_office_route():
@@ -156,3 +159,36 @@ def test_ocr_switch_works_outside_acceptance_mode(monkeypatch, tmp_path):
     assert ocr.enabled()
     monkeypatch.setenv("PF_AI_OCR_MODEL_DIR", str(tmp_path / "missing"))
     assert not ocr.enabled()  # A missing model folder turns OCR off instead of failing.
+
+
+def test_bare_numbers_at_page_edges_stay_unless_they_are_the_page_number():
+    pages = ["收據\n合計\n450\n10/28", "第二頁內容\n2"]
+    assert cleanup.clean_pages(pages) == ["收據\n合計\n450\n10/28", "第二頁內容"]
+
+
+def test_ingest_notes_ocr_pages_and_their_confidence(fake_ocr):
+    assert ingest.ingest(mixed_pdf(), "混合文件.pdf").note() == "OCR辨識，1頁，平均信心0.93"
+
+
+def test_ingest_rejects_documents_without_text_or_over_the_text_limit(fake_ocr, monkeypatch):
+    monkeypatch.setattr(extractors, "MAX_TEXT", 20)
+    with pytest.raises(extractors.ExtractionError, match="20萬字"):
+        ingest.ingest(mixed_pdf(), "混合文件.pdf")
+    monkeypatch.setattr(ocr, "enabled", lambda: False)
+    scan = io.BytesIO()
+    PIL.new("RGB", (60, 30), "white").save(scan, "PDF")
+    with pytest.raises(extractors.ExtractionError, match="無可索引文字"):
+        ingest.ingest(scan.getvalue(), "掃描.pdf")
+
+
+def test_formal_index_reads_uploads_through_the_pipeline(client, engine, isolated, fake_ocr):
+    nid, _, _ = setup(client, engine, "yu")
+    assert upload_attachment(client, nid, mixed_pdf(), "簽收單.pdf").status_code == 201
+    result = refresh(client)
+    assert result["counts"]["indexed"] == 1
+    assert result["items"][0]["reason"] == "OCR辨識，1頁，平均信心0.93"
+    sources = ask(client, question="簽收單 資訊室領取").json()["sources"]
+    scanned = [s for s in sources if "資訊室" in client.get(f"/ai/documents/{s['document_id']}?dataset=formal-v1").json()["text"]]
+    text = client.get(f"/ai/documents/{scanned[0]['document_id']}?dataset=formal-v1").json()["text"]
+    assert "第2頁" in text and ocr.HEADER in text
+    assert "借用設備時請先填寫簽收單並交由部門主管簽名後再到資訊室領取。" in text
