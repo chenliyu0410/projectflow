@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openSettings, openSources } from './copilot';
+import { chooseCategory, openAdvanced, openSources } from './copilot';
 
 test.use(process.platform === 'win32' ? { channel: 'msedge' } : {});
 
@@ -28,12 +28,9 @@ for (const width of [1280, 375]) test(`isolated operational documents and attach
   expect(attachment.status()).toBe(201);
   await page.getByRole('button', { name: '切換 AI 副手' }).click();
   const panel = page.getByLabel('AI 專案副手', { exact: true });
-  await openSettings(panel);
-  await panel.getByLabel('AI資料集').selectOption('formal-v1');
+  await chooseCategory(panel, '正式文件');
+  await openAdvanced(panel);
   await expect(panel).toContainText('待更新');
-  await openSettings(panel);
-  await panel.getByLabel('查詢專案').selectOption(project.id);
-  await openSettings(panel);
   await panel.getByRole('button', { name: '更新文件索引' }).click();
   await expect(panel.getByRole('button', { name: '更新文件索引' })).toBeEnabled();
   await panel.getByLabel('詢問 AI').fill('新人報到');
@@ -50,7 +47,7 @@ for (const width of [1280, 375]) test(`isolated operational documents and attach
   expect(updated.status()).toBe(201);
   const beforeRefresh = await page.request.post('/api/ai/ask', { data: { dataset: 'formal-v1', question: '新人報到', project_id: project.id } });
   expect((await beforeRefresh.json()).sources.some((source: { title: string; version: number }) => source.title === '新人報到指南.txt' && source.version === 1)).toBe(false);
-  await openSettings(panel);
+  await openAdvanced(panel);
   await panel.getByRole('button', { name: '更新文件索引' }).click();
   await expect(panel.getByRole('button', { name: '更新文件索引' })).toBeEnabled();
   await panel.getByLabel('詢問 AI').fill('新人報到');
@@ -65,8 +62,7 @@ for (const width of [1280, 375]) test(`isolated operational documents and attach
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await panel.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath(`formal-${width}.png`), fullPage: true });
-  await openSettings(panel);
-  await panel.getByLabel('AI資料集').selectOption('starter-v1');
+  await chooseCategory(panel, '新人報到');
   await expect(panel.locator('.copilot-message')).toHaveCount(0);
   await expect(panel).toContainText('23 份可見文件');
   expect(errors).toEqual([]);
