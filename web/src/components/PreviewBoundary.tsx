@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import DocumentPreview from './DocumentPreview';
 import LinkedDataPreview from './LinkedDataPreview';
 import OperationsPreview from './OperationsPreview';
 import AIGovernancePreview from './AIGovernancePreview';
 import { CASE_TITLE } from '../preview/fixtures';
 import type { OpTab } from '../preview/fixtures';
-import HemuPreview from './HemuPreview';
-import IndustryPreview, { hasIndustryDataset } from './IndustryPreview';
+import { hasIndustryDataset } from '../preview/industry-keys';
+// 公司展示資料只在預覽頁用到，分開載入以免拖大主程式。
+const HemuPreview = lazy(() => import('./HemuPreview'));
+const IndustryPreview = lazy(() => import('./IndustryPreview'));
+const loading = <p role="status" className="preview-loading">載入展示資料中</p>;
 export type PreviewPage = 'documents' | 'data' | 'operations' | 'governance';
 const PAGES: [PreviewPage, string][] = [['documents', '文件示例'], ['data', '關聯資料示例'], ['operations', '營運示例'], ['governance', 'AI 政策示例']];
 export default function PreviewBoundary({ initialPage, food, companyName, companyKey, exit }: { initialPage: PreviewPage; food: boolean; companyName: string; companyKey?: string; exit: () => void }) {
@@ -17,8 +20,8 @@ export default function PreviewBoundary({ initialPage, food, companyName, compan
   const [legacy, setLegacy] = useState(false);
   useEffect(() => setPage(initialPage), [initialPage]);
   useEffect(() => setLegacy(false), [initialPage, companyKey]);
-  if (companyKey === 'hemu' && initialPage !== 'governance') return <HemuPreview key={initialPage} initialPage={initialPage} exit={exit} />;
-  if (hasIndustryDataset(companyKey) && initialPage !== 'governance' && !legacy) return <IndustryPreview key={`${companyKey}:${initialPage}`} companyKey={companyKey!} initialPage={initialPage} exit={exit} legacy={food ? () => setLegacy(true) : undefined} />;
+  if (companyKey === 'hemu' && initialPage !== 'governance') return <Suspense fallback={loading}><HemuPreview key={initialPage} initialPage={initialPage} exit={exit} /></Suspense>;
+  if (hasIndustryDataset(companyKey) && initialPage !== 'governance' && !legacy) return <Suspense fallback={loading}><IndustryPreview key={`${companyKey}:${initialPage}`} companyKey={companyKey!} initialPage={initialPage} exit={exit} legacy={food ? () => setLegacy(true) : undefined} /></Suspense>;
   return <div className="preview-boundary" aria-label="展示預覽工作區"><header className="preview-banner"><span className="preview-badge">展示預覽</span><strong>{food ? CASE_TITLE : `${companyName}・預覽`}</strong><p>與正式專案無關的示例；僅暫存在本頁，離開預覽、切公司、登出或重新整理即清除。</p><button onClick={exit}>離開預覽，返回工作區</button></header>
     {legacy && <button onClick={() => setLegacy(false)}>返回完整公司展示資料</button>}
     <nav className="preview-tabs" aria-label="示例導覽">{PAGES.map(([id, label]) => <button key={id} aria-current={page === id ? 'page' : undefined} onClick={() => setPage(id)}>{label}</button>)}</nav>

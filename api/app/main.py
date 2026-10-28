@@ -5,6 +5,7 @@ from collections.abc import Callable
 import psycopg
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from starlette.requests import Request
 
 from app.routes import collaboration, notifications, report_fields, ai, documents, doc_templates, accounts, operations, operation_links, inventory, purchasing, production
 from app.routes import audit_logs, auth, departments, projects, reports, workflows, workspace, records, collaborators, attachments, dependencies, conditions
@@ -21,6 +22,31 @@ def database_ready() -> bool:
         return False
 
 
+UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+
+
+def cross_origin(request: Request) -> bool:
+    # Sec-Fetch-Site 是瀏覽器自己判定的禁用標頭，網頁改不了；以它為準，代理改寫 Host 埠號時才不會誤擋。
+    # 同主機不同埠（例如 :443、:8443 的其他服務）對 SameSite 而言是同站，所以 same-site 也要擋。
+    site = request.headers.get("sec-fetch-site")
+    if site is not None:
+        return site not in {"same-origin", "none"}
+    # 舊瀏覽器沒有 Sec-Fetch-Site，但寫入請求一定帶 Origin；兩者都沒有的是 curl、腳本等非瀏覽器請求。
+    origin = request.headers.get("origin")
+    return origin is not None and origin != str(request.base_url).rstrip("/")
+
+
+class OriginCheckMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["method"] in UNSAFE_METHODS and cross_origin(Request(scope)):
+            await JSONResponse(status_code=403, content={"detail": "不允許此來源"})(scope, receive, send)
+            return
+        await self.app(scope, receive, send)
+
+
 def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application):
@@ -33,7 +59,11 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
             with running():
                 yield
 
-    application = FastAPI(title="ProjectFlow API", lifespan=lifespan)
+    # 公開試用時不要把完整 API 清單送給任何人；開發要看再設 PF_API_DOCS=true。
+    docs = os.environ.get("PF_API_DOCS") == "true"
+    application = FastAPI(title="ProjectFlow API", lifespan=lifespan, openapi_url="/openapi.json" if docs else None,
+                          docs_url="/docs" if docs else None, redoc_url="/redoc" if docs else None)
+    application.add_middleware(OriginCheckMiddleware)
     application.include_router(ai.router)
     application.include_router(documents.router)
     application.include_router(doc_templates.router)

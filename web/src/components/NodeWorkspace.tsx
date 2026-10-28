@@ -1,7 +1,7 @@
 import CollaborationActions from './CollaborationDialogs';
 import MemberPermissions from './MemberPermissions';
-import { useEffect, useMemo, useState } from 'react';
-import type { DragEvent, FocusEvent, ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { DragEvent, FocusEvent, KeyboardEvent, ReactNode } from 'react';
 import ReportPanel from './ReportPanel';
 import RecordTimeline from './RecordTimeline';
 import CollaboratorEditor from './CollaboratorEditor';
@@ -9,6 +9,7 @@ import { api } from '../api';
 import type { RecordReload } from '../api';
 import type { DependencyData, NodeItem, NodeStatus, ProjectDetail } from '../types';
 import { percent, progressMap, projectProgress } from '../progress';
+import { childCreationReason } from '../child-creation';
 
 export const statuses: { status: NodeStatus; label: string }[] = [
   { status: 'todo', label: '待處理' }, { status: 'doing', label: '進行中' },
@@ -100,7 +101,9 @@ function Progress({ value, color }: { value: number | null; color?: string }) {
   </span>;
 }
 
-export default function NodeWorkspace({ project, selectedNodeId, select, readonly, canApprove, disabled, mutate, move, openReport, reportIntent = null, notify, userId = '', userName = '', roleLabel = '', reloadRecords, expired, recordVersion = 0, recordsEnabled = true, tab = 'board', tabsDisabled = false, changeTab, actions, editor, timeline, graph, preview, color = 'var(--teal)' }: {
+export default function NodeWorkspace({ project, selectedNodeId, select, readonly, canApprove, disabled, mutate, move, openReport, reportIntent = null, notify, userId = '', userName = '', roleLabel = '', reloadRecords, expired, recordVersion = 0, recordsEnabled = true, tab = 'board', tabsDisabled = false, changeTab, actions, editor, timeline, graph, preview, color = 'var(--teal)', createIn }: {
+  /** Opens the create form under a phase without entering it (D: untouched phases stay closed as entries). */
+  createIn?: (phaseId: string) => void;
   project: ProjectDetail; selectedNodeId: string | null; select: (id: string | null, preserveTab?: boolean) => void;
   readonly: boolean; canApprove: boolean; disabled: boolean;
   userId?: string; userName?: string; roleLabel?: string; reloadRecords?: RecordReload; expired?: () => void; recordVersion?: number; recordsEnabled?: boolean;
@@ -128,6 +131,13 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
   const nodePercent = (node: NodeItem) => percent(values.get(node.id) ?? 0);
   const headPercent = selected ? nodePercent(selected) : projectProgress(nodes, values);
 
+  // 每個紀錄元件只在「自己」寫入並重新載入後重建；別人寫入時只刷新資料，避免清掉正在填的草稿。
+  const [writes, setWrites] = useState<Record<string, number>>({});
+  const reloadAfter = (writer: string): RecordReload | undefined => reloadRecords && (async signal => {
+    await reloadRecords(signal);
+    if (!signal.aborted) setWrites(value => ({ ...value, [writer]: (value[writer] ?? 0) + 1 }));
+  });
+  const generation = (writer: string) => writes[writer] ?? 0;
   const [expanded, setExpanded] = useState(new Set<string>());
   const [deps, setDeps] = useState<DependencyData | null>(null);
   const [hover, setHover] = useState<string | null>(null);
@@ -257,6 +267,18 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       {statusControl(node, true)}
     </article>;
   }
+  const tabList = useRef<HTMLDivElement>(null);
+  // 方向鍵只移動焦點（手動啟用），按 Enter／空白鍵才切換，避免每按一次就載入資料或跳離開確認。
+  function tabKey(event: KeyboardEvent<HTMLDivElement>) {
+    const buttons = [...(tabList.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled)') ?? [])];
+    const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (index < 0) return;
+    const next = event.key === 'ArrowRight' ? (index + 1) % buttons.length : event.key === 'ArrowLeft' ? (index - 1 + buttons.length) % buttons.length
+      : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    buttons[next].focus();
+  }
   const crumbs = nodePath(nodes, selectedNodeId);
   const owner = selected?.owner_display_name;
   const level = selected ? levelOf(nodes, selected.id) : 0;
@@ -287,8 +309,8 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
         {actions}
       </div>}
     </section>
-    {selected && reloadRecords && expired && <CollaborationActions key={`collaboration:${selected.id}:${recordVersion}`} node={selected} reload={reloadRecords} expired={expired}/>}
-    {selected?.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`report:${selected.id}:${recordVersion}`} node={selected} userId={userId} reload={reloadRecords} expired={expired}
+    {selected && reloadRecords && expired && <CollaborationActions key={`collaboration:${selected.id}:${generation('collaboration')}`} node={selected} reload={reloadAfter('collaboration')!} expired={expired}/>}
+    {selected?.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`report:${selected.id}:${generation('report')}`} version={recordVersion} node={selected} userId={userId} reload={reloadAfter('report')!} expired={expired}
       autoOpen={reportIntent === selected.id} openChildren={openChildren(nodes, selected)}
       parentClosed={['review', 'done', 'skipped'].includes(nodes.find(node => node.id === selected.parent_id)?.status ?? '')} />}
     {!selected && phases.length > 0 && <section className="phases" aria-label="開發階段與閘門">{phases.map(phase => {
@@ -300,6 +322,14 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       const stateText = complete ? '已完成' : started ? '進行中' : '尚未開始';
       const unavailable = !started;
       const reason = complete ? '已完成階段不開放此入口' : !started ? '尚未開始，暫不開放此入口' : '';
+      // 尚未開始又是空的階段沒有任何卡片可點，只好在卡片上給新增入口；卡片本身仍不開放進入。
+      const creatable = !!createIn && !readonly && !started && !complete && childrenOf(nodes, phase.id).length === 0 && !childCreationReason(phase, !!phase.capabilities?.create_child);
+      if (creatable) return <div key={phase.id} className="phase phase-todo" role="group" aria-label={`階段：${phase.title}`}>
+        <span className="phase-row"><span className="phase-state">{stateText}</span></span>
+        <span className="phase-name">{phase.title}</span>
+        <span className="phase-gate">{phaseGate?.status === 'pending' ? '本階段閘門待核准' : '還沒有任務，先新增第一個任務'}</span>
+        <button type="button" className="phase-add" disabled={disabled} onClick={() => createIn!(phase.id)} aria-label={`新增任務：${phase.title}`}><span aria-hidden="true">＋ </span>新增任務</button>
+      </div>;
       return <button key={phase.id} className={`phase phase-${state}`} disabled={disabled || unavailable} title={reason || undefined}
         onClick={() => select(phase.id)} aria-label={`進入階段：${phase.title}`} aria-describedby={`phase-state-${phase.id} phase-progress-${phase.id} phase-gate-${phase.id}`}>
         <span className="phase-row"><span className="phase-state" id={`phase-state-${phase.id}`}>{complete ? '✓ ' : ''}{stateText}</span>{started && <span className="phase-arrow" aria-label="進行中階段">→</span>}</span>
@@ -315,12 +345,13 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       {canApprove && gate.status === 'pending' && <button disabled={disabled} onClick={() => mutate('gate', gate.id)}>核准閘門</button>}
     </section>}
     <div className="node-views">
-    <div className="node-toolbar"><div role="tablist" aria-label="節點內容">{tabs.map(item => item.tab === null
+    <div className="node-toolbar"><div role="tablist" aria-label="節點內容" ref={tabList} onKeyDown={tabKey}>{tabs.map(item => item.tab === null
       ? <button key={item.label} role="tab" aria-selected={false} disabled className="tab-unavailable">{item.label}<span className="nav-badge">尚未提供</span></button>
-      : <button key={item.tab} role="tab" aria-selected={active === item.tab} disabled={tabsDisabled} onClick={() => { if (item.tab !== active) changeTab?.(item.tab!); }}>{item.label}</button>)}</div>
+      : <button key={item.tab} id={`node-tab-${item.tab}`} role="tab" aria-selected={active === item.tab} aria-controls="node-tabpanel" tabIndex={active === item.tab ? 0 : -1} disabled={tabsDisabled} onClick={() => { if (item.tab !== active) changeTab?.(item.tab!); }}>{item.label}</button>)}</div>
 
     </div>
-    <div className="node-view-content">
+    {/* 用「…內容」命名而非 aria-labelledby，避免和內層同名區塊（如「看板」）撞名。 */}
+    <div className="node-view-content" role="tabpanel" id="node-tabpanel" aria-label={`${TABS.find(item => item.tab === active)?.label ?? ''}內容`}>
       {active === 'board' && <p className="tools-hint">{canMoveAny ? '拖曳卡片改狀態；拖到另一張卡片上 = 變成它的子任務' : anyDraggable ? '拖曳卡片或用卡片上的狀態選單改狀態；點卡片標題進入下一層' : '點卡片標題進入下一層'}</p>}
     {editor}
     {active === 'board' && <section aria-label="看板" className="board-scroll">
@@ -357,11 +388,11 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
           ] as const).map(([text, ok]) => <li key={text} className={ok && !readonly || text === '檢視' ? 'yes' : 'no'}><span aria-hidden="true">{ok && !readonly || text === '檢視' ? '✓' : '✗'}</span>{text}<span className="sr-only">{ok && !readonly || text === '檢視' ? '：可以' : '：不可以'}</span></li>)}</ul>
         </section>
       </div>
-      {recordsEnabled && reloadRecords && expired && <CollaboratorEditor key={`people:${selected.id}:${recordVersion}`} nodeId={selected.id} projectId={selected.project_id} manage={!!selected.capabilities?.manage_collaborators} reload={reloadRecords} expired={expired} />}
+      {recordsEnabled && reloadRecords && expired && <CollaboratorEditor key={`people:${selected.id}:${generation('people')}`} nodeId={selected.id} projectId={selected.project_id} manage={!!selected.capabilities?.manage_collaborators} reload={reloadAfter('people')!} expired={expired} />}
     </div>}
     {active === 'people' && expired && <MemberPermissions project={project} expired={expired}/>}
-    {active === 'records' && recordsEnabled && reloadRecords && expired && <RecordTimeline key={`records:${selected?.id ?? project.id}:${recordVersion}`} node={selected ?? null} projectId={project.id}
-      leaf={leaf} descendantTasks={descendantTasks} userId={userId} reload={reloadRecords} expired={expired} select={select} />}
+    {active === 'records' && recordsEnabled && reloadRecords && expired && <RecordTimeline key={`records:${selected?.id ?? project.id}:${generation('records')}`} version={recordVersion} node={selected ?? null} projectId={project.id}
+      leaf={leaf} descendantTasks={descendantTasks} userId={userId} reload={reloadAfter('records')!} expired={expired} select={select} />}
     </div>
     </div>
   </>;

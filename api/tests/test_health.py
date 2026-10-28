@@ -59,6 +59,35 @@ def test_connection_failure_is_unavailable(monkeypatch):
     assert database_ready() is False
 
 
+@pytest.mark.parametrize("row", [(0,), (2,), ("1",), (1, 1), None])
+def test_database_probe_rejects_unexpected_result(monkeypatch, row):
+    monkeypatch.setenv("DATABASE_URL", "postgresql://test-only")
+    connect = MagicMock()
+    connect.return_value.__enter__.return_value.execute.return_value.fetchone.return_value = row
+    monkeypatch.setattr(psycopg, "connect", connect)
+    assert database_ready() is False
+
+
+def test_query_failure_is_unavailable(monkeypatch):
+    # 連線成功但查詢失敗（例如權限或交易狀態錯誤）也必須回報不可用，而不是讓例外外洩。
+    monkeypatch.setenv("DATABASE_URL", "postgresql://test-only")
+    connect = MagicMock()
+    connection = connect.return_value.__enter__.return_value
+    connection.execute.side_effect = psycopg.ProgrammingError("password=do-not-leak")
+    monkeypatch.setattr(psycopg, "connect", connect)
+    assert database_ready() is False
+    connection.execute.assert_called_once_with("SELECT 1")
+
+
+@pytest.mark.parametrize("result", [1, "true", "ready", [True], None])
+def test_readiness_requires_boolean_true(result):
+    # 只有明確的 True 才算就緒，避免 checker 回傳真值物件時誤報可用。
+    with TestClient(create_app(lambda: result)) as client:
+        response = client.get("/health/ready")
+    assert response.status_code == 503
+    assert response.json() == {"ok": False, "database": "unavailable"}
+
+
 def test_only_health_routes_exist():
     paths = set(create_app().openapi()["paths"])
     assert paths == {

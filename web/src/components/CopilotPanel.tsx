@@ -4,6 +4,7 @@ import ModelSettings from './ModelSettings';
 import { SCENARIOS } from './copilotScenarios';
 import { ai } from '../ai';
 import type { AIPreview, AIResult, AIStatus, GatewayInfo } from '../ai';
+import { ApiError } from '../api';
 
 type Message = { id: number; question: string; result: AIResult };
 const HEADINGS: Record<string, string> = { project_id: 'AI專案', task_id: '任務', supplier_id: '供應商', department: '部門', name: '姓名', person_id: '人員', status: '狀態', count: '數量', overdue_count: '逾期數', total: '總數', done_count: '完成數', completion_pct: '完成率％', budget_twd: '預算', actual_twd: '已入帳', overrun_twd: '超支', amount_twd: '金額', received_count: '收貨數', late_count: '延遲數', late_pct: '延遲率％', samples: '抽樣數', defects: '不良數', defect_pct: '不良率％', month: '月份', category: '類別', risk_id: '風險', cause: '原因', action: '處理方式', open_tasks: '未完成數', estimated_hours: '預估工時', actual_hours: '實際工時', extra_hours: '超估工時', committed_twd: '承諾金額', due_date: '到期日', rejected_count: '退回數', blocked_count: '受阻數', order_id: '採購單', promised_date: '承諾日', zero_defect_batches: '零不良批次' };
@@ -22,7 +23,7 @@ function GatewaySummary({ info }: { info: GatewayInfo }) {
   return <p>資料等級：{levels[info.classification]}{info.classification_reason === 'unclassified' ? '（含未分級資料，從嚴處理）' : ''}。{reasons[info.reason] ?? '僅限本地處理'}。{info.outcome === 'completed' ? '本地模型已完成處理' : info.outcome === 'failed' ? '曾嘗試本地模型，未取得有效結果' : '尚未送往模型'}；雲端關閉。{omitted > 0 && `提供模型 ${info.sent_count} 段；另 ${omitted} 段因長度上限未提供，仍列在來源中。`}{info.cloud && `雲端判斷（${POLICY[info.ai_policy ?? ''] ?? '全本地'}）：${CLOUD[info.cloud.reason] ?? info.cloud.reason}。`}</p>;
 }
 
-export default function CopilotPanel({ scope, open, close, companyName = '目前公司' }: { scope: string; open: boolean; close: () => void; food?: boolean; companyName?: string }) {
+export default function CopilotPanel({ scope, open, close, companyName = '目前公司', expired }: { scope: string; open: boolean; close: () => void; food?: boolean; companyName?: string; expired?: () => void }) {
   const [status, setStatus] = useState<AIStatus | null>(null);
   const [error, setError] = useState('');
   const [mode, setMode] = useState<'rag' | 'sql' | 'work_orders'>('rag');
@@ -85,6 +86,12 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
     if (chosen.dataset !== dataset) { setStatus(null); setDataset(chosen.dataset); }
     setMode(chosen.mode ?? 'rag'); setHistory(!!chosen.history); setQuery(''); setProject(''); setPendingProject(chosen.project ?? null);
   }
+  // 登入失效時交給外層回登入頁，不在副手裡顯示一般錯誤。
+  function sessionExpired(error: unknown) {
+    if (!(error instanceof ApiError) || error.status !== 401 || !expired) return false;
+    expired();
+    return true;
+  }
   function clearPreview() { previewController.current?.abort(); setPreview(null); setPreviewBusy(false); }
   function clear() { controller.current?.abort(); docController.current?.abort(); indexController.current?.abort(); setIndexBusy(false); clearPreview(); setBusy(false); setLoadingDocument(false); setMessages([]); setDocument(null); setError(''); }
   async function refreshIndex() {
@@ -95,7 +102,7 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
     try {
       await ai.refreshIndex(request.signal);
       if (!request.signal.aborted) { setStatus(null); setRefresh(v => v + 1); }
-    } catch (e) { if (!request.signal.aborted) setError(e instanceof Error ? e.message : '索引更新失敗，請稍後重試。'); }
+    } catch (e) { if (!request.signal.aborted && !sessionExpired(e)) setError(e instanceof Error ? e.message : '索引更新失敗，請稍後重試。'); }
     finally { if (!request.signal.aborted) setIndexBusy(false); }
   }
   function payload(question: string, selectedQuery?: string, selectedMode = mode) {
@@ -108,24 +115,34 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
     const request = new AbortController(); previewController.current = request;
     setPreviewBusy(true);
     try { const value = await ai.preview(payload(currentQuestion(), query || undefined), request.signal); if (!request.signal.aborted) setPreview(value); }
-    catch (e) { if (!request.signal.aborted) setError(e instanceof Error ? e.message : '無法載入預覽資料。'); }
+    catch (e) { if (!request.signal.aborted && !sessionExpired(e)) setError(e instanceof Error ? e.message : '無法載入預覽資料。'); }
     finally { if (!request.signal.aborted) setPreviewBusy(false); }
   }
   async function ask(question: string, selectedQuery?: string, selectedMode = mode) {
     if (busy || indexBusy || !status?.ready || !question.trim()) return;
+    // 新問題會清掉原文區，舊的原文請求晚到也不該再蓋回來。
+    docController.current?.abort(); setLoadingDocument(false);
     const request = new AbortController(); controller.current = request;
     clearPreview(); setBusy(true); setError(''); setDocument(null);
     try {
       const result = await ai.ask(payload(question, selectedQuery, selectedMode), request.signal);
       if (!request.signal.aborted) { setMessages(items => [...items.slice(-19), { id: ++nextId.current, question, result }]); setInput(''); setSettingsShown(null); }
-    } catch (e) { if (!request.signal.aborted) setError(e instanceof Error ? e.message : '查詢失敗，請重試。'); }
+    } catch (e) {
+      if (request.signal.aborted) return;
+      if (sessionExpired(e)) return;
+      setError(e instanceof Error ? e.message : '查詢失敗，請重試。');
+    }
     finally { if (!request.signal.aborted) setBusy(false); }
   }
   async function showDocument(id: string) {
     docController.current?.abort(); const request = new AbortController(); docController.current = request;
     setLoadingDocument(true); setError('');
     try { const value = await ai.document(id, request.signal, dataset, dataset !== 'dataset-v1' && history); if (!request.signal.aborted) setDocument(value); }
-    catch { if (!request.signal.aborted) setError('無法讀取引用，可能沒有權限或登入已失效。'); }
+    catch (e) {
+      if (request.signal.aborted) return;
+      if (sessionExpired(e)) return;
+      setError('無法讀取引用，可能沒有權限或登入已失效。');
+    }
     finally { if (!request.signal.aborted) setLoadingDocument(false); }
   }
   const scenarios = SCENARIOS.filter(s => !s.companies || s.companies.includes(companyName));

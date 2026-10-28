@@ -15,7 +15,6 @@ type Dataset = {
   journey: string;
 };
 const datasets: Record<string, Dataset> = raw;
-export const hasIndustryDataset = (key?: string) => !!key && Object.hasOwn(datasets, key);
 
 export default function IndustryPreview({ companyKey, initialPage, exit, legacy }: {
   companyKey: string; initialPage: PreviewPage; exit: () => void; legacy?: () => void;

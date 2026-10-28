@@ -12,6 +12,13 @@ COMPANIES = {'food', 'hemu', 'electronics', 'events', 'software', 'construction'
 TABLES = ('companies', 'people', 'projects', 'tasks', 'suppliers', 'purchase_orders', 'expenses', 'quality_checks', 'risks', 'notes')
 PROJECT_TABLES = {'projects', 'tasks', 'purchase_orders', 'expenses', 'quality_checks', 'risks'}
 AS_OF = '2026-10-11'
+# 每 PROGRESS_INTERVAL 個 SQLite 指令檢查一次，累計 PROGRESS_BUDGET 次就中斷，避免單一查詢拖住 API。
+PROGRESS_INTERVAL = 1000
+PROGRESS_BUDGET = 10000
+
+
+class QueryTooLarge(Exception):
+    pass
 
 
 def root():
@@ -157,15 +164,20 @@ def execute_query(db, query_id, company, project_id=None):
         if action==sqlite3.SQLITE_READ and arg1 in TABLES: return sqlite3.SQLITE_OK
         if action==sqlite3.SQLITE_FUNCTION and arg2 in allowed_functions: return sqlite3.SQLITE_OK
         return sqlite3.SQLITE_DENY
-    remaining=[10000]
+    remaining=[PROGRESS_BUDGET]
     def progress():
         remaining[0]-=1
         return int(remaining[0]<=0)
     db.set_authorizer(authorize)
-    db.set_progress_handler(progress,1000)
+    db.set_progress_handler(progress,PROGRESS_INTERVAL)
     try:
-        cursor=db.execute(sql,params)
-        records=[dict(r) for r in cursor.fetchmany(201)]
+        try:
+            cursor=db.execute(sql,params)
+            records=[dict(r) for r in cursor.fetchmany(201)]
+        except sqlite3.OperationalError as error:
+            # progress handler 中斷時 SQLite 只回 'interrupted'，其他 OperationalError 照原樣往上拋。
+            if str(error)=='interrupted': raise QueryTooLarge() from None
+            raise
         return dict(query_id=query_id,label=query['label'],sql=sql,parameters=params,columns=[d[0] for d in cursor.description],rows=records[:200],truncated=len(records)>200)
     finally:
         db.set_authorizer(None)

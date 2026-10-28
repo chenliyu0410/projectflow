@@ -2,12 +2,18 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import PreviewBoundary from './components/PreviewBoundary';
 import data from './preview/industries.json';
+import { INDUSTRY_KEYS } from './preview/industry-keys';
 afterEach(cleanup);
 
-for (const [key, dataset] of Object.entries(data)) it(`${key}: complete isolated records, valid links and ephemeral editing`, () => {
+it('lists exactly the bundled industry datasets without loading them', () => {
+  expect([...INDUSTRY_KEYS].sort()).toEqual(Object.keys(data).sort());
+});
+
+for (const [key, dataset] of Object.entries(data)) it(`${key}: complete isolated records, valid links and ephemeral editing`, async () => {
   const props = { companyKey: key, companyName: dataset.company.name, food: key === 'food', initialPage: 'operations' as const, exit: vi.fn() };
   const { unmount } = render(<PreviewBoundary {...props} />);
-  expect(screen.getByRole('heading', { name: dataset.company.name })).toBeInTheDocument();
+  // 公司展示資料改為分開載入，第一次要等它載完。
+  expect(await screen.findByRole('heading', { name: dataset.company.name })).toBeInTheDocument();
   const orders = dataset.groups.find(g => g.key === 'orders')!;
   const order = orders.records[0];
   fireEvent.click(screen.getByRole('button', { name: orders.label }));
@@ -27,9 +33,9 @@ for (const [key, dataset] of Object.entries(data)) it(`${key}: complete isolated
   for (const [otherKey, other] of Object.entries(data)) if (otherKey !== key) expect(screen.queryByRole('heading', { name: other.company.name })).not.toBeInTheDocument();
 });
 
-it('keeps the original food preview available and does not carry edits across companies', () => {
+it('keeps the original food preview available and does not carry edits across companies', async () => {
   const { rerender } = render(<PreviewBoundary companyKey="food" food companyName="毛研食品" initialPage="documents" exit={vi.fn()} />);
-  fireEvent.click(screen.getByRole('button', { name: '查看原食品試產示例' }));
+  fireEvent.click(await screen.findByRole('button', { name: '查看原食品試產示例' }));
   expect(screen.getByRole('button', { name: /試產規格書/ })).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: '返回完整公司展示資料' }));
   fireEvent.click(screen.getByRole('button', { name: /MY-DOC-001/ }));

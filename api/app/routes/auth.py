@@ -15,6 +15,12 @@ from app.models import now_utc
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def set_session_cookie(response: Response, request: Request, token: str) -> None:
+    # 公開模式由 nginx 81 帶 X-Forwarded-Proto: https，uvicorn 採信後 scheme 才是 https；本機 http 不能設 Secure，否則登不進去。
+    response.set_cookie(COOKIE_NAME, token, httponly=True, samesite="lax", secure=request.url.scheme == "https",
+                        max_age=7 * 24 * 60 * 60)
+
+
 def login_body(user: User, organization: Organization, request: Request) -> LoginResponse:
     return LoginResponse(
         user=UserOut(id=user.id, username=user.username, display_name=user.display_name, role=user.role,
@@ -44,15 +50,16 @@ def login(payload: LoginRequest, response: Response, request: Request, db: Sessi
     token = new_token()
     db.add(SessionToken(token=token, user_id=user.id, organization_id=organization.id, expires_at=session_expires_at()))
     db.commit()
-    response.set_cookie(COOKIE_NAME, token, httponly=True, samesite="lax", max_age=7 * 24 * 60 * 60)
+    set_session_cookie(response, request, token)
     return login_body(user, organization, request)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-def logout(response: Response, current: CurrentUser = Depends(require_session), db: Session = Depends(get_session)):
+def logout(response: Response, request: Request, current: CurrentUser = Depends(require_session),
+           db: Session = Depends(get_session)):
     db.execute(delete(SessionToken).where(SessionToken.token == current.token))
     db.commit()
-    response.delete_cookie(COOKIE_NAME)
+    response.delete_cookie(COOKIE_NAME, httponly=True, samesite="lax", secure=request.url.scheme == "https")
     return None
 
 
@@ -82,5 +89,5 @@ def switch_showcase(payload: ShowcaseSwitch, response: Response, request: Reques
     db.add(SessionToken(token=token, user_id=user.id, organization_id=org.id, expires_at=session_expires_at()))
     log_audit(db, current, 'showcase.switch', payload={'target_company': org.key})
     db.commit()
-    response.set_cookie(COOKIE_NAME, token, httponly=True, samesite='lax', max_age=7 * 24 * 60 * 60)
+    set_session_cookie(response, request, token)
     return login_body(user, org, request)

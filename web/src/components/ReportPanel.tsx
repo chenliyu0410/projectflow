@@ -50,8 +50,11 @@ export default function ReportPanel({
   autoOpen = false,
   openChildren = [],
   parentClosed = false,
+  version = 0,
 }: {
   node: NodeItem;
+  /** Other record writers bump this; the panel refreshes the latest report without resetting its form. */
+  version?: number;
   userId: string;
   reload: RecordReload;
   expired: () => void;
@@ -90,10 +93,12 @@ export default function ReportPanel({
   const [formOpen, setFormOpen] = useState(autoOpen);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const reopen = useRef(false);
-  async function load() {
+  async function load(silent = false) {
     const request = scope.begin();
-    setLoading(true);
-    setError('');
+    if (!silent) {
+      setLoading(true);
+      setError('');
+    }
     let candidate: Report | null = null;
     let legacy: Report | null = null;
     let cursor: string | null = null;
@@ -121,7 +126,8 @@ export default function ReportPanel({
         }
       } while (cursor);
       setLatest(candidate ?? legacy);
-      if (candidate?.status === 'rejected') {
+      // 背景刷新不覆蓋使用者正在填的內容，只有第一次載入才帶入退回版本。
+      if (!silent && candidate?.status === 'rejected') {
         setSummary(candidate.summary);
         setDate(candidate.finished_on ?? '');
         setResult(
@@ -133,15 +139,22 @@ export default function ReportPanel({
     } catch (e) {
       if (scope.current(request)) {
         if (e instanceof ApiError && e.status === 401) expired();
-        else setError(recordError(e));
+        else if (!silent) setError(recordError(e));
       }
     } finally {
-      if (scope.current(request)) setLoading(false);
+      if (scope.current(request) && !silent) setLoading(false);
     }
   }
   useEffect(() => {
     void load();
   }, []);
+  const seenVersion = useRef(version);
+  useEffect(() => {
+    if (seenVersion.current === version) return;
+    seenVersion.current = version;
+    // 第一次載入還沒完成時不插隊，避免中止它而卡在載入中。
+    if (!loading) void load(true);
+  }, [version]);
   const actions = node.state_actions ?? [];
   const childrenOpen = openChildren.length > 0;
   const childrenText = `還有 ${openChildren.length} 項子任務未完成：${openChildren.map((child) => child.title).join('、')}；全部完成或略過後才能回報完成。`;

@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.audit import log_audit
-from app.services.dependency_service import lock_project, require_dependencies
+from app.services.dependency_service import lock_project, read_project, require_dependencies
 from app.services.attachment_store import bind_attachments, attachments_for, attachment_out
 from app.auth import CurrentUser
 from app.models import Node, Project, TaskReport, now_utc
@@ -18,20 +18,25 @@ def conflict():
     raise HTTPException(status_code=409, detail="目前狀態不允許此操作，請重新整理")
 
 
-def lock_node(db: Session, current: CurrentUser, node_id: str, *, require_visible=True):
+def lock_node(db: Session, current: CurrentUser, node_id: str, *, require_visible=True, lock=True):
     project_id = db.scalar(select(Node.project_id).where(Node.id == node_id, Node.organization_id == current.organization.id))
     if project_id is None:
         raise HTTPException(status_code=404, detail="找不到節點")
     # Global order: optional AttachmentQuota -> Project -> Node -> Attachment.
-    project = lock_project(db, current, project_id)
-    node = db.scalar(select(Node).where(Node.id == node_id, Node.organization_id == current.organization.id, Node.project_id == project.id)
-                     .with_for_update().execution_options(populate_existing=True))
+    project = lock_project(db, current, project_id) if lock else read_project(db, current, project_id)
+    query = select(Node).where(Node.id == node_id, Node.organization_id == current.organization.id, Node.project_id == project.id)
+    node = db.scalar(query.with_for_update().execution_options(populate_existing=True) if lock else query)
     if node is None:
         raise HTTPException(status_code=404, detail="找不到節點")
     context = load_policy_context(db, current)
     if project is None or not can_view_project(current, project) or (require_visible and not can_view_node(current, node, context=context)):
         raise HTTPException(status_code=404, detail="找不到節點")
     return node, project, context
+
+
+def read_node(db: Session, current: CurrentUser, node_id: str, *, require_visible=True):
+    """Same authorization as lock_node for GET requests, without row locks that would block writers."""
+    return lock_node(db, current, node_id, require_visible=require_visible, lock=False)
 
 
 def require_gate(db, current, node):

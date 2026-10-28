@@ -52,6 +52,23 @@ describe('P2a query pages', () => {
     expect(fetcher.mock.calls.every(([path]) => path.startsWith('/api/workspace/my-tasks?'))).toBe(true);
   });
 
+  it('waits for typing to pause before searching and keeps the current list while it reloads', async () => {
+    let finish!: (value: unknown) => void;
+    const task = { ...nodes[3], project_title: summary.title };
+    const fetcher = vi.fn().mockResolvedValueOnce(response({ items: [task] })).mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+    vi.stubGlobal('fetch', fetcher); render(<MyTasks openNode={vi.fn()} expired={vi.fn()} />);
+    expect(await screen.findByRole('button', { name: task.title })).toBeInTheDocument();
+    for (const value of ['子', '子任', '子任務']) fireEvent.change(screen.getByLabelText('搜尋任務'), { target: { value } });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+    expect(fetcher).toHaveBeenLastCalledWith(`/api/workspace/my-tasks?q=${encodeURIComponent('子任務')}&status=`, expect.anything());
+    // 新結果回來前仍顯示原本的列表，只多一個更新中的提示。
+    expect(screen.getByRole('button', { name: task.title })).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('更新');
+    await act(async () => { finish(response({ items: [] })); });
+    expect(await screen.findByText('沒有符合篩選的任務')).toBeInTheDocument();
+  });
+
   it('retries my-task errors without showing empty results and ignores superseded queries', async () => {
     let finish!: (value: unknown) => void;
     const fetcher = vi.fn().mockResolvedValueOnce(response({}, 500)).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; })).mockResolvedValueOnce(response({ items: [] }));
@@ -346,7 +363,67 @@ describe('UI3 Demo home pages', () => {
 });
 
 
+describe('node content tabs', () => {
+  it('links each tab to its panel and moves focus with arrow, Home and End keys', () => {
+    const changeTab = vi.fn();
+    render(<NodeWorkspace project={detail} selectedNodeId={null} select={vi.fn()} readonly={false} canApprove={false} disabled={false} mutate={vi.fn()} tab="board" changeTab={changeTab} />);
+    const tabs = within(screen.getByRole('tablist', { name: '節點內容' })).getAllByRole('tab');
+    const panel = screen.getByRole('tabpanel');
+    expect(tabs[0]).toHaveAttribute('aria-controls', panel.id);
+    expect(panel).toHaveAccessibleName('看板內容');
+    expect(tabs.map(tab => tab.tabIndex)).toEqual(tabs.map((_, index) => index === 0 ? 0 : -1));
+    tabs[0].focus();
+    fireEvent.keyDown(tabs[0], { key: 'ArrowRight' });
+    expect(tabs[1]).toHaveFocus();
+    fireEvent.keyDown(tabs[1], { key: 'End' });
+    expect(tabs[tabs.length - 1]).toHaveFocus();
+    fireEvent.keyDown(tabs[tabs.length - 1], { key: 'ArrowRight' });
+    expect(tabs[0]).toHaveFocus();
+    fireEvent.keyDown(tabs[0], { key: 'ArrowLeft' });
+    expect(tabs[tabs.length - 1]).toHaveFocus();
+    fireEvent.keyDown(tabs[tabs.length - 1], { key: 'Home' });
+    expect(tabs[0]).toHaveFocus();
+    // 方向鍵只移焦點，按下才切換，避免一路觸發載入與離開確認。
+    expect(changeTab).not.toHaveBeenCalled();
+    fireEvent.click(tabs[1]);
+    expect(changeTab).toHaveBeenCalledWith('timeline');
+  });
+});
+
 describe('phase status cards', () => {
+  it('offers task creation on an untouched empty phase without making the card enterable', () => {
+    const active = {...node('執行階段', null, 'phase'), sort_order:0};
+    const empty = {...node('空階段', null, 'phase'), sort_order:1};
+    const filled = {...node('有子項', null, 'phase'), sort_order:2};
+    const locked = {...node('無權階段', null, 'phase'), sort_order:3, capabilities:{edit_metadata:false, assign:false, create_child:false}};
+    const project: ProjectDetail = {...detail, nodes:[active, empty, filled, locked, node('執行任務', active.id, 'task', 'doing'), node('未開始任務', filled.id)], gates:[]};
+    const select = vi.fn(); const createIn = vi.fn();
+    render(<NodeWorkspace project={project} selectedNodeId={null} select={select} readonly={false} canApprove={false} disabled={false} mutate={vi.fn()} createIn={createIn} />);
+    expect(screen.queryByRole('button', { name: '進入階段：空階段' })).not.toBeInTheDocument();
+    expect(within(screen.getByLabelText('開發階段與閘門')).getByRole('group', { name: '階段：空階段' })).toHaveTextContent('尚未開始');
+    fireEvent.click(screen.getByRole('button', { name: '新增任務：空階段' }));
+    expect(createIn).toHaveBeenCalledWith(empty.id);
+    expect(select).not.toHaveBeenCalled();
+    expect(phaseButton('有子項')).toBeDisabled();
+    expect(screen.queryByRole('button', { name: '新增任務：有子項' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '新增任務：無權階段' })).not.toBeInTheDocument();
+  });
+
+  it('opens the create form under an empty phase and stays on the project overview', async () => {
+    const empty = {...node('空階段', null, 'phase'), sort_order:1};
+    const project = {...detail, nodes:[empty], capabilities:{create_node:true}};
+    stubFetch(async (path: string) => response(path === '/api/auth/me' ? identity : path === '/api/projects' ? { items: [summary] }
+      : path.endsWith('/assignment-options') ? { users: [], departments: [] } : path.startsWith('/api/workspace/my-tasks') ? { items: [] } : project));
+    render(<App />);
+    fireEvent.click(await within(await findProjectMenu()).findByRole('button', { name: summary.title }));
+    closeProjectDrawer();
+    fireEvent.click(await screen.findByRole('button', { name: '新增任務：空階段' }));
+    const form = await screen.findByRole('form', { name: '新增節點表單' });
+    expect(form).toHaveTextContent('空階段');
+    expect(within(form).getByLabelText('種類')).toHaveValue('task');
+    expect(screen.getByLabelText('目前層級')).toHaveTextContent('專案總覽');
+  });
+
   it('distinguishes actual completion, active descendants and untouched work; only allows active cards', () => {
     const completed = {...node('已結束', null, 'phase', 'done'), sort_order:0};
     const active = {...node('執行階段', null, 'phase'), sort_order:1};

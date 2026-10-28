@@ -1,6 +1,8 @@
 import { childCreationReason } from '../child-creation';
 import { dependencyLabel, dependencyMet, dependencyShift } from '../dependencies';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useLeaveGuard } from '../leave-guard';
+import type { LeaveGuards } from '../leave-guard';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { api, ApiError, useRecordMutation } from '../api';
 import type { RecordReload } from '../api';
@@ -61,8 +63,9 @@ export default function TimelineView({
   reload,
   expired,
   color = 'var(--teal)',
-  undo, created, notice, recordVersion = 0,
+  undo, created, notice, recordVersion = 0, leaveGuards,
 }: {
+  leaveGuards?: LeaveGuards;
   recordVersion?: number;
   created?: (title: string, undoId: string | null) => void;
   notice?: (message: string) => void;
@@ -103,6 +106,7 @@ export default function TimelineView({
   const canAdd = nodes.some(n => n.capabilities.create_child) || project.capabilities.create_node;
   const creationDialog = useRef<HTMLDialogElement>(null);
   const creationTrigger = useRef<HTMLElement | null>(null);
+  const cancelCreation = useRef<(() => void) | null>(null);
   function openCreation(value: NonNullable<typeof creation>) {
     creationTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setCreation(value);
@@ -148,6 +152,8 @@ export default function TimelineView({
     await reload(signal);
     if (!signal.aborted) setDraft(null);
   }, expired, true);
+  const draftChanged = !!draft && !mutation.busy && !mutation.saved && (draft.start !== (draft.node.start_date ?? '') || draft.due !== (draft.node.due_date ?? ''));
+  useLeaveGuard(leaveGuards, draftChanged, '日期修改尚未儲存，確定放棄並離開嗎？');
   const now = new Date();
   const today = calendarDay(
     `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
@@ -287,7 +293,7 @@ export default function TimelineView({
         {!root && <option value="" disabled={!!childCreationReason(null, !!project.capabilities.create_node)}>專案最上層</option>}
         {timelineRows(nodes, new Set()).map(({node, depth}) => <option key={node.id} value={node.id} disabled={!!addReason(node)}>{'　'.repeat(Math.min(depth, 8))}{node.title}{addReason(node) ? `（${addReason(node)}）` : ''}</option>)}
       </select><small>下方「＋ 新增子任務」或拖曳日期，會新增到這裡。手機請用＋。</small></label>}
-      {creation && <dialog ref={creationDialog} className="timeline-create-dialog" aria-label="新增子任務" onCancel={event => event.preventDefault()}><NodeEditor projectId={project.id} mode="create" node={null} parent={creation.parent} canAssign leaf nodes={project.nodes} initialDates={creation} created={created} expired={expired} close={() => setCreation(null)} reload={async () => { await reload(new AbortController().signal); setCreation(null); }} /></dialog>}
+      {creation && <dialog ref={creationDialog} className="timeline-create-dialog" aria-label="新增子任務" onCancel={event => { event.preventDefault(); cancelCreation.current?.(); }}><NodeEditor cancelRef={cancelCreation} projectId={project.id} mode="create" node={null} parent={creation.parent} canAssign leaf nodes={project.nodes} initialDates={creation} created={created} expired={expired} close={() => setCreation(null)} reload={async () => { await reload(new AbortController().signal); setCreation(null); }} /></dialog>}
       {draft && (
         <form
           className="record-panel schedule-editor"

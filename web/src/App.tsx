@@ -1,6 +1,5 @@
 import { childCreationReason } from './child-creation';
 import LinkedOperations from './components/LinkedOperations';
-import PreviewBoundary from './components/PreviewBoundary';
 import AIGovernance from './components/AIGovernance';
 import DocumentManager from './components/DocumentManager';
 import OperationsManager from './components/OperationsManager';
@@ -14,7 +13,7 @@ import TimelineView from './components/TimelineView';
 import DependencyPanel from './components/DependencyPanel';
 import ReviewCenter from './components/ReviewCenter';
 import AuditLogView from './components/AuditLogView';
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api, ApiError, KNOWN_CONFLICTS } from './api';
 import type { NodeStatus, ProjectDetail, ProjectSummary, SessionInfo, WorkflowSummary, WorkspaceRoute } from './types';
@@ -25,7 +24,12 @@ import NodeEditor from './components/NodeEditor';
 import WorkspaceOverview from './components/WorkspaceOverview';
 import MyTasks from './components/MyTasks';
 import NavIcon from './components/NavIcons';
+import { canLeaveAll } from './leave-guard';
+import type { LeaveGuards } from './leave-guard';
 
+// 展示預覽（含各公司示例資料）只在預覽頁用到，分開載入以免拖大主程式。
+const PreviewBoundary = lazy(() => import('./components/PreviewBoundary'));
+const previewLoading = <p role="status">載入展示預覽中</p>;
 const ROLE_LABELS: Record<string, string> = { admin: '系統管理員', project_owner: '專案負責人', reviewer: '階段審核人', member: '成員', readonly: '唯讀' };
 const PAGE_SCOPES: Record<string, string> = { overview: '所有可見專案', 'my-tasks': '我的任務', reviews: '審核中心', workflows: '模板庫', audit: '活動與稽核紀錄', accounts: '帳號與密碼', operations: '公司營運資料', governance: 'AI 政策展示預覽' };
 
@@ -57,6 +61,8 @@ export default function App() {
   const [editor, setEditor] = useState<'create' | 'edit' | null>(null);
   const [recordVersion, setRecordVersion] = useState(0);
   const [editorGeneration, setEditorGeneration] = useState(0);
+  // 從階段卡新增時，父層是那個階段而不是目前所在位置。
+  const [createParentId, setCreateParentId] = useState<string | null>(null);
   const [workflows, setWorkflows] = useState<WorkflowSummary[] | null>(null);
   const [workflowLoading, setWorkflowLoading] = useState(false);
   const [workflowId, setWorkflowId] = useState('');
@@ -71,7 +77,8 @@ export default function App() {
   const creationForm = useRef<HTMLFormElement>(null);
   const documentLeaveGuard = useRef<(() => boolean) | null>(null);
   const [operationsPreview, setOperationsPreview] = useState(false);
-  const canLeaveDocument = () => documentLeaveGuard.current?.() ?? true;
+  const formGuards = useRef(new Set<() => boolean>()) as LeaveGuards;
+  const canLeaveDocument = () => (documentLeaveGuard.current?.() ?? true) && canLeaveAll(formGuards);
   const controller = useRef<AbortController | null>(null);
 
   function begin() {
@@ -132,12 +139,14 @@ export default function App() {
     const detail = await loadDetail(id, request, nodeId);
     if (detail && current(request)) setProjectView(defaultTab(detail.nodes, nodeId));
   }
+  /** Returns false when the move was refused (busy or the user chose to stay on an unsaved form). */
   function navigate(next: WorkspaceRoute) {
-    if (busy) return;
-    if (!canLeaveDocument()) return;
+    if (busy) return false;
+    if (!canLeaveDocument()) return false;
     setOperationsPreview(false);
-    if (next.page === 'project' && next.projectId) { void selectProject(next.projectId, next.nodeId); return; }
+    if (next.page === 'project' && next.projectId) { void selectProject(next.projectId, next.nodeId); return true; }
     begin(); closeCreation(); setProject(null); setMessage(''); setRoute(next); setState('ready');
+    return true;
   }
   /** Keep the user's timeline/graph context, including leaf tasks and breadcrumbs. */
   function selectNode(nodeId: string | null, preferTab?: NodeTab) {
@@ -342,7 +351,8 @@ export default function App() {
     announce(`已新增「${title}」`, true);
   }
   // Demo: Ctrl+Z / ⌘Z undoes the last step when focus is not in a field and no form is open.
-  useEffect(() => {
+  // 用 layout effect 在畫面更新時同步換上最新處理器，連按兩次才不會拿到舊的復原步驟而重送。
+  useLayoutEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== 'z') return;
       const active = document.activeElement as HTMLElement | null;
@@ -426,11 +436,12 @@ export default function App() {
   // D74: a review/done/skipped node cannot gain new children.
   const closedParent = !!selectedNode && !!childCreationReason(selectedNode, true);
   const canEditNode = session?.user.role !== 'readonly' && selectedNode?.kind !== 'project' && selectedNode?.capabilities?.edit_metadata;
-  function openNodeEditor(mode: 'create' | 'edit') {
+  function openNodeEditor(mode: 'create' | 'edit', parentId: string | null = null) {
     if (busy || mutating || creationOpen) return;
     if (!canLeaveDocument()) return;
-    begin(); setEditorGeneration(value => value + 1); setEditor(mode);
+    begin(); setEditorGeneration(value => value + 1); setCreateParentId(parentId); setEditor(mode);
   }
+  const editorParent = (createParentId && project?.nodes.find(node => node.id === createParentId)) || selectedNode;
   function expireSession() { begin(); clearSession(); setBusy(false); setMessage('登入已失效，請重新登入'); }
   async function reloadNode(nodeId: string) {
     if (!project) return;
@@ -480,7 +491,7 @@ export default function App() {
               </>}
 
               </Dropdown>}
-          previewKey={state !== 'ready' ? state : route.page === 'operations' || route.page === 'governance' || (route.page === 'project' && ['documents', 'data'].includes(projectView)) ? 'preview' : `${route.page}:${selectedId}:${selectedNodeId}:${projectView}`}
+          expired={expireSession} previewKey={route.page === 'operations' || route.page === 'governance' || (route.page === 'project' && ['documents', 'data'].includes(projectView)) ? 'preview' : 'workspace'}
           createAction={canCreate && <button className="new-project" disabled={busy || mutating || workflowLoading || state !== 'ready'} onClick={() => { if (creationOpen) { creationForm.current?.scrollIntoView?.({ block: 'start' }); creationForm.current?.focus(); } else void openCreation(); }}><NavIcon name="plus" size={16} />建立新專案</button>} session={<><span aria-label="目前公司">{session.organization.name}</span>{session.showcase && <><label>切換公司（本機展示）<select aria-label="切換公司（本機展示）" value={switchTarget || session.organization.key} disabled={busy || mutating} onChange={e=>{const key=e.target.value;if(key===session.organization.key){setSwitchTarget('');return;}if(document.querySelector('.workspace-content form')) setSwitchTarget(key);else void switchCompany(key);}}>{session.showcase.companies.map(company=><option key={company.key} value={company.key}>{company.name}｜{company.industry}</option>)}</select></label><span className="showcase-badge">{session.showcase.active ? '展示身分 · 管理者' : '本機展示模式'}</span>{switchTarget && <div className="company-switch-confirm" role="group" aria-label="確認切換公司"><p>將以展示管理者進入所選公司。未儲存的表單內容將離開。</p><button disabled={busy} onClick={()=>void switchCompany()}>確認切換公司</button><button disabled={busy} onClick={()=>setSwitchTarget('')}>取消切換</button></div>}</>}<div className="session-person"><span className="avatar" aria-hidden="true">{session.user.display_name.slice(0, 1)}</span><div><strong>{session.user.display_name}</strong><small>{ROLE_LABELS[session.user.role] ?? session.user.role}</small></div></div><button disabled={busy} onClick={() => void logout()}>登出</button></>}>
         {message && <p role="alert" className={notice?.text === message ? 'notice' : undefined}>{message}
           {notice?.text === message && notice.open && <button type="button" disabled={busy || mutating} onClick={() => { const id = notice.open!; selectNode(id); }}>開啟</button>}
@@ -504,8 +515,8 @@ export default function App() {
           {state === 'loading' && <p role="status">載入專案中</p>}
           {state === 'ready' && projects.length === 0 && <p>目前沒有專案</p>}
           {state === 'ready' && !creationOpen && route.page === 'operations' && !operationsPreview && <OperationsManager key={session.organization.id} expired={expireSession} leaveGuard={documentLeaveGuard} preview={() => setOperationsPreview(true)} />}
-          {state === 'ready' && route.page === 'operations' && operationsPreview && <PreviewBoundary initialPage="operations" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setOperationsPreview(false)} />}
-          {state === 'ready' && route.page === 'governance' && <AIGovernance key={session.organization.id} expired={expireSession} fallback={<PreviewBoundary initialPage="governance" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => navigate({ page: 'overview' })} />} />}
+          {state === 'ready' && route.page === 'operations' && operationsPreview && <Suspense fallback={previewLoading}><PreviewBoundary initialPage="operations" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setOperationsPreview(false)} /></Suspense>}
+          {state === 'ready' && route.page === 'governance' && <AIGovernance key={session.organization.id} expired={expireSession} fallback={<Suspense fallback={previewLoading}><PreviewBoundary initialPage="governance" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => navigate({ page: 'overview' })} /></Suspense>} />}
           {state === 'ready' && route.page === 'overview' && <WorkspaceOverview showAssignHint={canCreate} openProject={id => navigate({ page: 'project', projectId: id, nodeId: null })} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && <WorkflowLibrary expired={expireSession} changed={() => setWorkflows(null)} createProject={canCreate ? id => void openCreation(id) : undefined} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && session?.user.role === 'admin' && <DocTemplateLibrary key={session.organization.id} expired={expireSession} />}
@@ -523,13 +534,14 @@ export default function App() {
             readonly={session.user.role === 'readonly'} canApprove={!!canApprove} disabled={busy || mutating || creationOpen || !!editor} mutate={(action, id, status) => void mutate(action, id, status)}
             move={(id, parentId) => void moveNode(id, parentId)} openReport={openReport} reportIntent={reportIntent} notify={setMessage}
             color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))}
-            preview={projectView === 'documents' ? <DocumentManager key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} /> : projectView === 'data' && <LinkedOperations key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} preview={<PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage="data" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} />} />}
+            preview={projectView === 'documents' ? <DocumentManager key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} /> : projectView === 'data' && <LinkedOperations key={`${session.organization.id}:${selectedNodeId ?? project.id}`} scopePath={selectedNodeId && selectedNode?.kind !== 'project' ? `/nodes/${selectedNodeId}` : `/projects/${project.id}`} expired={expireSession} leaveGuard={documentLeaveGuard} preview={<Suspense fallback={previewLoading}><PreviewBoundary key={selectedNodeId ?? 'project-preview'} initialPage="data" companyKey={session.organization.key} food={session.organization.key === 'food'} companyName={session.organization.name} exit={() => setProjectView(defaultTab(project.nodes, selectedNodeId))} /></Suspense>} />}
             tab={projectView} tabsDisabled={busy || mutating} changeTab={view => { if (!canLeaveDocument()) return; begin(); closeCreation(); setProjectView(view); }}
             actions={canEditNode && <button disabled={busy || mutating || creationOpen} onClick={() => openNodeEditor('edit')}>編輯節點</button>}
-            editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={selectedNode}
-              canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession}
+            createIn={id => openNodeEditor('create', id)}
+            editor={editor && <NodeEditor key={`${project.id}:${selectedNodeId}:${editor}:${editorGeneration}`} projectId={project.id} mode={editor} node={editor === 'edit' ? selectedNode : null} parent={editor === 'create' ? editorParent : selectedNode}
+              canAssign={editor === 'create' || !!selectedNode?.capabilities?.assign} leaf={isLeafTask(project.nodes, selectedNode)} reload={reloadNode} close={() => setEditor(null)} expired={expireSession} leaveGuards={formGuards}
               nodes={project.nodes} created={nodeCreated} tree={selectedNode ? { move: parentId => void moveNode(selectedNode.id, parentId), copy: () => void structure('copy', selectedNode.id), remove: () => void structure('delete', selectedNode.id) } : undefined} />}
-            timeline={!busy && !creationOpen && <TimelineView key={project.id} recordVersion={recordVersion} project={project} scopeId={selectedNodeId} created={nodeCreated} notice={setMessage} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession}
+            timeline={!busy && !creationOpen && <TimelineView key={project.id} recordVersion={recordVersion} project={project} scopeId={selectedNodeId} created={nodeCreated} notice={setMessage} color={projectColor(Math.max(0, projects.findIndex(item => item.id === project.id)))} select={id => selectNode(id, 'timeline')} up={id => selectNode(id, 'timeline')} reload={reloadRecords} expired={expireSession} leaveGuards={formGuards}
               undo={session.user.role === 'readonly' ? undefined : { label: lastUndo?.label ?? null, disabled: busy || mutating, run: () => void undoLast() }} />}
             graph={!busy && !creationOpen && <DependencyPanel key={`${project.id}:${recordVersion}`} projectId={project.id} project={project} scopeId={selectedNodeId} select={id => selectNode(id, 'graph')} reload={reloadRecords} expired={expireSession} />} />}
           {state === 'error' && <button disabled={busy} onClick={retry}>重試</button>}

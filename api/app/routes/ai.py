@@ -1,6 +1,7 @@
 from contextlib import closing
 from datetime import timezone
 import json
+import os
 import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -40,8 +41,14 @@ def connection(current, dataset='dataset-v1'):
     except (FileNotFoundError,sqlite3.Error): raise HTTPException(409,'AI展示資料尚未匯入') from None
 
 
+def local_request(request):
+    # Host 由瀏覽器決定；--lan 模式 web 對區網開放，區網訪客也能送 Host: 127.0.0.1。
+    # Docker Desktop 轉送後的來源位址分不出本機與區網，只能依啟動時是否開放區網（start.py 設定）一律拒絕。
+    return request.url.hostname in {'localhost','127.0.0.1','::1'} and os.environ.get('PF_WEB_LAN')!='true'
+
+
 def local_admin(request,current):
-    if current.user.role!='admin' or request.url.hostname not in {'localhost','127.0.0.1','::1'}: raise HTTPException(403,'僅本機管理者可設定模型')
+    if current.user.role!='admin' or not local_request(request): raise HTTPException(403,'僅本機管理者可設定模型')
     origin=request.headers.get('origin')
     if origin and origin!=str(request.base_url).rstrip('/'): raise HTTPException(403,'不允許此來源')
     if request.headers.get('sec-fetch-site')=='cross-site': raise HTTPException(403,'不允許此來源')
@@ -54,7 +61,7 @@ def status(request:Request,dataset:Dataset='dataset-v1',current:CurrentUser=Depe
         model.validate_config(config)
     except (OSError, KeyError, TypeError, ValueError):
         config=dict(enabled=False,model='')
-    result=dict(ready=False,as_of=store.AS_OF,company_name=current.organization.name,model_enabled=config['enabled'],model_name=config['model'] if config['enabled'] else '',can_configure=current.user.role=='admin' and request.url.hostname in {'localhost','127.0.0.1','::1'},can_sql=current.user.role in {'admin','project_owner'},projects=[],queries=[],counts={})
+    result=dict(ready=False,as_of=store.AS_OF,company_name=current.organization.name,model_enabled=config['enabled'],model_name=config['model'] if config['enabled'] else '',can_configure=current.user.role=='admin' and local_request(request),can_sql=current.user.role in {'admin','project_owner'},projects=[],queries=[],counts={})
     result['dataset'] = dataset
     result['gateway'] = dict(policy='local_only', cloud_enabled=False)
     result['vectors'] = dict(enabled=vectors.available(current.organization.key) and dataset != 'dataset-v1', model=vectors.model_name() if dataset != 'dataset-v1' else '')
@@ -99,7 +106,9 @@ def evaluate(payload,current,db,*,preview):
                     if payload.project_id not in visible: raise HTTPException(404,'找不到AI專案')
                 result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history,preview=preview,other_companies=others)
     except PermissionError: raise HTTPException(403,'沒有此AI查詢的資料權限') from None
+    except store.QueryTooLarge: raise HTTPException(422,'查詢過於複雜，超過執行上限；請指定專案或換個問法後再試') from None
     except ValueError: raise HTTPException(422,'不支援此查詢') from None
+    except sqlite3.Error: raise HTTPException(503,'AI展示資料暫時無法查詢，請稍後再試') from None
     log_audit(db,current,'ai.preview' if preview else 'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':'preview' if preview else result['kind'],'source_count':result['gateway']['source_count'],'query_id':result['analysis']['query_id'] if not preview and result['analysis'] else None,'gateway':result['gateway']})
     db.commit()
     return result
@@ -207,7 +216,7 @@ def governance(request:Request,current:CurrentUser=Depends(require_session),db:S
     recent=[dict(action=a.action,created_at=utc(a.created_at).isoformat(),**{k:a.payload.get(k) for k in keys if isinstance(a.payload,dict) and k in a.payload},
                  classification=(a.payload.get('gateway') or {}).get('classification') if isinstance(a.payload,dict) else None,
                  cloud=(a.payload.get('gateway') or {}).get('cloud') if isinstance(a.payload,dict) else None) for a in audits]
-    return dict(mode=value['mode'],company=value['company'],cloud_provider=None,can_set_policy=request.url.hostname in {'localhost','127.0.0.1','::1'},
+    return dict(mode=value['mode'],company=value['company'],cloud_provider=None,can_set_policy=local_request(request),
                 recent=recent,**classification_tree(db,current,value))
 
 

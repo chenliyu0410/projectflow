@@ -1,6 +1,12 @@
 from pathlib import Path
 
+import app.database
 from app.database import sqlalchemy_url
+
+# 以 app 套件位置推出 api 根目錄：從 repo 根目錄或 api/ 執行都能找到，
+# 也相容 deploy/verify.py 把測試檔複製到暫存目錄、api 指向容器 /app 的配置。
+API_ROOT = Path(app.database.__file__).resolve().parents[1]
+ALEMBIC_INI = str(API_ROOT / 'alembic.ini')
 
 
 def test_operations_migration_preserves_data_and_refuses_loss(tmp_path, monkeypatch):
@@ -10,7 +16,7 @@ def test_operations_migration_preserves_data_and_refuses_loss(tmp_path, monkeypa
     import pytest
     url = f'sqlite:///{tmp_path / "operations.db"}'
     monkeypatch.setenv('DATABASE_URL', url)
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     command.upgrade(config, '20261011_0012')
     engine = create_engine(url)
     with engine.begin() as conn:
@@ -33,7 +39,7 @@ def test_documents_migration_preserves_existing_data(tmp_path, monkeypatch):
     from sqlalchemy import create_engine, text, inspect
     url = f'sqlite:///{tmp_path / "documents-migration.db"}'
     monkeypatch.setenv('DATABASE_URL', url)
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     command.upgrade(config, '20261010_0011')
     engine = create_engine(url)
     with engine.begin() as conn:
@@ -55,15 +61,15 @@ def test_sqlalchemy_uses_psycopg_driver_for_postgresql():
 
 
 def test_alembic_config_uses_api_root_and_no_logging_sections_required():
-    ini = Path("api/alembic.ini").read_text(encoding="utf-8")
-    env = Path("api/alembic/env.py").read_text(encoding="utf-8")
+    ini = (API_ROOT / 'alembic.ini').read_text(encoding="utf-8")
+    env = (API_ROOT / 'alembic' / 'env.py').read_text(encoding="utf-8")
     assert "script_location = %(here)s/alembic" in ini
     assert "prepend_sys_path = %(here)s" in ini
     assert "if config.config_file_name is not None and \"loggers\" in config.file_config" in env
 
 
 def test_alembic_revision_contains_required_business_tables():
-    revision = Path("api/alembic/versions/20261008_0001_p1a_core.py").read_text(encoding="utf-8")
+    revision = (API_ROOT / 'alembic' / 'versions' / '20261008_0001_p1a_core.py').read_text(encoding="utf-8")
     for table in [
         "organizations", "users", "sessions", "departments", "department_members",
         "projects", "nodes", "workflows", "workflow_nodes", "gates",
@@ -93,7 +99,7 @@ def seed_at_revision(url, revision, prepare):
     from sqlalchemy.pool import StaticPool
     from app.database import Base
     import app.models  # noqa: F401  (register every table)
-    command.upgrade(Config('api/alembic.ini'), revision)
+    command.upgrade(Config(ALEMBIC_INI), revision)
     scratch = create_engine('sqlite://', poolclass=StaticPool, connect_args={'check_same_thread': False})
     Base.metadata.create_all(scratch)
     with Session(scratch) as db:
@@ -131,7 +137,7 @@ def check_date_migration_preserves_existing_rows(url, monkeypatch):
     import pytest
     from sqlalchemy.exc import IntegrityError
     monkeypatch.setenv('DATABASE_URL', url)
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     command.upgrade(config, '20261008_0001')
     engine = create_engine(url)
     with engine.begin() as db:
@@ -206,7 +212,7 @@ def check_p2b_migration_keeps_historical_reports(url,monkeypatch):
     from alembic.config import Config
     from sqlalchemy import create_engine,text,inspect
     monkeypatch.setenv('DATABASE_URL',url)
-    config=Config('api/alembic.ini');command.upgrade(config,'20261008_0002')
+    config=Config(ALEMBIC_INI);command.upgrade(config,'20261008_0002')
     engine=create_engine(url)
     with engine.begin() as db:
         db.execute(text("INSERT INTO organizations VALUES ('org','org','Original')"))
@@ -352,7 +358,7 @@ def check_p2c_migration_preserves_collaboration(url,monkeypatch):
     from app.seed import seed_demo_data
     from app.models import Node,Workflow,TaskReport,TaskNote,Attachment,AuditLog,User
     monkeypatch.setenv('DATABASE_URL',url)
-    config=Config('api/alembic.ini')
+    config=Config(ALEMBIC_INI)
     def prepare(db):
         seed_demo_data(db);db.commit()
         user=db.scalars(select(User).where(User.username=='yu')).one()
@@ -415,7 +421,7 @@ def check_tp_a_migration_preserves_nodes(url,monkeypatch):
     from app.seed import seed_demo_data
     from app.models import Node,NodeDependency,TaskReport,User
     monkeypatch.setenv('DATABASE_URL',url)
-    config=Config('api/alembic.ini')
+    config=Config(ALEMBIC_INI)
     def prepare(db):
         seed_demo_data(db);db.commit()
         user=db.scalars(select(User).where(User.username=='yu')).one()
@@ -469,12 +475,12 @@ def check_tp_b_migration_preserves_nodes(url,monkeypatch):
     import pytest
     from alembic import command
     from alembic.config import Config
-    from sqlalchemy import create_engine,text,select
+    from sqlalchemy import DateTime,bindparam,create_engine,text,select
     from sqlalchemy.exc import IntegrityError
     from app.seed import seed_demo_data
     from app.models import Node,NodeDependency,TaskNote,TaskReport,User
     monkeypatch.setenv('DATABASE_URL',url)
-    config=Config('api/alembic.ini')
+    config=Config(ALEMBIC_INI)
     def prepare(db):
         seed_demo_data(db);db.commit()
         user=db.scalars(select(User).where(User.username=='yu')).one()
@@ -506,7 +512,9 @@ def check_tp_b_migration_preserves_nodes(url,monkeypatch):
         # deleted_by must be a user of the same company.
         with pytest.raises(IntegrityError):
             with engine.begin() as db:db.execute(text('UPDATE nodes SET deleted_at=now(),deleted_by=:user WHERE id=:id'),{'user':other,'id':node_id})
-    with engine.begin() as db:db.execute(text('UPDATE nodes SET deleted_at=:at,deleted_by=:user WHERE id=:id'),{'at':datetime(2026,10,10,tzinfo=timezone.utc),'user':own,'id':node_id})
+    # 用 DateTime 型別綁定，和 ORM 寫入一致，也避開 Python 3.12 起棄用的 sqlite3 預設 datetime adapter。
+    mark_deleted=text('UPDATE nodes SET deleted_at=:at,deleted_by=:user WHERE id=:id').bindparams(bindparam('at',type_=DateTime(timezone=True)))
+    with engine.begin() as db:db.execute(mark_deleted,{'at':datetime(2026,10,10,tzinfo=timezone.utc),'user':own,'id':node_id})
     # A deleted row would reappear without the markers, so downgrade refuses.
     with pytest.raises(Exception):
         command.downgrade(config,'20261010_0005')
@@ -542,7 +550,7 @@ def check_tp_c_migration_preserves_nodes(url, monkeypatch):
     monkeypatch.setenv('DATABASE_URL', url)
     seed_at_revision(url, '20261010_0006', seed_demo_data)
     engine = create_engine(sqlalchemy_url(url))
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     tables = [t for t in inspect(engine).get_table_names() if t != 'alembic_version']
     def snapshot():
         with engine.connect() as db:
@@ -602,7 +610,7 @@ def check_tp_d_migration(url, monkeypatch):
         db.add(NodeDependency(organization_id=a.organization_id, project_id=a.project_id, predecessor_id=a.id, successor_id=b.id, created_by=user.id))
         db.flush()
     seed_at_revision(url, '20261010_0007', seed)
-    engine = create_engine(sqlalchemy_url(url)); config = Config('api/alembic.ini')
+    engine = create_engine(sqlalchemy_url(url)); config = Config(ALEMBIC_INI)
     tables = [t for t in inspect(engine).get_table_names() if t != 'alembic_version']
     def snapshot():
         with engine.connect() as db:
@@ -647,7 +655,7 @@ def check_tp_e_migration(url,monkeypatch):
     from app.services.workflow_service import read_payload, version_payload
     monkeypatch.setenv('DATABASE_URL',url)
     seed_at_revision(url,'20261010_0008',seed_demo_data)
-    engine=create_engine(sqlalchemy_url(url));config=Config('api/alembic.ini')
+    engine=create_engine(sqlalchemy_url(url));config=Config(ALEMBIC_INI)
     meta=MetaData();meta.reflect(engine)
     def snapshot():
         with engine.connect() as db:return {t.name:sorted([dict(r) for r in db.execute(select(t)).mappings()],key=lambda r:str(r.get('id'))) for t in meta.sorted_tables if t.name!='alembic_version'}
@@ -724,7 +732,7 @@ def check_tp_f_migration(url,monkeypatch):
     from app.seed import seed_demo_data
     from app.models import Notification, User, Node
     monkeypatch.setenv('DATABASE_URL',url)
-    config=Config('api/alembic.ini')
+    config=Config(ALEMBIC_INI)
     seed_at_revision(url,'20261010_0009',seed_demo_data)
     engine=create_engine(sqlalchemy_url(url))
     meta=MetaData();meta.reflect(engine)
@@ -797,7 +805,7 @@ def check_tp_g_migration(url, monkeypatch):
     from app.models import Node
     monkeypatch.setenv('DATABASE_URL', url)
     seed_at_revision(url, '20261010_0010', seed_demo_data)
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     engine = create_engine(sqlalchemy_url(url))
     meta = MetaData(); meta.reflect(engine)
     def snapshot():
@@ -869,7 +877,7 @@ def test_operation_links_migration_preserves_operations_and_refuses_loss(tmp_pat
     import pytest
     url = f'sqlite:///{tmp_path / "links.db"}'
     monkeypatch.setenv('DATABASE_URL', url)
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     command.upgrade(config, '20261011_0013')
     engine = create_engine(url)
     with engine.begin() as conn:
@@ -895,7 +903,7 @@ def test_inventory_migration_preserves_data_and_refuses_loss(tmp_path, monkeypat
     import pytest
     url = f'sqlite:///{tmp_path / "inventory.db"}'
     monkeypatch.setenv('DATABASE_URL', url)
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     command.upgrade(config, '20261011_0014')
     engine = create_engine(url)
     with engine.begin() as conn:
@@ -922,7 +930,7 @@ def test_work_stock_migration_preserves_ledger_and_refuses_loss(tmp_path, monkey
     from sqlalchemy import create_engine, text
     import pytest
     monkeypatch.setenv('DATABASE_URL', f'sqlite:///{tmp_path / "work-stock.db"}')
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     command.upgrade(config, '20261011_0015')
     engine = create_engine(f'sqlite:///{tmp_path / "work-stock.db"}')
     with engine.begin() as c:
@@ -953,7 +961,7 @@ def test_purchase_lines_migration_preserves_ledger_and_refuses_loss(tmp_path, mo
     import pytest
     url = f'sqlite:///{tmp_path / "purchase-lines.db"}'
     monkeypatch.setenv('DATABASE_URL', url)
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     command.upgrade(config, '20261012_0016')
     engine = create_engine(url)
     with engine.begin() as c:
@@ -986,7 +994,7 @@ def test_work_orders_migration_preserves_ledger_and_refuses_loss(tmp_path, monke
     import pytest
     url = f'sqlite:///{tmp_path / "work-orders.db"}'
     monkeypatch.setenv('DATABASE_URL', url)
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     command.upgrade(config, '20261012_0017')
     engine = create_engine(url)
     with engine.begin() as c:
@@ -1018,7 +1026,7 @@ def test_returns_migration_preserves_ledger_and_refuses_loss(tmp_path, monkeypat
     import pytest
     url = f'sqlite:///{tmp_path / "returns.db"}'
     monkeypatch.setenv('DATABASE_URL', url)
-    config = Config('api/alembic.ini')
+    config = Config(ALEMBIC_INI)
     command.upgrade(config, '20261012_0018')
     engine = create_engine(url)
     columns = 'id,organization_id,request_id,resource_id,order_id,work_id,work_label,kind,unit,delta_milli,before_milli,after_milli,resource_label,order_label,reason,created_by,actor_name,created_at,counted_in_plan'

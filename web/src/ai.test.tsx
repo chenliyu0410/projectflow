@@ -3,6 +3,7 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import CopilotPanel from './components/CopilotPanel';
 import { ai } from './ai';
 import type { AIResult, AIStatus } from './ai';
+import { ApiError } from './api';
 vi.mock('./ai', () => ({ ai: { status: vi.fn(), ask: vi.fn(), preview: vi.fn(), refreshIndex: vi.fn(), document: vi.fn(), config: vi.fn(), save: vi.fn(), test: vi.fn() } }));
 const status: AIStatus = { ready: true, as_of: '2026-10-11', company_name: '食品', model_enabled: false, model_name: '', can_configure: true, can_sql: true, projects: [{ project_id: 'P1', title: '展示案' }], queries: [{ query_id: 'q02', label: '各部門逾期未完成數' }], counts: { projects: 1, documents: 2 } };
 const retrieved: AIResult = { kind: 'retrieval', engine: 'retrieval', answer: '檢索原文', warning: null, sources: [{ document_id: 'D1', title: '交付規範', project_id: 'P1', excerpt: '<script>文字</script> 截圖4張' }], analysis: null };
@@ -342,4 +343,33 @@ it('makes model-selected SQL scope reviewable before execution', async () => {
   expect(screen.queryByLabelText('查詢結果')).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: '確認執行：各部門逾期未完成數' }));
   await waitFor(() => expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ query_id: 'q02' }), expect.any(AbortSignal)));
+});
+
+it('cancels a pending citation request when a new question starts', async () => {
+  vi.mocked(ai.document).mockImplementation(() => new Promise(() => undefined));
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
+  await screen.findByText('檢索原文');
+  fireEvent.click(screen.getByText('D1 · 交付規範'));
+  fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
+  const signal = vi.mocked(ai.document).mock.calls[0][1]!;
+  fireEvent.click(screen.getByRole('button', { name: '風險原因與處理方式' }));
+  expect(signal.aborted).toBe(true);
+  await waitFor(() => expect(screen.getAllByRole('button', { name: '開啟原文 D1' }).every(button => !(button as HTMLButtonElement).disabled)).toBe(true));
+});
+
+it('expires the session when a question or citation returns 401', async () => {
+  const expired = vi.fn();
+  vi.mocked(ai.ask).mockRejectedValueOnce(new ApiError(401, '登入已失效，請重新登入'));
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} expired={expired} />);
+  await screen.findByText(/1 個專案／2 份可見文件/);
+  fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
+  await waitFor(() => expect(expired).toHaveBeenCalledTimes(1));
+  vi.mocked(ai.document).mockRejectedValueOnce(new ApiError(401, '登入已失效，請重新登入'));
+  fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
+  await screen.findByText('檢索原文');
+  fireEvent.click(screen.getByText('D1 · 交付規範'));
+  fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
+  await waitFor(() => expect(expired).toHaveBeenCalledTimes(2));
 });

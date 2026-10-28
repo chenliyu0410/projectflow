@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.auth import CurrentUser
 from app.models import Notification, Node, NodeDependency, NodeCondition, Gate
 from app.permissions import can_view_node
-from app.services.record_policy import load_policy_context
+from app.services.record_policy import load_policy_context, shared_policy_data
 
 
 def emit(db, current, node, recipient_id, message, event_key):
@@ -64,15 +64,17 @@ def finish_notifications(db):
         return
     db.flush()
     operation = str(uuid4())
-    for pid, (current, before) in watches.items():
-        after = states(db, current, pid)
-        for nid, (blocked, owner, status) in after.items():
-            old = before.get(nid)
-            node = db.get(Node, nid)
-            if owner and (old is None or old[1] != owner):
-                emit(db, current, node, owner, '你被指派為任務負責人', operation + ':assign:' + nid)
-            if old and old[0] and not blocked and status in {'todo','doing'}:
-                emit(db, current, node, owner, '前置條件已滿足，任務現在可以開始', operation + ':unlock:' + nid)
+    # 這裡只新增通知；一次操作改到多個任務時，每封通知不必各自重算整個公司的授權資料。
+    with shared_policy_data(db):
+        for pid, (current, before) in watches.items():
+            after = states(db, current, pid)
+            for nid, (blocked, owner, status) in after.items():
+                old = before.get(nid)
+                node = db.get(Node, nid)
+                if owner and (old is None or old[1] != owner):
+                    emit(db, current, node, owner, '你被指派為任務負責人', operation + ':assign:' + nid)
+                if old and old[0] and not blocked and status in {'todo','doing'}:
+                    emit(db, current, node, owner, '前置條件已滿足，任務現在可以開始', operation + ':unlock:' + nid)
 
 
 @event.listens_for(Session, 'after_rollback')

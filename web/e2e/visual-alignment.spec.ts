@@ -60,7 +60,7 @@ for (const width of [1280, 375]) test(`UI1 visual alignment and navigation at ${
   await page.getByRole('tab', { name: '時程', exact: true }).click(); await expect(page.getByLabel('專案時程')).toBeVisible(); await capture('timeline');
   await page.getByRole('tab', { name: '相依圖', exact: true }).click(); await expect(page.getByLabel('前置設定')).toBeVisible(); await capture('dependencies');
   await page.getByRole('tab', { name: '看板', exact: true }).click();
-  await page.getByLabel('看板').getByRole('button', { name: '需求確認與規格整理', exact: true }).click();
+  await page.getByLabel('看板', { exact: true }).getByRole('button', { name: '需求確認與規格整理', exact: true }).click();
   await expect(page.getByRole('tab', { name: '紀錄', exact: true })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('textbox', { name: '成果說明', exact: true })).toHaveCount(0);
   await page.getByLabel('完成回報', { exact: true }).getByRole('button', { name: '回報完成', exact: true }).click();

@@ -39,7 +39,9 @@ def run(args: list[str], *, acceptance: bool = False, lan: bool = False, public:
     try:
         environment = {**os.environ, 'PF_ACCEPTANCE_MODE': str(acceptance).lower(),
                        'WEB_BIND': '0.0.0.0' if lan else '127.0.0.1',
-                       'PF_SHOWCASE_LAN': str(lan or public).lower()}
+                       'PF_SHOWCASE_LAN': str(lan or public).lower(),
+                       # 只有 --lan 讓 web 80 對區網開放；API 據此不再把 Host 是 loopback 的請求當成本機。
+                       'PF_WEB_LAN': str(lan).lower()}
         result = subprocess.run(args, capture_output=True, text=True, encoding='utf-8', errors='replace',
                                 check=False, timeout=600, env=environment)
     except (OSError, subprocess.TimeoutExpired):

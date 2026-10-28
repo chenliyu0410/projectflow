@@ -153,6 +153,8 @@ export function AttachmentUpload({
     </div>
   );
 }
+// 下載是在 click 之後才非同步開始，延後釋放；卸載也不提前收回，讓已觸發的下載能完成。
+const REVOKE_DELAY_MS = 60_000;
 export default function AttachmentList({
   items,
   readState,
@@ -196,8 +198,8 @@ export default function AttachmentList({
       a.href = url;
       a.download = item.original_name;
       a.click();
-      URL.revokeObjectURL(url);
       objectUrl.current = null;
+      setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
     } catch (e) {
       if (scope.current(r)) {
         if (e instanceof ApiError && e.status === 401) expired();

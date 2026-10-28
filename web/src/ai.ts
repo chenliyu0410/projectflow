@@ -14,9 +14,10 @@ export type ClassifiedItem = { scope: 'project' | 'node' | 'document'; id: strin
 export type Governance = { mode: 'local_only' | 'mixed' | 'cloud_allowed'; company: Level; cloud_provider: null; can_set_policy: boolean; projects: ClassifiedItem[]; nodes: ClassifiedItem[]; documents: ClassifiedItem[]; recent: { action: string; created_at: string; dataset?: string; kind?: string; scope?: string; from?: string | null; to?: string; classification?: Level | null; cloud?: CloudPlan | null }[] };
 export const ai = {
   status: (signal?: AbortSignal, dataset = 'dataset-v1') => requestJson<AIStatus>('/ai/status?dataset=' + encodeURIComponent(dataset), { signal }),
-  ask: (body: AIRequest, signal?: AbortSignal) => requestJson<AIResult>('/ai/ask', { method: 'POST', body: JSON.stringify(body), signal }),
-  preview: (body: AIRequest, signal?: AbortSignal) => requestJson<AIPreview>('/ai/preview', { method: 'POST', body: JSON.stringify(body), signal }),
-  refreshIndex: (signal?: AbortSignal) => requestJson<IndexStatus>('/ai/index/refresh', { method: 'POST', signal }),
+  // 本地模型回答、遮罩檢索與重建索引都可能超過一般請求的 30 秒上限。
+  ask: (body: AIRequest, signal?: AbortSignal) => requestJson<AIResult>('/ai/ask', { method: 'POST', body: JSON.stringify(body), signal, timeoutMs: 180_000 }),
+  preview: (body: AIRequest, signal?: AbortSignal) => requestJson<AIPreview>('/ai/preview', { method: 'POST', body: JSON.stringify(body), signal, timeoutMs: 180_000 }),
+  refreshIndex: (signal?: AbortSignal) => requestJson<IndexStatus>('/ai/index/refresh', { method: 'POST', signal, timeoutMs: 180_000 }),
   document: (id: string, signal?: AbortSignal, dataset = 'dataset-v1', includeHistory = false) => requestJson<{ title: string; text: string; version?: number; is_current?: boolean }>('/ai/documents/' + encodeURIComponent(id) + '?dataset=' + encodeURIComponent(dataset) + (includeHistory ? '&include_history=true' : ''), { signal }),
   config: (signal?: AbortSignal) => requestJson<ModelConfig>('/ai/model', { signal }),
   save: (value: ModelConfig, signal?: AbortSignal) => requestJson<{ ok: boolean }>('/ai/model', { method: 'PUT', body: JSON.stringify(value), signal }),

@@ -1,16 +1,16 @@
 """Visibility-filtered audit events with action-specific safe projections."""
-from datetime import date
+from datetime import date, datetime
 import re
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.models import Attachment, AuditLog, Gate, TaskNote, TaskReport, Workflow
 from app.services.node_policy import visible_workspace_nodes
-from app.services.record_policy import load_policy_context, authorized_page, page_timestamp
+from app.services.record_policy import load_policy_context, decode_page_cursor, encode_page_cursor, page_timestamp
 
 router = APIRouter(tags=['audit'])
 
@@ -226,27 +226,46 @@ def list_audit_logs(node_id: str | None = None, action: str = Query('', max_leng
     projects, visible_nodes = visible_workspace_nodes(db, current, context=context, include_deleted=True)
     nodes = {node.id: node for node in visible_nodes}
     org = current.organization.id
+    action, node_id = action.strip(), node_id.strip() if node_id else None
+    filters = {'node_id': node_id, 'action': action}
+    after = decode_page_cursor(cursor, organization_id=org, endpoint='audit', filters=filters)
+    # 授權與篩選放進 SQL：公司稽核量變大時每頁只讀 limit+1 筆，不再整批載入後在記憶體分頁。
+    scope = AuditLog.node_id.in_(list(nodes))
+    if current.user.role == 'admin':
+        scope = or_(AuditLog.node_id.is_(None), scope)
+    query = select(AuditLog).where(AuditLog.organization_id == org, scope)
+    if node_id is not None:
+        query = query.where(AuditLog.node_id == node_id)
+    if action:
+        query = query.where(AuditLog.action == action)
+    # 游標鍵沿用原本 Python 的字串排序；PostgreSQL 的語系排序可能和 Python 不同，所以 id 用位元組序比較。
+    ident = AuditLog.id.collate('C') if db.get_bind().dialect.name == 'postgresql' else AuditLog.id
+    if after is not None:
+        stamp = datetime.fromisoformat(after[0])
+        # 游標的種類欄可能是 report／gate（排在 audit 之後），這時同時間同 id 的那筆仍在游標之前。
+        tie = ident <= after[1] if after[2] != 'audit' else ident < after[1]
+        query = query.where(or_(AuditLog.created_at < stamp, and_(AuditLog.created_at == stamp, tie)))
+    rows = db.scalars(query.order_by(AuditLog.created_at.desc(), ident.desc()).limit(limit + 1)).all()
+    page = rows[:limit]
+    page_node_ids = {log.node_id for log in page if log.node_id is not None}
     references = {'nodes': nodes}
     for key, model in [('reports', TaskReport), ('notes', TaskNote), ('attachments', Attachment), ('gates', Gate)]:
-        references[key] = {row.id: row for row in db.scalars(select(model).where(model.organization_id == org, model.node_id.in_(nodes)))}
+        references[key] = {row.id: row for row in db.scalars(select(model).where(model.organization_id == org, model.node_id.in_(page_node_ids)))}
     references['workflows'] = {row.id: row for row in db.scalars(select(Workflow).where(Workflow.organization_id == org))}
-    action, node_id = action.strip(), node_id.strip() if node_id else None
-    entries = []
-    for log in db.scalars(select(AuditLog).where(AuditLog.organization_id == org)):
+    items = []
+    for log in page:
         node = nodes.get(log.node_id)
-        if (log.node_id is None and current.user.role != 'admin') or (log.node_id is not None and node is None):
-            continue
-        if (node_id is not None and log.node_id != node_id) or (action and log.action != action):
-            continue
         actor = context.users.get(log.actor_user_id)
-        item = {'id': log.id, 'organization_key': current.organization.key, 'action': log.action,
+        items.append({'id': log.id, 'organization_key': current.organization.key, 'action': log.action,
                 'summary': ('自動順延' if log.payload['schedule'].get('cascade') else '調整時程') if log.action == 'node.update' and isinstance(log.payload, dict) and isinstance(log.payload.get('schedule'), dict) else SUMMARIES.get(log.action, '其他業務事件'), 'node_id': log.node_id,
                 'node_title': node.title if node else None, 'project_id': node.project_id if node else None,
                 'node_deleted': node is not None and node.deleted_at is not None,
                 'project_title': projects[node.project_id].title if node else None,
                 'actor_user_id': actor.id if actor else None, 'actor_display_name': actor.display_name if actor else None,
                 'payload': project_payload(log.action, log.payload, node, context, projects, references),
-                'created_at': log.created_at.isoformat()}
-        entries.append(((page_timestamp(log.created_at), log.id, 'audit'), item))
-    return authorized_page(entries, organization_id=org, endpoint='audit', filters={'node_id': node_id, 'action': action},
-                           cursor=cursor, limit=limit, descending=True)
+                'created_at': log.created_at.isoformat()})
+    next_cursor = None
+    if len(rows) > limit:
+        next_cursor = encode_page_cursor([page_timestamp(page[-1].created_at), page[-1].id, 'audit'],
+                                         organization_id=org, endpoint='audit', filters=filters)
+    return {'items': items, 'next_cursor': next_cursor}

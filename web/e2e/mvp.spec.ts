@@ -83,9 +83,9 @@ for (const width of [1280, 375]) {
         .toEqual(seedNodes.filter(n => n.owner_user_id === memberId).map(n => n.id).sort());
       await openSeed(ming);
       // A member without the parent phase sees the owned task promoted onto the project board, and no phase strip.
-      await expect(ming.getByLabel('看板')).not.toContainText(hidden.title);
+      await expect(ming.getByLabel('看板', { exact: true })).not.toContainText(hidden.title);
       await expect(ming.getByLabel('開發階段與閘門')).toHaveCount(0);
-      await ming.getByLabel('看板').getByRole('button', { name: own.title, exact: true }).click();
+      await ming.getByLabel('看板', { exact: true }).getByRole('button', { name: own.title, exact: true }).click();
       await expect(ming.getByLabel('節點路徑')).toHaveText(`成貓主食罐正式版 / ${own.title}`);
       await ming.getByRole('combobox', { name: `${own.title}狀態` }).selectOption('todo');
       await expect(ming.getByLabel('節點詳情').getByRole('combobox', { name: `${own.title}狀態` })).toHaveValue('todo');
@@ -137,7 +137,7 @@ for (const width of [1280, 375]) {
       const readonly = await role('lin');
       await (await openProjects(readonly)).getByRole('button', { name: title, exact: true }).click();await closeProjectDrawer(readonly);
       await expect(readonly.getByRole('heading', { name: title, exact: true })).toBeVisible();
-      await expect(readonly.getByLabel('看板').getByRole('combobox')).toHaveCount(0);
+      await expect(readonly.getByLabel('看板', { exact: true }).getByRole('combobox')).toHaveCount(0);
       await expect(readonly.getByRole('button', { name: '建立新專案' })).toHaveCount(0);
       await expect(readonly.getByRole('button', { name: '核准閘門' })).toHaveCount(0);
       expect((await readonly.request.post('/api/projects', { data: { title: '唯讀' } })).status()).toBe(403);

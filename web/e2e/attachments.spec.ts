@@ -32,7 +32,7 @@ for (const width of [1280, 375]) {
       await expect(page.getByLabel('可見任務完成率',{exact:true})).toBeVisible();
       if(width===375)await page.getByRole('button',{name:'切換導覽'}).click();
       await (await openProjects(page)).getByRole('button',{name:title,exact:true}).click();await closeProjectDrawer(page);
-      await page.getByLabel('看板').getByRole('button',{name:'附件與協作任務',exact:true}).click();
+      await page.getByLabel('看板',{exact:true}).getByRole('button',{name:'附件與協作任務',exact:true}).click();
       await expect(page.getByRole('tab',{name:'紀錄',exact:true})).toHaveAttribute('aria-selected','true');
       await page.getByRole('tab',{name:'成員與權限',exact:true}).click();
       await page.getByRole('button',{name:'協作設定',exact:true}).click();await page.getByRole('checkbox',{name:member.user.display_name,exact:true}).check();await page.getByRole('button',{name:'儲存協作',exact:true}).click();

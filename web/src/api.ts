@@ -97,9 +97,46 @@ export const KNOWN_CONFLICTS = new Set([
   '庫存不足或超出可保存範圍',
 ]);
 
+export const REQUEST_TIMEOUT_MS = 30_000;
+const TIMEOUT_TEXT = '伺服器回應逾時，請稍後再試';
+/** A stalled backend must not hold UI locks forever; status 0 keeps callers on their "result unknown, no resend" path. */
+export class ApiTimeoutError extends ApiError {
+  constructor() {
+    super(0, TIMEOUT_TEXT);
+  }
+}
+// 呼叫端的 signal 不能被逾時中止，否則呼叫端會把逾時當成「已被取代」而不釋放鎖。
+function withTimeout(signal: AbortSignal | null | undefined, ms: number) {
+  const controller = new AbortController();
+  let expired = false;
+  const timer = setTimeout(() => { expired = true; controller.abort(); }, ms);
+  const forward = () => controller.abort(signal?.reason);
+  if (signal?.aborted) forward();
+  else signal?.addEventListener('abort', forward, { once: true });
+  return {
+    signal: controller.signal,
+    timedOut: () => expired && !signal?.aborted,
+    done: () => { clearTimeout(timer); signal?.removeEventListener('abort', forward); },
+  };
+}
+
 export async function requestJson<T>(
   path: string,
-  init: RequestInit = {},
+  init: RequestInit & { timeoutMs?: number } = {},
+): Promise<T> {
+  const { timeoutMs = REQUEST_TIMEOUT_MS, ...options } = init;
+  const deadline = withTimeout(options.signal, timeoutMs);
+  try {
+    return await sendJson<T>(path, options, deadline);
+  } finally {
+    deadline.done();
+  }
+}
+
+async function sendJson<T>(
+  path: string,
+  init: RequestInit,
+  deadline: ReturnType<typeof withTimeout>,
 ): Promise<T> {
   const headers = new Headers(init.headers);
   if (!headers.has('Content-Type'))
@@ -108,10 +145,12 @@ export async function requestJson<T>(
   try {
     response = await fetch(`/api${path}`, {
       ...init,
+      signal: deadline.signal,
       credentials: 'include',
       headers,
     });
   } catch (error) {
+    if (deadline.timedOut()) throw new ApiTimeoutError();
     if (init.signal?.aborted) throw error;
     throw new ApiError(0, '無法連線，請稍後再試');
   }
@@ -185,7 +224,9 @@ export async function requestJson<T>(
   if (response.status === 204) return undefined as T;
   try {
     return (await response.json()) as T;
-  } catch {
+  } catch (error) {
+    if (deadline.timedOut()) throw new ApiTimeoutError();
+    if (init.signal?.aborted) throw error;
     throw new ApiError(response.status, '無法讀取資料，請稍後再試');
   }
 }
@@ -366,6 +407,8 @@ export const api = {
         body: file,
         headers: { 'Content-Type': 'application/octet-stream' },
         signal,
+        // 10 MB 檔案在慢速區網上傳需要較長時間。
+        timeoutMs: 180_000,
       },
     ),
   removeAttachment: (id: string, signal?: AbortSignal) =>
@@ -374,22 +417,30 @@ export const api = {
       signal,
     }),
   download: async (id: string, signal?: AbortSignal) => {
-    const response = await fetch(`/api/attachments/${id}/download`, {
-      credentials: 'include',
-      signal,
-    });
-    if (!response.ok)
-      throw new ApiError(
-        response.status,
-        response.status === 401
-          ? '登入已失效，請重新登入'
-          : response.status === 404
-            ? '找不到附件'
-            : response.status === 403
-              ? '沒有操作權限'
-              : '附件下載失敗，請稍後重試',
-      );
-    return response.blob();
+    const deadline = withTimeout(signal, 120_000);
+    try {
+      const response = await fetch(`/api/attachments/${id}/download`, {
+        credentials: 'include',
+        signal: deadline.signal,
+      });
+      if (!response.ok)
+        throw new ApiError(
+          response.status,
+          response.status === 401
+            ? '登入已失效，請重新登入'
+            : response.status === 404
+              ? '找不到附件'
+              : response.status === 403
+                ? '沒有操作權限'
+                : '附件下載失敗，請稍後重試',
+        );
+      return await response.blob();
+    } catch (error) {
+      if (deadline.timedOut()) throw new ApiTimeoutError();
+      throw error;
+    } finally {
+      deadline.done();
+    }
   },
   workflowCatalog: (signal?: AbortSignal) => requestJson<{items: CatalogEntry[]; can_import: boolean}>('/workflow-catalog', {signal}),
   switchCompany: (organization_key: string, signal?: AbortSignal) => requestJson<SessionInfo>('/auth/showcase/switch', {method: 'POST', body: JSON.stringify({organization_key}), signal}),
@@ -506,7 +557,9 @@ export function useRequestScope() {
 }
 export type RecordReload = (signal: AbortSignal) => Promise<void>;
 export function recordError(error: unknown) {
-  return error instanceof ApiError
+  return error instanceof ApiTimeoutError
+    ? '伺服器回應逾時，請重新整理確認結果；不會自動重送'
+    : error instanceof ApiError
     ? error.status === 0
       ? '連線中斷，請重新整理確認結果；不會自動重送'
       : error.message
