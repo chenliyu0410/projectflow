@@ -10,73 +10,126 @@ const retrieved: AIResult = { kind: 'retrieval', engine: 'retrieval', answer: '�
 beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(status); vi.mocked(ai.ask).mockResolvedValue(retrieved); vi.mocked(ai.document).mockResolvedValue({ title: '交付規範', text: '原文截圖4張' }); vi.mocked(ai.config).mockResolvedValue({ enabled: false, base_url: '', model: '' }); });
 
 const gateway = { policy: 'local_only' as const, cloud_enabled: false as const, function: 'rag', classification: 'confidential' as const, classification_reason: 'source_level', route: 'none' as const, reason: 'model_disabled', outcome: 'not_sent' as const, source_count: 1, model: '' };
+const FOOD = '毛研食品';
+const ready = () => screen.findByText(/1 個專案／2 份可見文件/);
+const category = (name: string) => fireEvent.click(screen.getByRole('button', { name, pressed: false }));
+const advanced = () => { const gear = screen.getByRole('button', { name: '進階設定' }); if (gear.getAttribute('aria-expanded') !== 'true') fireEvent.click(gear); };
+
+it('shows only the conversation, category buttons and fixed shortcut questions', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  // No setup menus: the category and the shortcut question decide the data.
+  expect(screen.queryAllByRole('combobox')).toHaveLength(0);
+  expect(screen.queryByLabelText('包含歷史版本')).toBeNull();
+  expect(screen.getByRole('button', { name: '文件問答', pressed: true })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '資料分析', pressed: false })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '新人報到', pressed: false })).toBeInTheDocument();
+  // Advanced details stay folded behind the gear until asked for.
+  expect(screen.getByRole('button', { name: '進階設定' })).toHaveAttribute('aria-expanded', 'false');
+  expect(screen.getByText('本地模型連線設定')).not.toBeVisible();
+  const shortcuts = screen.getByRole('group', { name: '副手快捷動作' });
+  expect(shortcuts).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
+  await screen.findByText('檢索原文');
+  expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ question: '現行交付需要幾張截圖？', mode: 'rag', project_id: null }), expect.any(AbortSignal));
+  expect(screen.getByText('現行交付需要幾張截圖？', { selector: '.copilot-question' })).toBeInTheDocument();
+  expect(screen.getByText('檢索原文', { selector: '.copilot-answer' })).toBeInTheDocument();
+  expect(screen.getByText('來源 1 份')).toBeInTheDocument();
+  // The shortcuts stay one click away after a reply.
+  expect(screen.getByRole('group', { name: '副手快捷動作' })).toBeVisible();
+  advanced();
+  expect(screen.getByText('本地模型連線設定')).toBeVisible();
+  expect(screen.getByText('模型未啟用・檢索與資料查詢可用')).toBeVisible();
+});
+
+it('offers only the categories the company has data and permission for', async () => {
+  const view = render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName="雲序軟體" />);
+  await ready();
+  expect(screen.getByRole('button', { name: '文件問答' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '資料分析' })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: '新人報到' })).toBeNull();
+  expect(screen.queryByRole('button', { name: '正式文件' })).toBeNull();
+  view.unmount();
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  expect(screen.getByRole('button', { name: '正式文件' })).toBeInTheDocument();
+});
+
+it('switches the shortcut questions and dataset with the category', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  category('資料分析');
+  expect(screen.getByRole('button', { name: '供應商已收貨延遲率' })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: '現行交付需要幾張截圖？' })).toBeNull();
+  expect(screen.getByLabelText('詢問 AI')).toHaveAttribute('placeholder', '例如：各部門逾期未完成數');
+  category('新人報到');
+  await waitFor(() => expect(ai.status).toHaveBeenLastCalledWith(expect.any(AbortSignal), 'starter-v1'));
+  expect(screen.getByRole('button', { name: '列出全部未完成工單' })).toBeInTheDocument();
+});
 
 it('updates isolated formal index and defaults to current sources', async () => {
   const index = { last_update: { mode: 'incremental' as const, processed: 1, reused: 2, removed: 0 }, counts: { indexed: 1, pending: 1, skipped: 1 }, updated_at: '2026-10-20T12:00:00Z', can_refresh: true, items: [{ source_id: 'x', title: '圖片.png', source_type: 'attachment', version: 1, state: 'skipped', reason: '不支援此格式' }] };
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
   vi.mocked(ai.refreshIndex).mockResolvedValue(index);
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, index, can_sql: false });
-  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
+  category('正式文件');
+  advanced();
   await screen.findByText(/已索引 1／待更新 1／略過 1/);
   expect(screen.getByText('最近一次增量更新：處理 1／沿用 2／移除 0 個來源版本。')).toBeInTheDocument();
-  expect(screen.getByLabelText('包含歷史版本')).not.toBeChecked();
-  expect(screen.getByRole('option', { name: 'Text-to-SQL 資料分析' })).toBeDisabled();
-  expect(screen.queryByText(/虛構延伸案/)).toBeNull();
+  // The SQL category is a role permission, so it stays while browsing a dataset without SQL.
+  expect(screen.getByRole('button', { name: '資料分析' })).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: '更新文件索引' }));
   await waitFor(() => expect(ai.refreshIndex).toHaveBeenCalledOnce());
   await screen.findByRole('button', { name: '更新文件索引' });
   fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '新人報到' } });
   fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
   await screen.findByText('檢索原文');
-  expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ dataset: 'formal-v1', include_history: false }), expect.any(AbortSignal));
+  expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ dataset: 'formal-v1', include_history: false, mode: 'rag', project_id: null }), expect.any(AbortSignal));
   fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
   await screen.findByText('原文截圖4張');
   expect(ai.document).toHaveBeenCalledWith('D1', expect.any(AbortSignal), 'formal-v1', false);
 });
 
-it('opts into formal history for ask, preview and citations and clears on opt-out', async () => {
+it('lets a shortcut ask for history and one project, and opens citations with that history', async () => {
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
   vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, sources: [{ ...retrieved.sources[0], is_current: false, version: 1 }] });
-  vi.mocked(ai.preview).mockResolvedValue({ gateway, content: { question: '原訂', sources: [] } });
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
-  fireEvent.click(screen.getByLabelText('包含歷史版本'));
-  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '原訂報到地點' } });
-  await waitFor(() => expect(screen.getByRole('button', { name: '預覽提供給模型的資料' })).toBeEnabled());
-  fireEvent.click(screen.getByRole('button', { name: '預覽提供給模型的資料' }));
-  await screen.findByLabelText('模型資料預覽');
-  expect(ai.preview).toHaveBeenLastCalledWith(expect.objectContaining({ dataset: 'formal-v1', include_history: true }), expect.any(AbortSignal));
-  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, can_sql: false, projects: [{ project_id: 'X1', title: '增量索引展示（虛構）' }, { project_id: 'OCR1', title: 'OCR 示範（虛構）' }] });
+  category('正式文件');
+  await waitFor(() => expect(ai.status).toHaveBeenLastCalledWith(expect.any(AbortSignal), 'formal-v1'));
+  await waitFor(() => expect(screen.getByRole('button', { name: '新人報到地點原本和現在分別在哪一樓？' })).toBeEnabled());
+  fireEvent.click(screen.getByRole('button', { name: '新人報到地點原本和現在分別在哪一樓？' }));
   await screen.findByText('D1 · 交付規範（歷史版本）');
+  expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ dataset: 'formal-v1', include_history: true, project_id: 'X1' }), expect.any(AbortSignal));
   fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
   await screen.findByLabelText('引用原文');
   expect(ai.document).toHaveBeenLastCalledWith('D1', expect.any(AbortSignal), 'formal-v1', true);
-  fireEvent.click(screen.getByLabelText('包含歷史版本'));
-  expect(screen.queryByLabelText('引用原文')).toBeNull();
-  expect(screen.queryByText('檢索原文')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: '新人報到要先去哪裡換證？' }));
+  await waitFor(() => expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ include_history: false, project_id: 'OCR1' }), expect.any(AbortSignal)));
 });
 
 it('polls formal status while open and cancels polling when closed', async () => {
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
-  const view = render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
+  const view = render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  category('正式文件');
   await waitFor(() => expect(ai.status).toHaveBeenLastCalledWith(expect.any(AbortSignal), 'formal-v1'));
   vi.useFakeTimers();
   try {
     // Re-enter the effect with fake timers.
-    view.rerender(<CopilotPanel scope="總覽" open={false} close={vi.fn()} />);
-    view.rerender(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+    view.rerender(<CopilotPanel scope="總覽" open={false} close={vi.fn()} companyName={FOOD} />);
+    view.rerender(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
     await act(async () => {});
     const before = vi.mocked(ai.status).mock.calls.length;
     await act(async () => { await vi.advanceTimersByTimeAsync(10000); });
     expect(ai.status).toHaveBeenCalledTimes(before + 1);
     expect(ai.ask).not.toHaveBeenCalled();
     const signal = vi.mocked(ai.status).mock.calls.at(-1)![0]!;
-    view.rerender(<CopilotPanel scope="總覽" open={false} close={vi.fn()} />);
+    view.rerender(<CopilotPanel scope="總覽" open={false} close={vi.fn()} companyName={FOOD} />);
     expect(signal.aborted).toBe(true);
     await act(async () => {});
     const closed = vi.mocked(ai.status).mock.calls.length;
@@ -90,12 +143,12 @@ it('polls formal status while open and cancels polling when closed', async () =>
 
 it('clears a status load error once a later formal poll succeeds', async () => {
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
-  const view = render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
+  const view = render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
   vi.mocked(ai.status).mockRejectedValueOnce(new Error('offline'));
   vi.useFakeTimers();
   try {
-    fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
+    category('正式文件');
     await act(async () => {});
     expect(screen.getByRole('alert')).toHaveTextContent('無法載入 AI 資料');
     await act(async () => { await vi.advanceTimersByTimeAsync(10000); });
@@ -109,7 +162,7 @@ it('clears a status load error once a later formal poll succeeds', async () => {
 it('says how many retrieved sections were not sent because of the model length limit', async () => {
   vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'rag', engine: 'model', answer: '五樓', citations: ['D1'], retrieval: 'hybrid', gateway: { ...gateway, route: 'local', reason: 'local_only', outcome: 'completed', source_count: 6, sent_count: 4 } });
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
+  await ready();
   fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '報到地點' } });
   fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
   await screen.findByText('五樓');
@@ -119,9 +172,10 @@ it('says how many retrieved sections were not sent because of the model length l
 
 it('keeps formal refresh controls out of member view', async () => {
   vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, index: { counts: { indexed: 0, pending: 1, skipped: 0 }, items: [], updated_at: null, can_refresh: false } });
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'formal-v1' } });
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  category('正式文件');
+  advanced();
   await screen.findByText(/已索引 0／待更新 1／略過 0/);
   expect(screen.queryByRole('button', { name: '更新文件索引' })).toBeNull();
 });
@@ -130,8 +184,9 @@ it('previews scoped data without asking and clears the preview when input change
   vi.mocked(ai.preview).mockResolvedValue({ gateway, content: { question: '預算', sources: [{ document_id: 'PDF-006', text: '<script>機密預算</script>' }] } });
   vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, gateway });
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
+  await ready();
   fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '預算' } });
+  advanced();
   fireEvent.click(screen.getByRole('button', { name: '預覽提供給模型的資料' }));
   const preview = await screen.findByLabelText('模型資料預覽');
   expect(preview).toHaveTextContent('機密');
@@ -147,30 +202,28 @@ it('previews scoped data without asking and clears the preview when input change
   expect(screen.getByText(/資料等級：機密/)).toBeInTheDocument();
 });
 
-it('aborts a pending preview and ignores its late result after scope changes', async () => {
+it('aborts a pending preview and ignores its late result after the category changes', async () => {
   let resolve!: (value: Awaited<ReturnType<typeof ai.preview>>) => void;
   vi.mocked(ai.preview).mockImplementation(() => new Promise(r => { resolve = r; }));
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
   fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '預算' } });
+  advanced();
   fireEvent.click(screen.getByRole('button', { name: '預覽提供給模型的資料' }));
   const signal = vi.mocked(ai.preview).mock.calls[0][1]!;
-  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'starter-v1' } });
+  category('新人報到');
   expect(signal.aborted).toBe(true);
   await act(async () => resolve({ gateway, content: { question: '預算', sources: [] } }));
   expect(screen.queryByLabelText('模型資料預覽')).toBeNull();
 });
 
-it('selects the starter corpus, requests history explicitly and opens its own citations', async () => {
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
+it('asks the starter corpus with history from its shortcut and opens its own citations', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
   vi.mocked(ai.status).mockResolvedValue({ ...status, as_of: '2026-10-20', can_sql: false, projects: [], counts: { projects: 4, documents: 23 } });
-  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'starter-v1' } });
+  category('新人報到');
   await screen.findByText(/基準日 2026-10-20/);
-  expect(screen.getByRole('option', { name: 'Text-to-SQL 資料分析' })).toBeDisabled();
-  fireEvent.click(screen.getByLabelText('包含歷史版本'));
-  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '課程原本哪天？' } });
-  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  fireEvent.click(screen.getByRole('button', { name: '新人課程原本哪天？為什麼改期？' }));
   await screen.findByText('檢索原文');
   expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ dataset: 'starter-v1', include_history: true }), expect.any(AbortSignal));
   fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
@@ -178,40 +231,37 @@ it('selects the starter corpus, requests history explicitly and opens its own ci
   expect(ai.document).toHaveBeenLastCalledWith('D1', expect.any(AbortSignal), 'starter-v1', true);
 });
 
-it('cancels old queries and clears their replies when the dataset changes', async () => {
+it('cancels old queries and clears their replies when the category changes', async () => {
   let resolve!: (value: AIResult) => void;
   vi.mocked(ai.ask).mockImplementation(() => new Promise(r => { resolve = r; }));
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
   fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
   const signal = vi.mocked(ai.ask).mock.calls[0][1]!;
-  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'starter-v1' } });
+  category('新人報到');
   expect(signal.aborted).toBe(true);
   await act(async () => resolve(retrieved));
   expect(screen.queryByText('檢索原文')).toBeNull();
 });
 
-it('uses explicit complete work-order mode without silently accepting extra text filters', async () => {
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  fireEvent.change(screen.getByLabelText('AI資料集'), { target: { value: 'starter-v1' } });
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  fireEvent.change(screen.getByLabelText('查詢方式'), { target: { value: 'work_orders' } });
-  expect(screen.getByLabelText('詢問 AI')).toBeDisabled();
-  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+it('lists complete work orders from its shortcut', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  category('新人報到');
+  await waitFor(() => expect(screen.getByRole('button', { name: '列出全部未完成工單' })).toBeEnabled());
+  fireEvent.click(screen.getByRole('button', { name: '列出全部未完成工單' }));
   await screen.findByText('檢索原文');
   expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({
     dataset: 'starter-v1', mode: 'work_orders', question: '列出全部未完成工單',
   }), expect.any(AbortSignal));
 });
 
-it('queries actual API, passes selected project and opens escaped original citation', async () => {
+it('queries the actual API across all visible projects and opens an escaped original citation', async () => {
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  fireEvent.change(screen.getByLabelText('AI展示專案'), { target: { value: 'P1' } });
+  await ready();
   fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
   await screen.findByText('檢索原文');
-  expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ mode: 'rag', project_id: 'P1' }), expect.any(AbortSignal));
+  expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ mode: 'rag', project_id: null }), expect.any(AbortSignal));
   expect(screen.getByText('<script>文字</script> 截圖4張')).toBeInTheDocument();
   expect(document.querySelector('script')).toBeNull();
   fireEvent.click(screen.getByText('D1 · 交付規範'));
@@ -219,38 +269,23 @@ it('queries actual API, passes selected project and opens escaped original citat
   expect(await screen.findByLabelText('引用原文')).toHaveTextContent('原文截圖4張');
 });
 
-it('renders SQL results and executed query with explicit analysis selection', async () => {
+it('renders SQL results and the executed query from an analysis shortcut', async () => {
   vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'sql', sources: [], analysis: { query_id: 'q02', label: '逾期', sql: 'SELECT COUNT(*) FROM tasks', parameters: { company_id: 'food' }, columns: ['department', 'overdue_count'], rows: [{ department: '研發', overdue_count: 3 }], truncated: false } });
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  fireEvent.change(screen.getByLabelText('查詢方式'), { target: { value: 'sql' } });
-  fireEvent.change(screen.getByLabelText('分析種類'), { target: { value: 'q02' } });
-  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  await ready();
+  category('資料分析');
+  fireEvent.click(screen.getByRole('button', { name: '各部門逾期未完成數' }));
   expect(await screen.findByLabelText('查詢結果')).toHaveTextContent('研發');
   expect(screen.getByText('SELECT COUNT(*) FROM tasks')).toBeInTheDocument();
-  expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ query_id: 'q02', mode: 'sql' }), expect.any(AbortSignal));
-});
-
-it('aborts on scope change and ignores stale results', async () => {
-  let resolve!: (r: AIResult) => void;
-  vi.mocked(ai.ask).mockImplementation(() => new Promise(r => { resolve = r; }));
-  const view = render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
-  const signal = vi.mocked(ai.ask).mock.calls[0][1]!;
-  fireEvent.change(screen.getByLabelText('AI展示專案'), { target: { value: 'P1' } });
-  expect(signal.aborted).toBe(true);
-  await act(async () => resolve(retrieved));
-  expect(screen.queryByText('檢索原文')).toBeNull();
-  view.unmount();
+  expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ question: '各部門逾期未完成數', mode: 'sql' }), expect.any(AbortSignal));
 });
 
 it('shows query errors and keeps unsupported members out of SQL and model settings', async () => {
   vi.mocked(ai.status).mockResolvedValue({ ...status, can_configure: false, can_sql: false });
   vi.mocked(ai.ask).mockRejectedValue(new Error('登入已失效'));
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  expect(screen.getByRole('option', { name: 'Text-to-SQL 資料分析' })).toBeDisabled();
+  await ready();
+  expect(screen.queryByRole('button', { name: '資料分析' })).toBeNull();
   expect(screen.queryByText('本地模型連線設定')).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
   expect(await screen.findByRole('alert')).toHaveTextContent('登入已失效');
@@ -260,7 +295,9 @@ it('lets admin test and save local model settings', async () => {
   vi.mocked(ai.test).mockResolvedValue({ ok: true, models: ['test:1'], message: '連線成功' });
   vi.mocked(ai.save).mockResolvedValue({ ok: true });
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  fireEvent.click(await screen.findByText('本地模型連線設定'));
+  await ready();
+  advanced();
+  fireEvent.click(screen.getByText('本地模型連線設定'));
   await waitFor(() => expect(screen.getByLabelText('Ollama 位址')).not.toBeDisabled());
   fireEvent.change(screen.getByLabelText('Ollama 位址'), { target: { value: 'http://192.168.1.20:11434' } });
   fireEvent.change(screen.getByLabelText('聊天模型名稱'), { target: { value: 'test:1' } });
@@ -272,83 +309,23 @@ it('lets admin test and save local model settings', async () => {
   expect(ai.save).toHaveBeenCalledWith({ enabled: true, base_url: 'http://192.168.1.20:11434', model: 'test:1' }, expect.any(AbortSignal));
 });
 
-it('gives the conversation the space: settings fold into one line once a reply arrives', async () => {
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  const toggle = screen.getByRole('button', { name: /查詢設定/ });
-  // Before the first question the settings are open, so the user can choose the data first.
-  expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  expect(screen.getByLabelText('AI資料集')).toBeVisible();
-  expect(toggle).toHaveTextContent('原有展示資料・文件問答・全部專案');
-  fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
-  await screen.findByText('檢索原文');
-  // After the reply the settings fold away; question and answer are separate blocks.
-  expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  expect(screen.getByLabelText('AI資料集')).not.toBeVisible();
-  expect(screen.getByText('現行交付需要幾張截圖？', { selector: '.copilot-question' })).toBeInTheDocument();
-  expect(screen.getByText('檢索原文', { selector: '.copilot-answer' })).toBeInTheDocument();
-  expect(screen.getByText('來源 1 份')).toBeInTheDocument();
-  // Suggested questions stay one click away, and the settings reopen on demand.
-  expect(screen.getByRole('group', { name: '副手快捷動作' })).toBeVisible();
-  fireEvent.click(toggle);
-  expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  expect(screen.getByLabelText('AI資料集')).toBeVisible();
-});
-
-it('sets up a demo scenario: data, mode and project, then lists its questions', async () => {
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName="毛研食品" />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, can_sql: false, projects: [{ project_id: 'X1', title: '增量索引展示（虛構）' }, { project_id: 'OCR1', title: 'OCR 示範（虛構）' }] });
-  fireEvent.change(screen.getByLabelText('示範情境'), { target: { value: 'ocr' } });
-  // The project is picked by title once the formal dataset has loaded.
-  await waitFor(() => expect(screen.getByLabelText('查詢專案')).toHaveValue('OCR1'));
-  expect(screen.getByLabelText('AI資料集')).toHaveValue('formal-v1');
-  fireEvent.click(screen.getByRole('button', { name: '新人報到要先去哪裡換證？' }));
-  await waitFor(() => expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ dataset: 'formal-v1', project_id: 'OCR1', mode: 'rag' }), expect.any(AbortSignal)));
-
-  vi.mocked(ai.status).mockResolvedValue(status);
-  fireEvent.change(screen.getByLabelText('示範情境'), { target: { value: 'sql' } });
-  await waitFor(() => expect(screen.getByLabelText('查詢方式')).toHaveValue('sql'));
-  expect(screen.getByLabelText('AI資料集')).toHaveValue('dataset-v1');
-  expect(screen.getByRole('button', { name: '供應商已收貨延遲率' })).toBeInTheDocument();
-
-  // Steps that need another account or page are shown as instructions, not automated.
-  fireEvent.change(screen.getByLabelText('示範情境'), { target: { value: 'guide-permission' } });
-  expect(screen.getByLabelText('示範步驟')).toHaveTextContent('demo-ming');
-
-  // Changing a setting by hand leaves the scenario.
-  fireEvent.change(screen.getByLabelText('示範情境'), { target: { value: 'sql' } });
-  await waitFor(() => expect(screen.getByLabelText('查詢方式')).toHaveValue('sql'));
-  fireEvent.change(screen.getByLabelText('查詢方式'), { target: { value: 'rag' } });
-  expect(screen.getByLabelText('示範情境')).toHaveValue('');
-});
-
-it('only offers scenarios whose data the company has', async () => {
-  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName="雲序軟體" />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  const options = Array.from((screen.getByLabelText('示範情境') as HTMLSelectElement).options).map(o => o.textContent);
-  expect(options).toContain('資料分析（Text-to-SQL）');
-  expect(options).not.toContain('新人報到（文件問答）');
-  expect(options).not.toContain('圖片與掃描文字辨識（OCR）');
-});
-
 it('makes model-selected SQL scope reviewable before execution', async () => {
   vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'query_suggestion', analysis: null, sources: [], answer: '尚未執行', suggestion: { query_id: 'q02', label: '各部門逾期未完成數' } });
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
-  fireEvent.change(screen.getByLabelText('查詢方式'), { target: { value: 'sql' } });
+  await ready();
+  category('資料分析');
   fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '想知道工作情況' } });
   fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
   await screen.findByText('尚未執行');
   expect(screen.queryByLabelText('查詢結果')).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: '確認執行：各部門逾期未完成數' }));
-  await waitFor(() => expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ query_id: 'q02' }), expect.any(AbortSignal)));
+  await waitFor(() => expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ query_id: 'q02', mode: 'sql' }), expect.any(AbortSignal)));
 });
 
 it('cancels a pending citation request when a new question starts', async () => {
   vi.mocked(ai.document).mockImplementation(() => new Promise(() => undefined));
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
+  await ready();
   fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
   await screen.findByText('檢索原文');
   fireEvent.click(screen.getByText('D1 · 交付規範'));
@@ -363,7 +340,7 @@ it('expires the session when a question or citation returns 401', async () => {
   const expired = vi.fn();
   vi.mocked(ai.ask).mockRejectedValueOnce(new ApiError(401, '登入已失效，請重新登入'));
   render(<CopilotPanel scope="總覽" open close={vi.fn()} expired={expired} />);
-  await screen.findByText(/1 個專案／2 份可見文件/);
+  await ready();
   fireEvent.click(screen.getByRole('button', { name: '現行交付需要幾張截圖？' }));
   await waitFor(() => expect(expired).toHaveBeenCalledTimes(1));
   vi.mocked(ai.document).mockRejectedValueOnce(new ApiError(401, '登入已失效，請重新登入'));

@@ -24,6 +24,7 @@ import NodeEditor from './components/NodeEditor';
 import WorkspaceOverview from './components/WorkspaceOverview';
 import MyTasks from './components/MyTasks';
 import NavIcon from './components/NavIcons';
+import LoginScreen, { departureMs } from './components/LoginScreen';
 import { canLeaveAll } from './leave-guard';
 import type { LeaveGuards } from './leave-guard';
 
@@ -54,6 +55,7 @@ export default function App() {
   const [templateDialog,setTemplateDialog] = useState<'save'|'apply'|null>(null);
   const [notice, setNotice] = useState<{ text: string; undo: boolean; open?: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [mutating, setMutating] = useState(false);
   const mutationId = useRef<number | null>(null);
   const [creationOpen, setCreationOpen] = useState(false);
@@ -188,10 +190,13 @@ export default function App() {
     try {
       const value = await api.login(payload, request.controller.signal);
       authenticated = true;
+      // Let the water part before the workspace replaces the login screen.
+      const wait = departureMs();
+      if (wait) { setLeaving(true); await new Promise(resolve => setTimeout(resolve, wait)); }
       await loadProjects(request, value);
     }
     catch (error) { failed(error, request, !authenticated); }
-    finally { if (current(request)) setBusy(false); }
+    finally { setLeaving(false); if (current(request)) setBusy(false); }
   }
   async function switchCompany(target = switchTarget) {
     if (!target || busy || !session?.showcase) return;
@@ -472,16 +477,11 @@ export default function App() {
   }
 
   return <>
-    {!session && <header className="login-brand"><img src="/mark.svg" width="32" height="32" alt="" /><strong className="brand-name">專流 ProjectFlow</strong></header>}
-    <main className={session ? 'app-shell' : 'login-shell'}>
-      {message && !session && <p role="alert">{message}</p>}
-      {state === 'login' ? <form onSubmit={event => void submit(event)}>
-        <h1>登入專流</h1>
-        <label>公司<input value={organization} onChange={event => setOrganization(event.target.value)} required disabled={busy} autoComplete="organization" /></label>
-        <label>帳號<input value={username} onChange={event => setUsername(event.target.value)} required disabled={busy} autoComplete="username" /></label>
-        <label>密碼<input type="password" value={password} onChange={event => setPassword(event.target.value)} required disabled={busy} autoComplete="current-password" /></label>
-        <button type="submit" disabled={busy}>{busy ? '登入中' : '登入'}</button>
-      </form> : state === 'password' && session ? <ChangePassword forced done={() => void restore()} expired={clearSession} logout={() => void logout()} /> : <>
+    {!session && state !== 'login' && <header className="login-brand"><img src="/mark.svg" width="32" height="32" alt="" /><strong className="brand-name">專流 ProjectFlow</strong></header>}
+    <main className={session ? 'app-shell' : state === 'login' ? undefined : 'login-shell'}>
+      {message && !session && state !== 'login' && <p role="alert">{message}</p>}
+      {state === 'login' ? <LoginScreen organization={organization} username={username} password={password} onOrganization={setOrganization} onUsername={setUsername} onPassword={setPassword}
+        busy={busy} message={session ? '' : message} leaving={leaving} onSubmit={event => void submit(event)} /> : state === 'password' && session ? <ChangePassword forced done={() => void restore()} expired={clearSession} logout={() => void logout()} /> : <>
         {session ? <WorkspaceShell key={session.organization.id} route={route} projects={projects} busy={busy || (state === 'loading' && route.page !== 'project')} navigate={navigate} copilotScope={copilotScope} food={session.organization.key === 'food'} companyName={session.organization.name} accountName={session.user.display_name}
           headerActions={state === 'ready' && route.page === 'project' && project && canAddNode && <Dropdown key={`${project.id}:${selectedNodeId}`} className="project-actions-menu" name="專案操作" closeOnAction label="新增子節點">
               {canAddNode && <button className="primary" disabled={busy || mutating || creationOpen || closedParent} title={selectedNode?.milestone ? '里程碑不能有子任務，請先取消里程碑' : closedParent ? '不能在已完成、待確認或已略過的節點底下新增' : undefined} onClick={() => openNodeEditor('create')}><span aria-hidden="true">＋ </span>新增子節點</button>}

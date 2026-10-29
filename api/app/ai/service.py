@@ -51,11 +51,11 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
                 proposed=prepared.run(); engine='model'
                 if proposed:
                     label=next(q['label'] for q in store.catalog() if q['query_id']==proposed)
-                    return dict(base,kind='query_suggestion',engine=engine,answer=f'模型建議使用「{label}」。尚未執行，請核對是否符合原問題。此分析只使用上方公司／AI專案範圍，基準日固定2026-10-11，不加入原問題中的其他條件。',suggestion={'query_id':proposed,'label':label})
+                    return dict(base,kind='query_suggestion',engine=engine,answer=f'模型建議使用「{label}」。尚未執行，請核對是否符合原問題。此分析只使用目前公司可見的AI專案範圍，基準日固定2026-10-11，不加入原問題中的其他條件。',suggestion={'query_id':proposed,'label':label})
             except Exception:
-                base['warning']='模型無法完成辨識；請從分析選單選擇查詢。'
+                base['warning']='模型無法完成辨識；請點下方快捷題，或換個問法。'
         if not chosen:
-            return dict(base,kind='unsupported',engine=engine,answer='目前支援16種分析，尚無法可靠判斷這個問題。請選擇分析種類，或改問「各部門逾期未完成數」。時間基準固定2026-10-11；其他日期條件尚未支援。')
+            return dict(base,kind='unsupported',engine=engine,answer='目前支援16種分析，尚無法可靠判斷這個問題。請點下方快捷題，或改問「各部門逾期未完成數」。時間基準固定2026-10-11；其他日期條件尚未支援。')
         result=store.execute_query(db,chosen,company,project_id)
         base['analysis']=result
         return dict(base,kind='sql',engine=engine,answer=f'查詢：{result["label"]}。找到{len(result["rows"])}列結果'+('（已截取前200列）。' if result['truncated'] else '。')+'以下為資料庫實際計算；未執行任意模型SQL。')
