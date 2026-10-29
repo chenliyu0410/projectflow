@@ -1,4 +1,4 @@
-"""Local OCR for isolated previews: RapidOCR with the Traditional Chinese recognition model.
+"""Local OCR: RapidOCR on CPU with the Traditional Chinese recognition model; nothing leaves the machine.
 
 The OCR packages are optional (api/requirements-ocr.txt) and are imported only when OCR is enabled.
 """
@@ -13,6 +13,9 @@ KEYS = "chinese_cht_dict.txt"
 MIN_LINE = 0.5
 MIN_AVERAGE = 0.6
 MAX_PIXELS = 40_000_000
+MIN_WIDTH = 1000
+MAX_UPSCALE = 4
+PREPROCESS = True
 HEADER = "（OCR 辨識文字，可能有錯字；請以原檔核對）"
 _engines = {}
 _load_lock = threading.Lock()
@@ -24,8 +27,8 @@ class OCRError(ValueError):
 
 
 def model_dir():
-    if os.environ.get("PF_ACCEPTANCE_MODE") != "true":
-        return None
+    if os.environ.get("PF_AI_OCR") != "true" and os.environ.get("PF_ACCEPTANCE_MODE") != "true":
+        return None  # OCR stays off unless switched on explicitly (any deployment) or in isolated acceptance runs.
     value = os.environ.get("PF_AI_OCR_MODEL_DIR", "").strip()
     if not value:
         return None
@@ -60,9 +63,23 @@ def engine():
         return _engines[str(path)]
 
 
+def preprocess(image):
+    """Grayscale, stretch contrast and upscale small scans so faint or tiny text reaches the model."""
+    from PIL import ImageOps
+    gray = ImageOps.autocontrast(ImageOps.grayscale(image), cutoff=1)
+    if gray.width < MIN_WIDTH:
+        # Capped so a thin strip that passed the pixel check cannot be blown up past it.
+        scale = min(MIN_WIDTH / gray.width, MAX_UPSCALE)
+        size = (round(gray.width * scale), round(gray.height * scale))
+        if size[0] * size[1] <= MAX_PIXELS:
+            gray = gray.resize(size)
+    return gray.convert("RGB")
+
+
 def normalize(text):
-    # The model reads a full-width comma between Chinese characters as a middle dot.
-    return re.sub(r"(?<=[一-鿿])[·•](?=[一-鿿])", "，", text).strip()
+    # The model reads a full-width comma between Chinese characters, and a full stop ending a Chinese line, as a middle dot.
+    text = re.sub(r"(?<=[一-鿿])[·•](?=[一-鿿])", "，", text.strip())
+    return re.sub(r"(?<=[一-鿿])[·•]$", "。", text)
 
 
 def recognize(data):
@@ -77,7 +94,7 @@ def recognize(data):
             if width * height > MAX_PIXELS:
                 raise OCRError("影像超過4000萬像素，請縮小後再上傳")
             buffer = io.BytesIO()
-            image.convert("RGB").save(buffer, "PNG")
+            (preprocess(image) if PREPROCESS else image.convert("RGB")).save(buffer, "PNG")
     except OCRError:
         raise
     except Exception:

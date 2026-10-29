@@ -10,3 +10,5 @@ web/dist/
 web/test-results/
 web/playwright-report/
 deploy/.env
+output/
+deploy/ocr-models/

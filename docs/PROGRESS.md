@@ -13,17 +13,17 @@
 
 | 欄位 | 值 |
 |---|---|
-| 目前工作項目 | **PORTABLE＋AI-DEMO-DATA 🟢 待人類第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR、乾淨展示資料與重建的「原有展示資料」Text-to-SQL，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
+| 目前工作項目 | **OCR-PIPE 🟢**（2026-10-28）：依架構圖做文件解析管線，計畫見[plan](superpowers/plans/2026-10-28-ocr-pipeline.md)，成果見[成果報告](ocr-pipeline-report.md)。逐頁分路（文字層／OCR／Office）、前處理、清理正規化、檔名＋頁碼metadata、1−CER與分路秒數報告；`PF_AI_OCR`開關＋可選OCR Docker映像，斷網Linux容器實測與Windows結果一致。使用者指示（2026-10-28）：正式文件索引改走ingest()（3df25c6，索引版本4，相關測試161 pass）；本機Docker已用OCR映像重啟（PF_AI_OCR=true、模型唯讀掛載、雜湊OK）。正式文件索引仍限SQLite隔離環境（Docker／PostgreSQL不建索引）；使用者選「隔離版預覽」：repo外資料夾 `output/ocr-preview/`（SQLite＋seed、OCR＋正式索引＋自動更新），`deploy/portable/serve.py` 跑在127.0.0.1:15177。2026-10-29實測：上傳「設備借用簽收單-掃描2頁.pdf」索引狀態「OCR辨識，2頁，平均信心0.96」；AI副手選「正式文件與附件」提問，來源2段各標「第1頁／第2頁」與「可能有錯字」、頁首尾已去除、斷行已接回（模型未啟用，只顯示檢索原文）。2026-10-29依要求重置預覽：舊資料夾移至資源回收筒，重建後只放回範例掃描檔。前一項：**PORTABLE＋AI-DEMO-DATA 🟢 待第三層驗證**（2026-10-24）：可攜展示包（Windows x64，內含Python、Ollama、本地模型、OCR、乾淨展示資料與重建的「原有展示資料」Text-to-SQL，只綁127.0.0.1）。前一項ACCOUNTS 🟢、DOC-TEMPLATE 🟢已推送分支。 |
 | 模式 | 展示優先精簡流程（D81／WORKFLOW §14）；使用者試用另簽核。 |
-| 下一個動作 | 待人類：用repo外`output/portable/ProjectFlow-Portable-20261024.zip`在另一台電腦照[檢查表](../deploy/portable/另一台電腦檢查表.md)做第三層驗證；決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依人類指示暫不碰。 |
-| 分支 | `main`。2026-10-27 依人類指示把`feature/rag-starter-import`（58個commit，到`72e0d8d`）`--ff-only`合併進main，並推上origin main，PR #6 隨之合併。 |
+| 下一個動作 | OCR-PIPE待使用者：可選加1～2張真實翻拍樣本、決定是否push `feature/ocr-pipeline`／合併main。PORTABLE待使用者：用repo外`output/portable/ProjectFlow-Portable-20261024.zip`在另一台電腦照[檢查表](../deploy/portable/另一台電腦檢查表.md)做第三層驗證；決定是否push本分支。AI部分：T02仍混淆（再修需第四份凍結題庫），見[交接檔](LOCAL_AI_HANDOFF.md)。遠端分支`codex/rag-quality-handoff`、`feature/review-fixes`（mina201199）依指示暫不碰。 |
+| 分支 | `feature/ocr-pipeline`（自main `4a45d10`分出；2026-10-29合併origin/main `788ceb3`後推上origin，待開PR）。CI本機模擬（乾淨Linux容器、只用git內檔案）：API pytest 848 pass／16 skip、專用PostgreSQL 11階段全過、web Vitest 358 pass＋build exit0。2026-10-27 依指示把`feature/rag-starter-import`（58個commit，到`72e0d8d`）`--ff-only`合併進main，並推上origin main，PR #6 隨之合併。 |
 | 最新程式 commit | ACCOUNTS（本筆）；DOC-TEMPLATE `012ec59`。 |
 | 行號基準 | `dfc0126`；舊明細行號會隨新增程式位移，請以函式名定位。 |
-| 測試基準 | ACCOUNTS：後端全量（不含需本地模型的test_ai_local_model）766 pass、15 skip（需專用PostgreSQL）、1 fail；該fail為`test_child_creation_matrix`，原因是DOC-TEMPLATE新增資料表後舊資料包（revision 0019）匯入找不到新表檔案，已修`demo_pack.import_pack`只匯入資料包列出的表，重跑matrix＋demo_pack 3 pass。帳號相關API 12 pass；前端Vitest全量34檔330 pass（一次偶發1 fail重跑通過）、build exit0；Playwright帳號3＋樣板4＋文件2 pass（1280／375，隔離SQLite升到`20261024_0021`）。既有`health.spec`在SQLite環境3 fail：readiness只認PostgreSQL（環境限制）；另2項卡在「進入階段：小量試作」按鈕停用，為PHASE-CARDS（10/13，只開放進行中階段）後測試未更新的既有問題，與本次無關、未修。AI題庫基準不變。 |
+| 測試基準 | OCR-PIPE（2026-10-28，`feature/ocr-pipeline`）：後端全量（不含test_ai_local_model）873 pass、15 skip（14項需專用PostgreSQL、1項真模型測試路徑寫死repo外output），0 fail；新增`test_ocr_pipeline.py` 18項。一次獨立審查（§14）：唯一阻擋＝`ocr.preprocess`放大無上限（細長圖2×4000→1000×2000000，既有正式索引OCR路徑也受影響），已改為最多4倍且不超過4000萬像素並補測試（RED→GREEN）；OCR相關測試27 pass、1 skip，Demo指令重跑數字不變。非阻擋待後續：ingest未套MAX_TEXT、頁碼規則可能刪掉頁緣的單獨數字（金額／日期）、2～3頁文件頁首尾判定偏積極、單列工作表會被當表頭、`ocr.identity()`不含前處理版本、compose改`PF_AI_OCR`需重建映像。前端Vitest 38檔356 pass。真模型：Windows與`--network none` Linux容器1−CER相同（清晰92.4%、模糊89.9%、掃描2頁92.8%）。ACCOUNTS：後端全量（不含需本地模型的test_ai_local_model）766 pass、15 skip（需專用PostgreSQL）、1 fail；該fail為`test_child_creation_matrix`，原因是DOC-TEMPLATE新增資料表後舊資料包（revision 0019）匯入找不到新表檔案，已修`demo_pack.import_pack`只匯入資料包列出的表，重跑matrix＋demo_pack 3 pass。帳號相關API 12 pass；前端Vitest全量34檔330 pass（一次偶發1 fail重跑通過）、build exit0；Playwright帳號3＋樣板4＋文件2 pass（1280／375，隔離SQLite升到`20261024_0021`）。既有`health.spec`在SQLite環境3 fail：readiness只認PostgreSQL（環境限制）；另2項卡在「進入階段：小量試作」按鈕停用，為PHASE-CARDS（10/13，只開放進行中階段）後測試未更新的既有問題，與本次無關、未修。AI題庫基準不變。 |
 | 資料版本 | 新增migration `20261024_0021`（users加status、must_change_password、last_login_at、password_changed_at，舊帳號維持啟用）與 `20261024_0020`（3張樣板表＋document_versions兩個可為空欄位；只新增，降級遇資料拒絕）。新依賴docxtpl 0.20.2（＋Jinja2、lxml、python-docx）已鎖版。AI隔離索引INDEX_VERSION仍為3；OCR模型在repo外。 |
 | 認領中 | 無；保留15176／18006／11436回環隔離服務，Qwen3-4B-Instruct-2507 Q4_K_M，雲端關閉。 |
-| 阻塞／待人類 | 人類試用簽核：2026-10-24 人類表示「簽核都沒問題了」（依repo外`output/專流試用簽核重點.html`的10段重點，以本機SQLite一鍵啟動版`output/projectflow-local/start-projectflow.bat`試用；人類表示不匯出簽核表）。限制：此環境沒有本地模型，AI問答段沒有在本機實測；mvp-trial-checklist逐項勾選未由AI代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
-| 遠端 | 2026-10-24 依人類「github可以推」推上 `origin/feature/rag-starter-import`；同日DOC-TEMPLATE `012ec59` 依人類「Push feature/rag-starter-import to GitHub (branch only, no merge or PR)」再推一次；同日ACCOUNTS `e9b2db6`（含試用簽核紀錄與帳號規格）依人類同樣指示再推（只推分支，未合併main、未開PR、未部署）；同日TEMPLATE-TRIAL與PORTABLE（含本筆紀錄）依人類同樣指示再推，可攜包壓縮檔在repo外、不在git；同日AI-DEMO-DATA（含`deploy/ai-demo-data/pack`）依人類同樣指示再推；同日COPILOT-LAYOUT兩輪版面調整依人類同樣指示再推；同日COPILOT-SCENARIOS示範情境選單依人類同樣指示再推。mina201199的兩個遠端分支依決定暫不處理。 |
+| 阻塞／待使用者 | 使用者試用簽核：2026-10-24 使用者表示「簽核都沒問題了」（依repo外`output/專流試用簽核重點.html`的10段重點，以本機SQLite一鍵啟動版`output/projectflow-local/start-projectflow.bat`試用；使用者表示不匯出簽核表）。限制：此環境沒有本地模型，AI問答段沒有在本機實測；mvp-trial-checklist逐項勾選未由AI代勾。正式Docker問題本輪未重試；向量／OCR／分級繼承／遮罩／雲端政策／大量資料排程待後續。 |
+| 遠端 | 2026-10-24 依使用者「github可以推」推上 `origin/feature/rag-starter-import`；同日DOC-TEMPLATE `012ec59` 依使用者「Push feature/rag-starter-import to GitHub (branch only, no merge or PR)」再推一次；同日ACCOUNTS `e9b2db6`（含試用簽核紀錄與帳號規格）依同樣指示再推（只推分支，未合併main、未開PR、未部署）；同日TEMPLATE-TRIAL與PORTABLE（含本筆紀錄）依同樣指示再推，可攜包壓縮檔在repo外、不在git；同日AI-DEMO-DATA（含`deploy/ai-demo-data/pack`）依同樣指示再推；同日COPILOT-LAYOUT兩輪版面調整依同樣指示再推；同日COPILOT-SCENARIOS示範情境選單依同樣指示再推。mina201199的兩個遠端分支依決定暫不處理。 |
 
 ---
 
@@ -38,9 +38,9 @@
 | 🔍 | 審查中 | 所有 Task 都完成，正在整體審查或修正 |
 | 🟢 | 可合併 | 整體審查結論是 Ready to merge，等待合併 |
 | ✅ | 完成 | 已合併進 `main`，README 也已更新 |
-| ⛔ | 阻塞 | 要等人類決定才能繼續（寫明 D 編號） |
-| ⏸ | 暫停 | 人類要求先停，分支保留（寫明恢復條件） |
-| ✖ | 取消 | 人類決定不做，分支保留，spec 和 plan 標成 Superseded |
+| ⛔ | 阻塞 | 要等決定才能繼續（寫明 D 編號） |
+| ⏸ | 暫停 | 使用者要求先停，分支保留（寫明恢復條件） |
+| ✖ | 取消 | 使用者決定不做，分支保留，spec 和 plan 標成 Superseded |
 
 ---
 
@@ -51,56 +51,56 @@
    - **Demo 驗證軌（保留參照）**：單檔 `projectflow-full-demo.html` 的F1–F11及W6已完成Demo驗證，P0不修改。
    - **正式產品軌（D51／D52已啟動）**：React + TS、FastAPI + PostgreSQL、內網部署；本輪到P1c。
      - README §8 只列正式版還沒做的項目（D82）。Demo 已經做出來的功能**不能**當成正式版已完成。
-     - 何時啟動由人類決定（D11）。啟動後第一個工作項目是 P0。
+     - 何時啟動由使用者決定（D11）。啟動後第一個工作項目是 P0。
 3. **目前里程碑**：依序完成 W1 → W2 → W3（精簡版，D31／D42），讓 Demo 具備可自行新增、編輯、套用工作流的功能架構。2026-10-05 起依 D42，個別工作流內容之後由使用者自行添加；D41 的兩份現有專流只作內建範例與測試素材。
    - **Demo歷史展示模式**（D30，2026-10-05）：當時範圍僅Demo，W4取消、W5精簡；2026-10-08 D51／D52已另授權正式P0至P1c，正式軌恢復完整審查與安全標準。Demo歷史minor不自動擴張目前plan。
 4. **Demo 驗證軌的完成條件**（2026-10-05 依 D30 精簡）
    - [x] W1、W2、W3（精簡版）都是 ✅
    - [x] W5 ✅：README §1 快速開始、§2 功能總覽反映 full demo 的現況
-   - [x] 用 W3 的工作流架構新增／編輯／套用一套工作流，並以 yu、chen、ming 各走一次主要流程，桌面和 375px 都沒有水平捲動，console 沒有錯誤（2026-10-05 Claude 在 `cfd5f72` 上實測：it 新增、編輯、複製工作流；yu 用「筆電新機種專流」建立專案（9 階段、44 個任務），第二階段任務被 G0 擋下，覆寫閘門後可開始；yu、chen、ming 的看板、時程、成員、我的任務、模板庫在 1280 與 375px 都沒有 `undefined`／`NaN`／「? —」、沒有水平捲動，console 沒有錯誤。小問題記成 §5 DEMO-A-m1–m4，D43 待人類）
-   - [ ] 人類確認可以拿來展示（原 README 階段 0 的驗收：「能用 Demo 向他人完整說明產品概念」）
+   - [x] 用 W3 的工作流架構新增／編輯／套用一套工作流，並以 yu、chen、ming 各走一次主要流程，桌面和 375px 都沒有水平捲動，console 沒有錯誤（2026-10-05 Claude 在 `cfd5f72` 上實測：it 新增、編輯、複製工作流；yu 用「筆電新機種專流」建立專案（9 階段、44 個任務），第二階段任務被 G0 擋下，覆寫閘門後可開始；yu、chen、ming 的看板、時程、成員、我的任務、模板庫在 1280 與 375px 都沒有 `undefined`／`NaN`／「? —」、沒有水平捲動，console 沒有錯誤。小問題記成 §5 DEMO-A-m1–m4，D43 待使用者）
+   - [ ] 使用者確認可以拿來展示（原 README 階段 0 的驗收：「能用 Demo 向他人完整說明產品概念」）
    - 原本的「W4 全部 FIXED」「D4–D8 都有結論並執行」兩項，2026-10-05 依 D30 移除（W4 取消，D4–D8 維持現狀）。
 
-   全部達成後，AI 在 §7 寫一份「Demo 軌結案摘要」（完成項目、遺留問題、建議的 P0 和 P1 範圍），並把 D11 標成「待人類（可決定）」。
+   全部達成後，AI 在 §7 寫一份「Demo 軌結案摘要」（完成項目、遺留問題、建議的 P0 和 P1 範圍），並把 D11 標成「待使用者（可決定）」。
 
 ---
 
 ## 2. 工作佇列（由上往下執行）
 
-- LOGIN-WATER ✅（2026-10-28）：人類提供原型`login-water-e2.html`（方案E2深潭）指示「把登入介面改成這個」，成功轉場選「播完再進（約1.5秒）」。[短規格與計畫](superpowers/plans/2026-10-28-login-water.md)；分支`feature/login-water`，已`--ff-only`合併回main。完成：新增`LoginScreen.tsx`（移植原型WebGL水面shader、水花、霧面卡片；點水面／聚焦欄位／按登入起漣漪，錯誤晃動，成功卡片沉下並撥水），`App.tsx`在login API成功後等`departureMs()`（WebGL可用且未減少動態才為1600ms）再載入工作台，樣式以`.water-login`隔離。不顯示原型的提示列、預填帳密、歡迎畫面（AI代決）。測試：新增`login-screen.test.tsx` 3項；Vitest全量39檔358 pass、tsc、build exit0。15173實測：1280卡片置中、錯誤密碼顯示「帳號或密碼錯誤」並清空密碼、成功時submit→sink 63ms→進工作台1.6s，撥水畫面含水花；375卡片左右16px、無水平捲動。注意：這台電腦的Browser pane回報`prefers-reduced-motion: reduce`（Windows動畫效果關閉），此時水面靜止、直接進入，屬規格行為；動畫路徑是在該分頁覆寫matchMedia後實測。一次獨立唯讀審查：Ready；應修2項已修——全域`button:hover`把登入按鈕底色蓋成米白、白字看不見（補hover規則，實測hover仍為深綠白字）；StrictMode開發模式第二次effect會拿到已失效的WebGL context而丟錯（stop改為刪除program／shader／buffer、不loseContext，並檢查context lost與LINK_STATUS）；輕微：欄位聚焦光暈透明度.12→.3。未修：E2E每次登入多等1.6秒（headless有WebGL），未實跑E2E。
-- COPILOT-SIMPLIFY ✅（2026-10-28）：人類要求AI助手「只要能清楚看到自己問題跟AI回答」「有固定快捷鍵可以當問題」「留下必要的就好」，看過對照圖選方案B（分類標籤＋固定快捷題，拿掉5個選單、歷史勾選、示範步驟卡，進階收進⚙），並同意拿掉專案選單（「可以改」）。[短規格與計畫](superpowers/plans/2026-10-28-copilot-simplify.md)；分支`feature/copilot-simplify`，已`--ff-only`合併回main。完成：`CopilotPanel.tsx`改為標題列（AI 助手、⚙進階設定、關閉）＋分類按鈕（文件問答、資料分析〔`can_sql`〕、新人報到〔毛研食品〕、正式文件〔毛研食品且`formal_available`〕）＋對話＋固定快捷題＋輸入框；`copilotScenarios.ts`改為分類定義，快捷題自帶歷史版本／完整工單／專案（標題開頭比對）；模型狀態、預覽、正式文件索引、本地模型設定收進⚙。測試：`ai.test.tsx`改寫為21項（先RED 21 fail，實作後GREEN），`workspace.test`改為只驗快捷題與送出鍵在無資料時停用（分類與⚙刻意可按）；Vitest全量38檔355 pass（第一次`work-order.test`偶發1 fail，單獨與全量重跑皆pass，與本次無關）、`tsc`含e2e exit0、build exit0。15173實測（yu／毛研食品展示管理者）：1280文件問答「風險原因與處理方式」、新人報到「新人課程原本哪天？為什麼改期？」（本地模型答10/27講師行程，引用含MTG-002歷史版本）、資料分析「請問有哪些專案超支？」（food-PRJ2超支220000）、⚙展開正常；375對話區571／面板788px、無水平捲動。E2E 7支規格改用分類／快捷題／⚙（`e2e/copilot.ts`改為`chooseCategory`、`openAdvanced`），刪除只能靠已移除控制項表達的步驟；需隔離驗收環境，本次未實跑。一次獨立唯讀審查：Ready；應修2項——formal-index在全部專案範圍下兩種寬度同名檔案會讓嚴格定位對到兩個元素（已改為每次唯一檔名）；starter／local-model拿掉專案範圍後「資料等級：內部」可能變（未實跑，見§5）。
-- OPS-LOCAL ✅：人類2026-10-28指示「pull下來，然後幫我開本地端」。`git pull`（ff到`4a45d10`，70檔），啟動Docker Desktop後`deploy/start.py`起15173。人類回報登不進去：DB為空（未seed），先`--seed-demo`，人類再指示「要匯入」完整資料包：`alembic downgrade base`（清掉僅含seed的資料）→upgrade到0019匯入失敗（見§5 OPS-LOCAL-m1），改為upgrade head→暫標`alembic_version`為0019→`demo_data.py import`（27表，80帳號／39專案／500節點）→改回0021→`start.py`。yu／demo-yu登入可見8個專案。人類再指示「把我離線的rag分支也接到正式端」，經詢問確認指已在main的rag-starter-import：照`deploy/ai-demo-data/README.md`把`pack`（dataset-v1，6公司78份文件）與`deploy/rag-starter`（starter-v1，24份）用`app.ai.import_cli`匯入`ai_data` volume；以yu（admin、本機）在副手「本地模型連線設定」設`http://host.docker.internal:11434`、`gemma4:latest`並啟用。實測「現行交付需要幾張截圖？」→本地模型回答4張、附food-SPEC-2與food-MEET-1引用，處理紀錄為本地模型、雲端關閉、檢索方式關鍵字（無向量模型，`PF_AI_VECTOR_MODEL`未設）。人類再指示「要，全部接上」：本機`deploy/.env`加`PF_SHOWCASE_MODE=true`（.env不進git）並`start.py`重啟，使用者選單出現「切換公司（本機展示）」；依序切到electronics、events、software、construction、hemu，以各家展示管理者在副手設定同一模型並啟用。`settings/*.json`六家皆`enabled: true`；禾沐問「風險原因與處理方式」→本地模型回答、附hemu-RISK-2／RISK-1／GUIDE-1引用。未改產品程式。
-- REVIEW-FIX 🔍：人類2026-10-20先要求檢視專案「有要再修正或補齊的地方嗎」，Claude做唯讀審查（兩位子代理分別審後端與前端，主代理回原始碼核對前幾項）並條列約40項；人類指示「全部開始修，可以同時進行的就直接開分支」，故依檔案範圍拆成四個平行session、各自worktree分支（D2例外，人類指示平行），各分支不改PROGRESS／README以免衝突，短計畫與結果寫在`docs/superpowers/plans/2026-10-20-{api-security,api-correctness,ci-tests,web-fixes}.md`。**api-security**（`4fffaba`）：cookie依HTTPS加Secure、AI模型設定改用不可偽造的本機判斷、寫入請求統一Origin／Sec-Fetch-Site檢查、非開發環境關閉OpenAPI文件、nginx安全標頭、`verify_password`用雜湊記錄的rounds、帳號不存在時跑假雜湊消除時間差、AI SQL逾時改回可理解訊息。**api-correctness**（`fa3af45`）：engine依URL快取、階段狀態採人類2026-10-20選定的規則A（階段可直接改review／skipped但子節點須全部done／skipped，否則409；專案根節點不能用PATCH改skipped／review）、同一請求共用授權資料（送出略過申請342–482ms→89–117ms）、GET改不加鎖讀取、稽核SQL分頁。**ci-tests**（`8797a66`）：新增`.github/workflows/ci.yml`（API SQLite、專用PostgreSQL 14個測試、web），`test_migrations`路徑不依賴cwd、`test_health`補11個邊界案例、web依賴升patch；Playwright E2E未納入CI。**web-fixes**（至`5471b5c`）：回報草稿不再被其他紀錄儲存清空、API逾時釋放鎖、節點／時程日期表單未存離開提醒、副手跨導覽保留對話、預覽頁lazy載入（主bundle 587→489kB）、Escape與tab無障礙、捲軸量測節流、下載URL延後釋放、待辦搜尋debounce、未開始空階段可新增第一個任務等。整合：`feature/review-fixes`由main依序`--no-ff`合併四個分支（web只合到`5471b5c`，其後3個UX commit留待另開PR），兩兩合併無衝突。整合測試：API全量716pass／14skip exit0（14個為專用PG，ci-tests在Linux容器實跑全過）；Vitest 35檔332pass、build（含tsc）exit0，無>500kB警告。未做：真瀏覽器E2E、實際Funnel驗證、GitHub Actions實際執行（push後確認）。遺留（不阻塞）：cookie不分埠號只能靠獨立主機名稱解決；`operation_links` GET仍加鎖；Windows上PG races受`msvcrt.locking`影響；`tree.test.tsx`高負載可能逾時；Starlette httpx棄用警告建議另案。2026-10-27 GitHub回報PR #4與main衝突（main新增59個commit，含ACCOUNTS、AI閘道、可攜包等）：在暫存worktree合併`origin/main`解衝突——`auth.py`登入改用main的`account_service`（已含假雜湊與失敗紀錄），保留本PR的Secure cookie；`ai.py`採main新介面並保留`local_request`與AI SQL錯誤處理（`can_set_policy`一併改用`local_request`）；前端保留預覽頁lazy載入、AIGovernance，副手保留main新功能並補回401登出與舊原文請求中止，AI長請求（ask／preview／refreshIndex）給180秒逾時。
+- LOGIN-WATER ✅（2026-10-28）：使用者提供原型`login-water-e2.html`（方案E2深潭）指示「把登入介面改成這個」，成功轉場選「播完再進（約1.5秒）」。[短規格與計畫](superpowers/plans/2026-10-28-login-water.md)；分支`feature/login-water`，已`--ff-only`合併回main。完成：新增`LoginScreen.tsx`（移植原型WebGL水面shader、水花、霧面卡片；點水面／聚焦欄位／按登入起漣漪，錯誤晃動，成功卡片沉下並撥水），`App.tsx`在login API成功後等`departureMs()`（WebGL可用且未減少動態才為1600ms）再載入工作台，樣式以`.water-login`隔離。不顯示原型的提示列、預填帳密、歡迎畫面（AI代決）。測試：新增`login-screen.test.tsx` 3項；Vitest全量39檔358 pass、tsc、build exit0。15173實測：1280卡片置中、錯誤密碼顯示「帳號或密碼錯誤」並清空密碼、成功時submit→sink 63ms→進工作台1.6s，撥水畫面含水花；375卡片左右16px、無水平捲動。注意：這台電腦的Browser pane回報`prefers-reduced-motion: reduce`（Windows動畫效果關閉），此時水面靜止、直接進入，屬規格行為；動畫路徑是在該分頁覆寫matchMedia後實測。一次獨立唯讀審查：Ready；應修2項已修——全域`button:hover`把登入按鈕底色蓋成米白、白字看不見（補hover規則，實測hover仍為深綠白字）；StrictMode開發模式第二次effect會拿到已失效的WebGL context而丟錯（stop改為刪除program／shader／buffer、不loseContext，並檢查context lost與LINK_STATUS）；輕微：欄位聚焦光暈透明度.12→.3。未修：E2E每次登入多等1.6秒（headless有WebGL），未實跑E2E。
+- COPILOT-SIMPLIFY ✅（2026-10-28）：使用者要求AI助手「只要能清楚看到自己問題跟AI回答」「有固定快捷鍵可以當問題」「留下必要的就好」，看過對照圖選方案B（分類標籤＋固定快捷題，拿掉5個選單、歷史勾選、示範步驟卡，進階收進⚙），並同意拿掉專案選單（「可以改」）。[短規格與計畫](superpowers/plans/2026-10-28-copilot-simplify.md)；分支`feature/copilot-simplify`，已`--ff-only`合併回main。完成：`CopilotPanel.tsx`改為標題列（AI 助手、⚙進階設定、關閉）＋分類按鈕（文件問答、資料分析〔`can_sql`〕、新人報到〔毛研食品〕、正式文件〔毛研食品且`formal_available`〕）＋對話＋固定快捷題＋輸入框；`copilotScenarios.ts`改為分類定義，快捷題自帶歷史版本／完整工單／專案（標題開頭比對）；模型狀態、預覽、正式文件索引、本地模型設定收進⚙。測試：`ai.test.tsx`改寫為21項（先RED 21 fail，實作後GREEN），`workspace.test`改為只驗快捷題與送出鍵在無資料時停用（分類與⚙刻意可按）；Vitest全量38檔355 pass（第一次`work-order.test`偶發1 fail，單獨與全量重跑皆pass，與本次無關）、`tsc`含e2e exit0、build exit0。15173實測（yu／毛研食品展示管理者）：1280文件問答「風險原因與處理方式」、新人報到「新人課程原本哪天？為什麼改期？」（本地模型答10/27講師行程，引用含MTG-002歷史版本）、資料分析「請問有哪些專案超支？」（food-PRJ2超支220000）、⚙展開正常；375對話區571／面板788px、無水平捲動。E2E 7支規格改用分類／快捷題／⚙（`e2e/copilot.ts`改為`chooseCategory`、`openAdvanced`），刪除只能靠已移除控制項表達的步驟；需隔離驗收環境，本次未實跑。一次獨立唯讀審查：Ready；應修2項——formal-index在全部專案範圍下兩種寬度同名檔案會讓嚴格定位對到兩個元素（已改為每次唯一檔名）；starter／local-model拿掉專案範圍後「資料等級：內部」可能變（未實跑，見§5）。
+- OPS-LOCAL ✅：使用者2026-10-28指示「pull下來，然後幫我開本地端」。`git pull`（ff到`4a45d10`，70檔），啟動Docker Desktop後`deploy/start.py`起15173。使用者回報登不進去：DB為空（未seed），先`--seed-demo`，使用者再指示「要匯入」完整資料包：`alembic downgrade base`（清掉僅含seed的資料）→upgrade到0019匯入失敗（見§5 OPS-LOCAL-m1），改為upgrade head→暫標`alembic_version`為0019→`demo_data.py import`（27表，80帳號／39專案／500節點）→改回0021→`start.py`。yu／demo-yu登入可見8個專案。使用者再指示「把我離線的rag分支也接到正式端」，經詢問確認指已在main的rag-starter-import：照`deploy/ai-demo-data/README.md`把`pack`（dataset-v1，6公司78份文件）與`deploy/rag-starter`（starter-v1，24份）用`app.ai.import_cli`匯入`ai_data` volume；以yu（admin、本機）在副手「本地模型連線設定」設`http://host.docker.internal:11434`、`gemma4:latest`並啟用。實測「現行交付需要幾張截圖？」→本地模型回答4張、附food-SPEC-2與food-MEET-1引用，處理紀錄為本地模型、雲端關閉、檢索方式關鍵字（無向量模型，`PF_AI_VECTOR_MODEL`未設）。使用者再指示「要，全部接上」：本機`deploy/.env`加`PF_SHOWCASE_MODE=true`（.env不進git）並`start.py`重啟，使用者選單出現「切換公司（本機展示）」；依序切到electronics、events、software、construction、hemu，以各家展示管理者在副手設定同一模型並啟用。`settings/*.json`六家皆`enabled: true`；禾沐問「風險原因與處理方式」→本地模型回答、附hemu-RISK-2／RISK-1／GUIDE-1引用。未改產品程式。
+- REVIEW-FIX 🔍：使用者2026-10-20先要求檢視專案「有要再修正或補齊的地方嗎」，Claude做唯讀審查（兩位子代理分別審後端與前端，主代理回原始碼核對前幾項）並條列約40項；使用者指示「全部開始修，可以同時進行的就直接開分支」，故依檔案範圍拆成四個平行session、各自worktree分支（D2例外，使用者指示平行），各分支不改PROGRESS／README以免衝突，短計畫與結果寫在`docs/superpowers/plans/2026-10-20-{api-security,api-correctness,ci-tests,web-fixes}.md`。**api-security**（`4fffaba`）：cookie依HTTPS加Secure、AI模型設定改用不可偽造的本機判斷、寫入請求統一Origin／Sec-Fetch-Site檢查、非開發環境關閉OpenAPI文件、nginx安全標頭、`verify_password`用雜湊記錄的rounds、帳號不存在時跑假雜湊消除時間差、AI SQL逾時改回可理解訊息。**api-correctness**（`fa3af45`）：engine依URL快取、階段狀態採使用者2026-10-20選定的規則A（階段可直接改review／skipped但子節點須全部done／skipped，否則409；專案根節點不能用PATCH改skipped／review）、同一請求共用授權資料（送出略過申請342–482ms→89–117ms）、GET改不加鎖讀取、稽核SQL分頁。**ci-tests**（`8797a66`）：新增`.github/workflows/ci.yml`（API SQLite、專用PostgreSQL 14個測試、web），`test_migrations`路徑不依賴cwd、`test_health`補11個邊界案例、web依賴升patch；Playwright E2E未納入CI。**web-fixes**（至`5471b5c`）：回報草稿不再被其他紀錄儲存清空、API逾時釋放鎖、節點／時程日期表單未存離開提醒、副手跨導覽保留對話、預覽頁lazy載入（主bundle 587→489kB）、Escape與tab無障礙、捲軸量測節流、下載URL延後釋放、待辦搜尋debounce、未開始空階段可新增第一個任務等。整合：`feature/review-fixes`由main依序`--no-ff`合併四個分支（web只合到`5471b5c`，其後3個UX commit留待另開PR），兩兩合併無衝突。整合測試：API全量716pass／14skip exit0（14個為專用PG，ci-tests在Linux容器實跑全過）；Vitest 35檔332pass、build（含tsc）exit0，無>500kB警告。未做：真瀏覽器E2E、實際Funnel驗證、GitHub Actions實際執行（push後確認）。遺留（不阻塞）：cookie不分埠號只能靠獨立主機名稱解決；`operation_links` GET仍加鎖；Windows上PG races受`msvcrt.locking`影響；`tree.test.tsx`高負載可能逾時；Starlette httpx棄用警告建議另案。2026-10-27 GitHub回報PR #4與main衝突（main新增59個commit，含ACCOUNTS、AI閘道、可攜包等）：在暫存worktree合併`origin/main`解衝突——`auth.py`登入改用main的`account_service`（已含假雜湊與失敗紀錄），保留本PR的Secure cookie；`ai.py`採main新介面並保留`local_request`與AI SQL錯誤處理（`can_set_policy`一併改用`local_request`）；前端保留預覽頁lazy載入、AIGovernance，副手保留main新功能並補回401登出與舊原文請求中止，AI長請求（ask／preview／refreshIndex）給180秒逾時。
 
-- COPILOT-SCENARIOS 🟢 已併入可攜包（2026-10-24）：人類問「不同的情境可以有不同的示範問題讓使用者選嗎」，看過方案後指示「照方案做示範情境選單，做完測試並重新打包可攜包」。新增`web/src/components/copilotScenarios.ts`（題目取自示範腳本）：副手設定區最上方「示範情境」選單，選了自動切好資料集、查詢方式、歷史版本，並在資料載入後依標題選好專案；列出該情境的題目（空白時在對話區、對話後在輸入框上方）。7個可自動的情境（新人報到、改期與歷史版本、未完成工單、正式文件現行／新舊對照／附件、OCR、Text-to-SQL、交付與成本文件）加2個「示範步驟」提示卡（換帳號看權限、AI政策與遮罩）。毛研食品以外的公司只列出有資料的情境（Text-to-SQL、交付規範文件）。手動改設定時情境回到「自行設定」。測試：新增2項先RED後GREEN；Vitest 34檔333 pass（一次`returns.test`偶發失敗，單獨重跑3次與全量重跑皆pass）、tsc exit0；15176實測選OCR情境自動切到正式文件與「OCR 示範（虛構）」，點題目答「一樓警衛室」。
+- COPILOT-SCENARIOS 🟢 已併入可攜包（2026-10-24）：使用者問「不同的情境可以有不同的示範問題讓使用者選嗎」，看過方案後指示「照方案做示範情境選單，做完測試並重新打包可攜包」。新增`web/src/components/copilotScenarios.ts`（題目取自示範腳本）：副手設定區最上方「示範情境」選單，選了自動切好資料集、查詢方式、歷史版本，並在資料載入後依標題選好專案；列出該情境的題目（空白時在對話區、對話後在輸入框上方）。7個可自動的情境（新人報到、改期與歷史版本、未完成工單、正式文件現行／新舊對照／附件、OCR、Text-to-SQL、交付與成本文件）加2個「示範步驟」提示卡（換帳號看權限、AI政策與遮罩）。毛研食品以外的公司只列出有資料的情境（Text-to-SQL、交付規範文件）。手動改設定時情境回到「自行設定」。測試：新增2項先RED後GREEN；Vitest 34檔333 pass（一次`returns.test`偶發失敗，單獨重跑3次與全量重跑皆pass）、tsc exit0；15176實測選OCR情境自動切到正式文件與「OCR 示範（虛構）」，點題目答「一樓警衛室」。
 
-- COPILOT-LAYOUT 🟢 已併入可攜包（2026-10-24）：人類表示AI助手「現在有點複雜，看不清楚答案跟問題」，看過前後對照圖後指示「照右邊的方案做，做完重新打包可攜包」。實測原版面：設定區約450px、對話區只剩120px（桌面面板整體捲動且對話區`flex: 1 0 120px`）。改為：設定收成一行「資料集・查詢方式・專案」，第一次回答後自動收合、可再展開；問題靠右色塊、答案15px卡片；來源收成「來源 N 份」、處理紀錄維持可展開；建議問題在空白時列在對話區、對話後變成輸入框上方一排；預覽改為輸入框下方的小連結。只改`CopilotPanel.tsx`與`styles.css`，欄位名稱與功能不變。測試：新增版面測試先RED後GREEN；`workspace.test`改為允許「查詢設定」按鈕在無資料時可用（刻意的行為改變）；Vitest 34檔331 pass、tsc exit0；E2E加`e2e/copilot.ts`輔助（展開設定、展開來源），對15176跑`ai-local-model` 1280／375 pass；`ai-starter`失敗為既有問題（10/23 `ed9bce5`改了快捷問題文字但該spec停在10/20，且假設無模型），本次未修；其他AI E2E依賴已遺失的原始144專案資料，無法在此環境執行。第二輪（人類：「還是有很多空間被浪費了，盡量讓重點對話能看清楚」）：標題與設定摘要併成一行、「預覽」改為輸入列內的小按鈕、回答下方的處理方式／來源／處理紀錄並排一行、內距與間距縮小、建議問題列變細、桌面面板寬520→640px。1024×768實測：對話區455→589px、單行回答卡125→75px；375px：標題30px一行、對話區645px、無水平捲動。Vitest 331 pass、tsc exit0、`ai-local-model` 1280／375再跑pass。另：包上一次示範題D05在剛啟動、模型未載入時答得過短（「沒有。」），重問5次皆完整，屬偶發。
+- COPILOT-LAYOUT 🟢 已併入可攜包（2026-10-24）：使用者表示AI助手「現在有點複雜，看不清楚答案跟問題」，看過前後對照圖後指示「照右邊的方案做，做完重新打包可攜包」。實測原版面：設定區約450px、對話區只剩120px（桌面面板整體捲動且對話區`flex: 1 0 120px`）。改為：設定收成一行「資料集・查詢方式・專案」，第一次回答後自動收合、可再展開；問題靠右色塊、答案15px卡片；來源收成「來源 N 份」、處理紀錄維持可展開；建議問題在空白時列在對話區、對話後變成輸入框上方一排；預覽改為輸入框下方的小連結。只改`CopilotPanel.tsx`與`styles.css`，欄位名稱與功能不變。測試：新增版面測試先RED後GREEN；`workspace.test`改為允許「查詢設定」按鈕在無資料時可用（刻意的行為改變）；Vitest 34檔331 pass、tsc exit0；E2E加`e2e/copilot.ts`輔助（展開設定、展開來源），對15176跑`ai-local-model` 1280／375 pass；`ai-starter`失敗為既有問題（10/23 `ed9bce5`改了快捷問題文字但該spec停在10/20，且假設無模型），本次未修；其他AI E2E依賴已遺失的原始144專案資料，無法在此環境執行。第二輪（使用者：「還是有很多空間被浪費了，盡量讓重點對話能看清楚」）：標題與設定摘要併成一行、「預覽」改為輸入列內的小按鈕、回答下方的處理方式／來源／處理紀錄並排一行、內距與間距縮小、建議問題列變細、桌面面板寬520→640px。1024×768實測：對話區455→589px、單行回答卡125→75px；375px：標題30px一行、對話區645px、無水平捲動。Vitest 331 pass、tsc exit0、`ai-local-model` 1280／375再跑pass。另：包上一次示範題D05在剛啟動、模型未載入時答得過短（「沒有。」），重問5次皆完整，屬偶發。
 
-- AI-DEMO-DATA 🟢 已併入可攜包（2026-10-24）：完成`deploy/ai-demo-data/`（`generate.py`固定種子產生器、`verify.py`、`pack/`進git：6公司×4專案、1,050筆、78份文件、336KB），`build_seed.py`以正式匯入器匯入並對6家都啟用本機模型，示範題新增D22–D25。驗證見§7。一次獨立唯讀審查：初審無阻擋、3項應修（重產比對受SQLite版本影響、reviewer／readonly看不到文件、隔離版跑示範題會因D22中斷）＋3項輕微，全部修正後複核Ready。偏離：允許清單外改了`deploy/check_demo_questions.py`（隔離版略過D22–D25，可攜包不略過）與檢查表。產品程式未改。背景：人類要求可攜包含Text-to-SQL，但原始`ai-demo-data`（10/11產生、144專案）不在git、這台電腦與其Docker都找不到（Docker無任何專流volume），人類表示「另一台拿不到」，指示「先寫一份短規格：重新產生一份較小的虛構資料給 16 種分析用，給我確認後再做」。[短規格與計畫](superpowers/plans/2026-10-24-ai-demo-data.md)人類回覆「4 項都照建議：照規格做、資料量照寫的、資料包進 git、新增 4 題示範題」。順帶發現：副手預設選「原有展示資料」，資料不存在時一打開就顯示「資料尚未就緒」。
+- AI-DEMO-DATA 🟢 已併入可攜包（2026-10-24）：完成`deploy/ai-demo-data/`（`generate.py`固定種子產生器、`verify.py`、`pack/`進git：6公司×4專案、1,050筆、78份文件、336KB），`build_seed.py`以正式匯入器匯入並對6家都啟用本機模型，示範題新增D22–D25。驗證見§7。一次獨立唯讀審查：初審無阻擋、3項應修（重產比對受SQLite版本影響、reviewer／readonly看不到文件、隔離版跑示範題會因D22中斷）＋3項輕微，全部修正後複核Ready。偏離：允許清單外改了`deploy/check_demo_questions.py`（隔離版略過D22–D25，可攜包不略過）與檢查表。產品程式未改。背景：使用者要求可攜包含Text-to-SQL，但原始`ai-demo-data`（10/11產生、144專案）不在git、這台電腦與其Docker都找不到（Docker無任何專流volume），使用者表示「另一台拿不到」，指示「先寫一份短規格：重新產生一份較小的虛構資料給 16 種分析用，給我確認後再做」。[短規格與計畫](superpowers/plans/2026-10-24-ai-demo-data.md)使用者回覆「4 項都照建議：照規格做、資料量照寫的、資料包進 git、新增 4 題示範題」。順帶發現：副手預設選「原有展示資料」，資料不存在時一打開就顯示「資料尚未就緒」。
 
-- PORTABLE 🟢 第一、二層驗證通過，待人類第三層（2026-10-24）：人類指示「之後要包成一包，放在別人的電腦上跑」；[短規格與計畫](superpowers/plans/2026-10-24-portable.md)人類回覆「7 項都照建議」（照規格做、只支援Windows、只綁127.0.0.1、從空資料庫重建、含OCR、第三層由人類找電腦測、可用python-build-standalone）。完成：`deploy/portable/`（`serve.py`單一回環程序提供網頁與`/api`並明確執行API lifespan、`build_seed.py`從空資料庫重建乾淨資料、啟動／停止／還原腳本、`build.py`打包與掃描、使用說明、授權說明、[另一台電腦檢查表](../deploy/portable/另一台電腦檢查表.md)）。產物在repo外`output/portable/ProjectFlow-Portable-20261024/`與同名.zip（約7GB）。驗證見§7。一次獨立唯讀審查：初審Not ready（OCR缺VC++執行階段、serve.py會解析UNC路徑、繼承OLLAMA_*等），修正後複核Ready。AI代決與偏離：模型改在打包時建好放入包內（規格原寫第一次啟動時建立），GGUF核對SHA-256、Modelfile照驗收版（含`TEMPLATE {{ .Prompt }}`）；允許清單外改了`deploy/check_demo_questions.py`（多允許15190/api）並新增檢查表；`start.ps1`加`PF_PORTABLE_NO_BROWSER`供自動測試不開瀏覽器。已知限制：正式文件索引的變更判斷含檔案建立時間與OCR模型修改時間（`api/app/ai/formal_index.py`、`ocr.py`），解壓後第一次啟動與每次還原都會重建索引（實測約5秒、含OCR）；改它要動產品程式，未改。未push。
+- PORTABLE 🟢 第一、二層驗證通過，待第三層（2026-10-24）：使用者指示「之後要包成一包，放在別人的電腦上跑」；[短規格與計畫](superpowers/plans/2026-10-24-portable.md)使用者回覆「7 項都照建議」（照規格做、只支援Windows、只綁127.0.0.1、從空資料庫重建、含OCR、第三層由使用者找電腦測、可用python-build-standalone）。完成：`deploy/portable/`（`serve.py`單一回環程序提供網頁與`/api`並明確執行API lifespan、`build_seed.py`從空資料庫重建乾淨資料、啟動／停止／還原腳本、`build.py`打包與掃描、使用說明、授權說明、[另一台電腦檢查表](../deploy/portable/另一台電腦檢查表.md)）。產物在repo外`output/portable/ProjectFlow-Portable-20261024/`與同名.zip（約7GB）。驗證見§7。一次獨立唯讀審查：初審Not ready（OCR缺VC++執行階段、serve.py會解析UNC路徑、繼承OLLAMA_*等），修正後複核Ready。AI代決與偏離：模型改在打包時建好放入包內（規格原寫第一次啟動時建立），GGUF核對SHA-256、Modelfile照驗收版（含`TEMPLATE {{ .Prompt }}`）；允許清單外改了`deploy/check_demo_questions.py`（多允許15190/api）並新增檢查表；`start.ps1`加`PF_PORTABLE_NO_BROWSER`供自動測試不開瀏覽器。已知限制：正式文件索引的變更判斷含檔案建立時間與OCR模型修改時間（`api/app/ai/formal_index.py`、`ocr.py`），解壓後第一次啟動與每次還原都會重建索引（實測約5秒、含OCR）；改它要動產品程式，未改。未push。
 
-- TEMPLATE-TRIAL 🟢 小修（2026-10-24）：人類指示「加入三份樣板測試」並「修正：按產生文件時被擋下的錯誤訊息要出現在使用者看得到的位置」。15176隔離版另建專案「文件樣板試用（虛構）」，三份樣板各產生一份：必填擋下（前端與API 422）、編號MTG-2026-001／Q-2026-1024-01／WO-001、報價小計3,970、稅198.5進位199、總計4,169，Word內容核對一致。修正：`DocTemplateFill`表單顯示時錯誤訊息改放在「產生文件」按鈕正上方（原在表單頂端，捲到底按時在畫面外約600px）。驗證見§7。未push。
+- TEMPLATE-TRIAL 🟢 小修（2026-10-24）：使用者指示「加入三份樣板測試」並「修正：按產生文件時被擋下的錯誤訊息要出現在使用者看得到的位置」。15176隔離版另建專案「文件樣板試用（虛構）」，三份樣板各產生一份：必填擋下（前端與API 422）、編號MTG-2026-001／Q-2026-1024-01／WO-001、報價小計3,970、稅198.5進位199、總計4,169，Word內容核對一致。修正：`DocTemplateFill`表單顯示時錯誤訊息改放在「產生文件」按鈕正上方（原在表單頂端，捲到底按時在畫面外約600px）。驗證見§7。未push。
 
-- ACCOUNTS 🟢 隔離交付（2026-10-24）：人類核准[短規格](superpowers/plans/2026-10-24-accounts.md)（照規格做、「不用鎖」、公開時自動關閉示範密碼），並說「照你的建議繼續做下去，不用停下來問我」。完成：帳號與密碼頁（管理者新增／改角色／停用與啟用／重設密碼；臨時密碼只顯示一次、無易混字元，首次登入強制改密碼；每人可改自己的密碼）、停用即登出、至少保留一位管理者、`*.ts.net`公開入口或`PF_DISABLE_DEMO_PASSWORDS=true`拒絕`demo-`密碼、同一來源＋同一帳號一分鐘失敗20次暫停（不鎖帳號）。一次獨立唯讀審查：初審Not ready（nginx後所有人共用位址，按位址限流會讓任何人擋住全公司），改為位址＋帳號並修最後管理者競態、帳號是否存在的時間差、重複帳號500；複核Ready。審查提醒：公開入口上有人持續猜某一帳號，可讓該帳號暫時無法從公開網址登入（本機不受影響）。驗證見▶現在。偏離：允許清單外改了NavIcons.tsx、types.ts、WorkspaceShell.tsx（新導覽頁）、AuditLogView.tsx（事件名稱）、`api/app/demo_pack.py`（修DOC-TEMPLATE造成的舊資料包匯入回歸）。未push／合併／部署。
+- ACCOUNTS 🟢 隔離交付（2026-10-24）：使用者核准[短規格](superpowers/plans/2026-10-24-accounts.md)（照規格做、「不用鎖」、公開時自動關閉示範密碼），並說「照你的建議繼續做下去，不用停下來問我」。完成：帳號與密碼頁（管理者新增／改角色／停用與啟用／重設密碼；臨時密碼只顯示一次、無易混字元，首次登入強制改密碼；每人可改自己的密碼）、停用即登出、至少保留一位管理者、`*.ts.net`公開入口或`PF_DISABLE_DEMO_PASSWORDS=true`拒絕`demo-`密碼、同一來源＋同一帳號一分鐘失敗20次暫停（不鎖帳號）。一次獨立唯讀審查：初審Not ready（nginx後所有人共用位址，按位址限流會讓任何人擋住全公司），改為位址＋帳號並修最後管理者競態、帳號是否存在的時間差、重複帳號500；複核Ready。審查提醒：公開入口上有人持續猜某一帳號，可讓該帳號暫時無法從公開網址登入（本機不受影響）。驗證見▶現在。偏離：允許清單外改了NavIcons.tsx、types.ts、WorkspaceShell.tsx（新導覽頁）、AuditLogView.tsx（事件名稱）、`api/app/demo_pack.py`（修DOC-TEMPLATE造成的舊資料包匯入回歸）。未push／合併／部署。
 
-- DOC-TEMPLATE 🟢 隔離交付（2026-10-24）：人類核准[短規格與計畫](superpowers/plans/2026-10-24-doc-templates.md)四項（照規格做、只開管理者、可加docxtpl、沿用AI分支），AI代決細節記在該文件末。完成：樣板庫（上傳.docx掃描代號、欄位設定、編號格式、稅率與進位、換檔改版、停用／刪除、三份虛構範例）、文件分頁「用樣板建立」（必填擋下、自動欄位、明細即時計算）、產生Word存成文件版本、「修改內容重新產生」新版本、稽核只記欄位名稱。一次獨立唯讀審查：初審Not ready（XML屬性／孤立頁首可夾帶Jinja、字元參照`&#123;`繞過），已改為檢查lxml正規化後每個XML部分並加5個測試，兩輪複核Ready；非阻擋：刪除樣板不退容量、產生失敗會跳號、還原版本不保留樣板關聯。驗證見▶現在。偏離：允許清單外改了App.tsx（掛樣板庫）與AuditLogView.tsx（事件中文名稱）；因主checkout停在舊main且有他人未提交文件，改用worktree `../projectflow-rag`開發。正式Docker／PostgreSQL未實測、未push／合併／部署。
+- DOC-TEMPLATE 🟢 隔離交付（2026-10-24）：使用者核准[短規格與計畫](superpowers/plans/2026-10-24-doc-templates.md)四項（照規格做、只開管理者、可加docxtpl、沿用AI分支），AI代決細節記在該文件末。完成：樣板庫（上傳.docx掃描代號、欄位設定、編號格式、稅率與進位、換檔改版、停用／刪除、三份虛構範例）、文件分頁「用樣板建立」（必填擋下、自動欄位、明細即時計算）、產生Word存成文件版本、「修改內容重新產生」新版本、稽核只記欄位名稱。一次獨立唯讀審查：初審Not ready（XML屬性／孤立頁首可夾帶Jinja、字元參照`&#123;`繞過），已改為檢查lxml正規化後每個XML部分並加5個測試，兩輪複核Ready；非阻擋：刪除樣板不退容量、產生失敗會跳號、還原版本不保留樣板關聯。驗證見▶現在。偏離：允許清單外改了App.tsx（掛樣板庫）與AuditLogView.tsx（事件中文名稱）；因主checkout停在舊main且有他人未提交文件，改用worktree `../projectflow-rag`開發。正式Docker／PostgreSQL未實測、未push／合併／部署。
 
-- TIME-FIX 🟢 隔離交付（2026-10-23）：人類指示「A03跟S01繼續修」。依[短計畫](superpowers/plans/2026-10-23-time-fix.md)：改前先凍結第三份獨立題庫`51544c5`；檢索前中文時間轉HH:MM、question_times入模型內容、時間區間與是非題規則、未記載回答無引用也轉固定拒答。結果含誤判與無法比較的限制如實記錄。未push／合併／部署。
+- TIME-FIX 🟢 隔離交付（2026-10-23）：使用者指示「A03跟S01繼續修」。依[短計畫](superpowers/plans/2026-10-23-time-fix.md)：改前先凍結第三份獨立題庫`51544c5`；檢索前中文時間轉HH:MM、question_times入模型內容、時間區間與是非題規則、未記載回答無引用也轉固定拒答。結果含誤判與無法比較的限制如實記錄。未push／合併／部署。
 
-- REFUSAL-FIX 🟢 隔離交付（2026-10-23）：人類指示「先改善過度拒答」。依[短計畫](superpowers/plans/2026-10-23-refusal-fix.md)：改提示前先凍結第二份獨立題庫`08637eb`並只看總分基準；以開發題庫調整：等價規則、移除「未記載也拒答」句、伺服器把開頭即「資料未記載」的回答轉固定拒答、他公司規則（點名他公司且可見來源未提及時不呼叫模型）。結果與退步（S01）如實記錄。未push／合併／部署。
+- REFUSAL-FIX 🟢 隔離交付（2026-10-23）：使用者指示「先改善過度拒答」。依[短計畫](superpowers/plans/2026-10-23-refusal-fix.md)：改提示前先凍結第二份獨立題庫`08637eb`並只看總分基準；以開發題庫調整：等價規則、移除「未記載也拒答」句、伺服器把開頭即「資料未記載」的回答轉固定拒答、他公司規則（點名他公司且可見來源未提及時不呼叫模型）。結果與退步（S01）如實記錄。未push／合併／部署。
 
-- HOLDOUT-EVAL 🟢 隔離交付（2026-10-23）：人類指示「繼續做獨立題庫」。依[短計畫](superpowers/plans/2026-10-23-holdout-eval.md)：只依教材原文另寫43題（措辭不沿用開發題庫）＋`deploy/check_holdout.py`自動評分；**第一次執行前commit凍結**`4f4bf9d`，執行後git diff為空。首輪37/43，結果與限制（開發者撰寫、非第三方盲測；自動判定非完整語意評分）如實記錄；本輪不改提示，避免題庫被污染。
+- HOLDOUT-EVAL 🟢 隔離交付（2026-10-23）：使用者指示「繼續做獨立題庫」。依[短計畫](superpowers/plans/2026-10-23-holdout-eval.md)：只依教材原文另寫43題（措辭不沿用開發題庫）＋`deploy/check_holdout.py`自動評分；**第一次執行前commit凍結**`4f4bf9d`，執行後git diff為空。首輪37/43，結果與限制（開發者撰寫、非第三方盲測；自動判定非完整語意評分）如實記錄；本輪不改提示，避免題庫被污染。
 
-- OCR 🟢 隔離交付（2026-10-23）：人類指示「繼續做OCR」，選RapidOCR套件；預設簡體模型把繁體認成簡體或漏字，人類同意（「可以繼續」）改下載RapidAI官方繁中辨識模型（ModelScope，SHA-256核對）。依[短計畫](superpowers/plans/2026-10-23-ocr.md)：圖片與無文字層PDF頁OCR、低信心行丟棄與整份略過、OCR標示與信心、像素／頁數上限、OCR開關或模型變更自動重解析、OCR套件另列不進正式主依賴。示範題加D20／D21。驗證見▶現在。未push／合併／部署。
+- OCR 🟢 隔離交付（2026-10-23）：使用者指示「繼續做OCR」，選RapidOCR套件；預設簡體模型把繁體認成簡體或漏字，使用者同意（「可以繼續」）改下載RapidAI官方繁中辨識模型（ModelScope，SHA-256核對）。依[短計畫](superpowers/plans/2026-10-23-ocr.md)：圖片與無文字層PDF頁OCR、低信心行丟棄與整份略過、OCR標示與信心、像素／頁數上限、OCR開關或模型變更自動重解析、OCR套件另列不進正式主依賴。示範題加D20／D21。驗證見▶現在。未push／合併／部署。
 
-- CLASSIFY-MASK 🟢 隔離交付（2026-10-23）：人類指示「繼續做資料分級與遮罩」（README F9／§8.5）。依[短計畫](superpowers/plans/2026-10-23-classification-masking.md)：公司→專案→節點→文件繼承、只能更嚴格（放寬回422）、公司預設機密（AI代決：沿用原本未分級從嚴）；規則遮罩（比例、金額、電話、Email、合作夥伴名）與還原；政策三選一但無雲端供應商、任何政策都不送出（AI代決：混合與允許雲端都遮罩內部內容）；含機密整題只限本地；預覽列遮罩後雲端內容；真實「AI政策與稽核」頁（非隔離時維持原示意）；AI稽核查詢。延後：雲端供應商、欄位級分級、本地小模型偵測、正式PG資料表。驗證見▶現在。未push／合併／部署。
+- CLASSIFY-MASK 🟢 隔離交付（2026-10-23）：使用者指示「繼續做資料分級與遮罩」（README F9／§8.5）。依[短計畫](superpowers/plans/2026-10-23-classification-masking.md)：公司→專案→節點→文件繼承、只能更嚴格（放寬回422）、公司預設機密（AI代決：沿用原本未分級從嚴）；規則遮罩（比例、金額、電話、Email、合作夥伴名）與還原；政策三選一但無雲端供應商、任何政策都不送出（AI代決：混合與允許雲端都遮罩內部內容）；含機密整題只限本地；預覽列遮罩後雲端內容；真實「AI政策與稽核」頁（非隔離時維持原示意）；AI稽核查詢。延後：雲端供應商、欄位級分級、本地小模型偵測、正式PG資料表。驗證見▶現在。未push／合併／部署。
 
-- VECTOR-RETRIEVAL 🟢 隔離交付（2026-10-23）：人類指示「要有可以示範查詢的題目，並繼續把這份架構完成」，選README架構圖的「向量檢索」並同意下載本地embedding模型。依[短計畫](superpowers/plans/2026-10-23-vector-retrieval.md)：bge-m3（隔離Ollama，雙模型常駐）、入門文件向量側檔、正式索引向量表（增量／補齊／換模型重算）、關鍵字前3名保留＋RRF補足、向量只在已授權候選中計分、失敗退回關鍵字並標示。純RRF使Q10退步（retrieval-1）已撤回。新增[示範題目](ai-demo-questions.md)、`deploy/check_demo_questions.py`、`deploy/check_retrieval.py`與換句話說題庫；副手快捷鈕改用示範題。驗證見▶現在。未push／合併／部署。
+- VECTOR-RETRIEVAL 🟢 隔離交付（2026-10-23）：使用者指示「要有可以示範查詢的題目，並繼續把這份架構完成」，選README架構圖的「向量檢索」並同意下載本地embedding模型。依[短計畫](superpowers/plans/2026-10-23-vector-retrieval.md)：bge-m3（隔離Ollama，雙模型常駐）、入門文件向量側檔、正式索引向量表（增量／補齊／換模型重算）、關鍵字前3名保留＋RRF補足、向量只在已授權候選中計分、失敗退回關鍵字並標示。純RRF使Q10退步（retrieval-1）已撤回。新增[示範題目](ai-demo-questions.md)、`deploy/check_demo_questions.py`、`deploy/check_retrieval.py`與換句話說題庫；副手快捷鈕改用示範題。驗證見▶現在。未push／合併／部署。
 
-- LOCAL-MODEL-POLISH 🟢 隔離交付（2026-10-23）：人類指示「先不要碰（遠端新分支），先把我目前本地的rag分支，審查後繼續完成」。high審查9項；人類選「放得下的先送」修正位元組當token的輸入預算（正式文件4段以上整題降級）。依[短計畫](superpowers/plans/2026-10-23-local-model-polish.md)：字元估算＋依排名送完整段落、`sent_count`與畫面標示、`as_of`入提示、Q09／Q28／Q32措辭；單一來源檔不存在只略過、Windows發布重試、document 503、starter原文依include_history、狀態錯誤自動清除。提示三版比較，第2版退步撤回；Q07仍為已知限制。延後：來源雜湊效能、峰曜一般成員驗收帳號。驗證見▶現在。未push／合併／部署。
+- LOCAL-MODEL-POLISH 🟢 隔離交付（2026-10-23）：使用者指示「先不要碰（遠端新分支），先把我目前本地的rag分支，審查後繼續完成」。high審查9項；使用者選「放得下的先送」修正位元組當token的輸入預算（正式文件4段以上整題降級）。依[短計畫](superpowers/plans/2026-10-23-local-model-polish.md)：字元估算＋依排名送完整段落、`sent_count`與畫面標示、`as_of`入提示、Q09／Q28／Q32措辭；單一來源檔不存在只略過、Windows發布重試、document 503、starter原文依include_history、狀態錯誤自動清除。提示三版比較，第2版退步撤回；Q07仍為已知限制。延後：來源雜湊效能、峰曜一般成員驗收帳號。驗證見▶現在。未push／合併／部署。
 
-- LOCAL-AI-HANDOFF（2026-10-21）：依人類「做好交接檔 commit」整理[本地AI／RAG交接檔](LOCAL_AI_HANDOFF.md)，涵蓋啟動、隔離路徑、程式入口、canonical驗收、三項語意限制及後續工作。僅文件提交；核對路徑與差異，不重跑產品測試、不改執行資料、不push／合併／部署。
+- LOCAL-AI-HANDOFF（2026-10-21）：依使用者「做好交接檔 commit」整理[本地AI／RAG交接檔](LOCAL_AI_HANDOFF.md)，涵蓋啟動、隔離路徑、程式入口、canonical驗收、三項語意限制及後續工作。僅文件提交；核對路徑與差異，不重跑產品測試、不改執行資料、不push／合併／部署。
 
 - LOCAL-MODEL 🟢 隔離交付（2026-10-21）：依[短規格／計畫](superpowers/plans/2026-10-21-local-model-acceptance.md)完成Qwen3 4B本地串接、嚴格完成／拒答結構、限定引用、版本metadata與真模型驗收。15176／18006／11436新副本。41例與4權限檢查、API57／前端15／Edge2及原資料保留證據見▶現在；三項輕微語意限制留後續，不宣稱完美或獨立測試。未push／合併／正式部署。
 
@@ -110,17 +110,17 @@
 
 - FORMAL-INDEX 🟢 隔離交付（2026-10-20）：依[短規格／計畫](superpowers/plans/2026-10-20-formal-document-index.md)完成正式文件／附件手動索引、TXT／CSV／文字PDF／DOCX／XLSX解析、最新版本／即時權限、分段引用與機密預覽。另複製隔離DB及獨立檔案區，原資料hash與30表81筆原資料核對保留。API79pass及審查修正後相關8pass、前端316pass、build與新舊資料集Edge4pass；獨立審查P2已修並複核。僅本機分支交付，未合併／推送／正式部署。
 
-- AI-GATEWAY-LOCAL 🟢 隔離交付（2026-10-20）：人類授權繼續後續工作，按[本地閘道短計畫](superpowers/plans/2026-10-20-ai-gateway-local.md)完成模型統一出口、教材分級、零模型預覽與摘要稽核，程式`c964f97`。API25pass、前端全量314pass／最後相關11pass、tsc/build及桌面／手機2pass、32題來源／權限評測無退步，獨立審查與複核無實質問題。只隔離交付，正式繼承／遮罩／雲端／向量索引留後續。
+- AI-GATEWAY-LOCAL 🟢 隔離交付（2026-10-20）：使用者授權繼續後續工作，按[本地閘道短計畫](superpowers/plans/2026-10-20-ai-gateway-local.md)完成模型統一出口、教材分級、零模型預覽與摘要稽核，程式`c964f97`。API25pass、前端全量314pass／最後相關11pass、tsc/build及桌面／手機2pass、32題來源／權限評測無退步，獨立審查與複核無實質問題。只隔離交付，正式繼承／遮罩／雲端／向量索引留後續。
 
-- RAG-STARTER 🟢 隔離交付（2026-10-20）：人類授權接續匯入後續工作，並指定假資料改用現有公司。依[短規格／計畫](superpowers/plans/2026-10-20-rag-starter-import.md)，改成毛研食品／峰曜科技，新增獨立starter-v1資料集、PDF文字解析、搜尋與來源、新舊版本及完整工單查詢。舊AI資料與正式DB保留；人資限定資料暫限admin。已在repo外獨立AI區匯入24份並完成17項API、前端全量311及最後相關9項、桌面／手機2項驗證；32題來源／權限驗證通過，模型答案品質未測。使用者確認Docker仍出錯，先交付15175隔離SQLite版；未匯入正式環境、未push／合併。
+- RAG-STARTER 🟢 隔離交付（2026-10-20）：使用者授權接續匯入後續工作，並指定假資料改用現有公司。依[短規格／計畫](superpowers/plans/2026-10-20-rag-starter-import.md)，改成毛研食品／峰曜科技，新增獨立starter-v1資料集、PDF文字解析、搜尋與來源、新舊版本及完整工單查詢。舊AI資料與正式DB保留；人資限定資料暫限admin。已在repo外獨立AI區匯入24份並完成17項API、前端全量311及最後相關9項、桌面／手機2項驗證；32題來源／權限驗證通過，模型答案品質未測。使用者確認Docker仍出錯，先交付15175隔離SQLite版；未匯入正式環境、未push／合併。
 
-- RAG-SAMPLE（2026-10-20，獨立素材交付，非產品功能完成）：依人類要求產生一般人資易讀的RAG假資料與尚未完成工作清單。產物位於repo外的`../output/projectflow-rag-starter-20261020/`：6份會議紀錄、8份工單、4份通知／郵件、6份中文PDF，共24份文件；另附32題預期問答、來源與權限metadata、SHA-256、ZIP及系統待辦盤點。情境為新人報到、教育訓練與歡迎包，含舊版／新版、人資限定與跨公司隔離案例。以本機main `3c1294e`的README／看板／AI文件與匯入程式盤點；現有文字RAG已實作，AI閘道與正式文件索引仍待完成。本包不是既有`app.ai.import_cli`契約，需另外轉接及隔離驗證。24份來源、32題引用／公司／角色／指定證據片段與6份單頁PDF完整中文擷取檢查通過；6頁已渲染目視確認。未匯入系統、未改產品程式／正式資料、未跑RAG模型評測或產品回歸，未部署／提交／推送。
+- RAG-SAMPLE（2026-10-20，獨立素材交付，非產品功能完成）：依要求產生一般人資易讀的RAG假資料與尚未完成工作清單。產物位於repo外的`../output/projectflow-rag-starter-20261020/`：6份會議紀錄、8份工單、4份通知／郵件、6份中文PDF，共24份文件；另附32題預期問答、來源與權限metadata、SHA-256、ZIP及系統待辦盤點。情境為新人報到、教育訓練與歡迎包，含舊版／新版、人資限定與跨公司隔離案例。以本機main `3c1294e`的README／看板／AI文件與匯入程式盤點；現有文字RAG已實作，AI閘道與正式文件索引仍待完成。本包不是既有`app.ai.import_cli`契約，需另外轉接及隔離驗證。24份來源、32題引用／公司／角色／指定證據片段與6份單頁PDF完整中文擷取檢查通過；6頁已渲染目視確認。未匯入系統、未改產品程式／正式資料、未跑RAG模型評測或產品回歸，未部署／提交／推送。
 
-- DOCS-CLEAN ✅：人類2026-10-20指示同步git、整理本地內容、把已完成的進度從README移除並精簡、依目前進度更新架構圖，確認後再push。fetch後origin沒有新commit，本機main領先1個（`d3fc44e` OPS-PUBLIC紀錄）。README（1045→約810行）刪除頂部逐次交付公告、協作者分支段、目前進度表與UI／TP逐段說明、Demo功能總覽；改為目前狀態、快速開始（本機／給別人試用／自動驗收／單檔Demo）、正式版功能總覽、§8只列正式版還沒做的項目；§3–§5規格保留，§9「已決定」修正前端（實際未用dnd-kit／React Flow）與文件編輯兩列。架構圖改為正式版現況：web／api／db容器、files與ai_data volume已完成，區網與Tailscale試用、AI副手與Ollama為試用級，內網HTTPS、AI閘道、pgvector待建置，備份／NAS、ERP／AD、雲端LLM為外部目標。AGENTS.md文件地圖的README列同步更新。`docs/technical-roadmap.md`（人類本機2026-10-19的技術路線圖，原未追蹤）一併提交，只把一句對話用語改成中性說法。
+- DOCS-CLEAN ✅：使用者2026-10-20指示同步git、整理本地內容、把已完成的進度從README移除並精簡、依目前進度更新架構圖，確認後再push。fetch後origin沒有新commit，本機main領先1個（`d3fc44e` OPS-PUBLIC紀錄）。README（1045→約810行）刪除頂部逐次交付公告、協作者分支段、目前進度表與UI／TP逐段說明、Demo功能總覽；改為目前狀態、快速開始（本機／給別人試用／自動驗收／單檔Demo）、正式版功能總覽、§8只列正式版還沒做的項目；§3–§5規格保留，§9「已決定」修正前端（實際未用dnd-kit／React Flow）與文件編輯兩列。架構圖改為正式版現況：web／api／db容器、files與ai_data volume已完成，區網與Tailscale試用、AI副手與Ollama為試用級，內網HTTPS、AI閘道、pgvector待建置，備份／NAS、ERP／AD、雲端LLM為外部目標。AGENTS.md文件地圖的README列同步更新。`docs/technical-roadmap.md`（使用者本機2026-10-19的技術路線圖，原未追蹤）一併提交，只把一句對話用語改成中性說法。
 
-- OPS-PUBLIC ✅：人類2026-10-15回報「今天開啟又不能用了，別人點網址打不開」，並貼上`Desktop\projectflow-local\start.bat`（repo外的本地共用版：uvicorn 8001、經Tailscale分享8443）的啟動畫面。排查：本機8001回200；`tailscale funnel status`顯示8443為tailnet only。實測`tailscale serve --bg --https=8443`會印出「Removing Funnel for …:8443」並把8443移出AllowFunnel，而舊`start.bat`把輸出丟到nul，所以每次啟動都會關掉公開，對外顯示的卻是「已轉發」。另外10000正式版：Docker引擎正常但沒有容器在跑（restart=no），`shell:startup`裡沒有本repo捷徑，08:08開機後沒有人啟動。人類選「改成公開」與「一起啟動」：開啟8443 Funnel；repo外`start.bat`改用`tailscale funnel`，失敗時顯示提示，並更新其README；`python deploy/public_trial.py` exit0，本機與公開health 200。之後人類指示加捷徑：`shell:startup\ProjectFlow 公開試用.lnk`→`開機自動啟動-公開試用.bat`（工作目錄為repo根目錄、可見視窗），已讀回確認目標存在，未實際登出重登測試。驗證見▶現在的測試基準。8443本地共用版沒有登入，公開後任何人都能修改或重置資料；projectflow-local不在git。
+- OPS-PUBLIC ✅：使用者2026-10-15回報「今天開啟又不能用了，別人點網址打不開」，並貼上`Desktop\projectflow-local\start.bat`（repo外的本地共用版：uvicorn 8001、經Tailscale分享8443）的啟動畫面。排查：本機8001回200；`tailscale funnel status`顯示8443為tailnet only。實測`tailscale serve --bg --https=8443`會印出「Removing Funnel for …:8443」並把8443移出AllowFunnel，而舊`start.bat`把輸出丟到nul，所以每次啟動都會關掉公開，對外顯示的卻是「已轉發」。另外10000正式版：Docker引擎正常但沒有容器在跑（restart=no），`shell:startup`裡沒有本repo捷徑，08:08開機後沒有人啟動。使用者選「改成公開」與「一起啟動」：開啟8443 Funnel；repo外`start.bat`改用`tailscale funnel`，失敗時顯示提示，並更新其README；`python deploy/public_trial.py` exit0，本機與公開health 200。之後使用者指示加捷徑：`shell:startup\ProjectFlow 公開試用.lnk`→`開機自動啟動-公開試用.bat`（工作目錄為repo根目錄、可見視窗），已讀回確認目標存在，未實際登出重登測試。驗證見▶現在的測試基準。8443本地共用版沒有登入，公開後任何人都能修改或重置資料；projectflow-local不在git。
 
-- OPS-SYNC ✅：人類2026-10-14指示「同步最新的git，並部署在本地」。fetch後origin/main為`28dbecb`（人類在GitHub合併PR #3，含本機`ed530e5`），本機main無獨有commit，`git merge --ff-only origin/main`。因15173為公開模式，用`python deploy/public_trial.py`重新部署（只重建web）。合併把▶現在變成兩張表、README漏掉網際網路試用說明，已整併與補回。
+- OPS-SYNC ✅：使用者2026-10-14指示「同步最新的git，並部署在本地」。fetch後origin/main為`28dbecb`（使用者在GitHub合併PR #3，含本機`ed530e5`），本機main無獨有commit，`git merge --ff-only origin/main`。因15173為公開模式，用`python deploy/public_trial.py`重新部署（只重建web）。合併把▶現在變成兩張表、README漏掉網際網路試用說明，已整併與補回。
 
 - PR交付（2026-10-13）：依使用者要求將本分支正式介面更新納入 [PR #3](https://github.com/chenliyu0410/projectflow/pull/3)，等待審閱。以下歷史項目的「本機／未推送」為當時狀態，以本筆交付紀錄為準。前端全量30檔306pass；更新兩項過期／焦點等待測試，獨立複核無實質問題。相依圖獨立 HTML 與登入風格試稿均在儲存庫外，暫不採用、不提交；正式相依圖維持現況。
 
@@ -133,23 +133,23 @@
 - NAV-SURFACE ✅（2026-10-13）：依使用者指示在目前分支調整自動隱藏捲軸、右側專案第二層面板、頁籤與內容連接底色；[短規格與計畫](superpowers/plans/2026-10-13-navigation-surface.md)。僅前端，本輪不推送／合併／部署。
 
 - UX-CHILD ✅（2026-10-12，協作者本機；2026-10-14經PR #3合併main `28dbecb`）：追加左側專案遮蔽修正：單一捲動、長名稱換行；5尺寸＋時程E2E 8pass、相關前端31pass、build0、獨立審查無阻塞。完成時程新增／拖曳／限制原因／位置保留／觸控修正；[短計畫](superpowers/plans/2026-10-12-ux-child-modules-navigation.md)、[檢查與後續 UI／UX 清單](ux-child-review.md)。前端 298pass（單工作程序）、型別／build exit0；資料包 80帳戶×39專案的528組同公司矩陣通過，相關API 76pass，桌面／手機／唯讀E2E 3pass。獨立審查父層失效問題已修並複核。本輪不合併／push／部署，優先於歷史 D50。
-- PUBLIC-TRIAL ✅：人類2026-10-14指示「給我本地開伺服器，讓別人能測試projectflow的方法」並附LH／PowerQueryTW的開機自動啟動.bat；被問開放範圍選「網際網路（Funnel）」、啟動方式選「開機自動啟動 .bat」，即授權本機15173經Tailscale Funnel對網際網路開放試用（D65 §14第7點）。[短計畫](superpowers/plans/2026-10-14-public-trial.md)：Funnel 10000→web新增的loopback 15174（nginx 81只收`*.ts.net` Host、對API帶`X-Forwarded-Proto: https`，公開疊加檔讓uvicorn採用），`deploy/public_trial.py`等Docker／Tailscale後發布並健檢，不覆蓋別人的10000；`--stop`只關自己的Funnel並回到本機模式；根目錄兩個ASCII／CRLF .bat。一次唯讀獨立審查Ready；非阻擋第1點（使用者目錄的Docker Desktop）已修，其他見§7。部署：`public_trial.py`與兩個.bat經cmd實跑皆exit0，本機與公開health 200；Funnel 443／8443未動；區網IP連15173／15174皆拒；公開網址帶偽造`Host: 127.0.0.1`／`localhost`回421；經15174以ts.net Host登入yu得6家切換清單，https Origin通過同源檢查（未知公司404、未實際切換），http Origin 403，AI模型設定403；之後登出。限制：內建瀏覽器擋公開網址的JS／CSS（ERR_BLOCKED_BY_CLIENT，curl取得200且本機同bundle正常），外部網路實際畫面待人類確認；密碼`demo-<帳號>`可推得；無帳號管理／改密碼／登入限流。
+- PUBLIC-TRIAL ✅：使用者2026-10-14指示「給我本地開伺服器，讓別人能測試projectflow的方法」並附LH／PowerQueryTW的開機自動啟動.bat；被問開放範圍選「網際網路（Funnel）」、啟動方式選「開機自動啟動 .bat」，即授權本機15173經Tailscale Funnel對網際網路開放試用（D65 §14第7點）。[短計畫](superpowers/plans/2026-10-14-public-trial.md)：Funnel 10000→web新增的loopback 15174（nginx 81只收`*.ts.net` Host、對API帶`X-Forwarded-Proto: https`，公開疊加檔讓uvicorn採用），`deploy/public_trial.py`等Docker／Tailscale後發布並健檢，不覆蓋別人的10000；`--stop`只關自己的Funnel並回到本機模式；根目錄兩個ASCII／CRLF .bat。一次唯讀獨立審查Ready；非阻擋第1點（使用者目錄的Docker Desktop）已修，其他見§7。部署：`public_trial.py`與兩個.bat經cmd實跑皆exit0，本機與公開health 200；Funnel 443／8443未動；區網IP連15173／15174皆拒；公開網址帶偽造`Host: 127.0.0.1`／`localhost`回421；經15174以ts.net Host登入yu得6家切換清單，https Origin通過同源檢查（未知公司404、未實際切換），http Origin 403，AI模型設定403；之後登出。限制：內建瀏覽器擋公開網址的JS／CSS（ERR_BLOCKED_BY_CLIENT，curl取得200且本機同bundle正常），外部網路實際畫面待確認；密碼`demo-<帳號>`可推得；無帳號管理／改密碼／登入限流。
 
-- LAN-SWITCH ✅：人類2026-10-12問「有辦法一個帳號就切換公司嗎」，選方案A「好，照 A 做」：把既有展示公司切換開放給`--lan`區網試用的管理員（切換後身分是該公司的展示管理者）；方案B（一個帳號屬於多家公司）未選。[短計畫](superpowers/plans/2026-10-12-lan-company-switch.md)。新增API環境變數`PF_SHOWCASE_LAN`，與`PF_SHOWCASE_MODE`都為true時展示切換與展示身分session不限本機Host；`start.py`每次強制帶值（`--lan`才true），驗收環境永遠false；AI模型設定仍只限本機，前端未改。一次唯讀獨立審查Ready（另以暫存env實測compose：shell值優先於env檔）。部署：pg_dump後`start.py --lan`，API容器重建、web／DB未重建，容器內`PF_SHOWCASE_LAN=true`；127.0.0.1與區網IP health ready；以區網Host登入yu回傳6家公司切換清單後登出。未實際在區網執行切換（避免寫入稽核）；非阻擋：選單文字仍為「切換公司（本機展示）」。
+- LAN-SWITCH ✅：使用者2026-10-12問「有辦法一個帳號就切換公司嗎」，選方案A「好，照 A 做」：把既有展示公司切換開放給`--lan`區網試用的管理員（切換後身分是該公司的展示管理者）；方案B（一個帳號屬於多家公司）未選。[短計畫](superpowers/plans/2026-10-12-lan-company-switch.md)。新增API環境變數`PF_SHOWCASE_LAN`，與`PF_SHOWCASE_MODE`都為true時展示切換與展示身分session不限本機Host；`start.py`每次強制帶值（`--lan`才true），驗收環境永遠false；AI模型設定仍只限本機，前端未改。一次唯讀獨立審查Ready（另以暫存env實測compose：shell值優先於env檔）。部署：pg_dump後`start.py --lan`，API容器重建、web／DB未重建，容器內`PF_SHOWCASE_LAN=true`；127.0.0.1與區網IP health ready；以區網Host登入yu回傳6家公司切換清單後登出。未實際在區網執行切換（避免寫入稽核）；非阻擋：選單文字仍為「切換公司（本機展示）」。
 
-- LAN-TRIAL ✅：人類2026-10-12指示「你先弄一個我本機能跑的，我要給同網域的其他人測試」，即授權本機15173對同網路開放試用（D65 §14第7點要求的LAN人類授權）。[短計畫](superpowers/plans/2026-10-12-lan-trial.md)：`deploy/start.py --lan`只讓web綁0.0.0.0，預設啟動強制127.0.0.1（不沿用殘留的WEB_BIND），API與DB不對外，`--lan`不可用於驗收環境。唯讀獨立審查第一輪No：區網`http://<IP>`不是安全情境，瀏覽器沒有`crypto.randomUUID`，庫存入帳／退貨／沖銷與模板新增節點會失效；以Plan fix補列前端檔，新增`newId()`改用`getRandomValues`備援，複核Ready。部署：pg_dump備份後`start.py --lan`，`compose port`為web `0.0.0.0:15173`、API `127.0.0.1:18000`，只重建web；127.0.0.1與172.22.32.95的`/api/health/ready`皆ready、首頁200，區網IP連18000失敗；瀏覽器在區網IP確認登入頁、`isSecureContext=false`、`randomUUID`不存在、bundle含備援。未做：HTTPS、帳號管理／改密碼、Host標頭強化；密碼為公開的`demo-<帳號>`，只限信任網路。防火牆與他機實測由人類處理。
+- LAN-TRIAL ✅：使用者2026-10-12指示「你先弄一個我本機能跑的，我要給同網域的其他人測試」，即授權本機15173對同網路開放試用（D65 §14第7點要求的LAN使用者授權）。[短計畫](superpowers/plans/2026-10-12-lan-trial.md)：`deploy/start.py --lan`只讓web綁0.0.0.0，預設啟動強制127.0.0.1（不沿用殘留的WEB_BIND），API與DB不對外，`--lan`不可用於驗收環境。唯讀獨立審查第一輪No：區網`http://<IP>`不是安全情境，瀏覽器沒有`crypto.randomUUID`，庫存入帳／退貨／沖銷與模板新增節點會失效；以Plan fix補列前端檔，新增`newId()`改用`getRandomValues`備援，複核Ready。部署：pg_dump備份後`start.py --lan`，`compose port`為web `0.0.0.0:15173`、API `127.0.0.1:18000`，只重建web；127.0.0.1與172.22.32.95的`/api/health/ready`皆ready、首頁200，區網IP連18000失敗；瀏覽器在區網IP確認登入頁、`isSecureContext=false`、`randomUUID`不存在、bundle含備援。未做：HTTPS、帳號管理／改密碼、Host標頭強化；密碼為公開的`demo-<帳號>`，只限信任網路。防火牆與他機實測由使用者處理。
 
-- OPS-RESTORE ✅：人類2026-10-12問本機15173專案為何變少、切換公司去哪，選擇「搬另一台的資料庫過來」。本機DB只有10-08 P1c種子（git不同步資料），公司選單需本機`deploy/.env`的`PF_SHOWCASE_MODE=true`而本機未設。原請人類手動匯出pg_dump，後人類貼上另一session的DATA-PACK交付說明，改用`deploy/demo-data`去敏資料包還原。Claude先pg_dump本機DB（119,599 bytes，pg_restore列238項，.superpowers/f1-ret-deploy/before-restore.dump）並在本機`deploy/.env`加`PF_SHOWCASE_MODE=true`；清空資料庫被自動權限判為大量刪除而拒絕，改由人類執行：停API／web、DROP／CREATE `projectflow`、`deploy/start.py`（不seed，migrate到0019）、`deploy/demo_data.py import`。匯入27表共1758列與清單一致（逐表SHA-256核對）。Claude核對：alembic 0019、health ready、yu／demo-yu登入、左下公司選單可用（6家公司，各有專用展示管理者）、專案6家合計39（食品8、電子8、活動7、工程6、軟體6、禾沐4）、食品採購紀錄3。資料包不含稽核、通知、session與AI資料，故活動與稽核紀錄為空、AI資料區未就緒；帳號密碼皆為`demo-<帳號>`。
+- OPS-RESTORE ✅：使用者2026-10-12問本機15173專案為何變少、切換公司去哪，選擇「搬另一台的資料庫過來」。本機DB只有10-08 P1c種子（git不同步資料），公司選單需本機`deploy/.env`的`PF_SHOWCASE_MODE=true`而本機未設。原請手動匯出pg_dump，後使用者貼上另一session的DATA-PACK交付說明，改用`deploy/demo-data`去敏資料包還原。Claude先pg_dump本機DB（119,599 bytes，pg_restore列238項，.superpowers/f1-ret-deploy/before-restore.dump）並在本機`deploy/.env`加`PF_SHOWCASE_MODE=true`；清空資料庫被自動權限判為大量刪除而拒絕，改由使用者執行：停API／web、DROP／CREATE `projectflow`、`deploy/start.py`（不seed，migrate到0019）、`deploy/demo_data.py import`。匯入27表共1758列與清單一致（逐表SHA-256核對）。Claude核對：alembic 0019、health ready、yu／demo-yu登入、左下公司選單可用（6家公司，各有專用展示管理者）、專案6家合計39（食品8、電子8、活動7、工程6、軟體6、禾沐4）、食品採購紀錄3。資料包不含稽核、通知、session與AI資料，故活動與稽核紀錄為空、AI資料區未就緒；帳號密碼皆為`demo-<帳號>`。
 
-- DATA-PACK ✅：使用者2026-10-12要求「把資料庫內容打包上傳到GIT」，經詢問選擇去敏展示資料包（repo為private）。新增`api/app/demo_pack.py`、`deploy/demo_data.py`與`deploy/demo-data/`：匯出15173的27張業務表共1758列（migration 0019），排除sessions／audit_logs／notifications並不寫密碼雜湊，還原帳號密碼為`demo-<帳號>`，只能還原到同版本的空資料庫。`test_demo_pack.py` 2pass；隔離throwaway PG（projectflow-packcheck，已down、volume保留）實測還原→再匯出27表SHA-256全同、重複還原拒絕、yu／demo-yu登入可用。輸出掃描無密碼雜湊／token／env。未另做獨立審查。上傳時遠端已有另一session的F1-RET（0019），經使用者選擇：本機未push的資料包commit rebase到origin/main（README／PROGRESS僅新增段落衝突，兩邊保留），整合後相關API 68pass、migration 23pass；先備份（.superpowers/f1-ret-local），由人類於本機執行start.py部署0019，3338列／1檔案／env保留，再以0019重新匯出（列內容不變）。發現Windows autocrlf clone會改寫JSON換行致SHA-256不符，新增`.gitattributes`令`deploy/demo-data/**`不轉換，並以新clone驗證。
+- DATA-PACK ✅：使用者2026-10-12要求「把資料庫內容打包上傳到GIT」，經詢問選擇去敏展示資料包（repo為private）。新增`api/app/demo_pack.py`、`deploy/demo_data.py`與`deploy/demo-data/`：匯出15173的27張業務表共1758列（migration 0019），排除sessions／audit_logs／notifications並不寫密碼雜湊，還原帳號密碼為`demo-<帳號>`，只能還原到同版本的空資料庫。`test_demo_pack.py` 2pass；隔離throwaway PG（projectflow-packcheck，已down、volume保留）實測還原→再匯出27表SHA-256全同、重複還原拒絕、yu／demo-yu登入可用。輸出掃描無密碼雜湊／token／env。未另做獨立審查。上傳時遠端已有另一session的F1-RET（0019），經使用者選擇：本機未push的資料包commit rebase到origin/main（README／PROGRESS僅新增段落衝突，兩邊保留），整合後相關API 68pass、migration 23pass；先備份（.superpowers/f1-ret-local），由使用者於本機執行start.py部署0019，3338列／1檔案／env保留，再以0019重新匯出（列內容不變）。發現Windows autocrlf clone會改寫JSON換行致SHA-256不符，新增`.gitattributes`令`deploy/demo-data/**`不轉換，並以新clone驗證。
 
-- OPS-CLEAN ✅：人類2026-10-12看到本機15173總覽滿是「P1b E2E …」專案，選擇「只刪測試專案」：刪除10-08 P1b自動測試直接寫入本機正式庫的11個測試專案及其44節點、11關卡、36筆相關稽核（25筆連節點、11筆建立紀錄）；兩個示範專案、帳號、部門與其稽核保留。系統無刪除專案功能，以單一DB交易（範圍與剩餘數量不符即中止）執行。事前pg_dump備份（125,901 bytes，pg_restore列238項，存.superpowers/f1-ret-deploy/before-cleanup.dump）。結果：專案13→2、節點47→3、關卡11→0、稽核39→3，帳號7、部門5、組織2、模板2不變；health ready，食品公司總覽1專案、專案與稽核端點200。
+- OPS-CLEAN ✅：使用者2026-10-12看到本機15173總覽滿是「P1b E2E …」專案，選擇「只刪測試專案」：刪除10-08 P1b自動測試直接寫入本機正式庫的11個測試專案及其44節點、11關卡、36筆相關稽核（25筆連節點、11筆建立紀錄）；兩個示範專案、帳號、部門與其稽核保留。系統無刪除專案功能，以單一DB交易（範圍與剩餘數量不符即中止）執行。事前pg_dump備份（125,901 bytes，pg_restore列238項，存.superpowers/f1-ret-deploy/before-cleanup.dump）。結果：專案13→2、節點47→3、關卡11→0、稽核39→3，帳號7、部門5、組織2、模板2不變；health ready，食品公司總覽1專案、專案與稽核端點200。
 
-- F1-RET ✅：使用者2026-10-12指示「開始做退貨退料與沖銷」（同提案第3次交付）：採購退貨、工單退料、各類流水沖銷一次並連回原紀錄，原流水不改不刪；使用者同日選定退貨恢復未收等補貨、結案單據須先重開才能退貨／退料／沖銷；[短計畫](superpowers/plans/2026-10-12-f1-returns-reversals.md)。工程交付已合併main，依人類指示部署本機15173，原資料保留。
+- F1-RET ✅：使用者2026-10-12指示「開始做退貨退料與沖銷」（同提案第3次交付）：採購退貨、工單退料、各類流水沖銷一次並連回原紀錄，原流水不改不刪；使用者同日選定退貨恢復未收等補貨、結案單據須先重開才能退貨／退料／沖銷；[短計畫](superpowers/plans/2026-10-12-f1-returns-reversals.md)。工程交付已合併main，依指示部署本機15173，原資料保留。
 
-- F1-WO ✅：使用者2026-10-12指示開始同提案第2次交付「工單產量與狀態」：指定成品與計畫產量、累計領料／完工、系統計算生產狀態、完工不超計畫、人工結案／重開；手動領料保留，BOM自動扣料延後；[短計畫](superpowers/plans/2026-10-12-f1-work-output.md)。15173已部署，原資料保留。退貨／退料沖銷待人類指示。
+- F1-WO ✅：使用者2026-10-12指示開始同提案第2次交付「工單產量與狀態」：指定成品與計畫產量、累計領料／完工、系統計算生產狀態、完工不超計畫、人工結案／重開；手動領料保留，BOM自動扣料延後；[短計畫](superpowers/plans/2026-10-12-f1-work-output.md)。15173已部署，原資料保留。退貨／退料沖銷待指示。
 
-- F1-PO ✅：使用者2026-10-12指示依「業務流程→AI正式資料→團隊試用」主線，先做採購明細、部分收貨進度與單據收貨狀態（超收拒絕、人工結案／重開、舊單不推算明細）；[短計畫](superpowers/plans/2026-10-12-f1-purchase-lines.md)。15173已部署，原資料保留。後續工單產量與狀態、退貨／退料沖銷依同一提案另行交付，待人類指示。
+- F1-PO ✅：使用者2026-10-12指示依「業務流程→AI正式資料→團隊試用」主線，先做採購明細、部分收貨進度與單據收貨狀態（超收拒絕、人工結案／重開、舊單不推算明細）；[短計畫](superpowers/plans/2026-10-12-f1-purchase-lines.md)。15173已部署，原資料保留。後續工單產量與狀態、退貨／退料沖銷依同一提案另行交付，待指示。
 
 - F1-WORK ✅：依使用者授權完成正式工單領料與成品入庫，保留工單來源及異動流水；[短計畫](superpowers/plans/2026-10-12-f1-work-stock.md)。15173已部署，原資料保留。
 
@@ -157,45 +157,45 @@
 
 - F1-LINK ✅：依使用者指示完成專案／任務資料正式關聯，支援供應商、採購、工單搜尋、保存、查看及解除；[短計畫](superpowers/plans/2026-10-11-f1-links.md)。15173已部署，3338筆舊資料及檔案設定保留。
 
-- F1-OPS ✅：人類2026-10-11授權正式營運資料新增／編輯／儲存；依[短計畫](superpowers/plans/2026-10-11-f1-operations.md)交付15173，六公司94筆虛構紀錄保存並標示來源。原資料保留。
+- F1-OPS ✅：使用者2026-10-11授權正式營運資料新增／編輯／儲存；依[短計畫](superpowers/plans/2026-10-11-f1-operations.md)交付15173，六公司94筆虛構紀錄保存並標示來源。原資料保留。
 
 - F1-DOC ✅：2026-10-11完成正式文件上傳、TXT／CSV網頁編輯、不可變版本保存／歷史下載；其他格式上傳新版本。已保留資料部署15173。依[短計畫](superpowers/plans/2026-10-11-f1-documents.md)交付，營運與其餘F1待後續。
 
-- AI-RAG ✅：人類要求匯入AI-DATA並開始RAG／Text-to-SQL，依[短計畫](superpowers/plans/2026-10-11-ai-rag-text2sql.md)完成獨立AI資料區、文字檢索RAG、16種受控SQL與Ollama設定，已部署15173；模型尚未設定，免模型檢索／查詢可用。見[操作說明](ai-assistant.md)。
+- AI-RAG ✅：使用者要求匯入AI-DATA並開始RAG／Text-to-SQL，依[短計畫](superpowers/plans/2026-10-11-ai-rag-text2sql.md)完成獨立AI資料區、文字檢索RAG、16種受控SQL與Ollama設定，已部署15173；模型尚未設定，免模型檢索／查詢可用。見[操作說明](ai-assistant.md)。
 
-- AI-DATA ✅（2026-10-11）：依人類要求完成workspace的`ai-demo-data`獨立虛構資料包；6公司、144專案、3456任務、10368筆記、1728採購、1728成本、864抽查、432風險；4644份RAG文件／4788分段／450題RAG／96題SQL附實際結果。提供ZIP、離線總覽、SQLite、隔離PostgreSQL匯入腳本、生成器、驗證器。`python -X utf8 ai-demo-data/verify.py` exit 0：96查詢重播、30獨立彙總、4644文件與ACL、4665檔SHA256通過。PostgreSQL腳本尚未實際匯入驗證；未修改產品程式、未匯入正式DB、未連接模型。資料包為模板式合成擴充，不等同正式DB ID。
+- AI-DATA ✅（2026-10-11）：依要求完成workspace的`ai-demo-data`獨立虛構資料包；6公司、144專案、3456任務、10368筆記、1728採購、1728成本、864抽查、432風險；4644份RAG文件／4788分段／450題RAG／96題SQL附實際結果。提供ZIP、離線總覽、SQLite、隔離PostgreSQL匯入腳本、生成器、驗證器。`python -X utf8 ai-demo-data/verify.py` exit 0：96查詢重播、30獨立彙總、4644文件與ACL、4665檔SHA256通過。PostgreSQL腳本尚未實際匯入驗證；未修改產品程式、未匯入正式DB、未連接模型。資料包為模板式合成擴充，不等同正式DB ID。
 
-- INDUSTRIES ✅：人類2026-10-11指示其餘公司比照禾沐，生成完整展示資料並放入系統，原資料保留。見[短計畫](superpowers/plans/2026-10-11-industry-showcases.md)。
+- INDUSTRIES ✅：使用者2026-10-11指示其餘公司比照禾沐，生成完整展示資料並放入系統，原資料保留。見[短計畫](superpowers/plans/2026-10-11-industry-showcases.md)。
 
-- HEMU ✅：人類2026-10-11要求將已確認的禾沐食品公司完整展示資料放入系統，原資料全部保留。依[短計畫](superpowers/plans/2026-10-11-hemu-showcase.md)執行。
+- HEMU ✅：使用者2026-10-11要求將已確認的禾沐食品公司完整展示資料放入系統，原資料全部保留。依[短計畫](superpowers/plans/2026-10-11-hemu-showcase.md)執行。
 
 | 順位 | ID | 工作項目 | 狀態 | Spec | Plan | 資料版本 | 依賴 |
 |---|---|---|---|---|---|---|---|
 | 1 | W1 | 子任務置頂回報卡 | ✅ | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)（`3a24c52`） | [plan](superpowers/plans/2026-10-01-subtask-report-card.md)（`ed3e24f`） | 維持 v3 | F11 ✅ |
 | 2 | W2 | 部門模型 | ✅ | [spec](superpowers/specs/2026-10-01-department-model-design.md)（`edf46b6`，`dfc0126` 修訂 §4.1 和範本段，以 HEAD 版本為準） | [plan](superpowers/plans/2026-10-01-department-model.md)（`dfc0126`） | v3 → v4 | W1 已合併（D1）；2026-10-05 已 ff 合併進 `main` |
 | 3 | W3 | 工作流架構（**精簡版**，D31／D42）：工作流模板 CRUD、從工作流建立專案、關卡擋住後續階段 | ✅ | [spec](superpowers/specs/2026-10-05-process-control-design.md) | [plan](superpowers/plans/2026-10-05-workflow-architecture.md) | v4 → v5 | 2026-10-05 完成；依 D42 先完成功能架構，個別工作流內容由使用者之後自行添加 |
-| 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，人類 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
-| 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待人類可推翻 |
+| 4 | W4 | F11 遺留問題清理 | ✖ 取消（D30，使用者 2026-10-05 指示展示模式） | — | — | — | F11-N1 併入 W2 整體修正；其餘 §5 項目延到正式版；D4–D8 維持現狀 |
+| 5 | W5 | README 對齊現況（**精簡**，D30：只改 §1 快速開始、§2 功能總覽） | ✅ | — | — | — | 2026-10-05 完成；full demo 定位文字由 AI 起草，D12 改為待使用者可推翻 |
 | 6 | W6 | 多公司產業範例：五個獨立公司空間、產業化工作流與營運資料 | ✅ 本地 main 已完成（D46；`0934e48`） | [spec](superpowers/specs/2026-10-08-multi-company-industry-demo-design.md) | [plan](superpowers/plans/2026-10-08-multi-company-industry-demo.md) | v5 → v6 | W3、W5 ✅；2026-10-08 全部獨立審查通過並 ff-only 合併 |
 | — | P0 | 正式軌技術骨架與規則 | ✅ 已發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P0可執行計畫](superpowers/plans/2026-10-08-p0-formal-foundation.md) | Demo維持v6 | 三Task與G4獨立審查通過，合併後API8／React6／E2E4與build通過 |
 | — | P1a | 正式版MVP：登入、公司隔離、migration與核心後端API | ✅ 完成並發布GitHub main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1a計畫](superpowers/plans/2026-10-08-p1a-backend-core.md) | 正式PostgreSQL migration `20261008_0001_p1a_core` | 四Task與G4獨立審查通過；API35／Vitest6／E2E4與build通過，真PostgreSQL migration／seed smoke通過 |
 | — | P1b | 正式版MVP：React核心UI | ✅ 已合併main | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1b計畫](superpowers/plans/2026-10-08-p1b-react-core-ui.md) | 沿P1a正式DB | 四Task與G4獨立審查、合併後完整回歸通過 |
-| — | P1c | 正式版MVP：部署／測試／內部試用驗收 | ✅ 工程交付已合併；人類試用待簽核 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1c計畫](superpowers/plans/2026-10-08-p1c-mvp-acceptance.md) | 沿P1a正式DB | 三Task獨立審查及G4 Ready to merge: Yes；main隔離回歸/cleanup通過 |
+| — | P1c | 正式版MVP：部署／測試／內部試用驗收 | ✅ 工程交付已合併；使用者試用待簽核 | [MVP範圍](superpowers/specs/2026-10-05-formal-product-mvp-design.md) | [P1c計畫](superpowers/plans/2026-10-08-p1c-mvp-acceptance.md) | 沿P1a正式DB | 三Task獨立審查及G4 Ready to merge: Yes；main隔離回歸/cleanup通過 |
 
 **排程規則**
-**2026-10-08人類新指示（D54）優先**：P1c之後按以下四階段移植Demo，名稱是本輪工作ID，不等同README舊階段1至9。
+**2026-10-08使用者新指示（D54）優先**：P1c之後按以下四階段移植Demo，名稱是本輪工作ID，不等同README舊階段1至9。
 
-**任務路線圖**：[正式版Demo功能移植](formal-feature-roadmap.md)，依人類「規劃接下來的任務以及每個階段要做什麼」完成提案；不是已審閱的逐Task實作計畫，未開始產品修改。
+**任務路線圖**：[正式版Demo功能移植](formal-feature-roadmap.md)，依使用者「規劃接下來的任務以及每個階段要做什麼」完成提案；不是已審閱的逐Task實作計畫，未開始產品修改。
 
 | 順位 | ID | 工作項目 | 狀態 | Spec／Plan | 依賴 |
 |---|---|---|---|---|---|
 | 已完成 | P2a | 完整任務操作：工作區、總覽、我的任務、新增／編輯、負責人與日期 | ✅ 工程交付 | [spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)／[plan](superpowers/plans/2026-10-08-p2a-task-workspace.md) | P1c工程交付完成 |
 | 已完成 | P2b | 回報／審核、筆記、附件與稽核介面 | ✅ 工程交付 | [完整spec](superpowers/specs/2026-10-08-p2b-collaboration-design.md)／[八Task plan](superpowers/plans/2026-10-08-p2b-collaboration.md)已定稿；八Task／G4雙審、G6隔離回歸及保留資料部署通過 | P2a |
 | 已完成 | P2c | 時程、模板管理、硬性FS前置與簡單相依圖 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)，D66 A已定案 | P2a/P2b |
-| 已完成 | UI1 | 前端介面對齊：Demo框架／配色／卡片／工作區／時程 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)，D67人類指定，既有真實功能不變 | P2a/P2b/P2c |
-| 已完成 | UI2全模板 | 15套模板各有進行中的展示專案 | ✅ | [短計畫](superpowers/plans/2026-10-09-ui2-all-template-scenarios.md)；人類要求所有模板 | UI2 |
-| 已完成 | UI2追加 | 既有專案套用模板，移除waa | ✅ | 人類直接要求；[資料操作計畫](superpowers/plans/2026-10-09-ui2-project-fill.md) | UI2 |
-| 已完成 | UI2 | 產業模板與左下展示公司切換 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-09-ui2-showcase-library.md)，D68人類指定本機一鍵切換 | UI1 |
+| 已完成 | UI1 | 前端介面對齊：Demo框架／配色／卡片／工作區／時程 | ✅ 工程交付 | [精簡規格／計畫](superpowers/plans/2026-10-09-ui1-demo-alignment.md)，D67使用者指定，既有真實功能不變 | P2a/P2b/P2c |
+| 已完成 | UI2全模板 | 15套模板各有進行中的展示專案 | ✅ | [短計畫](superpowers/plans/2026-10-09-ui2-all-template-scenarios.md)；使用者要求所有模板 | UI2 |
+| 已完成 | UI2追加 | 既有專案套用模板，移除waa | ✅ | 使用者直接要求；[資料操作計畫](superpowers/plans/2026-10-09-ui2-project-fill.md) | UI2 |
+| 已完成 | UI2 | 產業模板與左下展示公司切換 | ✅ 工程交付 | [短計畫](superpowers/plans/2026-10-09-ui2-showcase-library.md)，D68使用者指定本機一鍵切換 | UI1 |
 | 已完成 | UI3 | Demo整體框架、首頁與我的任務精準對齊 | ✅ 工程交付 | D69／D70，[短規格／計畫](superpowers/plans/2026-10-09-ui3-frame-home.md) | UI1/2 |
 | 已完成 | UI4 | 工作區／看板／回報／時程／模板操作一致 | ✅ 工程交付 | D70／D72，[短規格／計畫](superpowers/plans/2026-10-09-ui4-workspace-ops.md) | UI3 |
 | 已完成 | TP-A | 任務規劃器：節點分頁、看板拖曳與卡片資訊、進度彙總、父節點完成規則 | ✅ 工程交付 | D70／D73，[短規格／計畫](superpowers/plans/2026-10-10-tp-a-board-progress.md) | UI4 |
@@ -211,12 +211,12 @@
 
 1. 永遠做順位最前面、而且沒有阻塞的項目。
 2. 同一時間只能有一個進行中的 feature 分支（WORKFLOW 鐵律 4、§6）。
-3. 目前的項目在等人類決定時，用 `git branch --list "feature/*"` 判斷，不要只看狀態符號：
+3. 目前的項目在等決定時，用 `git branch --list "feature/*"` 判斷，不要只看狀態符號：
    - **已經有 `feature/*` 分支**：不可以開新分支，也不可以在 `main` 上 commit。只能做不會產生 commit 的準備工作（研究、把草稿放在 `.superpowers/`），或寫好交接紀錄後結束 session。
-   - **還沒有分支**（例如 W3 在等 brainstorming，或開工前的 Pre-flight 就被擋下）：可以先在 `main` 上記錄 D，再去做下一個不需要人類決定的項目，例如 W4。
-4. 佇列做完了，但 §1 的完成條件還沒達成：不要自己發明工作項目。在本表下方加「建議（待人類排序）」，寫好交接紀錄後結束。
+   - **還沒有分支**（例如 W3 在等 brainstorming，或開工前的 Pre-flight 就被擋下）：可以先在 `main` 上記錄 D，再去做下一個不需要決定的項目，例如 W4。
+4. 佇列做完了，但 §1 的完成條件還沒達成：不要自己發明工作項目。在本表下方加「建議（待排序）」，寫好交接紀錄後結束。
 5. 不可以自行開工未授權的P軌；D51已授權P0至P1c，D52已確認P0計畫。
-6. 人類在對話中的直接指示優先，但要先寫進看板（WORKFLOW §2「變更與暫停」）。
+6. 使用者在對話中的直接指示優先，但要先寫進看板（WORKFLOW §2「變更與暫停」）。
 
 ---
 
@@ -232,19 +232,19 @@
 
 一次唯讀獨立審查無阻擋；審查後僅修App位置說明及CSS色值／優先度，複核通過。產品`92563c1..229c445` ff-only合併main。15173只build/update web --no-deps；Docker原本未啟動，啟動Docker並恢復既有正式DB／API容器，未重建API／DB、未seed、未migration。更新前後API／DB容器ID一致；ready健康、營運／AI入口、零業務寫入及pageerror=0已實測。附件／env／資料volume未動；本輪無DB變更，未另做逐表對帳。
 
-測試／審查／截圖日誌保留於`.superpowers/ui5/`及web/test-results。隔離acceptance停止並保留volume。展示講稿及限制見[formal-development](formal-development.md#ui5-展示操作2026-10-11)，[人類試用清單](mvp-trial-checklist.md)未代簽。依D50發布main並核對SHA；展示完成即停止，F1／F2不自動開工。
+測試／審查／截圖日誌保留於`.superpowers/ui5/`及web/test-results。隔離acceptance停止並保留volume。展示講稿及限制見[formal-development](formal-development.md#ui5-展示操作2026-10-11)，[使用者試用清單](mvp-trial-checklist.md)未代簽。依D50發布main並核對SHA；展示完成即停止，F1／F2不自動開工。
 
 ### TP-G 自訂回報欄位 — ✅ 工程交付
 
-人類「照此計畫實作」核准D79。[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md)已實作四種類型、必填／單位／選項／排序、版本驗證、歷史快照、模板／複製及TP-F例外審核。父任務保留但停用葉任務定義，退回重報保留相同欄位的值。獨立唯讀審查發現兩項P2（autoOpen歷史載入與過期申請），修正與定向測試後複核Ready to merge。
+使用者「照此計畫實作」核准D79。[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md)已實作四種類型、必填／單位／選項／排序、版本驗證、歷史快照、模板／複製及TP-F例外審核。父任務保留但停用葉任務定義，退回重報保留相同欄位的值。獨立唯讀審查發現兩項P2（autoOpen歷史載入與過期申請），修正與定向測試後複核Ready to merge。
 
 **真實驗收**：完整API初跑502pass／1fail／14skip（exit1），失敗為健康路由清單需納入新端點，修正後13pass；TP-G定向18pass，加模板父任務規則1pass。真PG十階段13pass（exit0），含0011保留資料與修改定義／送出回報併發200／409；可選舊P2a PG測試未另跑。完整Vitest240pass／9fail、2runtime errors（exit1），新增請求mock與契約修正後受影響五檔97pass、新欄位UI5pass（exit0）。最終build exit0。完整E2E34pass／3fail（exit1），測試選取器與等待修正後TP-G桌面／375px兩項通過；workspace桌面／375px及權限邊界3pass（exit0）。保留初跑失敗，不冒稱全套一次全綠。
 
-Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機必填勾選樣式已修正。測試與審查證據在忽略目錄`.superpowers/tpg/`。產品`00e56b2`已ff-only合併main，feature已刪除。15173先備份DB及附件，再以deploy/start.py升級0011，未seed；逐表逐列舊欄位值一致（249節點、55回報），附件SHA／env／DB容器一致，新增業務列0。正式入口桌面1280／1440及375px無溢位、pageerror=0、ready健康與舊任務欄位空值／version0已驗證。唯讀瀏覽後再比對仍一致。acceptance停止並保留volume。依D50發布origin/main；未代簽人類試用。下一批UI5，LAN限制維持。
+Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機必填勾選樣式已修正。測試與審查證據在忽略目錄`.superpowers/tpg/`。產品`00e56b2`已ff-only合併main，feature已刪除。15173先備份DB及附件，再以deploy/start.py升級0011，未seed；逐表逐列舊欄位值一致（249節點、55回報），附件SHA／env／DB容器一致，新增業務列0。正式入口桌面1280／1440及375px無溢位、pageerror=0、ready健康與舊任務欄位空值／version0已驗證。唯讀瀏覽後再比對仍一致。acceptance停止並保留volume。依D50發布origin/main；未代簽使用者試用。下一批UI5，LAN限制維持。
 
-### TP-F 權限與協作 — ✅ 已交付（人類試用未代簽）
+### TP-F 權限與協作 — ✅ 已交付（使用者試用未代簽）
 
-**授權與功能**：人類「照建議做」核准D78及[短計畫](superpowers/plans/2026-10-10-tp-f-permissions-collaboration.md)。新增申請／核准／退回／失效結案、當次前置／閘門／父節點完成覆寫、未完成子樹跳過與快照恢復；回報覆寫申請核准只進待確認，完成仍重驗。admin管理部門、主管可見並指派本部門任務，成員權限頁、待我指派、可見負載明細、個人站內通知與已讀。migration `20261010_0010`新增兩表，既有資料保留。
+**授權與功能**：使用者「照建議做」核准D78及[短計畫](superpowers/plans/2026-10-10-tp-f-permissions-collaboration.md)。新增申請／核准／退回／失效結案、當次前置／閘門／父節點完成覆寫、未完成子樹跳過與快照恢復；回報覆寫申請核准只進待確認，完成仍重驗。admin管理部門、主管可見並指派本部門任務，成員權限頁、待我指派、可見負載明細、個人站內通知與已讀。migration `20261010_0010`新增兩表，既有資料保留。
 
 **獨立審查**：一位唯讀審查者（tpf_review）指出條件變更證據不足、過期申請未結案、一般閘門缺鎖與通知；修正後又指出失效列重新整理、錯誤回報schema500、待確認重複申請。均修正並補測試，最後定向複核Ready。另自查補上閉合祖先保護、唯讀閘門與可見性重驗。
 
@@ -254,11 +254,11 @@ Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機�
 
 **部署與保存**：`8469021`已ff-only main；15173更新前備份DB、附件及env，升級0010後两次逐值核對全部原列／欄位、249節點、15專案、112前置、55回報、43筆記及附件SHA；原表新增0列，新增兩表空白。env與DB容器不變。1280／1440／375成員權限／部門畫面與health唯讀驗證通過，無業務寫入；備份、日誌與截圖在ignored `.superpowers/tpf/`。依D50發布main，push後核對遠端SHA。
 
-**限制／下一步**：站內通知無Email／推播；負載是可見任務數，非工時。沒有帳號／角色管理或自訂ACL。既有部門成員不自行補寫，編輯時需把主管加入成員。下一批TP-G自訂回報欄位；人類試用未代簽、LAN未授權。
+**限制／下一步**：站內通知無Email／推播；負載是可見任務數，非工時。沒有帳號／角色管理或自訂ACL。既有部門成員不自行補寫，編輯時需把主管加入成員。下一批TP-G自訂回報欄位；使用者試用未代簽、LAN未授權。
 
-### TP-E 模板進階 — ✅ 已交付（人類試用未代簽）
+### TP-E 模板進階 — ✅ 已交付（使用者試用未代簽）
 
-**範圍與決策**：人類「照建議做」核准D77與[短計畫](superpowers/plans/2026-10-10-tp-e-advanced-templates.md)。任務／階段子樹另存、專案工作流另存、追加套用、完整版本快照與選版、軟刪模板完成。來源／目標強制專案管理權；公司模板由admin／project_owner維護。保留內部進階前置、權重、里程碑與部門；負責人／協作預設不帶，人工條件重新確認，狀態／鎖定重設；套用可一步結構復原。階段另存轉普通根任務，工作流只套專案。
+**範圍與決策**：使用者「照建議做」核准D77與[短計畫](superpowers/plans/2026-10-10-tp-e-advanced-templates.md)。任務／階段子樹另存、專案工作流另存、追加套用、完整版本快照與選版、軟刪模板完成。來源／目標強制專案管理權；公司模板由admin／project_owner維護。保留內部進階前置、權重、里程碑與部門；負責人／協作預設不帶，人工條件重新確認，狀態／鎖定重設；套用可一步結構復原。階段另存轉普通根任務，工作流只套專案。
 
 **畫面／互動對齊**：啟用標題列「另存為模板」「套用模板」，模板庫新增任務卡、版本作者／日期／結構、刪除確認。選版載入中禁用提交，舊版預覽停用編輯／複製，錯誤保留草稿；寫入成功但重載失敗僅重載。Demo與正式版另存／套用／模板庫1280／1440／375隔離截圖已檢視；修正手機勾選框大小。無頁面水平溢出及pageerror。
 
@@ -268,11 +268,11 @@ Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機�
 
 **資料與部署**：`0e9b83f` ff-only main。15173更新前已備份DB、附件及env，升級0009後逐值比對全部原表、249節點、112連線、43筆記、55回報、附件SHA及DB容器／env均相同；只新增15筆模板v1快照，舊表新增0列。primary桌面／手機唯讀操作及health通過，未寫業務資料；acceptance down不-v保留volume。證據／備份在ignored `.superpowers/tpe/`。
 
-**限制／下一步**：公司模板先行，個人發布、過去任務直接搜尋套用、版本比較／回退、文件／檢查清單／AI推薦延後；自訂回報欄位留TP-G。尚未提供垃圾桶還原。下一批TP-F先做對照與短計畫；人類試用未代簽，LAN未授權。
+**限制／下一步**：公司模板先行，個人發布、過去任務直接搜尋套用、版本比較／回退、文件／檢查清單／AI推薦延後；自訂回報欄位留TP-G。尚未提供垃圾桶還原。下一批TP-F先做對照與短計畫；使用者試用未代簽，LAN未授權。
 
-### TP-D 前置進階 — ✅ 已交付（人類試用未代簽）
+### TP-D 前置進階 — ✅ 已交付（使用者試用未代簽）
 
-**範圍與決策**：人類同意TP-C，並在人工確認條件的簡單說明後回答「好」，核准D76及[短計畫](superpowers/plans/2026-10-10-tp-d-advanced-dependencies.md)。完成FS／SS／FF、-365至365天lag、硬性／軟性、連線編輯、相依圖拖線開啟確認表單與人工條件。軟性只警示；FF在自行確認與審核核准重檢；人工條件限管理者確認／撤回，必填理由並留稽核。日期順延和可見關鍵鏈支援三種類型與lag，沿用D75原子回滾。複製保留內部邊設定，條件重新確認；軟刪除／復原保留原條件證據。沒有ERP／文件串接，模板進階留TP-E。
+**範圍與決策**：使用者同意TP-C，並在人工確認條件的簡單說明後回答「好」，核准D76及[短計畫](superpowers/plans/2026-10-10-tp-d-advanced-dependencies.md)。完成FS／SS／FF、-365至365天lag、硬性／軟性、連線編輯、相依圖拖線開啟確認表單與人工條件。軟性只警示；FF在自行確認與審核核准重檢；人工條件限管理者確認／撤回，必填理由並留稽核。日期順延和可見關鍵鏈支援三種類型與lag，沿用D75原子回滾。複製保留內部邊設定，條件重新確認；軟刪除／復原保留原條件證據。沒有ERP／文件串接，模板進階留TP-E。
 
 **審查與修正**：一位唯讀獨立審查者首輪提出PATCH缺省值覆蓋既有設定及審核中心缺軟性警示；修正後定向複核Ready to merge: Yes。另修正退回訊息、條件部分更新、拖線取消／預覽及表單標籤；公司節點阻擋計算按專案分組，避免大量專案時掃描所有邊。新增兩個批次查詢使基準8→10，保留資料成長時查詢數不變的斷言。
 
@@ -282,13 +282,13 @@ Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機�
 
 ### TP-C 時程進階 — ✅ 工程交付
 
-**範圍與決策**：人類「照 D75」核准[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md)。父條涵蓋可見子孫、部門篩選保留匹配路徑、每列＋與底部拖出新增、左右拉伸、單日里程碑與鎖定、延遲標示、可見FS箭頭與Demo單條關鍵鏈估算均已實作。順延預設關閉，逐項檢查可見／編輯權限；鎖定、未排程、已結束或不可編輯的受影響任務使整次改期與稽核全部回滾。鎖定／解鎖及直接改鎖定日期限系統管理員與專案負責人。日期不納入復原，新增沿用結構undo。SS／FF等留TP-D，首頁延後天數預測與完整CPM不在本階段。
+**範圍與決策**：使用者「照 D75」核准[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md)。父條涵蓋可見子孫、部門篩選保留匹配路徑、每列＋與底部拖出新增、左右拉伸、單日里程碑與鎖定、延遲標示、可見FS箭頭與Demo單條關鍵鏈估算均已實作。順延預設關閉，逐項檢查可見／編輯權限；鎖定、未排程、已結束或不可編輯的受影響任務使整次改期與稽核全部回滾。鎖定／解鎖及直接改鎖定日期限系統管理員與專案負責人。日期不納入復原，新增沿用結構undo。SS／FF等留TP-D，首頁延後天數預測與完整CPM不在本階段。
 
 **實作與審查**：`77b69b4`實作、`2e81ae8`修正。migration `20261010_0007`只新增`milestone`、`schedule_locked` false欄位；新`POST /nodes/{id}/schedule`與原PATCH共用改期服務、project lock與逐節點audit。一位唯讀獨立審查 Critical 0／Important 0／Minor 2（scope依賴載入、部門篩選多留無關階段），兩者修正後複核接受；收尾三個測試檔再次定向複核 Ready to merge，無剩餘阻塞。
 
 **真實驗證**：一次完整隔離回歸：PG六階段（P2b、P2c、TP-A、TP-B、TP-C migration與API races）全過；API428pass／1fail／10skip，唯一失敗為舊audit故障注入仍攔截projects模組，補攔截schedule_service後與新增cascade第二次audit失敗全回滾測試2pass。TP-C定向API先16pass，再補上述第17項通過；既有project/tree/health42pass；SQLite migration11pass/6skip（PG另實跑）。Vitest233pass、build exit0。完整E2E31pass／1fail：新拖出新增測試起點被sticky名稱欄覆蓋，改可見日期區真實滑鼠座標後TP-C3/3pass（含新增、undo、順延、鎖定回滾、角色限制）。失敗均已解決；未宣稱原全量命令exit0。證據在ignored `.superpowers/tpc/`。1280／1440／375截圖人工核對菱形、連線、關鍵鏈；頁面無水平溢出、TP-C pageerror 0。
 
-**部署／試用**：已ff-only合併main並刪feature。15173 API＋web更新、migration 0006→0007；部署前停API作一致DB／附件備份，部署後逐值比對15專案、249節點、344稽核及全部其他表：既有資料值不變、節點只新增兩個false欄位、新增0列，附件SHA、env、DB容器不變。沿用部署前session做1280／375唯讀瀏覽器檢查，pageerror 0、無頁面水平溢出、ready 200，檢查後再比對仍新增0列。acceptance已down（不-v），保留資料volume與既有ui3cmp。人類試用清單已新增，尚未代簽。Demo基準截圖在`.superpowers/tpc/baseline/`，正式隔離截圖在`.superpowers/tpc/e2e/`。
+**部署／試用**：已ff-only合併main並刪feature。15173 API＋web更新、migration 0006→0007；部署前停API作一致DB／附件備份，部署後逐值比對15專案、249節點、344稽核及全部其他表：既有資料值不變、節點只新增兩個false欄位、新增0列，附件SHA、env、DB容器不變。沿用部署前session做1280／375唯讀瀏覽器檢查，pageerror 0、無頁面水平溢出、ready 200，檢查後再比對仍新增0列。acceptance已down（不-v），保留資料volume與既有ui3cmp。使用者試用清單已新增，尚未代簽。Demo基準截圖在`.superpowers/tpc/baseline/`，正式隔離截圖在`.superpowers/tpc/e2e/`。
 
 **必要測試調整**：`api/tests/test_node_metadata.py`只更新audit mock的實際呼叫位置；不改產品規則。未引入新依賴、未改Demo、未開LAN。
 
@@ -314,9 +314,9 @@ Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機�
 3. 非管理者「復原移動」時不再檢查子樹可見性（只是回到原位）；Ctrl+Z沒有保護協作設定未儲存的勾選。
 4. 成員的「升級」沒有E2E（成員看不到上層階段時升級停用，Vitest已涵蓋說明文字）；「此節點底下有你看不到的子任務」只揭露存在，同TP-A Minor 2。
 
-**合併與15173發布**：ff-only合併main（`f2d483c`）並刪除分支。15173這次更新API、web並跑migration：先記錄全部rows／欄位值、附件SHA、env與DB容器ID（`.superpowers/tpb/preserve.py`，ignored `.superpowers/tpb/primary/`），先建新映像，停API後pg_dump＋files成套備份，用新映像`run --rm --no-deps api alembic upgrade head`（0005→0006）後才啟動新API與web；不seed、不動DB容器。health／ready／web 200，acceptance標記404；比對結果：既有每列每個欄位值、附件SHA、env、DB容器ID逐一相同，249個節點只多`deleted_at`／`deleted_by`為NULL，新增0列。以yu既有登入在內建瀏覽器實看（1280）：【展示】食品新品開發「小量試作」的「試作工單」編輯表單出現層級操作與刪除、降級停用並說明「上方沒有同層任務可以放入」、頁面無水平捲動、console無錯誤；只按「取消」，沒有在15173做任何移動、複製或刪除，瀏覽後再比對仍新增0列。人類試用未代勾。
+**合併與15173發布**：ff-only合併main（`f2d483c`）並刪除分支。15173這次更新API、web並跑migration：先記錄全部rows／欄位值、附件SHA、env與DB容器ID（`.superpowers/tpb/preserve.py`，ignored `.superpowers/tpb/primary/`），先建新映像，停API後pg_dump＋files成套備份，用新映像`run --rm --no-deps api alembic upgrade head`（0005→0006）後才啟動新API與web；不seed、不動DB容器。health／ready／web 200，acceptance標記404；比對結果：既有每列每個欄位值、附件SHA、env、DB容器ID逐一相同，249個節點只多`deleted_at`／`deleted_by`為NULL，新增0列。以yu既有登入在內建瀏覽器實看（1280）：【展示】食品新品開發「小量試作」的「試作工單」編輯表單出現層級操作與刪除、降級停用並說明「上方沒有同層任務可以放入」、頁面無水平捲動、console無錯誤；只按「取消」，沒有在15173做任何移動、複製或刪除，瀏覽後再比對仍新增0列。使用者試用未代勾。
 
-**測試（2026-10-10）**：API新增`test_tp_b_tree.py`20項（軟刪除各入口、資料保留、刪除與復原、複製欄位／協作／相依、上限與截短、最上層移動、D74權限矩陣、復原只一步與只限原操作者、之後有變更擋下、上層規則）、0006 SQLite與PG保留資料測試；Vitest新增`tree.test.tsx`16項；E2E新增`tree.spec.ts`4項（真Chromium）。`deploy/verify.py`一次：PG5階段（P2b、P2c、TP-A、TP-B migration、API races）全過；API412pass/9skip；Vitest222；build0；E2E28/29（P2a測試直接比對建立回應，多了`undo_id`，調整後workspace＋tree重跑7/7）。審查修正後API414pass/9skip、Vitest222、build0、tree／workspace／planner／mvp E2E14/14。人類試用未代勾。
+**測試（2026-10-10）**：API新增`test_tp_b_tree.py`20項（軟刪除各入口、資料保留、刪除與復原、複製欄位／協作／相依、上限與截短、最上層移動、D74權限矩陣、復原只一步與只限原操作者、之後有變更擋下、上層規則）、0006 SQLite與PG保留資料測試；Vitest新增`tree.test.tsx`16項；E2E新增`tree.spec.ts`4項（真Chromium）。`deploy/verify.py`一次：PG5階段（P2b、P2c、TP-A、TP-B migration、API races）全過；API412pass/9skip；Vitest222；build0；E2E28/29（P2a測試直接比對建立回應，多了`undo_id`，調整後workspace＋tree重跑7/7）。審查修正後API414pass/9skip、Vitest222、build0、tree／workspace／planner／mvp E2E14/14。使用者試用未代勾。
 
 ### TP-A 節點分頁、看板拖曳、卡片資訊與進度彙總 — ✅ 工程交付
 
@@ -341,9 +341,9 @@ Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機�
 4. 狀態下拉改狀態只在本機更新節點、不重抓相依資料；目前PATCH不能把任務改完成，沒有實際影響。
 5. 損壞的循環資料且排序值相同時，前後端排序的平手規則略不同（只影響已損壞資料）。
 
-**測試（2026-10-10）**：API新增`test_tp_a_planner.py`24項（權重／進度驗證與稽核、父節點規則含看不到的子節點、移動權限矩陣與各種擋下、總覽加權進度、專案紀錄可見性與游標）、TP-A migration SQLite與PG保留資料測試；變異檢查：拿掉確認回報的子節點檢查→1 failed。Vitest新增`planner.test.tsx`（共用向量、卡片、拖曳、範圍分頁、回報卡、編輯表單、App流程含模板卡建立專案正向測試）。`deploy/verify.py`一次：PG4階段（P2b、P2c、TP-A migration、API races）全過；API393pass/8skip；Vitest206；build0；E2E23 passed／2 failed（MVP測試標題按鈕比對同時抓到新的「回報完成：標題」），`fc7c1fd`改完全比對後在重建的15175重跑mvp 2/2。審查修正後Vitest206、build0、planner＋schedule E2E 8/8，之後隔離環境down不-v。人類試用未代勾。
+**測試（2026-10-10）**：API新增`test_tp_a_planner.py`24項（權重／進度驗證與稽核、父節點規則含看不到的子節點、移動權限矩陣與各種擋下、總覽加權進度、專案紀錄可見性與游標）、TP-A migration SQLite與PG保留資料測試；變異檢查：拿掉確認回報的子節點檢查→1 failed。Vitest新增`planner.test.tsx`（共用向量、卡片、拖曳、範圍分頁、回報卡、編輯表單、App流程含模板卡建立專案正向測試）。`deploy/verify.py`一次：PG4階段（P2b、P2c、TP-A migration、API races）全過；API393pass/8skip；Vitest206；build0；E2E23 passed／2 failed（MVP測試標題按鈕比對同時抓到新的「回報完成：標題」），`fc7c1fd`改完全比對後在重建的15175重跑mvp 2/2。審查修正後Vitest206、build0、planner＋schedule E2E 8/8，之後隔離環境down不-v。使用者試用未代勾。
 
-**合併與15173發布**：ff-only合併main（`b68aabe`）並刪除分支。15173這次更新API、web並跑migration：先記錄全部rows／欄位值、附件SHA、env與DB容器ID（`.superpowers/tpa/preserve.py`，ignored `.superpowers/tpa/primary/`），先建新映像，停API後pg_dump＋files成套備份，用新映像`run --rm --no-deps api alembic upgrade head`（0004→0005）後才啟動新API與web；不seed、不動DB容器。health／ready／web 200，acceptance標記404；比對結果：既有每列每個欄位值、附件SHA、env、DB容器ID逐一相同，249個節點只多`weight=1`、`progress=NULL`，新增0列。以yu既有登入在內建瀏覽器實看（1280）：總覽與側欄改為加權進度，【展示】食品新品開發「小量試作」階段進度90%、「完成（還有 1 項子任務未完成）」停用、待確認卡片可拖曳且沒有✓回報、頁面無水平捲動、console無錯誤；瀏覽後再比對仍新增0列。人類試用未代勾。
+**合併與15173發布**：ff-only合併main（`b68aabe`）並刪除分支。15173這次更新API、web並跑migration：先記錄全部rows／欄位值、附件SHA、env與DB容器ID（`.superpowers/tpa/preserve.py`，ignored `.superpowers/tpa/primary/`），先建新映像，停API後pg_dump＋files成套備份，用新映像`run --rm --no-deps api alembic upgrade head`（0004→0005）後才啟動新API與web；不seed、不動DB容器。health／ready／web 200，acceptance標記404；比對結果：既有每列每個欄位值、附件SHA、env、DB容器ID逐一相同，249個節點只多`weight=1`、`progress=NULL`，新增0列。以yu既有登入在內建瀏覽器實看（1280）：總覽與側欄改為加權進度，【展示】食品新品開發「小量試作」階段進度90%、「完成（還有 1 項子任務未完成）」停用、待確認卡片可拖曳且沒有✓回報、頁面無水平捲動、console無錯誤；瀏覽後再比對仍新增0列。使用者試用未代勾。
 
 ### UI4 專案工作區與操作對齊 — ✅ 工程交付
 
@@ -361,7 +361,7 @@ Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機�
 
 **測試（2026-10-09）**：`822470e`首輪verify：PG6、API368/7skip、Vitest172pass1fail（UI3總覽測試：標題在載入中就出現，`findByRole`先返回後讀不到載入後文字；單獨重跑3次皆過，改為等待載入後文字）。`28e098c`完整`deploy/verify.py`一次全過：PG6pass、API368pass/7skip、Vitest174pass、build0、E2E20/20（本機Playwright Chromium，不再需要Edge）。`ea9a3aa`後Vitest175pass、build0、在重建的15175跑schedule＋visual-alignment E2E5/5，之後down不-v。
 
-**15173發布**：快照後停API，pg_dump＋files成套備份（ignored `.superpowers/ui4/primary/`），`up -d --build --no-deps web`後再啟動API；不seed、不動DB容器、API映像未重建。web／`/api/health`／`/api/health/ready` 200（database ready），前端產物含UI4新畫面；全部rows／欄位值、附件SHA、env、DB容器ID逐一相同，新增0列。以yu登入實看（320px窄窗）：專案頁h1、階段條5段、7分頁（文件／資料停用）、看板4×240在框內橫捲、頁面無水平捲動、無錯誤訊息，console只有登入前預期的`/me` 401。人類試用未代勾。
+**15173發布**：快照後停API，pg_dump＋files成套備份（ignored `.superpowers/ui4/primary/`），`up -d --build --no-deps web`後再啟動API；不seed、不動DB容器、API映像未重建。web／`/api/health`／`/api/health/ready` 200（database ready），前端產物含UI4新畫面；全部rows／欄位值、附件SHA、env、DB容器ID逐一相同，新增0列。以yu登入實看（320px窄窗）：專案頁h1、階段條5段、7分頁（文件／資料停用）、看板4×240在框內橫捲、頁面無水平捲動、無錯誤訊息，console只有登入前預期的`/me` 401。使用者試用未代勾。
 
 ### UI3 Demo框架與首頁對齊 — ✅ 工程交付
 
@@ -375,38 +375,38 @@ Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機�
 
 **測試（2026-10-09）**：API workspace 30pass（新增延遲／階段／負載／位置不洩漏）。`deploy/verify.py`一次：PG6pass、API368pass/7skip、Vitest173pass、build0；E2E16fail1皆為`browserType.launch: Executable doesn't exist`（本機沒有Playwright Chromium）、4pass。改用不提交的Edge channel設定：首輪15pass5fail（登入後未等側欄、抽屜開關時序），修正後完整E2E20/20；最後一個樣式修正後重跑visual-alignment＋workspace 5/5。Vitest在修正後再跑173/173。
 
-**15173發布**：停API後pg_dump＋files成套備份（ignored `.superpowers/ui3/primary/`），`up --build --no-deps api web`，不seed、不動DB容器。health／ready／web 200，前端產物含新首頁；全部rows／欄位值、附件SHA、env、DB容器ID逐一相同，新增0列。人類試用未代勾。
+**15173發布**：停API後pg_dump＋files成套備份（ignored `.superpowers/ui3/primary/`），`up --build --no-deps api web`，不seed、不動DB容器。health／ready／web 200，前端產物含新首頁；全部rows／欄位值、附件SHA、env、DB容器ID逐一相同，新增0列。使用者試用未代勾。
 
 ### UI2 全模板進行情境 — ✅ 全15套資料交付
 
-人類要求「所有模板都在進行中，像DEMO豐富」。[短計畫](superpowers/plans/2026-10-09-ui2-all-template-scenarios.md)。實際庫為12catalog＋原食品／電子＋食品複本共15套，因此新增13案、沿用2案，而不是只處理catalog。
+使用者要求「所有模板都在進行中，像DEMO豐富」。[短計畫](superpowers/plans/2026-10-09-ui2-all-template-scenarios.md)。實際庫為12catalog＋原食品／電子＋食品複本共15套，因此新增13案、沿用2案，而不是只處理catalog。
 
 - 食品4案38task、電子4案68task、活動3案47task、軟體2案16task、工程2案19task；每案皆有done／doing／review／todo。总計188task：39done、15doing、15review，其他119todo。前置阻擋和Gate沿真服務。
 - 新案第一phase完成且Gateapproved、第二phase進行且首task待審；另加獨立專案協調taskdoing及3筆筆記。4node舊模板補日期與待審後解鎖驗收task。既有2案不改，不改模板，不偽造實際結果；新案／回報／筆記均展示標示。待審由member展示執行者提交，管理者可真審核。
 - 新增13projects／208nodes／38gates／93dependencies／47reports／39notes／3展示member／231audit。全部原rows及欄位逐值保留，files SHA／env／DB容器相同；預覽rollback、停止API一致DB+files備份後apply，重跑全already-applied無重複。瀏覽器切換真session另記正常稽核。
 - 一次相關隔離測試3/3 exit0；擴充15套後相關3/3 exit0。覆蓋全部15案對應、每案真狀態/blocked/禁止自審、原rows逐值、預覽回滾、最後模板衝突時整批回滾、冪等與模式關閉。未改UI/API/schema，未重跑不相關全量。一次唯讀獨立審查與15套窄複核均Ready to apply。
-- 已在15173真UI依次切換五公司，專案數4/4/3/2/2、總覽完成率18/16/26/25/26%與DB相符，無空公司；目前停活動總覽。截圖與測試/備份ignored `.superpowers/ui2-all/`。人類試用未代勾；P2d維持後移，D50 main push。
+- 已在15173真UI依次切換五公司，專案數4/4/3/2/2、總覽完成率18/16/26/25/26%與DB相符，無空公司；目前停活動總覽。截圖與測試/備份ignored `.superpowers/ui2-all/`。使用者試用未代勾；P2d維持後移，D50 main push。
 
 ### UI2 展示進行情境 — ✅ 資料交付
 
-人類澄清要「像DEMO有任務進行的樣子」。[短計畫](superpowers/plans/2026-10-09-ui2-live-scenarios.md)，兩現有專案資料操作，API/UI/schema不改。
+使用者澄清要「像DEMO有任務進行的樣子」。[短計畫](superpowers/plans/2026-10-09-ui2-live-scenarios.md)，兩現有專案資料操作，API/UI/schema不改。
 
 - 主食罐2done／1doing／1review／13todo；連接器3done／1doing／1review／9todo。活躍階段標doing，電子立案phase done與Gate approved。食品原已核准5Gate全保留。
 - 新增8份真schema回報（食品配方v1退回、v2待審）、4筆展示筆記；全部標「展示情境」。兩公司各新增一位隨機不可知密碼的member展示執行者，兩待審任務指派給他，管理者可真核准／退回且不繞過自審限制。其餘owner不改。
 - 38個上輪模板新增節點日期食品前移5日、電子10日，原有任務日期不改；新示例不是實際調查或檢驗結論。沒有刪除節點／專案／報告／附件。
 - 隔離測試初次2fail1pass（日期輸入需ISO字串、模板標題比對已修），最終3/3 exit0，補活躍phase後相关3/3 exit0。涵蓋真狀態／回報版本／前置阻擋／Gate、預覽回滾、第二公司遇未知狀態時整筆回滾、冪等／關閉模式拒絕。獨立審查Ready to apply，未重跑未改UI全量。
 - primary預覽回滾後停止API一致DB/files備份，再apply、補活躍phase；原row ID／非授權欄位、原task日期、food已核准Gate、files SHA／env／DB容器保留。8reports／4notes／2users／68audit新增，瀏覽器正常登入另生1session。重跑preview全already_applied。畫面實見完成率12%、完成2／進行1／待審1、等待前置任務；ignored `.superpowers/ui2-live/` 保存證據及備份。
-- 工作區市場與配方可展示完整狀態，配方設計→紀錄可示範退回重送／審核。人類試用未代勾；P2d未啟動，D50 main push。
+- 工作區市場與配方可展示完整狀態，配方設計→紀錄可示範退回重送／審核。使用者試用未代勾；P2d未啟動，D50 main push。
 
 ### UI2追加 既有專案補齊 — ✅ 資料交付
 
-2026-10-09人類直接要求將模板套用現有專案，並明確回答「移除waa」。[短計畫](superpowers/plans/2026-10-09-ui2-project-fill.md)；僅維護脚本，沒有新增套用UI或改API／schema。
+2026-10-09使用者直接要求將模板套用現有專案，並明確回答「移除waa」。[短計畫](superpowers/plans/2026-10-09-ui2-project-fill.md)；僅維護脚本，沒有新增套用UI或改API／schema。
 
 - 主食罐新增20節點、沿用市場與配方：現在5階段／17任務。連接器新增18節點：現在5階段／14任務，電子NPI中筆電專屬任務改為連接器結構／模具／端子與接觸電阻。新日期2026-10-09起算、todo／pending，不假造完成。
 - waa確認僅1個project root，依授權備份後移除專案及root；未刪其他內容。新增38nodes／10gates／19dependencies／3audits。除明列waa兩row，其他舊row欄位逐值保留，files SHA及原env相同、DB容器不變。
 - 隔離測試4/4 exit0：保留原值與冪等、預覽回滾、waa變更拒絕並整筆回滾、mode off拒絕。一位唯讀獨立審查Ready to apply；關聯筆記/附件拒刪分支由程式保護，未另做直接測試。不重跑未改動UI/API全量。
 - primary預覽、停止API一致DB/files備份、apply一次成功，再預覽already_applied無新增；ready200。證據與私密備份ignored `.superpowers/ui2-fill/`。維護脚本預設回滾，需顯式--apply，stable audit marker防重複。
-- 人類試用未代勾，P2d仍後移。D50本輪維護脚本與交付紀錄隨main推送。
+- 使用者試用未代勾，P2d仍後移。D50本輪維護脚本與交付紀錄隨main推送。
 
 ### UI2 產業模板與本機展示公司切換 — ✅ 工程交付
 
@@ -416,7 +416,7 @@ Demo與正式版1280／375px截圖已對照；正式版無水平溢位，手機�
 
 **驗證／審查**：瀏覽器真匯入、建立專案含10task/Gate、五公司輪替、取消保留表單、舊token401、跨公司404、切回原專案逐值相同，刷新保留展示身分。桌面1280／手機375截圖實看，無pageerror／非預期console。一位唯讀獨立審查Ready to merge；小項固定12標籤已改為動態結果，無剩餘阻擋。
 
-**發布／保留**：15173停止API後備份DB+files與env，更新API/web；只增3組公司、5個專用帳號、12模板／219節點／12稽核，重跑初始化全0。全部原rows/欄位、files SHA、原env逐值相同（只增PF_SHOWCASE_MODE=true），DB容器ID未變，migration0004未改。health/ready與web200，實際CSS/JS與最終build逐bytes相同。隔離acceptance down不-v，volume保留，不seed。無新增假專案、Demo不改，P2d未啟動；人類試用仍未代勾。
+**發布／保留**：15173停止API後備份DB+files與env，更新API/web；只增3組公司、5個專用帳號、12模板／219節點／12稽核，重跑初始化全0。全部原rows/欄位、files SHA、原env逐值相同（只增PF_SHOWCASE_MODE=true），DB容器ID未變，migration0004未改。health/ready與web200，實際CSS/JS與最終build逐bytes相同。隔離acceptance down不-v，volume保留，不seed。無新增假專案、Demo不改，P2d未啟動；使用者試用仍未代勾。
 
 ### UI1 前端介面對齊 — ✅ 工程交付
 
@@ -426,14 +426,14 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 
 **畫面證據**：獨立Demo origin `127.0.0.1:18005`，正式走查僅隔離15175；兩者1280／375的overview/workspace/timeline/tasks/records對照PNG位於ignored `.superpowers/ui1/`，另有正式templates/reviews/audit/navigation與空／載入／錯誤／登入失效。已實看，修正長名稱側欄重疊、標題操作列與手機焦點；頁面／主內容無橫向overflow，時程／相依圖保留內部捲動。管理頁截圖等待真資料載入完成。測試的console僅允許明確401及刻意503，既有業務E2E精確允許Gate/FS預期錯誤，其餘為0。
 
-**獨立審查**：唯讀`ui1_review`依WORKFLOW §14檢查diff與Demo／正式截圖，修正手機導覽focus後窄複核，結論 **Ready to merge**、無阻擋。沒有重跑另一套全量，沒有冒稱人類簽核。
+**獨立審查**：唯讀`ui1_review`依WORKFLOW §14檢查diff與Demo／正式截圖，修正手機導覽focus後窄複核，結論 **Ready to merge**、無阻擋。沒有重跑另一套全量，沒有冒稱使用者簽核。
 
-**限制與下一步**：對齊主要布局／色彩／資訊層級，並非Demo全部功能或逐像素一致；手機採單欄與日期表單。P2c的進階排程、自訂回報欄位與P2d文件／AI／營運仍延後。人類UI1視覺與操作試用仍待簽核。15173已web-only更新，CSS/JS實際回應與最終build逐bytes一致，health/ready200。前後所有原row/欄位值、files SHA、env相同；API/DB容器ID、映像與啟動時間皆未變。不seed、不重啟API/DB。隔離acceptance已down不-v，雙volume保留；自啟Demo18005已關。
+**限制與下一步**：對齊主要布局／色彩／資訊層級，並非Demo全部功能或逐像素一致；手機採單欄與日期表單。P2c的進階排程、自訂回報欄位與P2d文件／AI／營運仍延後。使用者UI1視覺與操作試用仍待簽核。15173已web-only更新，CSS/JS實際回應與最終build逐bytes一致，health/ready200。前後所有原row/欄位值、files SHA、env相同；API/DB容器ID、映像與啟動時間皆未變。不seed、不重啟API/DB。隔離acceptance已down不-v，雙volume保留；自啟Demo18005已關。
 
 
 ### P2c 時程、模板與前置 — ✅ 精簡範圍工程交付
 
-**授權／範圍**：D65精簡流程、D66 A；人類追加「完成後推上git」。[短規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)。已完成模板CRUD/copy、多層task/頂層phase與Gate、相對日建立專案、日週月時程/桌面拖移拉伸/手機鍵盤日期、同專案硬性FS與安全阻擋、可見簡單相依圖。改期不順延，SS/FF/延遲/關鍵路徑/子樹套用等明列延後，不宣稱完整Demo一致。
+**授權／範圍**：D65精簡流程、D66 A；使用者追加「完成後推上git」。[短規格／計畫](superpowers/plans/2026-10-09-p2c-schedule-workflow.md)。已完成模板CRUD/copy、多層task/頂層phase與Gate、相對日建立專案、日週月時程/桌面拖移拉伸/手機鍵盤日期、同專案硬性FS與安全阻擋、可見簡單相依圖。改期不順延，SS/FF/延遲/關鍵路徑/子樹套用等明列延後，不宣稱完整Demo一致。
 
 **實作／審查**：`6c45e51..5992ce6`；後端`8804643`、UI`d1adbbc`、整合`5992ce6`。一位獨立審查Ready to merge: Yes，未發現展示主流程／資料／基本權限阻塞。phase層級沿既有create_node；新增一次安全blocked批查，query固定cap由7變8，保留成長前後一致與恰一次dependencies批查斷言。
 
@@ -441,15 +441,15 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 
 **展示／保存**：10task模板建立/copy、跨年日期、日週月、drag/resize實際變更、手機鍵盤改期/重載、FS done/skipped解鎖/Gate仍擋/20task循環拒絕、readonly/跨公司/hidden前置固定訊息；1280/375無頁面overflow及非預期HTTP/console/pageerror，parent實看兩寬度時程detail。無seed stop/start完整project/workflow/dependency snapshots相同。acceptance與p2c-backend容器已down不-v，各files/pgdata雙volume及專用DB保留。
 
-**證據**：ignored `.superpowers/p2c/` backend-red/target/final-target/pg、ui-vitest/build、full-verify（首次fail）、query-targeted、vitest/build、e2e-full、workspace-targeted、persistence、final-*及schedule/dependencies screenshots。mandatory DB `p2b_test_f172f1ebf04f48b4b673547e6e81f266`／`p2b_test_3453be12b6894c05a7a15b063c9da72e`／`p2b_test_ea31ef747c8c46aba1e1f4fe872aa6af`保留。primary已備份後保留資料升至0004，人類簽核不勾。
+**證據**：ignored `.superpowers/p2c/` backend-red/target/final-target/pg、ui-vitest/build、full-verify（首次fail）、query-targeted、vitest/build、e2e-full、workspace-targeted、persistence、final-*及schedule/dependencies screenshots。mandatory DB `p2b_test_f172f1ebf04f48b4b673547e6e81f266`／`p2b_test_3453be12b6894c05a7a15b063c9da72e`／`p2b_test_ea31ef747c8c46aba1e1f4fe872aa6af`保留。primary已備份後保留資料升至0004，使用者簽核不勾。
 
-**交付部署**：ff-only main，依D65不重跑main全量；15173停止API後`primary-before.sql`+`primary-files-before.tar`成套備份、原值snapshot及私密env/SHA保存；不seed升`20261009_0004`，全部原表欄位/row值與files SHA/env相同，web/health/ready200、10001:10001/0700（`primary-preservation.txt`）。未跑primary業務測試。階段末更新README/指南/清單/看板，依人類指示推main，未代勾任何人類簽核。
+**交付部署**：ff-only main，依D65不重跑main全量；15173停止API後`primary-before.sql`+`primary-files-before.tar`成套備份、原值snapshot及私密env/SHA保存；不seed升`20261009_0004`，全部原表欄位/row值與files SHA/env相同，web/health/ready200、10001:10001/0700（`primary-preservation.txt`）。未跑primary業務測試。階段末更新README/指南/清單/看板，依指示推main，未代勾任何使用者簽核。
 
 ### P2b 回報與協作 — ✅ 工程交付完成
 
-**授權**：人類於P2a完成後指示「繼續進行」（D58），接續路線圖B1–B6；不是P2a試用簽核通過或新產品規則已核准。
+**授權**：使用者於P2a完成後指示「繼續進行」（D58），接續路線圖B1–B6；不是P2a試用簽核通過或新產品規則已核准。
 
-**本次交付**：[完整spec定稿](superpowers/specs/2026-10-08-p2b-collaboration-design.md)。核對既有reports／status／audit API、permissions、models、Compose與README F6／F11。核心差異是Report POST不改status，但status PATCH可直接done；D59人類已選A：送出review→核准done／退回doing，新版本保留歷史，API不可繞過；D60已選A，管理員／實際專案擁有者可在有送出權時明確送出並確認並保留稽核；D61已選A：指定協作人員與協作部門主管，指定節點不繼承；D62已選A：筆記作者修訂不刪、單檔10 MB及完整附件保留規則；D63已選A，固定回報欄位與管理者單任務生命週期操作，自訂欄位延P2c、跳過申請／覆寫另列後續。
+**本次交付**：[完整spec定稿](superpowers/specs/2026-10-08-p2b-collaboration-design.md)。核對既有reports／status／audit API、permissions、models、Compose與README F6／F11。核心差異是Report POST不改status，但status PATCH可直接done；D59使用者已選A：送出review→核准done／退回doing，新版本保留歷史，API不可繞過；D60已選A，管理員／實際專案擁有者可在有送出權時明確送出並確認並保留稽核；D61已選A：指定協作人員與協作部門主管，指定節點不繼承；D62已選A：筆記作者修訂不刪、單檔10 MB及完整附件保留規則；D63已選A，固定回報欄位與管理者單任務生命週期操作，自訂欄位延P2c、跳過申請／覆寫另列後續。
 
 **獨立文件審查**：review_finalized_docs（spec）與review_task1（plan品質）均Approved。第1輪提出commit結果不明不能刪成功附件、nonroot新files volume可寫初始化兩Important，已補spec§7.2／§9及Task4故障／fresh-volume驗收並複審關閉；舊待定措辭同步修正。此為文件審查，不是G3授權或產品GREEN。
 
@@ -488,7 +488,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 
 **G6交付證據**：main `4d0323e`完整`g6-full-verify.txt` exit0：專用PG `p2b_test_ce7b5daefeb94069beaeb4a3d77ff646` migration1／競態3、API337pass5conditional skip／Vitest150／build0／E2E13pass34.0s。phase四組只讀UI、parent實看readonly375detail；`g6-phase-ui.txt`／cleanup／final容器與volume證據保留。primary停止API後`g6-primary-before.sql`與私密env指紋、原值snapshot保存；升級不seed，migration0003／health-ready200／files10001:10001/0700、before/after原有欄位與row值全相同、env未變（`g6-primary-preservation.txt`）。首次健康probe誤用不存在/live端點404，改正文件端點後通過，非產品錯誤。acceptance及Task4隔離容器已down無-v，兩組雙volume與專用DB保留。
 
-**工程驗收（全部完成；不含人類簽核）**
+**工程驗收（全部完成；不含使用者簽核）**
 - [x] D59–D63角色／公司／可見性與無副作用矩陣。
 - [x] 送審、退回重送、確認、自核及重開／略過完整流程與Gate。
 - [x] 協作撤銷、筆記作者修訂、本人列表與安全紀錄／稽核。
@@ -496,17 +496,17 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 - [x] 真PG舊資料升級與並行競態、DB／files無seed重啟保留。
 - [x] 1280／375／鍵盤／console、完整回歸、雙獨立審查與G6部署。
 
-以上工程項目不是人類試用簽核，P1c／P2a簽核維持未勾選。
+以上工程項目不是使用者試用簽核，P1c／P2a簽核維持未勾選。
 
 ### P2a 完整任務操作 — ✅ 工程交付完成
 
-**本次授權（2026-10-08）**：人類同意P2a規格與計畫及D56推薦規則，授權實作至驗收發布；既有資料保留、隔離測試、人類簽核維持未勾選。
+**本次授權（2026-10-08）**：使用者同意P2a規格與計畫及D56推薦規則，授權實作至驗收發布；既有資料保留、隔離測試、使用者簽核維持未勾選。
 
-**意圖**：人類明確要求开始進行先前建議的四階段，正式版需有接近Demo且能實際操作的功能，不只後端與測試完成。先聚焦可見的工作區與任務管理；正式軌流程、API公司／角色權限、單一寫入者及隔離驗收維持。
+**意圖**：使用者明確要求开始進行先前建議的四階段，正式版需有接近Demo且能實際操作的功能，不只後端與測試完成。先聚焦可見的工作區與任務管理；正式軌流程、API公司／角色權限、單一寫入者及隔離驗收維持。
 
 **唯讀盤點**：現有project/node可建立、讀取與更新status；尚無完整metadata編輯、Node起迄日期、工作區總覽與我的任務。Demo的pageOverview／pageMyTasks／openEditor可作功能參照，不搬入假ERP／備份／通知數據。日期需要正式migration，不重設資料庫；未改產品／測試、未新增依賴或啟動feature分支。
 
-**2026-10-08文件交付**：[spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)與[配套plan](superpowers/plans/2026-10-08-p2a-task-workspace.md)已依D56定稿。D56已由人類明確核准，G1／G2定稿；G3本次API基準80 passed／1 warning／29.09s，exit0；完整verify因npm缺失exit1，未進Compose及E2E。
+**2026-10-08文件交付**：[spec](superpowers/specs/2026-10-08-p2a-task-workspace-design.md)與[配套plan](superpowers/plans/2026-10-08-p2a-task-workspace.md)已依D56定稿。D56已由使用者明確核准，G1／G2定稿；G3本次API基準80 passed／1 warning／29.09s，exit0；完整verify因npm缺失exit1，未進Compose及E2E。
 
 | Task | 範圍 | 狀態 | 測試／commit |
 |---|---|---|---|
@@ -518,19 +518,19 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 | 6 | 隔離整合驗收與文件交付 | ✅ | 前移RED acf176e..b917edc：workspace1280/375缺導覽2failed/exit1；整合72d9d52..8dc914a。API182passed1skip、Vitest96、build0、E2E9、cleanup0，真PG1passed與無seed重啟完整detail相等。review_task1獨立spec與review_finalized_docs品質均Approved；新增通過案例如實記為回歸 |
 | G4 | 完整feature整體審查 | 🟢 | acf176e..8dc914a；兩位reviewer均Ready to merge: Yes，無Critical/Important/Minor或未決plan-mandated問題 |
 
-**G3恢復（2026-10-08）**：人類重啟後指示繼續；WSL2.7.13／Docker29.8.2 engine可用。fetch + ff-only已最新；完整隔離verify（keep-running）API80／Vitest56／build／E2E6 exit0。D57解除，正式開工。
+**G3恢復（2026-10-08）**：使用者重啟後指示繼續；WSL2.7.13／Docker29.8.2 engine可用。fetch + ff-only已最新；完整隔離verify（keep-running）API80／Vitest56／build／E2E6 exit0。D57解除，正式開工。
 
-**環境補裝（D57，歷史）**：人類選擇本機補裝；Node24.20.0、Docker Desktop4.94.0／Docker29.8.2／Compose5.5.1與Playwright Chromium已安裝，npm ci exit0。Vitest56（12.32s）及build exit0。WSL一般安裝因管理員權限失敗，已透過UAC啟動管理員安裝（winget Microsoft.WSL 2.7.13），StagePackageAsync仍未結束。Docker引擎log明確回Virtual Machine Platform not enabled；已以管理員DISM啟用VirtualMachinePlatform /all /norestart，exit3010需重啟。未自動重啟Windows，Linux引擎尚不可用。獨立文件複查review_finalized_docs Approved。
+**環境補裝（D57，歷史）**：使用者選擇本機補裝；Node24.20.0、Docker Desktop4.94.0／Docker29.8.2／Compose5.5.1與Playwright Chromium已安裝，npm ci exit0。Vitest56（12.32s）及build exit0。WSL一般安裝因管理員權限失敗，已透過UAC啟動管理員安裝（winget Microsoft.WSL 2.7.13），StagePackageAsync仍未結束。Docker引擎log明確回Virtual Machine Platform not enabled；已以管理員DISM啟用VirtualMachinePlatform /all /norestart，exit3010需重啟。未自動重啟Windows，Linux引擎尚不可用。獨立文件複查review_finalized_docs Approved。
 
 **G3檢查（2026-10-08）**：初始working tree乾淨；fetch + merge --ff-only origin/main已是最新`ff0cdbe`。已以本機Python3.13建立ignored api/.venv並安裝requirements.lock（exit0），API `80 passed, 1 warning in 29.09s`（exit0）。`deploy/verify.py --keep-running`因找不到npm退出1，未啟動服務。PATH、標準安裝路徑、解除安裝登錄及服務均未找到Node／Docker；WSL回報未安裝。G3未通過，沒有開feature、沒有寫Task測試／產品、没有功能RED證據；未碰.env、DB或volume。D57已授權本機補裝，正在處理。
 
-**工程驗收清單（Task6已實跑；人類簽核另列）**
+**工程驗收清單（Task6已實跑；使用者簽核另列）**
 - [x] 四層節點新增／metadata編輯／日期清除與重新登入持久化。
 - [x] 權限矩陣、跨公司隔離、readonly-owner與稽核原子性。
 - [x] 可見範圍統計、我的任務搜尋／狀態篩選／跨專案定位。
 - [x] 深層Gate阻擋與核准，既有工作流／隱藏父節點相容。
 - [x] 真PostgreSQL migration保留資料、隔離重啟與完整回歸。
-- [x] 1280／375走查、獨立審查、文件更新；人類試用另簽核。
+- [x] 1280／375走查、獨立審查、文件更新；使用者試用另簽核。
 
 **Task6實證**：ignored .superpowers/p2a/task6-verify.txt、task6-postgresql.txt、task6-restart.txt／task6-restart-values.json、task6-cleanup.txt、task6-workspace-{1280,375}.png（實作者與主代理已看）。專用PG DB p2a_migration_b12b66168c4c保留；重啟project 6a159d13-f536-4585-8e17-183c55d39eba完整detail相等，start=null/due=2026-10-15/owner/dept/status不變。初次E2E4failed為測試導覽/安全投影/預期401契約調整；PG首次sys.path設定失敗、verify首次E2E TypeScript型別建置失敗均已修正，未當功能RED。最終verify exit0、acceptance容器空且volume保留。README/指南/試用清單已更新；G6 main回歸與15173部署通過，詳見交接。
 
@@ -559,7 +559,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 > - `tests/records.test.js`：新增 20 個測試（44 → 64），涵蓋卡片 6 種狀態、協作身分沒有按鈕、`esc()` 防注入、窄螢幕換行、`enter()` 預設分頁、葉任務頁結構、非葉節點不變、D15 捲動、D16 行數上下限、D17 切到看板與反向案例。和寬度有關的測試會用 `window.frameElement` 暫時把 iframe 撐到 1200px，並在 `finally` 還原。
 > - `README.md`：F11 的「位置」列（README.md:414）照 plan Task 2 Step 8 更新。
 >
-> **刻意沒改的地方**（spec §7，或人類決定維持現狀）
+> **刻意沒改的地方**（spec §7，或決定維持現狀）
 > - 資料結構：`db.v` 仍是 3，沒有升級，舊的 localStorage 原樣可用。
 > - 狀態轉換：`submitReport`、`decideReport`、`skipTask`、`restoreTask`、`approversFor`、`canReport` 都沒動。
 > - 其他畫面：看板卡片的「✓ 回報」快捷按鈕、審核中心沒動。沒有新增事件處理，diff 裡沒有 `addEventListener`，也沒有 inline `on*`。
@@ -571,7 +571,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 > - 歸 W4（§5 OPEN）：W1-T2-m3（捲到底沒有留白）、W1-T2-m4（Windows 切換分頁時寬度差 15px）、W1-T2-m8（相依圖圖例被截掉，W1 之前就有）、W1-F-m5（長網址把回報歷史和筆記撐出主區域，W1 之前就有）。
 > - W1-T2-m7（新增第一個子任務後按「復原」，分頁停在看板的空狀態）：OPEN，之後處理，或改列 BY_DESIGN。
 > - BY_DESIGN：W1-T2-m1、W1-T2-m5、W1-T2-m9（D18 維持現狀）。
-> - 給 D7 的觀察：W1 之後，有硬性前置的葉任務（例如 `t3013`）在卡片上就看得到醒目的「回報完成」，送出時被擋下會遺失草稿，所以 D7 的情況會更常發生。人類決定 D7 時可以列入考量。
+> - 給 D7 的觀察：W1 之後，有硬性前置的葉任務（例如 `t3013`）在卡片上就看得到醒目的「回報完成」，送出時被擋下會遺失草稿，所以 D7 的情況會更常發生。使用者決定 D7 時可以列入考量。
 >
 > **下一個 AI 照計畫要做的事**：W2 部門模型，照 [plan](superpowers/plans/2026-10-01-department-model.md) 執行，先讀 §3 W2 的「執行注意」，特別是第 1、2、14–19 點。Claude 用 `/pf-next`；其他 AI 照 WORKFLOW G3 和 §3 手動做。
 
@@ -610,7 +610,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 9. `git add` 只加 plan 指定的檔案路徑。
 10. plan 的 commit 指令寫死了 `Co-Authored-By: Claude Opus 5.5`，請換成你實際使用的工具和模型（WORKFLOW §6）。
 11. plan 開頭寫「REQUIRED SUB-SKILL: subagent-driven-development」，plan 內的測試段落也寫了 Claude 工具的名稱。Claude 優先用 `/pf-next`。其他 AI 照 WORKFLOW §3 和 §11 的對照表做。
-12. **D3（2026-10-01）**：人類指示「完成後上傳到GIT」。W1 完成 G5 合併與 G6 收尾後，執行 `git push origin main`（不 force，也不 push 其他分支），然後更新「▶ 現在」的「遠端」列。這次授權只限 W1。
+12. **D3（2026-10-01）**：使用者指示「完成後上傳到GIT」。W1 完成 G5 合併與 G6 收尾後，執行 `git push origin main`（不 force，也不 push 其他分支），然後更新「▶ 現在」的「遠端」列。這次授權只限 W1。
 13. **Task 1 修正輪偏離 plan（D14）**：`.rcard .rc-main` 是 `flex:1 1 240px`，不是 plan Step 3 的 `flex:1`。原本的寫法 flex-basis 是 0，`.rc-row` 的 `flex-wrap:wrap` 永遠不會換行，375px 下文字欄只剩 118–141px。Task 2 和整體審查都**不要改回去**。D14 已決定接受（2026-10-01）；plan 不另外同步，以這一條為準。
 14. **Task 2 必驗**（Task 1 審查留下的待驗證項目）：
     - 按鈕點擊流程：阿明送出；力瑜確認和退回。已列在驗收清單。
@@ -620,7 +620,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 16. **D16（2026-10-02 決定）**：卡片上的成果說明最多顯示約 6 行，超過的部分在卡片內捲動，完整內容在紀錄分頁的「回報歷史」。只改 CSS（`.rcard .rc-sum`），放在 Task 2 修正輪 1，附測試。看板、時程、相依圖仍然維持 D15 的「主區域不捲動」。已在 `c4e9e36` 實作：`max-height:10.2em;overflow:auto`（行高 1.7 × 6 行）。
 17. **D17（2026-10-02 決定）**：原本是子任務、而且停在「紀錄」分頁時，新增第一個子任務後自動切到「看板」，直接看到新的子任務。從新增子任務對話框「改用模板 / 過去任務…」或標題區「套用模板」建立子任務，也算在內。放在 Task 2 修正輪 1，附測試。已在 `c4e9e36` 實作：判斷寫在 `pageNode()`（`ui.leafPage` 記住上一次畫的子任務頁），所以所有建立子任務的入口都適用；`renderMain()` 改成先產生內容，再依改過的分頁切換捲動方式。
 18. **Task 2 審查後實測失敗（品質審查 Verify 1，轉 Important）**：1280×720 下，在 `t301` 的紀錄分頁捲到 300 後切到「相依圖」，主區域停在 43px，麵包屑被切掉，而且捲不回去。原因是相依圖下方的圖例說明超出 `.view`，主區域有可捲動的高度，但桌面版這三個分頁是 `overflow:hidden`。這是 D15 帶出來的問題，放在 Task 2 修正輪 1 處理：主區域不能捲動時回到頁首。已在 `c4e9e36` 修好：`renderMain()` 寫入內容後，主區域的計算樣式是 `overflowY:hidden` 時（只有桌面版節點頁的看板、時程、相依圖）把捲動位置設回 0。可以捲動的分頁和手機版維持原本的位置。
-19. **D18（2026-10-02 提出，2026-10-02 人類決定維持現狀）**：卡片上的自訂欄位、退回意見、跳過理由沒有高度上限（§5 W1-T2-m9）。維持現狀，W1 不改；§5 W1-T2-m9 改列 BY_DESIGN。
+19. **D18（2026-10-02 提出，2026-10-02 使用者決定維持現狀）**：卡片上的自訂欄位、退回意見、跳過理由沒有高度上限（§5 W1-T2-m9）。維持現狀，W1 不改；§5 W1-T2-m9 改列 BY_DESIGN。
 
 ### W2 部門模型 — ✅
 
@@ -642,7 +642,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 | 5 | 任務的負責部門和負責人：對話框、看板、我的任務、總覽 | ✅ 審查：獨立（spec＝Opus、品質＝Sonnet，第 1 輪都是 Needs fixes：ERP 證照、配方重做、會議待辦三個 `addNode` 呼叫端沒傳部門，負責人被靜默清空；`saveEditor` 沒用 `can()` 把關；快速新增的預設負責人會變成未指派；修正輪 1 後 scoped re-review Approved）。修正輪 1：三個呼叫端傳負責人所屬部門（配方重做傳原部門）、`saveEditor` 依 `can('dept')`／`can('assign')` 決定是否採用表單值、快速新增預設取第一個屬於部門的人並保留明確的「未指派」、XSS 測試補已指派分支與 `deptOpts`（兩次變異 RED 各 `失敗 1/123`）、未指派上層的提示寫「未指派・部門」。待驗證都已實測：獨立重跑 `全部通過 123/123`；375px 下看板、我的任務（含 chen 的「待我指派」）、總覽、任務頁都沒有水平捲動；console 沒有錯誤。spec §7 對應：第 7 項後半「任務對話框：負責人只列出部門成員；換部門會清空不屬於新部門的負責人」「任務對話框：部門主管可以指派但不能改部門」 | `08c677b..9a7c438`（`e1e5b23` 實作、`9a7c438` 修正輪 1） | 6（實際 12，修正輪 +6）：RED 失敗 6/117 → GREEN 全部通過 117/117；修正輪 1 RED 失敗 6/123 → GREEN 全部通過 123/123 | 117（實際 123） |
 | 6 | 時間軸預設收合，並可依部門篩選 | ✅ 審查：獨立（展示模式單一審查者 combined，第 1 輪 Approved、spec compliant，沒有修正輪；7 個 minor 記成 W2-T6-m1–m7，implementer 的兩項 AI 代決記成 D34、D35）。照執行注意 30 加上 `ui.tlDept` 指到已刪除部門時退回 `'all'`（plan 沒有）。實測：記錄者在 `7939a66` 上獨立重跑 `全部通過 129/129`（console 沒有錯誤）；桌面 1400×900 預設列 p1a–p1e，「品保」篩選後階段件數 1/0/2/3/0、上層 t301／t3012 淡色路徑、只剩 1 條箭頭，p4（沒有階段）不收合；真實刪除部門流程（admin 新增「測試部」→ 篩選 → 刪除 → 切回時程）退回「全部」、列 p1a–p1e，工具列和 toast 的復原都沒有錯誤；品保篩選中拖 t30122 +14 天（連動順延開啟），被篩掉的 t3013、t302、t401、t502、t503 都有順延，「↶ 復原」後全部日期回原值、篩選和展開狀態保留；375×812 篩選列換 3 行，`.tl` clientHeight 306、可捲到 p1e，§5 第 7 點檢查式 true；console 都沒有錯誤。沒有驗：Firefox／Safari 的 `:has()`（W2-T6-m2） | `af9a3b9..7939a66`（`7939a66` 實作） | 6 → 實際 RED 失敗 6/129 → GREEN 全部通過 129/129 | 129（實際 129） |
 | 7 | 範本帶入負責部門、更新 README | ✅ 審查：獨立（展示模式單一審查者 combined，第 1 輪 Approved、spec compliant，沒有修正輪；5 個 minor 記成 W2-T7-m1–m5，implementer 回報的既有 375px 對話框內捲動記成 W2-T7-m6，implementer 的 5 項 AI 代決記成 D36–D40）。照執行注意 31：W2-T1-m7 拿掉 `window.applyTemplate` 包裝、改斷言新節點的 `dept`／`depts`（測試改名「採購單建立驗收任務：協作部門存 id，新任務的負責部門都是品保」，總數不變）；README「修改時程」列反映 D23，F6 改成「待我指派」（W2-T5-m9）；`applyTemplate`／`nodeToTemplate` 照 plan 用 `TAG_DEPT`（D19 只限 `upgrade()`）。照 plan 的行為變化：模板節點沒有 `who` 時負責人改成未指派（不再帶 `ui.me`），採購單「建立驗收任務」的 5 個任務都是品保的未指派任務（W2-T7-m4）。實測：記錄者在 `03c9ff5` 上獨立重跑 `全部通過 133/133`（iframe 確認是新版 `applyTemplate`，console 沒有錯誤）；驗證者以小安（非主管成員）在 t703 真實點擊套用「送驗流程」並取消預設負責人 → 節點 65→78，新根節點 dept d-qa、13 個後代 owner 全是 null，小安看得到的新節點 0 個、看板顯示空狀態；採購單「建立驗收任務」後按 toast「開啟」只出現 `toast warn`「你沒有檢視此節點的權限」、頁面不跳轉；t703 七個分頁、overview／mytasks／review／ops／templates／aigov／audit、p1／p1c／p3 各分頁 render 都沒有例外、沒有 `undefined`／`NaN`；375×812 下 t703、ops 檢查式 true。implementer 另測：模板庫預覽 32 列沒有 `undefined`、依範本建立專案的 16 個任務 owner 全是 null 且 dept 照 `PHASE_TEMPLATE`、另存模板每個節點都有 dept、AI 任務拆解不拋例外、375px 模板庫和套用對話框檢查式 true；console 都沒有錯誤。沒有驗：截圖 | `c52e39b..03c9ff5`（`03c9ff5` 實作） | 4 → 實際 RED 失敗 5/133（4 個新測試加改寫的 W2-T1-m7）→ GREEN 全部通過 133/133 | 133（實際 133） |
-| — | 整體審查 | 🟢 等人類確認合併 | 第 1 輪整體審查（Claude，交接回報）：With fixes，需修執行注意 32 的 4 項，沒有其他阻塞 → 整體修正 `b2f7453`（未指派顯示、卡片負責人不換行、權限表、回報 select 防護）→ Codex 修正後自我再審：Ready to merge: Yes（非獨立審查，依 G5／§11 合併前需人類確認） | 整體修正加 4 個測試：RED `失敗 4/137` → GREEN `全部通過 137/137`（`.superpowers/sdd/final-fix-report.md`）。Codex 2026-10-05 新鮮重跑 `tests/records.html`：`全部通過 137/137`，console error 0；桌面以 yu／chen／ming 點過看板、時程、成員與權限、我的任務，沒有 `undefined`／`NaN`／`? —`；375px 看板、時程、成員與權限 `main.scrollWidth <= clientWidth`，console error 0 | 137（實際 137） |
+| — | 整體審查 | 🟢 等確認合併 | 第 1 輪整體審查（Claude，交接回報）：With fixes，需修執行注意 32 的 4 項，沒有其他阻塞 → 整體修正 `b2f7453`（未指派顯示、卡片負責人不換行、權限表、回報 select 防護）→ Codex 修正後自我再審：Ready to merge: Yes（非獨立審查，依 G5／§11 合併前需確認） | 整體修正加 4 個測試：RED `失敗 4/137` → GREEN `全部通過 137/137`（`.superpowers/sdd/final-fix-report.md`）。Codex 2026-10-05 新鮮重跑 `tests/records.html`：`全部通過 137/137`，console error 0；桌面以 yu／chen／ming 點過看板、時程、成員與權限、我的任務，沒有 `undefined`／`NaN`／`? —`；375px 看板、時程、成員與權限 `main.scrollWidth <= clientWidth`，console error 0 | 137（實際 137） |
 
 預期總數是研究時推算的，plan 本身只寫「全部通過 N/N」。以實際跑出來的數字為準。W1 最後共有 20 個測試（plan 的 13 個，加上修正輪和整體修正的 7 個），基準是 64，上表已經照這個數字調整（2026-10-02，W1-F-m1）。W1 如果還有修正增加測試，要再調整。W2 Task 1–5 的修正輪分別多了 4、9、6、5、6 個測試，Task 6 以後的預期總數已經 +30（2026-10-02）。
 
@@ -677,7 +677,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
     - `openEditor` 的負責人列寫 :2376-2377，實際在 :2377-2378。
 
     另外，Task 7 Step 4.2 的錨點 `tasks.forEach…addNode(ph…` 在原始碼裡跨 2 行，要用編輯器工具做多行替換。
-11. plan:23 要求用 `superpowers:using-git-worktrees` 開 worktree，plan:1164 要求用 `finishing-a-development-branch` 決定合併方式，**這兩點一律以 D2 為準**：在主 checkout 執行 `git checkout -b feature/w2-departments`，不開 worktree；合併照 WORKFLOW G5 用 ff-only。這已經裁決過，不算 Pre-flight 衝突，不需要再問人類。
+11. plan:23 要求用 `superpowers:using-git-worktrees` 開 worktree，plan:1164 要求用 `finishing-a-development-branch` 決定合併方式，**這兩點一律以 D2 為準**：在主 checkout 執行 `git checkout -b feature/w2-departments`，不開 worktree；合併照 WORKFLOW G5 用 ff-only。這已經裁決過，不算 Pre-flight 衝突，不需要再問使用者。
 12. plan 的 Global Constraints 寫死了 Claude 的 trailer，但各 Task 的 `git commit` 指令又沒有附 trailer。一律寫你實際使用的工具和模型（WORKFLOW §6）。
 13. plan「如何執行測試」那一段缺少 `?t=` 和快取處理，**以 WORKFLOW §5 為準**。
 14. **W1 已合併（2026-10-02，`a9890e1 Progress: W1 done`）**：Pre-flight 的基準測試應該是 `全部通過 64/64`。不符時照 WORKFLOW §5 第 11 點處理，不要開工。
@@ -688,11 +688,11 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
     - `pageNode()` 開頭的 `leafTask` 和 `ui.leafPage` 不要拿掉。`resetAll()` 沒有明確清除 `ui.leafPage`，是靠畫 p1 時順便清成 null；Task 6 改 `resetAll()` 時可以順手加上 `leafPage: null`，但不是必要的。
     - 回報卡的確認人名單來自 `approversFor(n)`，它依賴 `can('override', n)`。W1 的測試會斷言 t30121 的卡片寫著「等待 … 力瑜 … 確認」、t3011 寫著「確認：陳主管 2026/09/13 09:05」。W2 改寫權限後，如果這些斷言失敗：
       - spec 沒有要求改變確認人，就是回歸，要修程式。
-      - spec 確實要求改變確認人，就是 spec 和測試衝突，依 WORKFLOW §8 停下來問人類。不要直接改 W1 的測試。
-17. **測試環境**（2026-10-05 的狀態，主機是人類的 Windows 電腦）：
+      - spec 確實要求改變確認人，就是 spec 和測試衝突，依 WORKFLOW §8 停下來問使用者。不要直接改 W1 的測試。
+17. **測試環境**（2026-10-05 的狀態，主機是使用者的 Windows 電腦）：
     - 8000 埠被另一個不是這個 repo 的 python 伺服器占用（2026-10-05 是 PID 16860，回應 `{"detail":"Not Found"}`），不要動它。
-    - 8001 埠沒有伺服器（PID 24024 已在 2026-10-02 照人類指示關閉）。照 WORKFLOW §5 第 1 點在 8001 自己啟動，記下 PID，收工時用同一個 shell 關掉。啟動後先用 `curl.exe -s http://127.0.0.1:8001/AGENTS.md` 確認第一行是 `# AGENTS.md`。
-    - 2026-10-02 在 `172.22.32.95:8080` 開給同網域同事試用的分享伺服器（PID 27436，服務 repo 外的快照 `C:\Users\User\projectflow-share\`，不是測試伺服器），2026-10-05 實測已經不在了。要重開或更新快照等人類指示。
+    - 8001 埠沒有伺服器（PID 24024 已在 2026-10-02 照指示關閉）。照 WORKFLOW §5 第 1 點在 8001 自己啟動，記下 PID，收工時用同一個 shell 關掉。啟動後先用 `curl.exe -s http://127.0.0.1:8001/AGENTS.md` 確認第一行是 `# AGENTS.md`。
+    - 2026-10-02 在 `172.22.32.95:8080` 開給同網域同事試用的分享伺服器（PID 27436，服務 repo 外的快照 `C:\Users\User\projectflow-share\`，不是測試伺服器），2026-10-05 實測已經不在了。要重開或更新快照等指示。
     - Browser pane 隱藏時，測試頁的 iframe 寬度會是 0。要測桌面或 375px，用 `resize_window` 設定 viewport；W1 和寬度有關的測試會自己撐開 iframe。
 18. **編輯陷阱**：
     - 工作目錄是 CRLF。用 python 讀寫檔案時要加 `newline=''`，否則換行會被改掉。
@@ -701,16 +701,16 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 19. **補強測試時沒有自然的 RED**：例如整體修正時補的斷言。可以用「變異 RED」證明測試有鑑別力，W1 整體修正就是這樣做的：
     - 先備份檔案，暫時把程式改壞，記下 `#sum`。
     - 改回後用 `cmp` 確認和備份逐位元組相同，**不要 commit 變異**。
-20. **D19（2026-10-02 人類決定「照 spec」）**：`upgrade()` 的 v3 → v4 區塊，模板節點補 `dept` 的順序照 spec §3.4(4)：有 `who` 取其部門 → 否則第一個 `dp`（已轉成 id）→ 再沒有則 `d-rd`，**不用 `TAG_DEPT`**。plan Task 1 Step 8 的 `x.dept = … || TAG_DEPT[x.tag] || …` 以此為準，在 Task 1 修正輪 1 修改並補測試。只限 `upgrade()`：`seed()` 的 `chain`／`mkTpl`，以及 Task 7 的 `applyTemplate`、`nodeToTemplate` 仍照 plan 使用 `TAG_DEPT`。
+20. **D19（2026-10-02 使用者決定「照 spec」）**：`upgrade()` 的 v3 → v4 區塊，模板節點補 `dept` 的順序照 spec §3.4(4)：有 `who` 取其部門 → 否則第一個 `dp`（已轉成 id）→ 再沒有則 `d-rd`，**不用 `TAG_DEPT`**。plan Task 1 Step 8 的 `x.dept = … || TAG_DEPT[x.tag] || …` 以此為準，在 Task 1 修正輪 1 修改並補測試。只限 `upgrade()`：`seed()` 的 `chain`／`mkTpl`，以及 Task 7 的 `applyTemplate`、`nodeToTemplate` 仍照 plan 使用 `TAG_DEPT`。
 21. **Task 1 審查補的兩處（plan 漏列，照 plan 自己的規則修，不算新的產品決策）**：
     - AI 風險分析「工作量最重」和 AI 問答「誰／負責／工作量」的 `load[x.owner]` 要排除 `owner === null`，寫法和 `pageOverview` 的 `if (!x.owner) return;` 一致。
     - 採購單「建立驗收任務」（`ds.poTask`）的內聯模板：`dp: ['品保']` 改成 `['d-qa']`，根節點和子節點都加 `dept: 'd-qa'`（Global Constraints 的對應表：品保→d-qa）。
 22. **`isHead(uid, id)`**：Task 1 照 plan 寫成 `dept(id).head === uid`，所以 `isHead(null, 沒有主管的部門)` 會回傳 `true`。Task 2、3 呼叫時，`uid` 一律傳使用者 id，不要傳可能是 `null` 的值（例如 `n.owner`）。
-23. **D20（2026-10-02 人類決定「照 spec 字面」）**：`seeTask` 的下層規則只看「任一下層任務 `directSee`」，拿掉 plan Task 2 Step 3 的 `|| (d.owner !== null && ancestors(d).some(…))`。結果：ming 負責 t3012 → 未指派的 N → 指派給小安的 D 時，ming 看得到 D、看不到 N（D 在看板和時程上點不到，這是人類接受的結果）。上層規則仍然只套用在已指派的任務。
-24. **D21（2026-10-02 人類決定「顯示空狀態」）**：使用者一個專案都看不到時，節點頁的主區域顯示「目前沒有你看得到的專案」，**不要**退回 `projects()[0]` 帶到他看不到的專案；`ctxProject()` 的所有呼叫端（至少 `aiAsk`、`openMinutesConfirm`）要能處理 `undefined`，不可出錯。plan Task 2 Step 4.2 的 `|| projects()[0]` 以此為準。
+23. **D20（2026-10-02 使用者決定「照 spec 字面」）**：`seeTask` 的下層規則只看「任一下層任務 `directSee`」，拿掉 plan Task 2 Step 3 的 `|| (d.owner !== null && ancestors(d).some(…))`。結果：ming 負責 t3012 → 未指派的 N → 指派給小安的 D 時，ming 看得到 D、看不到 N（D 在看板和時程上點不到，這是使用者接受的結果）。上層規則仍然只套用在已指派的任務。
+24. **D21（2026-10-02 使用者決定「顯示空狀態」）**：使用者一個專案都看不到時，節點頁的主區域顯示「目前沒有你看得到的專案」，**不要**退回 `projects()[0]` 帶到他看不到的專案；`ctxProject()` 的所有呼叫端（至少 `aiAsk`、`openMinutesConfirm`）要能處理 `undefined`，不可出錯。plan Task 2 Step 4.2 的 `|| projects()[0]` 以此為準。
 25. **Task 2 測試補強（spec §7 第 3 項）**：plan 的 8 個測試沒有涵蓋「協作部門含採購的任務」，也沒有任何斷言只靠單一條規則成立（協作人員、負責部門主管、協作部門主管、範圍內審核人），所以在修正輪 1 補上，並用變異 RED（執行注意 19）證明每一條都有鑑別力。
-26. **D23（2026-10-02 人類決定）**：`can('schedule', n)` 對**任務**改成 `canWork(n)`（負責人本人、負責部門主管、專案負責人、系統管理員）。審核人對不是自己負責、也不是自己主管部門的任務不能改時程：任務對話框的日期與鎖定欄位要停用，時間軸拖曳也不行。對**非任務**節點（專案、階段）維持 W2 之前的規則：專案負責人、審核人，以及 member 是該節點負責人時。`deps`、`gate`、`override`（含回報確認，W1 的 `approversFor` 依賴它）都不變。這一點推翻 spec §4.4「reviewer 不變」。
-27. **D24（2026-10-02 人類決定）**：`canNote(n)` 加上範圍內的審核人（`inReviewerScope(n)`）。readonly 一律不能寫筆記。
+26. **D23（2026-10-02 使用者決定）**：`can('schedule', n)` 對**任務**改成 `canWork(n)`（負責人本人、負責部門主管、專案負責人、系統管理員）。審核人對不是自己負責、也不是自己主管部門的任務不能改時程：任務對話框的日期與鎖定欄位要停用，時間軸拖曳也不行。對**非任務**節點（專案、階段）維持 W2 之前的規則：專案負責人、審核人，以及 member 是該節點負責人時。`deps`、`gate`、`override`（含回報確認，W1 的 `approversFor` 依賴它）都不變。這一點推翻 spec §4.4「reviewer 不變」。
+27. **D24（2026-10-02 使用者決定）**：`canNote(n)` 加上範圍內的審核人（`inReviewerScope(n)`）。readonly 一律不能寫筆記。
 28. **Task 3 審查的筆記附件（controller 裁決，不是新的產品決策）**：協作人員與協作部門主管可以寫筆記（spec §4.2「照舊可以新增筆記」，README F11 的筆記「可附檔」），所以 `addAttachments` 帶 `noteId` 時改用 `canNote(n)` 判斷（並確認該筆記屬於這個節點）；不帶 `noteId`（任務附件）仍用 `can('edit', n)`。
 29. **`records.test.js`「成員不能拖曳已跳過的卡片來恢復任務」**：和 plan Task 3 Step 3 的三個跳過案例同一個原因（ming 不能再操作 t30122），改成讓小安負責 t30122 再驗證，並用變異 RED 證明「已跳過」防護仍有測試保護。這是 F11 的測試，不是 W1 的。
 30. **Task 6 注意**：Task 4 開放刪除部門，`ui.tlDept` 指到已刪除的部門時要退回 `'all'`；`resetAll()` 要清 `tlDept`（第 3 點）。Task 3 之後時間軸拖曳看 `can('schedule')`（D23），不要改回。
@@ -733,13 +733,13 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
 
 > **W3 完成摘要（2026-10-05，給接手者）**：W3 已完成工作流功能架構。Demo 現在有 `db.workflows[]`（資料版 v5）、工作流模板庫 CRUD、可從工作流建立專案、工作流專案的前序階段關卡會硬性擋住後續階段任務；個別工作流內容之後由使用者自行添加。下一個工作項目是 W5 README 精簡對齊。
 
-- **來源**：W2 spec 開頭的「拆分」段落原本有 7 項。2026-10-05 人類先選「精簡版」（D31），後續又確認 W3 不要只內建某個工作流，而要完成可自行新增／編輯／套用工作流的功能架構（D42）。本項目只做：
+- **來源**：W2 spec 開頭的「拆分」段落原本有 7 項。2026-10-05 使用者先選「精簡版」（D31），後續又確認 W3 不要只內建某個工作流，而要完成可自行新增／編輯／套用工作流的功能架構（D42）。本項目只做：
   1. 工作流模板 CRUD：階段、任務、負責部門、協作部門、前置條件、階段關卡。
   2. 從工作流建立專案：產生專案、階段、任務、前置條件和關卡。
   3. 關卡硬性擋住後續階段（關卡沒通過，下一階段的任務不能開始或完成）。
   - 資料版本：v4 → v5，新增 `db.workflows[]`。
 - **不做，延到正式版**：範本指定關卡的核准人、總經理角色、強制通過關卡與略過整個階段、完成報告必附交付物。W2 spec 列為不在範圍內的應收帳款、人員帳號的新增與編輯也一樣不做。
-- **spec 怎麼產生**（D31 取代 D9 的完整 brainstorming）：AI 已把 D41 的兩份現有專流轉寫成 `docs/reference/2026-10-05-w3-current-flow-sources.md`，並依 D42 修訂短版 spec `docs/superpowers/specs/2026-10-05-process-control-design.md`。人類已在對話確認方向。
+- **spec 怎麼產生**（D31 取代 D9 的完整 brainstorming）：AI 已把 D41 的兩份現有專流轉寫成 `docs/reference/2026-10-05-w3-current-flow-sources.md`，並依 D42 修訂短版 spec `docs/superpowers/specs/2026-10-05-process-control-design.md`。使用者已在對話確認方向。
 - **plan**：`docs/superpowers/plans/2026-10-05-workflow-architecture.md`，共 4 個 Task：資料模型與驗證、工作流模板管理 UI、從工作流建立專案、關卡阻擋與驗收。
 - **結果**：
   | Task | 狀態 | 範圍 | commit／驗證 |
@@ -750,13 +750,13 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
   | 4 | ✅ | 工作流專案的前序階段關卡 pending 時擋住後續階段；375px 基本溢出測試 | `c8b4c3b`；RED `失敗 1/149` → GREEN `全部通過 149/149` |
   | 審查修正 | ✅ | reviewer 指出 owner/admin 可用 generic 前置覆寫繞過 gate；已改成 gate blocker 只能走關卡審核／覆寫流程，並補回歸測試 | `9bb9a52`；GREEN `全部通過 149/149` |
 - **審查**：Codex 以 `requesting-code-review` 派 read-only reviewer 審 `6ea8d08..c8b4c3b`。結果：無 Critical；1 個 Important（generic 前置覆寫可繞過 pending workflow gate）已在 `9bb9a52` 修正並重跑測試。最終自我驗證：`tests/records.html?t=1791173758864` → `全部通過 149/149`。
-- **下一步**：W5 README 對齊現況（精簡：只改 README §1 快速開始、§2 功能總覽）。W3 feature 分支完成後可 fast-forward 合併到 `main`；人類已在對話中要求「確認後推上去」。
+- **下一步**：W5 README 對齊現況（精簡：只改 README §1 快速開始、§2 功能總覽）。W3 feature 分支完成後可 fast-forward 合併到 `main`；使用者已在對話中要求「確認後推上去」。
 
 ### W4 F11 遺留問題清理 — ✖（取消，D30）
 
 - **2026-10-05 取消**：展示模式下不花時間在細節。F11-N1（回報對話框可能拋例外）併入 W2 整體修正（W2 執行注意 32）；D4–D8 維持現狀；§5 其餘項目留在 OPEN，延到正式版。沒有開過分支，也沒有 spec 和 plan。
 - 以下是取消前的規劃，留作正式版參考。
-- **範圍**：§5 中狀態是 OPEN、而且「需人類」為「否」的項目。依 WORKFLOW G1 的例外，直接寫 `docs/superpowers/plans/<日期>-w4-cleanup.md`。每個 issue ID 對應一個 Task，每項都要附測試。
+- **範圍**：§5 中狀態是 OPEN、而且「需使用者」為「否」的項目。依 WORKFLOW G1 的例外，直接寫 `docs/superpowers/plans/<日期>-w4-cleanup.md`。每個 issue ID 對應一個 Task，每項都要附測試。
 - **建議優先處理**：
   - `F11-T1-m3`：upgrade 失敗時會靜默覆蓋使用者資料
   - `F11-N1`：回報對話框會拋例外
@@ -764,7 +764,7 @@ D67指定優先對齊Demo，P2d後移。依[短規格／計畫](superpowers/plan
   - `F11-T6-m3`：已刪除節點的申請會永遠卡著
   - `F11-T5-m1`：可以重複送出
   - 補測試類：`T2-m4`、`T3-m4`、`T5-m5`、`T6-m4`、`T7-m4`
-- **要等人類決定的**：`T1-m5`、`T4-m2`、`T4-m4`、`T5-m2`、`T6-m1`。這幾項等 §6 有了結論，才能排進 W4。
+- **要等決定的**：`T1-m5`、`T4-m2`、`T4-m4`、`T5-m2`、`T6-m1`。這幾項等 §6 有了結論，才能排進 W4。
 
 ### W5 README 對齊現況（精簡）— ✅
 
@@ -777,18 +777,18 @@ README 有幾處還停留在階段 0 或 F11 之前的內容，W2 合併後一�
 - §7 專案結構缺少 `docs/`、`tests/`、`AGENTS.md`、`.claude/`。
 - §8 沒有說明 full demo 和正式產品軌的關係。
 - §5 `overrides` 的 `target_type` 和 `kind` 語意重疊，而且沒有記載 `restoredBy`、`restoredAt`、`note`。
-- （做）目錄前面的「給接手的人：怎麼請 AI 繼續開發」是 2026-10-02 照人類指示新增的。這段不加編號，所以 AGENTS.md 引用的 §4、§5、§6、§9 編號不變。W5 整理時要一併檢查這段和 AGENTS、WORKFLOW 是否一致。
+- （做）目錄前面的「給接手的人：怎麼請 AI 繼續開發」是 2026-10-02 照指示新增的。這段不加編號，所以 AGENTS.md 引用的 §4、§5、§6、§9 編號不變。W5 整理時要一併檢查這段和 AGENTS、WORKFLOW 是否一致。
 
-full demo 定位的文字由 AI 起草，人類看一次（D12）。
+full demo 定位的文字由 AI 起草，使用者看一次（D12）。
 
 **完成摘要（2026-10-05，Codex）**：
 - README 頂部摘要已改成 W1／W2／W3／W5 完成、W4 取消，並說明 W3 先完成功能架構、個別工作流內容由使用者之後自行添加。
 - README §1 已改以 `projectflow-full-demo.html` 為準，補上測試頁路徑，並註明 `projectflow-petfood-demo.html` 是階段 0 存檔。
 - README §2 已更新 full demo 功能總覽與已知限制，涵蓋節點、看板、時程、前置與關卡、模板庫、部門權限、我的任務／審核中心、文件紀錄、AI 副手、研發營運資料，以及目前沒有後端／多人同步。
-- D12 由 AI 起草完成，狀態改為「待人類可推翻」。
+- D12 由 AI 起草完成，狀態改為「待使用者可推翻」。
 
 **追加整理（2026-10-05，Codex）**：
-- 依人類指定的深色部署圖版型新增 `docs/projectflow-system-architecture.svg`，用青綠／橘／灰色標示 Demo 已完成、正式版待建、外部整合。
+- 依指定的深色部署圖版型新增 `docs/projectflow-system-architecture.svg`，用青綠／橘／灰色標示 Demo 已完成、正式版待建、外部整合。
 - README §6 改成引用該圖，並分成「目前已完成的 Demo 架構」「正式產品軌尚未完成」「下一步判讀」。
 - README §7 專案結構補上 `AGENTS.md`、`docs/`、`tests/`、`.claude/` 與架構圖檔。
 
@@ -796,7 +796,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 **目標**：把目前以寵物食品製造為主的單公司 Demo，擴充成五個可切換、資料完全獨立的公司空間，證明 ProjectFlow 能套用到不同產業。
 
-**人類已確認的方向（D44）**：
+**使用者已確認的方向（D44）**：
 - 固定五家範例公司，不做公司新增、刪除或改名。
 - 五家公司是毛研食品、峰曜科技、光點企劃、雲序軟體、築衡工程，涵蓋寵物食品、電子製造、活動行銷、SaaS 與營建工程。
 - 每家公司都有獨立的專案、工作流、部門、成員、權限、營運資料、稽核紀錄與目前身分；採平衡版種子資料。
@@ -869,7 +869,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ### P1a 正式版後端核心 — ✅ 完成並發布GitHub main
 
-**授權**：D51已授權做到P1c；D53確認人類只審成品，中間由AI自行依計畫推進，只有重大範圍／安全／無法照plan的問題才停下來問。
+**授權**：D51已授權做到P1c；D53確認使用者只審成品，中間由AI自行依計畫推進，只有重大範圍／安全／無法照plan的問題才停下來問。
 
 **計畫**：[2026-10-08-p1a-backend-core](superpowers/plans/2026-10-08-p1a-backend-core.md)，取代舊MVP outline Task2。P1a只做後端核心；P1b才接React業務流程，P1c才做整合驗收。
 
@@ -897,7 +897,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ### P1b 正式版 React 核心 UI — ✅ 完成
 
-**授權**：D51已授權做到P1c；人類2026-10-08指示「開始實作」，確認P1b計畫並進入G3。Pre-flight：API `35 passed, 1 warning in 29.36s`、Vitest `6 passed (6)`、build exit0、Playwright `4 passed (1.0s)`，各exit0；無feature分支，working tree乾淨。
+**授權**：D51已授權做到P1c；使用者2026-10-08指示「開始實作」，確認P1b計畫並進入G3。Pre-flight：API `35 passed, 1 warning in 29.36s`、Vitest `6 passed (6)`、build exit0、Playwright `4 passed (1.0s)`，各exit0；無feature分支，working tree乾淨。
 
 **計畫**：[2026-10-08-p1b-react-core-ui](superpowers/plans/2026-10-08-p1b-react-core-ui.md)。P1b只接React核心業務流程；P1c才做部署／測試／內部試用驗收。
 
@@ -927,9 +927,9 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 3. 若P1a API回應缺UI必需欄位，先判斷是否已在plan允許的後端變更範圍；超出時依WORKFLOW §8記D停下。
 4. Task4容器alembic設定在 `/app/alembic.ini`；實跑 `docker compose --env-file deploy/.env -f deploy/docker-compose.yml exec api python -m alembic upgrade head` exit0。計畫的 `-c api/alembic.ini` 是主機路徑，不在容器存在，按既有容器預設設定修正命令，無schema變更。
 
-### P1c 正式版部署／角色驗收 — ✅ 工程交付完成；人類試用待簽核
+### P1c 正式版部署／角色驗收 — ✅ 工程交付完成；使用者試用待簽核
 
-**授權**：D51完整MVP範圍與本輪人類「繼續下一個階段」；沿用先前直接指示D53「只審核成品，中間可以自己進行」，依既有spec補計畫、獨立審查後繼續實作。重大範圍／安全／破壞性變更仍須問；不新增LAN發布或模組。
+**授權**：D51完整MVP範圍與本輪使用者「繼續下一個階段」；沿用先前直接指示D53「只審核成品，中間可以自己進行」，依既有spec補計畫、獨立審查後繼續實作。重大範圍／安全／破壞性變更仍須問；不新增LAN發布或模組。
 
 **計畫**：[P1c MVP部署驗收](superpowers/plans/2026-10-08-p1c-mvp-acceptance.md)。測試分離projectflow-acceptance與使用者projectflow-formal，避免新增測試資料污染試用清單；既有P1b歷史測試專案保留，不刪除資料。
 
@@ -939,7 +939,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 |---|---|---|---|---|
 | 1 | 安全一鍵Compose啟動、opt-in種子、隔離驗收marker | ✅ `2acd923..7eca35d` | RED `2 failed, 11 passed, 14 errors` exit1（缺start/marker）→GREEN27；env繼承RED `1 failed,14 passed`→pass；Windows實啟cp950讀DockerUTF8失敗exit1，回歸RED `1 failed,15 passed`→targeted29pass。完整API56/1warning exit0、Vitest55/build0，真隔離startup/migration/seed0，marker200/login200/count1；共享marker404/login200/count12未變。Lagrange spec/Feynman quality均Approved，quality獨立API56。 | `P1c task 1: add safe Compose trial startup` |
 | 2 | 角色讀取權限修正與yu/chen/ming隔離瀏覽器驗收 | ✅ Lagrange spec／Feynman quality Approved | API RED `1 failed,14 passed` exit1→GREEN63/1warning exit0；Vitest RED1failed/55passed→GREEN56 exit0；E2E RED2failed→GREEN6passed(11.0s) exit0；build0。quality獨立API63/27.50s、Vitest56/build0；共享count12/marker404不變，隔離marker200；15173及false-marker拒絕exit1 | `a42b47b`；`P1c task 2: verify role boundaries and isolated workflows` |
-| 3 | 一鍵驗收與試用交接文件 | ✅ Lagrange spec／Feynman quality Approved | targeted RED `16 passed,1 warning,17 errors in 0.54s` exit1缺verify→GREEN33/0.18s exit0；quality獨立33/0.16s exit0。verify --keep-running：API80/31.65s/1warning、Vitest56、build0、E2E6/10.0s exit0；無seed刷新shared0/count12/marker404/snapshot hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7不變；重複隔離seed七帳號/env/snapshot保持，migrationhead，marker200。預設down尚待實驗，人類簽核未勾選 | `717e443`；`P1c task 3: add repeatable MVP acceptance handoff` |
+| 3 | 一鍵驗收與試用交接文件 | ✅ Lagrange spec／Feynman quality Approved | targeted RED `16 passed,1 warning,17 errors in 0.54s` exit1缺verify→GREEN33/0.18s exit0；quality獨立33/0.16s exit0。verify --keep-running：API80/31.65s/1warning、Vitest56、build0、E2E6/10.0s exit0；無seed刷新shared0/count12/marker404/snapshot hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7不變；重複隔離seed七帳號/env/snapshot保持，migrationhead，marker200。預設down尚待實驗，使用者簽核未勾選 | `717e443`；`P1c task 3: add repeatable MVP acceptance handoff` |
 
 **驗收**
 - [x] 一鍵啟動實跑Compose、migration、可選seed與readiness，重跑保留既有資料。
@@ -948,11 +948,11 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - [x] yu/chen/ming、readonly與跨公司權限API／真瀏覽器驗收通過；1280／375無溢出或非預期錯誤。
 - [x] 一鍵verify各階段exit code可靠，失敗與cleanup不波及使用者環境，保留volume。
 - [x] README／正式開發／試用checklist／PROGRESS審查更新，完整回歸與ff-only完成；D50push結果見遠端欄。
-- [ ] 人類內部試用簽核（AI不得代勾）。
+- [ ] 使用者內部試用簽核（AI不得代勾）。
 
 **執行注意**：P1c識別的既有讀取缺口：`api/app/routes/projects.py` detail未用`can_view_node`；本計畫按既有helper修正，不改role policy。P1b三項Minor中E2E預期HTTP次數由Task2順帶補強，其他保持原登錄。
 
-**G4**：Lagrange完整`2acd923..e7ecd7a`與scoped `a5c9745`均Ready to merge: Yes，無Critical／Important；指出舊E2E與停機文件Minor，已於`a5c9745`／`a5048e3`對齊隔離環境，Feynman最後文件Approved。controller實跑預設verify：API80/38.36s/1warning、Vitest56、build0、E2E6/11.3s、cleanup與最終exit0；acceptance容器空、pgdata保留。shared count12／hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7／marker404不變，Demo及tests diff空。人類簽核非工程合併條件，保持未完成，不宣稱LAN部署。
+**G4**：Lagrange完整`2acd923..e7ecd7a`與scoped `a5c9745`均Ready to merge: Yes，無Critical／Important；指出舊E2E與停機文件Minor，已於`a5c9745`／`a5048e3`對齊隔離環境，Feynman最後文件Approved。controller實跑預設verify：API80/38.36s/1warning、Vitest56、build0、E2E6/11.3s、cleanup與最終exit0；acceptance容器空、pgdata保留。shared count12／hash79500e1f2db0f54d311e99b7921499a3b155b28d011da8dcea62a3912b073ed7／marker404不變，Demo及tests diff空。使用者簽核非工程合併條件，保持未完成，不宣稱LAN部署。
 
 ### P0 規劃文件恢復（歷史紀錄，非 P0 實作）
 
@@ -968,16 +968,16 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 | 項目 | 內容 | 證據 |
 |---|---|---|
-| UI3 | Demo三區框架、導覽與側欄進度、總覽表格與負載、我的任務分組表格、預覽副手 | `03dc854..a0c9936`；一次獨立審查（2 Important修正後Yes）；PG6、API368/7skip、Vitest173、build0、E2E20/20（系統Edge）。15173更新API＋web，資料逐值保留、新增0列。人類簽核未勾。 |
-| P2c | 日週月時程/拖移與手機改期、模板CRUD/copy/相對日、硬性FS與可見相依圖 | 6c45e51..5992ce6；D65一次獨立審查Ready to merge: Yes；PG6、API344+target2、Vitest167/build0、E2E15+target1，首次fail日志保留，不重跑main全量。無seed重啟/15173成套備份升0004，原值/filesSHA/env相同。精簡範圍之外明列延後，人類簽核未勾。 |
-| P2b | 回報審核、筆記修訂、指定協作、持久附件、審核中心與安全稽核 | ef39cdd..4d0323e；八Task TDD／雙審、G4 Ready to merge: Yes、ff-only main。G6強制PG1+3、API337/5skip、Vitest150、E2E13/build/cleanup exit0；重啟/恢復/配額、15173無seed升級舊資料與env不變。人類簽核未勾。 |
-| P2a | 工作區、總覽／我的任務、四層新增／metadata編輯、D56指派與日期、多層Gate | acf176e..8dc914a；六Task TDD、兩位獨立spec／品質審查與G4 Ready to merge: Yes；ff-only main，G6 API182／Vitest96／E2E9/build/cleanup exit0，真PG與無seed重啟保留資料通過。15173已就緒，人類簽核未勾。 |
-| P1c | 本機MVP部署與隔離驗收工程交付；人類試用簽核仍待完成 | 三Task TDD、Lagrange spec／Feynman quality Approved；G4 Ready to merge: Yes，ff-only main；API80／Vitest56／E2E6/build及預設cleanup exit0。既有共享12專案snapshot不變；只停acceptance且保留volume；Demo未變。 |
+| UI3 | Demo三區框架、導覽與側欄進度、總覽表格與負載、我的任務分組表格、預覽副手 | `03dc854..a0c9936`；一次獨立審查（2 Important修正後Yes）；PG6、API368/7skip、Vitest173、build0、E2E20/20（系統Edge）。15173更新API＋web，資料逐值保留、新增0列。使用者簽核未勾。 |
+| P2c | 日週月時程/拖移與手機改期、模板CRUD/copy/相對日、硬性FS與可見相依圖 | 6c45e51..5992ce6；D65一次獨立審查Ready to merge: Yes；PG6、API344+target2、Vitest167/build0、E2E15+target1，首次fail日志保留，不重跑main全量。無seed重啟/15173成套備份升0004，原值/filesSHA/env相同。精簡範圍之外明列延後，使用者簽核未勾。 |
+| P2b | 回報審核、筆記修訂、指定協作、持久附件、審核中心與安全稽核 | ef39cdd..4d0323e；八Task TDD／雙審、G4 Ready to merge: Yes、ff-only main。G6強制PG1+3、API337/5skip、Vitest150、E2E13/build/cleanup exit0；重啟/恢復/配額、15173無seed升級舊資料與env不變。使用者簽核未勾。 |
+| P2a | 工作區、總覽／我的任務、四層新增／metadata編輯、D56指派與日期、多層Gate | acf176e..8dc914a；六Task TDD、兩位獨立spec／品質審查與G4 Ready to merge: Yes；ff-only main，G6 API182／Vitest96／E2E9/build/cleanup exit0，真PG與無seed重啟保留資料通過。15173已就緒，使用者簽核未勾。 |
+| P1c | 本機MVP部署與隔離驗收工程交付；使用者試用簽核仍待完成 | 三Task TDD、Lagrange spec／Feynman quality Approved；G4 Ready to merge: Yes，ff-only main；API80／Vitest56／E2E6/build及預設cleanup exit0。既有共享12專案snapshot不變；只停acceptance且保留volume；Demo未變。 |
 | 階段 0 | petfood 互動 Demo（`projectflow-petfood-demo.html`） | README §8 階段 0 已打勾 ✅；早於 git 歷史，包含在 `9fdcc64` 裡 |
 | F1–F10 | full demo 的多層任務樹、模板、時程編輯、前置條件與關鍵路徑、權限與覆寫、協作、文件與版本、AI 副手（規則式）、分級路由與遮罩（模擬）、研發營運資料（模擬 ERP） | 早於 git 歷史，包含在 `9fdcc64` 裡。F6 的部門目前是寫死的，由 W2 處理 |
 | F11 | 任務紀錄與完成回報：回報與審核、自訂回報欄位、筆記、附件（IndexedDB）、主管跳過整個任務、AI 引用紀錄 | [spec](superpowers/specs/2026-09-30-task-records-and-skip-design.md)、[plan](superpowers/plans/2026-09-30-task-records-and-skip.md)；commits `9fdcc64..aebd709`（從 `2fc8f10` 到 `aebd709` 共 10 個：7 個 Task、2 輪修正、1 次整體修正），以 fast-forward 合併進 `main`；測試 44/44。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-09-30-f11-task-records/`（不在 git 裡；重要內容已整理到本看板 §5） |
 | W1 | 子任務置頂回報卡：葉任務頁標題下方固定顯示回報卡（狀態與下一步動作），「紀錄」分頁排第一並作為預設；D15 桌面版紀錄等分頁可捲動，D16 卡片摘要最多約 6 行，D17 新增第一個子任務後切到看板 | [spec](superpowers/specs/2026-10-01-subtask-report-card-design.md)、[plan](superpowers/plans/2026-10-01-subtask-report-card.md)；commits `8aed7d6..2d2c785`（2 個 Task、2 輪 Task 修正、D15、1 次整體修正），以 fast-forward 合併進 `main`；測試 64/64；`db.v` 維持 3。審查全部獨立（每個 Task spec＋品質各 2 輪，整體審查 2 輪）。SDD 暫存已歸檔到本機的 `.superpowers/archive/2026-10-01-subtask-report-card/`（不在 git 裡；重要內容已整理到本看板 §3 W1、§5、§6） |
-| W2 | 部門模型：`db.departments` 可設定、預設 10 部門；任務必填負責部門且負責人可未指派；任務可見性與操作權限依負責人、部門主管、專案負責人、系統管理員等規則；時間軸預設收合成階段並可依負責部門篩選；模板帶入負責部門 | [spec](superpowers/specs/2026-10-01-department-model-design.md)、[plan](superpowers/plans/2026-10-01-department-model.md)；commits `670afaf..5f326ab`（Task 1–7、展示模式流程調整、整體修正與等待合併進度），以 fast-forward 合併進 `main`；測試 `全部通過 137/137`；`db.v = 4`。Task 1–5 是完整流程獨立審查，Task 6–7 是展示模式單一審查者，整體修正後由 Codex 自我再審並經人類確認合併。 |
+| W2 | 部門模型：`db.departments` 可設定、預設 10 部門；任務必填負責部門且負責人可未指派；任務可見性與操作權限依負責人、部門主管、專案負責人、系統管理員等規則；時間軸預設收合成階段並可依負責部門篩選；模板帶入負責部門 | [spec](superpowers/specs/2026-10-01-department-model-design.md)、[plan](superpowers/plans/2026-10-01-department-model.md)；commits `670afaf..5f326ab`（Task 1–7、展示模式流程調整、整體修正與等待合併進度），以 fast-forward 合併進 `main`；測試 `全部通過 137/137`；`db.v = 4`。Task 1–5 是完整流程獨立審查，Task 6–7 是展示模式單一審查者，整體修正後由 Codex 自我再審並經確認合併。 |
 | W3 | 工作流架構：`db.workflows[]`、工作流模板 CRUD、從工作流建立專案、工作流專案的前序階段關卡硬性擋住後續階段 | [spec](superpowers/specs/2026-10-05-process-control-design.md)、[plan](superpowers/plans/2026-10-05-workflow-architecture.md)；commits `6ea8d08..9bb9a52`；測試 `全部通過 149/149`；`db.v = 5`。展示模式單一 reviewer 找到 1 個 Important（generic 前置覆寫可繞過 pending workflow gate），已修正。 |
 | W5 | README 對齊現況（精簡）：頂部進度摘要、§1 快速開始、§2 Demo 功能總覽、§6 系統架構圖、§7 專案結構更新到 full demo／W3 後狀態 | 2026-10-05 完成；只改 README／PROGRESS／架構圖，沒有改產品程式。驗證 `git diff --check`。 |
 | 規劃文件 | W1 的 spec 和 plan、W2 的 spec 和 plan | `3a24c52`、`ed3e24f`、`edf46b6`、`dfc0126` |
@@ -993,12 +993,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 **COPILOT-SIMPLIFY新增（2026-10-28，審查記錄，皆不阻塞）**
 - COPILOT-SIMPLIFY-m1（minor，OPEN）：E2E `ai-starter.spec.ts`、`ai-local-model.spec.ts` 拿掉 TRAIN-10 專案範圍後，「新人課程目前哪天上？」可能撈到機密文件，使「資料等級：內部」斷言失敗；未在驗收環境實跑。不穩時改用 `page.request` 驗分級。
 - COPILOT-SIMPLIFY-m2（minor，OPEN）：`ai-auto-history.spec.ts` 拿掉正式文件歷史段落開啟與「歷史版本，請勿當作現行規定」的畫面驗證，目前只有 Vitest 覆蓋；可用正式文件分類的歷史快捷題補一條 E2E。
-- COPILOT-SIMPLIFY-m3（minor，FIXED 2026-10-28，人類「修掉」；示範腳本改為點分類／快捷題，D15改為在正式文件分類輸入後於⚙預覽，未限定專案、未實跑）：`docs/ai-demo-questions.md:20,25,30,47,67,76` 仍寫選「AI資料集／查詢方式／分析種類」、勾「包含歷史版本」，應改成「點分類→點快捷題」；不在本次允許清單。
+- COPILOT-SIMPLIFY-m3（minor，FIXED 2026-10-28，使用者「修掉」；示範腳本改為點分類／快捷題，D15改為在正式文件分類輸入後於⚙預覽，未限定專案、未實跑）：`docs/ai-demo-questions.md:20,25,30,47,67,76` 仍寫選「AI資料集／查詢方式／分析種類」、勾「包含歷史版本」，應改成「點分類→點快捷題」；不在本次允許清單。
 - COPILOT-SIMPLIFY-m4（minor，FIXED 2026-10-28；兩句提示改為「請點下方快捷題…」，模型建議句的「上方公司／AI專案範圍」改為「目前公司可見的AI專案範圍」；新增`test_sql_guidance_points_to_shortcuts_not_removed_menus`先RED後GREEN，AI相關後端204 pass／2 skip，15173實測建議句已更新）：`api/app/ai/service.py:56,58` SQL 無法辨識時提示「請選擇分析種類」「請從分析選單選擇查詢」，選單已移除，應改成「請點下方快捷題或換個問法」；後端檔不在本次允許清單。
 - COPILOT-SIMPLIFY-m5（trivial，OPEN）：`CopilotPanel.tsx` 快捷題專案以標題開頭比對取第一個；跑過正式文件 E2E 的環境有「隔離索引展示 …」「增量索引展示 …」測試專案，可能對到測試專案。展示環境不受影響；可改為優先完全相符或比對「（虛構）」。
 
 **OPS-LOCAL新增（2026-10-28）**
-- OPS-LOCAL-m1（important，OPEN，不阻塞，需人類：否，大小S）：照 `deploy/demo-data/README.md` 在 0019 schema 匯入資料包會失敗。`demo_pack.import_pack` 用目前 ORM 的 `users` 表插入，SQLAlchemy 會帶入 0021 新欄位 `status`、`must_change_password` 的 Python 端預設值，但 0019 沒有這兩欄，報 `sqlalchemy.exc` f405 錯誤。所以程式比資料包新時，README 的「先用相同版本還原，再 start.py 升級」走不通。2026-10-28 本機 15173 的繞法：`alembic upgrade head` → 暫把 `alembic_version` 改成 `20261012_0019` → `demo_data.py import` → 改回 `20261024_0021`。0020／0021 只新增表和欄位，結果等同「先匯入再升級」；匯入 27 表（80 帳號、39 專案、500 節點），yu／demo-yu 登入可見 8 個專案。修法擇一：插入時只帶資料庫實際存在的欄位（`inspect(conn).get_columns`），或改成在目前 schema 匯入、允許資料包版本較舊，或以 head 重新匯出資料包。位置 `api/app/demo_pack.py:129-136`。
+- OPS-LOCAL-m1（important，OPEN，不阻塞，需使用者：否，大小S）：照 `deploy/demo-data/README.md` 在 0019 schema 匯入資料包會失敗。`demo_pack.import_pack` 用目前 ORM 的 `users` 表插入，SQLAlchemy 會帶入 0021 新欄位 `status`、`must_change_password` 的 Python 端預設值，但 0019 沒有這兩欄，報 `sqlalchemy.exc` f405 錯誤。所以程式比資料包新時，README 的「先用相同版本還原，再 start.py 升級」走不通。2026-10-28 本機 15173 的繞法：`alembic upgrade head` → 暫把 `alembic_version` 改成 `20261012_0019` → `demo_data.py import` → 改回 `20261024_0021`。0020／0021 只新增表和欄位，結果等同「先匯入再升級」；匯入 27 表（80 帳號、39 專案、500 節點），yu／demo-yu 登入可見 8 個專案。修法擇一：插入時只帶資料庫實際存在的欄位（`inspect(conn).get_columns`），或改成在目前 schema 匯入、允許資料包版本較舊，或以 head 重新匯出資料包。位置 `api/app/demo_pack.py:129-136`。
 
 **P1b新增**
 - P1b-T1-m1（minor，OPEN，不阻塞）：API client未設timeout；pending請求須等代理或連線結束，取消目前涵蓋換請求與卸載。後續網路韌性工作補強，位置 `web/src/api.ts:12`。
@@ -1013,12 +1013,12 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
   - F11 的項目來自 F11 的執行紀錄，2026-10-01 已經逐項在程式碼中核對過，共 39 個 ID（N2 已併入 T4-m1）。
   - 之後的工作項目用 `W1-T1-m1`（Task）或 `W1-F-m1`（整體審查）這種格式，詳見 WORKFLOW 附錄 B。
 - **嚴重度**：important、minor、trivial。**大小**：S（不到 30 分鐘）、M、L。
-- **處理方式**：「需人類」為「是」的項目，要等 §6 有了結論才能動手。修好後狀態改成 FIXED，並寫上 commit。
+- **處理方式**：「需使用者」為「是」的項目，要等 §6 有了結論才能動手。修好後狀態改成 FIXED，並寫上 commit。
 - **展示模式（D30，2026-10-05 起）**：W4 取消。OPEN 項目只有描述開頭標「【W2 整體修正】」的會在 W2 修，其他都延到正式版；新發現的 minor 也是記下來就好。
 
 ### OPEN
 
-| ID | 描述 | 嚴重度 | 大小 | 需人類 | 位置（dfc0126） |
+| ID | 描述 | 嚴重度 | 大小 | 需使用者 | 位置（dfc0126） |
 |---|---|---|---|---|---|
 | F11-T1-m3 | `load()` 裡的 `upgrade()` 拋出例外時會被靜默吞掉，改用種子資料；下一次 `save()` 就會覆蓋使用者原本的資料。建議先把原始資料備份到另一個 key，並提示使用者 | minor（優先） | S | 否 | html:653-657 |
 | F11-T7-m3 | spec §8 要求 AI 引用附件的檔名和所屬（不送出內容），但 `recordsSnapshot` 沒有包含附件。這是 plan 漏寫 | minor | S | 否 | html:2140-2145 |
@@ -1064,7 +1064,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | W2-T2-m6 | plan Task 2 的 `seeTask` 最後一行和 Step 4.2 的 `\|\| projects()[0]` 仍是 D20、D21 之前的寫法。以執行注意 23、24 為準；整體審查時可視需要 `Plan: fix` | trivial | S | 否 | plan:398、:416 |
 | W2-T3-m2 | 「你在此節點可以」清單在專案、階段節點顯示「✗ 指派負責人」（`can('assign')` 只對任務成立），表格卻寫專案負責人 ✅。修法：非任務節點改成「底下有可以指派的任務」 | minor | S | 否 | `viewPeople`（html:1927@717b359）、`can()`（:807） |
 | W2-T3-m3 | 權限表和說明文字不精確（plan 指定的文字）：「新增 / 編輯任務」寫「自己負責／部門主管」，但 `create` 沒變；說明文字「未指派負責人的任務只有部門主管看得到」漏了專案負責人、系統管理員、唯讀和「負責上層任務的人看得到子任務」 | minor | S | 否 | html:1910-1925@717b359 |
-| W2-T3-m4 | `create` 照 spec 不變，所以不能操作某個任務的人（例如透過上層規則看得到它的成員、範圍內審核人）仍可以在它底下新增子任務，讓它從葉任務變成上層任務、清掉進度、自動結案待確認的回報。spec §4.4 明寫「其餘動作不變」，要改需要人類另外決定 | minor | S | 否（spec 指定） | `can()`（html:801@717b359）、`addNode` |
+| W2-T3-m4 | `create` 照 spec 不變，所以不能操作某個任務的人（例如透過上層規則看得到它的成員、範圍內審核人）仍可以在它底下新增子任務，讓它從葉任務變成上層任務、清掉進度、自動結案待確認的回報。spec §4.4 明寫「其餘動作不變」，要改需要另外決定 | minor | S | 否（spec 指定） | `can()`（html:801@717b359）、`addNode` |
 | W2-T3-m5 | 帶 `noteId` 上傳筆記附件時沒有要求上傳者是筆記作者。UI 只會在建立筆記時附檔，所以不可達；直接呼叫函式時 `uploaded_by` 與稽核會記下實際上傳者。可選的加固：`note.author === ui.me` | trivial | S | 否 | `addAttachments`（html:1212@717b359） |
 | W2-T3-m6 | （W2 之前就有）時間軸上沒有時程權的人仍可以拖工作列，放開後才跳 toast 並還原；編輯對話框的「里程碑」核取方塊看 `ed && leaf`，會把結束日設成開始日 | trivial | S | 否 | html:1738、:2471@717b359 |
 | W2-T4-m1 | `USERS` 是程式常數，沒有移轉人員或編輯模板的畫面，所以：新部門永遠沒有成員、不能設主管，但對話框寫「建立後再設定主管」；被模板引用的部門（例如製造，只因模板節點）永遠刪不掉，卻提示「請先移轉」。這是 spec §3.6 的限制。文案可以改成不承諾能做到 | minor | S | 否 | `openDeptDlg`（html:1963@4f428fc）、`deptPanelHTML`（:1957） |
@@ -1095,18 +1095,18 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | DEMO-A-m3 | （Demo 走查）375px 下工作流編輯抽屜的「工作流名稱／分類」兩欄不換行，「分類」超出表單約 133px（`#wfForm` scrollWidth 430 > clientWidth 297），要在抽屜內橫向捲動。頁面本身沒有水平捲動，§5 第 7 點檢查式是 true | trivial | S | 否 | `openWorkflowEditor`（html:2775-2776@cfd5f72） |
 | DEMO-A-m4 | （Demo 走查）模板庫的「用這套工作流建立專案」按鈕對 reviewer、member（例如陳主管、阿明）也顯示，按下只跳「你的角色無權從工作流建立專案」。修法：依 `canCreateWorkflowProject()` 隱藏或停用按鈕 | minor | S | 否 | 模板庫工作流卡片（html:2336 附近@cfd5f72）、`canCreateWorkflowProject`（:594） |
 
-### BY_DESIGN（plan 或 brief 指定的行為，要改必須先經過人類同意）
+### BY_DESIGN（plan 或 brief 指定的行為，要改必須先經過同意）
 
-| ID | 描述 | 需人類 |
+| ID | 描述 | 需使用者 |
 |---|---|---|
 | F11-T1-m5 | 「重置 Demo 資料」不會把角色重設回 yu | 是（D4） |
 | F11-T4-m2 | SVG 附件透過同源 blob URL 預覽，內嵌的 script 會在 app origin 執行。在 Demo 裡只算 self-XSS，接上伺服器後就會變成 stored XSS | 是（D5） |
 | F11-T5-m2 | 送出回報時被硬性前置擋下，系統改開跳過對話框，已經輸入的回報內容全部遺失 | 是（D7） |
 | F11-T5-m4 | 「N 個子任務」算的是整棵子樹，和全 app 的用語慣例一致 | 否，維持現狀 |
 | W1-T2-m1 | 紀錄分頁第一筆回報上方的分隔線不見了（上層節點和葉任務都一樣）。plan Task 2 Step 4 拿掉了標題外層的 `.row`，`.rec:first-of-type` 因此套到第一筆回報。外觀和「筆記」區一致，兩位審查者都建議接受 | 否，維持現狀 |
-| W1-T2-m5 | 從時程往下一層進入子任務會切到「紀錄」，再從麵包屑回上層時落在「看板」，不會回到時程。這是 spec §5 規定的行為（進入葉任務預設紀錄；回到上層時從紀錄改回看板） | 否，維持現狀（要改需要人類決定） |
+| W1-T2-m5 | 從時程往下一層進入子任務會切到「紀錄」，再從麵包屑回上層時落在「看板」，不會回到時程。這是 spec §5 規定的行為（進入葉任務預設紀錄；回到上層時從紀錄改回看板） | 否，維持現狀（要改需要決定） |
 | W2-T3-b1 | D23 的連帶結果：collab 角色的人負責的任務（例如小林負責 t4031），現在可以改時程（以前不行），因為 D23 規定任務時程等於 `canWork`，而 `canWork` 含負責人本人（spec §4.2 不分角色）。對話框和時間軸行為一致 | 否，照 D23 |
-| W1-T2-m9 | 回報卡上只有成果說明有高度上限（D16），自訂欄位（`dl.kv`）、退回意見、跳過理由沒有。1366×650、摘要 8 行實測：自訂欄位 0／1／2／3／5 個時，卡片高 229／261／286／311／361px；時程的內容區 39／7／0／0／0px；看板和相依圖的內容區 81／49／24／0／0px；欄位達 3 個時，時程的分頁列底部到 657px，超出畫面。檢驗類任務常有好幾個數值欄位。預設的紀錄分頁仍可捲動，不會遺失資料。D18 決定維持現狀 | 否，維持現狀（D18；要改需要人類另外排工作項目） |
+| W1-T2-m9 | 回報卡上只有成果說明有高度上限（D16），自訂欄位（`dl.kv`）、退回意見、跳過理由沒有。1366×650、摘要 8 行實測：自訂欄位 0／1／2／3／5 個時，卡片高 229／261／286／311／361px；時程的內容區 39／7／0／0／0px；看板和相依圖的內容區 81／49／24／0／0px；欄位達 3 個時，時程的分頁列底部到 657px，超出畫面。檢驗類任務常有好幾個數值欄位。預設的紀錄分頁仍可捲動，不會遺失資料。D18 決定維持現狀 | 否，維持現狀（D18；要改需要另外排工作項目） |
 
 ### 已關閉
 
@@ -1144,76 +1144,76 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 **P2c-m1（Minor，可延後）**：TimelineView.tsx:128桌面寬度觸控點可編輯task條可能不定位；375手機卡片與節點名稱入口可用，不阻塞主流程。獨立審查記錄，未因小問題擴大修正。
 
-## 6. 待人類決定（Decision register）
+## 6. 待決定（Decision register）
 
-- 這些事項 AI 不可以自己決定。有預設值的，在人類推翻之前照預設執行。
+- 這些事項 AI 不可以自己決定。有預設值的，在使用者推翻之前照預設執行。
 - 「來源」欄記錄這個 D 是哪個工作項目或 Task 產生的。整體審查和合併只看「來源」是本工作項目的 D。
-- **人類回答後**，照下面的方式記錄：
-  1. 狀態改成「已決定 YYYY-MM-DD：<一句結論，盡量用人類的原話>」。推翻預設時也一樣。
-  2. 把連動的 §5 條目的「需人類」改成「否（Dn）」，排進對應的工作項目。
-  3. 移除因這個 D 而標的 ⛔（「▶ 現在」、§2、§3、Task 列都要檢查），清空「阻塞／待人類」，把結論寫進該工作項目的「執行注意」，並把「下一個動作」改回原本的步驟。
+- **使用者回答後**，照下面的方式記錄：
+  1. 狀態改成「已決定 YYYY-MM-DD：<一句結論，盡量用使用者的原話>」。推翻預設時也一樣。
+  2. 把連動的 §5 條目的「需使用者」改成「否（Dn）」，排進對應的工作項目。
+  3. 移除因這個 D 而標的 ⛔（「▶ 現在」、§2、§3、Task 列都要檢查），清空「阻塞／待使用者」，把結論寫進該工作項目的「執行注意」，並把「下一個動作」改回原本的步驟。
   4. commit `Progress: record Dn`。如果有 `feature/*` 分支，就 commit 在那個分支上。
 
 | ID | 來源 | 問題 | 預設／建議 | 狀態 |
 |---|---|---|---|---|
-| D82 | DOCS-CLEAN | README 要不要繼續放每次交付的紀錄 | README只留目前狀態、快速開始、正式版功能總覽、規格與尚未完成的路線圖；交付紀錄、測試數字與決策只寫PROGRESS。D50的「每階段更新README」改為更新這幾處（完成的項目從§8移除、必要時調整§2） | 已決定2026-10-20：人類「已經完成的進度從readme.md中移除，把readme弄乾淨一點，現在東西太多了」 |
-| D81 | 展示目標收斂 | 避免為不影響展示的完整性耗時 | UI5一次交付、一個完整案例、其他產業最小示例、相關測試與一次展示走查；保留資料及基本安全，F1／F2後續另定 | 已決定2026-10-11：人類要求「重新檢查整個進度與專案…主要是要能夠展示的版本」；依此收斂執行，無需重問方向 |
-| D80 | UI5短計畫 | 三批範圍與示例隔離 | 按[短計畫](superpowers/plans/2026-10-11-ui5-remaining-screens.md)：A文件資料、B營運、C副手治理；靜態fixture與記憶體預覽、零正式寫入，各公司對應示例；UI5三批＋展示走查為可展示版本完成點，F1另補正式功能 | 已決定2026-10-11：人類「把這個規劃推上git，讓下一個讀到的ai能自動接手」；授權下一AI直接開始UI5-A並依序B／C與展示修整 |
-| D79 | TP-G短規格 | 欄位修改時機、歷史保存與模板帶入規則 | 按[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md)：四種類型，未關閉且無待審回報的葉任務由既有編輯者設定；送出驗版本及保存快照；模板／複製只帶定義，舊資料不改；上限與延後項目見計畫 | 已決定2026-10-10：人類「照此計畫實作」，核准D79及短計畫 |
-| D78 | TP-F短規格 | 核准者範圍、覆寫效期、子樹恢復、部門指派與通知 | 按[短計畫](superpowers/plans/2026-10-10-tp-f-permissions-collaboration.md)：主管審本部門他人申請，管理者可直接附理由操作；覆寫限當次動作且完成仍需回報；子樹快照恢復不覆蓋後續修改；admin管理部門，主管可見並指派本部門；個人站內通知與已讀，負載沿可見任務數 | 已決定2026-10-10：人類「照建議做」，核准D78及短計畫 |
-| D77 | TP-E短規格 | 套用如何保留既有資料、模板範圍／權限、完整版本、刪除與復原語意 | 依[短計畫](superpowers/plans/2026-10-10-tp-e-advanced-templates.md)：追加子樹不覆蓋；公司模板限管理者維護，來源完整可見；完整版本可選版套用；軟刪不影響已建任務；人工條件重新確認、負責人預設不帶；階段另存轉普通根任務，工作流只套專案；套用支援一步結構復原 | 已決定2026-10-10：人類「照建議做」，核准本列與短計畫 |
-| D76 | TP-D短規格 | Demo條件型依賴未實作的採購／營運模組；需決定本批來源及前置語意 | 建議人工確認條件（管理者確認／撤回與稽核，不含文件、不假稱ERP）；其他按[短計畫](superpowers/plans/2026-10-10-tp-d-advanced-dependencies.md)：SS／FF、正負lag僅管排程、soft僅警示、FF核准重檢、D75原子順延及既有管理權限。替代為條件型延後至營運模組 | 已決定2026-10-10：人類聽取人工確認條件與其他TP-D照計畫的說明後回答「好」，授權依此實作 |
-| D75 | TP-C短規格 | 自動順延可能修改其他人的任務；遇已鎖定／未排程／已結束任務如何處理；誰能控制鎖定；關鍵路徑與日期復原的範圍 | 已核准：1.逐項可見及可編輯授權，遇任何阻擋整次改期取消，預設關閉自動順延；2.鎖定／解鎖及直接改鎖定日期限系統管理員與該專案負責人，cascade遇鎖定一律擋；3.其餘按[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md)：Demo可見範圍最晚結束單鏈估算，D74日期不復原，FS零延遲，migration 0007只新增兩個false欄位 | 已決定 2026-10-10：人類「照 D75」；依短計畫實作 |
+| D82 | DOCS-CLEAN | README 要不要繼續放每次交付的紀錄 | README只留目前狀態、快速開始、正式版功能總覽、規格與尚未完成的路線圖；交付紀錄、測試數字與決策只寫PROGRESS。D50的「每階段更新README」改為更新這幾處（完成的項目從§8移除、必要時調整§2） | 已決定2026-10-20：使用者「已經完成的進度從readme.md中移除，把readme弄乾淨一點，現在東西太多了」 |
+| D81 | 展示目標收斂 | 避免為不影響展示的完整性耗時 | UI5一次交付、一個完整案例、其他產業最小示例、相關測試與一次展示走查；保留資料及基本安全，F1／F2後續另定 | 已決定2026-10-11：使用者要求「重新檢查整個進度與專案…主要是要能夠展示的版本」；依此收斂執行，無需重問方向 |
+| D80 | UI5短計畫 | 三批範圍與示例隔離 | 按[短計畫](superpowers/plans/2026-10-11-ui5-remaining-screens.md)：A文件資料、B營運、C副手治理；靜態fixture與記憶體預覽、零正式寫入，各公司對應示例；UI5三批＋展示走查為可展示版本完成點，F1另補正式功能 | 已決定2026-10-11：使用者「把這個規劃推上git，讓下一個讀到的ai能自動接手」；授權下一AI直接開始UI5-A並依序B／C與展示修整 |
+| D79 | TP-G短規格 | 欄位修改時機、歷史保存與模板帶入規則 | 按[短計畫](superpowers/plans/2026-10-10-tp-g-report-fields.md)：四種類型，未關閉且無待審回報的葉任務由既有編輯者設定；送出驗版本及保存快照；模板／複製只帶定義，舊資料不改；上限與延後項目見計畫 | 已決定2026-10-10：使用者「照此計畫實作」，核准D79及短計畫 |
+| D78 | TP-F短規格 | 核准者範圍、覆寫效期、子樹恢復、部門指派與通知 | 按[短計畫](superpowers/plans/2026-10-10-tp-f-permissions-collaboration.md)：主管審本部門他人申請，管理者可直接附理由操作；覆寫限當次動作且完成仍需回報；子樹快照恢復不覆蓋後續修改；admin管理部門，主管可見並指派本部門；個人站內通知與已讀，負載沿可見任務數 | 已決定2026-10-10：使用者「照建議做」，核准D78及短計畫 |
+| D77 | TP-E短規格 | 套用如何保留既有資料、模板範圍／權限、完整版本、刪除與復原語意 | 依[短計畫](superpowers/plans/2026-10-10-tp-e-advanced-templates.md)：追加子樹不覆蓋；公司模板限管理者維護，來源完整可見；完整版本可選版套用；軟刪不影響已建任務；人工條件重新確認、負責人預設不帶；階段另存轉普通根任務，工作流只套專案；套用支援一步結構復原 | 已決定2026-10-10：使用者「照建議做」，核准本列與短計畫 |
+| D76 | TP-D短規格 | Demo條件型依賴未實作的採購／營運模組；需決定本批來源及前置語意 | 建議人工確認條件（管理者確認／撤回與稽核，不含文件、不假稱ERP）；其他按[短計畫](superpowers/plans/2026-10-10-tp-d-advanced-dependencies.md)：SS／FF、正負lag僅管排程、soft僅警示、FF核准重檢、D75原子順延及既有管理權限。替代為條件型延後至營運模組 | 已決定2026-10-10：使用者聽取人工確認條件與其他TP-D照計畫的說明後回答「好」，授權依此實作 |
+| D75 | TP-C短規格 | 自動順延可能修改其他人的任務；遇已鎖定／未排程／已結束任務如何處理；誰能控制鎖定；關鍵路徑與日期復原的範圍 | 已核准：1.逐項可見及可編輯授權，遇任何阻擋整次改期取消，預設關閉自動順延；2.鎖定／解鎖及直接改鎖定日期限系統管理員與該專案負責人，cascade遇鎖定一律擋；3.其餘按[短計畫](superpowers/plans/2026-10-10-tp-c-advanced-timeline.md)：Demo可見範圍最晚結束單鏈估算，D74日期不復原，FS零延遲，migration 0007只新增兩個false欄位 | 已決定 2026-10-10：使用者「照 D75」；依短計畫實作 |
 | D74 | TP-B規格細節 | 規格沒寫到的TP-B細節：誰能升降級／移動／複製／刪除／復原、復原涵蓋哪些操作、上層已完成時加入或重開子任務怎麼處理（TP-A Minor 1）、階段能不能複製或刪除、複製帶哪些欄位、刪除後資料怎麼保存 | 權限：AI原建議全部只限系統管理員與專案負責人；復原只涵蓋新增節點、刪除、移動（含拖曳／升降級）、複製子樹，只有一步、只限原操作者，之後有其他變更就擋下；上層是待確認／完成／已略過時擋下新增、移入、複製、重開與恢復子任務，不做Demo的自動改回進行中；只有任務能複製或刪除（階段不行）；複製名稱、負責人、部門、日期、權重、協作與子樹內前置，狀態歸待處理，不複製回報／筆記／附件；刪除是軟刪除，資料保留、前置連線移除並記錄 | 已決定 2026-10-10：權限「照 Demo 放寬」（任務負責人也能升降級、移動自己的任務；刪除限專案負責人）；復原「只限結構操作」；上層「擋下並說明」；其他「照計畫」。複製權限依正式版新增規則維持管理者（AI代決，可推翻） |
 | D73 | TP-A規格細節 | 規格沒寫到的TP-A細節：拖到待確認／完成要不要略過完成回報、誰能拖進卡片與相依連線怎麼處理、父節點規則的覆寫與上層自動連動、進度要不要算看不到的節點、權重能不能填小數、側欄與總覽的%改不改、✓回報用對話框還是回報卡 | 拖到待確認／完成改開完成回報，不直接改狀態（Demo會略過回報）；拖進卡片只限系統管理員與專案負責人，目標要是待處理或進行中，有相依衝突就擋下、不刪連線（Demo會刪）；父節點規則TP-A沒有覆寫（附理由覆寫歸TP-F），不做上層自動改進行中或待確認；進度只算看得到的節點；權重是0–100整數；側欄與總覽專案表改用加權進度，第4張卡仍是可見任務完成率；✓回報進入任務並展開回報卡；拖曳用原生HTML，不加依賴，手機與鍵盤用狀態下拉 | 已決定 2026-10-10：「照 D73 做」 |
 | D72 | UI4畫面細節 | 規格沒寫到的UI4細節：Demo有、正式版沒有的節點樹、加權進度、節點自己的時程與相依圖、拖曳改狀態、狀態用詞怎麼處理 | 移除主區節點樹（往下靠卡片與階段條、往上靠麵包屑、階層總覽在時程）；標題列與階段條用總覽相同的可見任務完成率，加權進度歸TP-A；時程與相依圖在每一層都顯示整個專案並加說明，節點範圍歸TP-A；保留精簡狀態下拉；狀態名稱維持正式版用詞，看板「完成」欄含已略過；另存／套用模板、文件、資料照位置停用並標尚未提供；閘門改在階段頁與審核中心核准；手機時程用同一張圖 | AI 代決 2026-10-09：照建議做（可推翻），細節見UI4短規格／計畫 |
 | D71 | UI3畫面細節 | 規格沒寫到的UI3細節：首頁需要的階段、截止日、延遲、負載與位置資料從哪來；Demo有、正式版沒有的導覽與副手怎麼呈現 | `GET /workspace/overview`、`/my-tasks`只新增唯讀欄位，從既有可見節點計算，不改schema；保留「可見任務完成率」為第4張卡；拿掉「專案工作區」導覽；建立入口移到側欄；副手與營運／AI政策導覽標示未提供並停用 | AI 代決 2026-10-09：照建議做（可推翻），細節見UI3短規格／計畫 |
-| D70 | 後續主線修訂 | 人類要求「先弄得跟DEMO一樣功能的任務規劃器」；文件是否算在內、復原做到什麼程度 | UI3→UI4→TP-A至TP-G任務規劃器功能補齊→UI5→F1→F2；任務規劃器含任務樹／看板／時程／前置／模板／權限協作／回報欄位 | 已決定2026-10-09：「文件先不算，復原只做上一步，寫入D70開始」；成員權限頁移入TP-F，條件型前置的文件核准條件待文件功能交付後再接 |
-| D69 | 後續主線重排 | 人類要求先做到與Demo相同畫面、功能可慢慢補 | UI3框架首頁→UI4工作區操作→UI5其餘畫面→F1真功能→F2進階；畫面/互動及正式功能分開驗收 | 已決定2026-10-09：本次重新規劃，既有資料與功能保留；未啟動UI3、P2d改拆入後續 |
-| D68 | UI2展示豐富度 | 人類要求模板像Demo豐富、公司切換在左下 | 產業範本卡片與完整流程；五公司本機展示session切換，保留既有資料 | 已決定2026-10-09：明確選本機展示模式一鍵切換、標示展示身分；後端真session與隔離、模式預設關閉，P2d後移 |
-| D67 | 下一階段順序與前端介面 | 人類指定「把下一階段改成前端介面對齊」 | UI1排在P2d前，主要畫面以Demo布局／視覺／操作對照，接既有真API，未實作模組清楚標示 | 已決定2026-10-09：優先UI1側欄／配色／字級間距／總覽卡片／工作區與時程；不擴新後端功能、不改資料與權限，依D65精簡流程 |
-| D66 | P2c範圍與啟動 | 人類指示「繼續下一個階段」，並明確選A（推薦） | 日曆日、單任務改期、管理者／project_owner模板管理；同專案task硬性FS、done/skipped滿足、無覆寫；SS/FF/延遲/順延/關鍵路徑/子樹套用延後 | 已決定2026-10-09：採精簡範圍，短規格／計畫定稿開始實作；按D65階段一次審查/回歸，保留資料與基本權限 |
-| D65 | 正式軌後續流程 | 人類同意簡化提案，並要求不特別提專案用途，只將流程變簡單 | 每階段短規格／計畫、一次獨立審查、一次完整回歸，修正只驗受影響部分，一般畫面不強制TDD，每階段更新README／PROGRESS；展示主流程優先 | 已決定2026-10-09：採用精簡流程WORKFLOW§14；保留既有資料、隔離測試、基本公司角色權限與Git安全，不重做已完成功能，不代勾人類簽核；尚未定案的新功能另列範圍 |
-| D64 | P2b整體審閱與實作 | 人類指示「繼續，已DEMO那個效果為主，遇到問題再問我」 | 完整spec／plan定稿，依八Task開始TDD與雙獨立審查；UI以Demo效果為主要參照，保留正式版權限、資料與隔離驗收 | 已決定2026-10-08：授權繼續至驗收交付；既定決策不重問，真正問題／範圍取捨再詢問，不解讀為降低正式軌安全或代勾人類簽核 |
-| D63 | P2b G1剩餘邊界 | 回報層級、結案結果、重開／略過、自訂欄位與審核中心／稽核範圍 | A推薦按草案§4：task獨立回報、固定欄位、管理者理由重開／單任務略過、安全稽核；自訂欄位延P2c，跳過申請／覆寫另列後續。B把自訂欄位與跳過申請也納本期、另補規格Task | 已決定2026-10-08：人類明確選A（推薦），採草案§4整組流程邊界；完整API／migration與計畫另供整體審閱 |
-| D62 | P2b G1筆記／附件 | 筆記修訂、附件保存／移除、格式與容量 | 筆記僅作者可改、不刪、留修訂；附件限PDF/PNG/JPEG/TXT/CSV/Office新格式/ZIP且只下載；一般附件軟刪、已送回報附件不可刪。A推薦單檔10 MB，B25 MB；兩者每公司初始1 GB含軟刪／未關聯，主機可調高，SHA-256／持久化volume／逐次授權 | 已決定2026-10-08：人類選A（推薦），採單檔10 MB及草案§3整組筆記／附件規則 |
-| D61 | P2b G1協作範圍 | 協作部門加入後哪些人可看與寫筆記 | A推薦：指定協作人員及協作部門主管，其他成員不自動取得；B：整個協作部門。兩者僅指定節點不繼承，不因協作授予送回報／審核／metadata權；readonly仍不可寫，我的任務納入協作task | 已決定2026-10-08：人類選A（推薦），指定人員與協作部門主管；範圍／撤銷／隱藏父節點依草案§3 |
-| D60 | P2b G1審核授權 | 誰可審核，管理者是否能確認自己提交的回報 | 同公司且可見的admin／實際專案擁有者／負責部門主管／具can_work_node範圍reviewer可審，readonly拒絕。A推薦僅admin／實際owner且有送出權可明確送出並確認並完整稽核；B同一審核範圍但一律不能自審 | 已決定2026-10-08：人類選A（推薦）；審核者範圍及管理者明確自行確認依草案§3，不擴大Gate權限、不自動核准 |
-| D59 | P2b G1完成流程 | 現有Report不改status且可直接done；P2b是否要求完成必須經回報審核 | A推薦：送出review、核准done、退回doing／重送新版本，API禁止繞過；B：回報審核與狀態分開、保留直接done。舊資料不回退、不刪歷史 | 已決定2026-10-08：人類選A（推薦），回報驅動完成；同意不包含後續尚未確認的審核授權與附件／協作細則 |
-| D58 | P2b G1啟動 | P2a交付後人類指示「繼續進行」 | 按既定路線圖開始P2b規格與計畫，保留資料、隔離測試與人類簽核界線 | 已決定：2026-10-08授權接續G1／G2準備；不是未定案規則已核准或P2a人類簽核通過 |
+| D70 | 後續主線修訂 | 使用者要求「先弄得跟DEMO一樣功能的任務規劃器」；文件是否算在內、復原做到什麼程度 | UI3→UI4→TP-A至TP-G任務規劃器功能補齊→UI5→F1→F2；任務規劃器含任務樹／看板／時程／前置／模板／權限協作／回報欄位 | 已決定2026-10-09：「文件先不算，復原只做上一步，寫入D70開始」；成員權限頁移入TP-F，條件型前置的文件核准條件待文件功能交付後再接 |
+| D69 | 後續主線重排 | 使用者要求先做到與Demo相同畫面、功能可慢慢補 | UI3框架首頁→UI4工作區操作→UI5其餘畫面→F1真功能→F2進階；畫面/互動及正式功能分開驗收 | 已決定2026-10-09：本次重新規劃，既有資料與功能保留；未啟動UI3、P2d改拆入後續 |
+| D68 | UI2展示豐富度 | 使用者要求模板像Demo豐富、公司切換在左下 | 產業範本卡片與完整流程；五公司本機展示session切換，保留既有資料 | 已決定2026-10-09：明確選本機展示模式一鍵切換、標示展示身分；後端真session與隔離、模式預設關閉，P2d後移 |
+| D67 | 下一階段順序與前端介面 | 使用者指定「把下一階段改成前端介面對齊」 | UI1排在P2d前，主要畫面以Demo布局／視覺／操作對照，接既有真API，未實作模組清楚標示 | 已決定2026-10-09：優先UI1側欄／配色／字級間距／總覽卡片／工作區與時程；不擴新後端功能、不改資料與權限，依D65精簡流程 |
+| D66 | P2c範圍與啟動 | 使用者指示「繼續下一個階段」，並明確選A（推薦） | 日曆日、單任務改期、管理者／project_owner模板管理；同專案task硬性FS、done/skipped滿足、無覆寫；SS/FF/延遲/順延/關鍵路徑/子樹套用延後 | 已決定2026-10-09：採精簡範圍，短規格／計畫定稿開始實作；按D65階段一次審查/回歸，保留資料與基本權限 |
+| D65 | 正式軌後續流程 | 使用者同意簡化提案，並要求不特別提專案用途，只將流程變簡單 | 每階段短規格／計畫、一次獨立審查、一次完整回歸，修正只驗受影響部分，一般畫面不強制TDD，每階段更新README／PROGRESS；展示主流程優先 | 已決定2026-10-09：採用精簡流程WORKFLOW§14；保留既有資料、隔離測試、基本公司角色權限與Git安全，不重做已完成功能，不代勾使用者簽核；尚未定案的新功能另列範圍 |
+| D64 | P2b整體審閱與實作 | 使用者指示「繼續，已DEMO那個效果為主，遇到問題再問我」 | 完整spec／plan定稿，依八Task開始TDD與雙獨立審查；UI以Demo效果為主要參照，保留正式版權限、資料與隔離驗收 | 已決定2026-10-08：授權繼續至驗收交付；既定決策不重問，真正問題／範圍取捨再詢問，不解讀為降低正式軌安全或代勾使用者簽核 |
+| D63 | P2b G1剩餘邊界 | 回報層級、結案結果、重開／略過、自訂欄位與審核中心／稽核範圍 | A推薦按草案§4：task獨立回報、固定欄位、管理者理由重開／單任務略過、安全稽核；自訂欄位延P2c，跳過申請／覆寫另列後續。B把自訂欄位與跳過申請也納本期、另補規格Task | 已決定2026-10-08：使用者明確選A（推薦），採草案§4整組流程邊界；完整API／migration與計畫另供整體審閱 |
+| D62 | P2b G1筆記／附件 | 筆記修訂、附件保存／移除、格式與容量 | 筆記僅作者可改、不刪、留修訂；附件限PDF/PNG/JPEG/TXT/CSV/Office新格式/ZIP且只下載；一般附件軟刪、已送回報附件不可刪。A推薦單檔10 MB，B25 MB；兩者每公司初始1 GB含軟刪／未關聯，主機可調高，SHA-256／持久化volume／逐次授權 | 已決定2026-10-08：使用者選A（推薦），採單檔10 MB及草案§3整組筆記／附件規則 |
+| D61 | P2b G1協作範圍 | 協作部門加入後哪些人可看與寫筆記 | A推薦：指定協作人員及協作部門主管，其他成員不自動取得；B：整個協作部門。兩者僅指定節點不繼承，不因協作授予送回報／審核／metadata權；readonly仍不可寫，我的任務納入協作task | 已決定2026-10-08：使用者選A（推薦），指定人員與協作部門主管；範圍／撤銷／隱藏父節點依草案§3 |
+| D60 | P2b G1審核授權 | 誰可審核，管理者是否能確認自己提交的回報 | 同公司且可見的admin／實際專案擁有者／負責部門主管／具can_work_node範圍reviewer可審，readonly拒絕。A推薦僅admin／實際owner且有送出權可明確送出並確認並完整稽核；B同一審核範圍但一律不能自審 | 已決定2026-10-08：使用者選A（推薦）；審核者範圍及管理者明確自行確認依草案§3，不擴大Gate權限、不自動核准 |
+| D59 | P2b G1完成流程 | 現有Report不改status且可直接done；P2b是否要求完成必須經回報審核 | A推薦：送出review、核准done、退回doing／重送新版本，API禁止繞過；B：回報審核與狀態分開、保留直接done。舊資料不回退、不刪歷史 | 已決定2026-10-08：使用者選A（推薦），回報驅動完成；同意不包含後續尚未確認的審核授權與附件／協作細則 |
+| D58 | P2b G1啟動 | P2a交付後使用者指示「繼續進行」 | 按既定路線圖開始P2b規格與計畫，保留資料、隔離測試與使用者簽核界線 | 已決定：2026-10-08授權接續G1／G2準備；不是未定案規則已核准或P2a使用者簽核通過 |
 | D1 | W1、W2 | W1 和 W2 的執行順序 | **先做 W1，再做 W2。** 理由：W1 的測試數（44→51→57）和「db.v 維持 3」只有先做才成立；W2 只需要調整一個片段；W1 的測試可以當作 W2 改寫權限時的回歸網 | 採預設 |
-| D2 | 流程 | 分支與合併方式 | 每個工作項目開一個分支 `feature/<wid>-<slug>`，直接在主 checkout 開，**不用 worktree**。plan 或 skill 要求用 worktree 時，以這條為準。整體審查結論是 Ready to merge、測試全部通過，而且所有審查都是獨立進行的（不是自我審查），這時 **AI 可以在本地用 `git merge --ff-only` 合併進 `main`**，然後刪除分支（WORKFLOW G5，比照 F11 的先例）。不 push | 採預設（人類可以改成「合併前一律問我」） |
-| D3 | 流程 | 要不要 push 到 `origin` | 由人類執行，或由人類明確授權。AI 不會自己 push | 已決定 2026-10-01：人類授權 push 交接系統（連同 `edf46b6`、`dfc0126`），已完成。2026-10-01 第二次授權：人類指示「完成後上傳到GIT」，W1 完成並合併進 `main` 後，把 `main` push 到 `origin`。2026-10-02：人類指示「推上 git」，W1 合併後已把 `main` push 到 `origin`（不 force，只推 `main`）。每次授權都只限該次，之後每次 push 仍要人類明確授權。2026-10-02 第三次：人類指示「你這個階段做完就先暫停，幫我 commit and push」，W2 Task 5 完成後 push `main` 和 `feature/w2-departments`（人類選「推兩個，README 寫在分支」）。2026-10-05：人類指示「push上去」，Codex 已 push `main` 到 `origin/main`（`8041e14..a2f7e85`），沒有 push 或刪除遠端 feature 分支。2026-10-05：人類指示「確認後推上去」與「git 上的 readme 也要記得更新進度」，Codex 已 push W3、W5 README 更新與看板收尾到 `origin/main` |
-| D4 | F11（W4） | F11-T1-m5：重置 Demo 時要不要把角色重設回 yu | 建議重設回 yu | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
-| D5 | F11（W4） | F11-T4-m2：SVG 附件改成下載，還是用 `<img>` 或 sandbox 顯示 | 建議排除 SVG 預覽，改成下載（安全優先） | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
-| D6 | F11（W4） | F11-T4-m4：附件全部上傳失敗時，回報要不要整份不送出 | 建議先寫入 blob，失敗就不建立回報 | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
-| D7 | F11（W4） | F11-T5-m2：被硬性前置擋下時，要不要保留回報草稿。W1 之後更常發生：有硬性前置的葉任務，在回報卡上就看得到醒目的「回報完成」（W1 整體審查的觀察） | 建議把草稿暫存在 `ui`，跳過前置後自動重開回報對話框 | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
-| D8 | F11（W4） | F11-T6-m1：「部分恢復」要怎麼記錄 | 建議補寫稽核紀錄，並新增 `o.restoredNodes` | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，人類沒有反對這個提案；人類可以推翻） |
-| D9 | W3 | W3 流程控制的 brainstorming（spec 內容） | 需要人類參與問答，AI 不可以自行定稿 | 已決定 2026-10-05：改照 D31，W3 精簡版由 AI 依 D13 甘特圖起草短版 spec，人類看一次就定稿，不做完整的 brainstorming |
-| D10 | P 軌 | README §9 #5–#14（模型硬體、雲端供應商、預設分級、帳號、通知、協作部門權限、ERP 介面、工單、編碼規則、庫存與採購核准） | 正式導入前再決定 | 已決定2026-10-23（人類在簽核台逐項選擇）：沿用Qwen3 4B＋bge-m3；暫不用雲端；新文件預設「內部」；本地帳號；只用站內通知；協作部門成員全部可見（取代D61，待實作）；ERP介面還不確定；工單由本系統開立後推送ERP（目前為展示）；料號沿用公司規則；庫存採購由ERP負責。另：D43展示先維持現狀；本分支推上GitHub但不合併main；mina201199兩個遠端分支暫不處理，之後比較成果再決定 |
-| D11 | Demo軌→正式軌 | 正式產品軌何時啟動 | 依D51啟動P0並做到P1c；保留Demo參照與既有驗收證據，正式版按其階段重新驗收 | 已決定2026-10-08：人類明確指示「開始做到P1c」；不再等待啟動授權 |
-| D12 | W5 | W5 README 中 full demo 的定位文字 | AI 起草，人類審閱 | AI 代決 2026-10-05：已在 README 頂部、§1、§2 起草 full demo 定位與進度摘要（可推翻） |
+| D2 | 流程 | 分支與合併方式 | 每個工作項目開一個分支 `feature/<wid>-<slug>`，直接在主 checkout 開，**不用 worktree**。plan 或 skill 要求用 worktree 時，以這條為準。整體審查結論是 Ready to merge、測試全部通過，而且所有審查都是獨立進行的（不是自我審查），這時 **AI 可以在本地用 `git merge --ff-only` 合併進 `main`**，然後刪除分支（WORKFLOW G5，比照 F11 的先例）。不 push | 採預設（使用者可以改成「合併前一律問我」） |
+| D3 | 流程 | 要不要 push 到 `origin` | 由使用者執行，或由使用者明確授權。AI 不會自己 push | 已決定 2026-10-01：使用者授權 push 交接系統（連同 `edf46b6`、`dfc0126`），已完成。2026-10-01 第二次授權：使用者指示「完成後上傳到GIT」，W1 完成並合併進 `main` 後，把 `main` push 到 `origin`。2026-10-02：使用者指示「推上 git」，W1 合併後已把 `main` push 到 `origin`（不 force，只推 `main`）。每次授權都只限該次，之後每次 push 仍要明確授權。2026-10-02 第三次：使用者指示「你這個階段做完就先暫停，幫我 commit and push」，W2 Task 5 完成後 push `main` 和 `feature/w2-departments`（使用者選「推兩個，README 寫在分支」）。2026-10-05：使用者指示「push上去」，Codex 已 push `main` 到 `origin/main`（`8041e14..a2f7e85`），沒有 push 或刪除遠端 feature 分支。2026-10-05：使用者指示「確認後推上去」與「git 上的 readme 也要記得更新進度」，Codex 已 push W3、W5 README 更新與看板收尾到 `origin/main` |
+| D4 | F11（W4） | F11-T1-m5：重置 Demo 時要不要把角色重設回 yu | 建議重設回 yu | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，使用者沒有反對這個提案；使用者可以推翻） |
+| D5 | F11（W4） | F11-T4-m2：SVG 附件改成下載，還是用 `<img>` 或 sandbox 顯示 | 建議排除 SVG 預覽，改成下載（安全優先） | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，使用者沒有反對這個提案；使用者可以推翻） |
+| D6 | F11（W4） | F11-T4-m4：附件全部上傳失敗時，回報要不要整份不送出 | 建議先寫入 blob，失敗就不建立回報 | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，使用者沒有反對這個提案；使用者可以推翻） |
+| D7 | F11（W4） | F11-T5-m2：被硬性前置擋下時，要不要保留回報草稿。W1 之後更常發生：有硬性前置的葉任務，在回報卡上就看得到醒目的「回報完成」（W1 整體審查的觀察） | 建議把草稿暫存在 `ui`，跳過前置後自動重開回報對話框 | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，使用者沒有反對這個提案；使用者可以推翻） |
+| D8 | F11（W4） | F11-T6-m1：「部分恢復」要怎麼記錄 | 建議補寫稽核紀錄，並新增 `o.restoredNodes` | 已決定 2026-10-05：維持現狀（D30：展示模式下 W4 取消，使用者沒有反對這個提案；使用者可以推翻） |
+| D9 | W3 | W3 流程控制的 brainstorming（spec 內容） | 需要參與問答，AI 不可以自行定稿 | 已決定 2026-10-05：改照 D31，W3 精簡版由 AI 依 D13 甘特圖起草短版 spec，使用者看一次就定稿，不做完整的 brainstorming |
+| D10 | P 軌 | README §9 #5–#14（模型硬體、雲端供應商、預設分級、帳號、通知、協作部門權限、ERP 介面、工單、編碼規則、庫存與採購核准） | 正式導入前再決定 | 已決定2026-10-23（使用者在簽核台逐項選擇）：沿用Qwen3 4B＋bge-m3；暫不用雲端；新文件預設「內部」；本地帳號；只用站內通知；協作部門成員全部可見（取代D61，待實作）；ERP介面還不確定；工單由本系統開立後推送ERP（目前為展示）；料號沿用公司規則；庫存採購由ERP負責。另：D43展示先維持現狀；本分支推上GitHub但不合併main；mina201199兩個遠端分支暫不處理，之後比較成果再決定 |
+| D11 | Demo軌→正式軌 | 正式產品軌何時啟動 | 依D51啟動P0並做到P1c；保留Demo參照與既有驗收證據，正式版按其階段重新驗收 | 已決定2026-10-08：使用者明確指示「開始做到P1c」；不再等待啟動授權 |
+| D12 | W5 | W5 README 中 full demo 的定位文字 | AI 起草，使用者審閱 | AI 代決 2026-10-05：已在 README 頂部、§1、§2 起草 full demo 定位與進度摘要（可推翻） |
 | D13 | W3 | 請提供「10 部門流程甘特圖（連接器新產品，6 階段）」的原檔或內容 | 轉寫成 `docs/reference/connector-10dept-gantt.md`，欄位：階段、工作項目、負責部門、關卡／核准人、交付物 | 已由 D41 取代：不再等待原本的連接器甘特圖，先依現有兩份專流表進行 |
-| D14 | W1-T1 | **Important（plan-mandated，已修正）**：plan Step 3 的 `.rcard .rc-main{min-width:0;flex:1}` 讓 flex-basis 變成 0，`.rc-row` 的 `flex-wrap:wrap` 永遠不會換行。375px 下動作欄固定佔掉右半邊，文字欄只剩 118–141px，自訂欄位會溢出。已在 `dc50e86` 改成 `flex:1 1 240px`，並加 1 個版面測試，所以 W1 的測試變成 14 個 | **接受 `dc50e86` 的修正**。同意後可以視需要用 `Plan: fix` 同步 plan Step 3 和 Task 2 的預期測試數 | 已決定 2026-10-01：接受修正（人類選「接受修正（建議）」）。plan 不另外同步，以 W1 執行注意 13 為準 |
-| D15 | W1-T1 | §5 W1-T1-m6：F11 原本就有的版面問題。桌面寬度下，紀錄、文件、資料、成員分頁的內容超出畫面時會被截掉，無法捲動。W1 之後葉任務預設進紀錄分頁，上方又多了回報卡，會更常發生。要在 W1 一起修，還是登記到 W4 再修？ | **在 W1 一起修**：這幾個分頁改成整個主區域可以捲動，和手機版一樣，標題和回報卡會跟著捲上去；看板、時程、相依圖維持原樣。放在 Task 2 的修正輪處理，附測試 | 已決定 2026-10-01：在 W1 一起修（人類選「在 W1 一起修（建議）」），放在 Task 2 的修正輪 |
-| D16 | W1-T2 | **Important（plan-mandated，Task 2 品質審查 I1）**：子任務的回報摘要很長時，置頂回報卡會把葉任務的看板、時程、相依圖分頁擠到看不見。plan 的卡片 CSS 沒有高度上限，而 D15 讓這三個分頁維持主區域不捲動。1366×650 實測：摘要 8 行時，時程的內容區高度變成 0；12 行時連分頁列都被推出畫面，切不回紀錄分頁 | **限制卡片摘要高度**：卡片上的成果說明最多顯示約 6 行，超過的部分在卡片內捲動，完整內容在紀錄分頁的「回報歷史」，只改 CSS。其他選項：子任務頁全部分頁都可以捲動（改動較大，也要調整 D15）；維持現狀 | 已決定 2026-10-02：人類回覆「都照建議」，也就是限制卡片摘要高度。放在 Task 2 修正輪 1，見 W1 執行注意 16 |
-| D17 | W1-T2 | Task 2 品質審查 m3(b)（spec 沒有寫到，已實測）：在子任務頁按「＋ 新增子任務」新增第一個子任務後，它會變成上層任務，但畫面仍停在「紀錄」分頁的唯讀彙總，看不到剛新增的子任務 | **新增後切到看板**：原本是子任務、而且停在紀錄分頁時，新增第一個子任務後自動切到「看板」。另一個選項是維持現狀 | 已決定 2026-10-02：人類回覆「都照建議」，也就是新增後切到看板。放在 Task 2 修正輪 1，見 W1 執行注意 17 |
-| D19 | W2-T1 | spec 和 plan 衝突（Task 1 審查 Minor m1，執行注意沒有裁決）：v3 → v4 升級時，模板節點補 `dept` 的順序。spec §3.4(4) 是「有 `who` 取其部門 → 否則模板的第一個 `dp` → 再沒有則 d-rd」；plan Task 1 Step 8（已照做，`e62b39a`）是「`who` → `TAG_DEPT[類別]` → 第一個 `dp` → d-rd」。差別只影響舊 v3 資料升級後的系統模板，例如沒有協作部門的「簽核檢驗費用」，spec 會給研發，plan 給採購；有協作部門的節點，spec 會把協作部門當成負責部門 | **照 plan（維持 `e62b39a`）**：升級後的模板部門和新種子資料一致（`seed()` 的模板也是用 `TAG_DEPT`），不會把協作部門誤當負責部門。spec 文字差異以本條為準，不另外改 spec。另一個選項：照 spec，在 Task 1 修正輪改 `upgrade()` | 已決定 2026-10-02：照 spec（人類選「照 spec」）。在 Task 1 修正輪 1 改 `upgrade()` 並補測試，見 W2 執行注意 20 |
-| D20 | W2-T2 | **Important（plan-mandated，Task 2 spec 審查 I-1）**：`seeTask` 的下層規則。plan（已照做，`ebab1e1`）是「下層任務直接相關，**或下層任務已指派、而且它的上層任務直接相關**」時顯示為路徑；spec §4.1 字面只有「下層任務直接相關」。只在這種結構下不同：ming 負責 t3012 → 底下有未指派的 N（品保）→ N 底下有指派給小安的 D。plan：ming 看得到 N 和 D；spec 字面：ming 看得到 D，卻看不到 D 的父任務 N，D 在看板和時程上點不到（孤兒）。範本帶入負責人（spec §5.5）或 Task 3 的指派操作都可能做出這種結構 | **照 plan**：程式不改，補一個測試釘住這個行為，spec §4.1 的文字差異以本條為準。其他選項：照 spec 字面（會出現點不到的孤兒任務）；或上層規則遇到未指派節點就停（連 D 也看不到，但違反 spec 對已指派任務的上層規則） | 已決定 2026-10-02：照 spec 字面（人類選「照 spec 字面」）。Task 2 修正輪 1 改 `seeTask`，見 W2 執行注意 23 |
-| D21 | W2-T2 | spec 沒有寫的情況（Task 2 兩位審查者 Minor）：使用者**一個專案都看不到**時（例如他負責的任務全部改派給別人）。plan Step 4.2 是退回 `projects()[0]`，會帶到他看不到的專案，露出專案標題、階段列和關卡；另外 AI 副手（`aiAsk`）和會議記錄確認（`openMinutesConfirm`）在非專案頁會因為 `ctxProject()` 是 `undefined` 而出錯。種子資料的 7 個身分都至少看得到一個專案，所以目前不會發生 | **顯示空狀態**：主區域顯示「目前沒有你看得到的專案」，不帶到別人的專案；`ctxProject()` 的呼叫端加防護。放在 Task 2 修正輪，附測試。另一個選項：維持 plan（帶到第一個專案，看板顯示空狀態），只修出錯的地方 | 已決定 2026-10-02：顯示空狀態（人類選「顯示空狀態（建議）」）。Task 2 修正輪 1 實作，見 W2 執行注意 24 |
-| D22 | W2-T2 | spec 沒有寫的情況（Task 2 審查與修正輪的範圍外觀察）：W2 讓「只有相關的人看得到任務」，但有些衍生資訊沒有依可見性過濾。(a) AI 專案問答引用的文件：ming 會看到他看不到的任務的文件名稱和內容（§5 W2-T2-m2，已實測）；(b) 稽核紀錄頁、總覽的人員／部門負載、看板卡片進度和子任務數、時程的採購單交期列，會露出看不到的任務的存在、負責人或數量（§5 W2-T2-m3）。W2 之前就是這樣 | **(a) 在 W2 整體修正時改成依 `can('view')` 過濾**（AI 只引用看得到的任務的文件）；**(b) 維持現狀**，之後另外排工作項目。不擋 Task 3–7，W2 改成 🟢 之前要有結論 | 已決定 2026-10-02：都維持現狀（人類選「都維持現狀」）。(a)(b) 都不在 W2 處理，§5 W2-T2-m2、m3 留給之後的工作項目 |
-| D23 | W2-T3 | spec 沒有寫的情況（Task 3 品質審查 I-2，已實測）：審核人的「修改時程」權限（spec §4.4：不變）和任務對話框。Task 3 之後，審核人對不是自己負責、也不是自己主管部門的任務，`can('edit')` 是 false、`can('schedule')` 仍是 true。實測陳主管開 t30121：開始、結束日期和鎖定欄位可以改，儲存鈕卻是停用的，畫面寫「唯讀」，改了存不下來；時間軸拖曳仍然可以改時程。W2 之前審核人可以在對話框存時程 | **對話框可以只存時程**：沒有編輯權、但有時程權時，儲存鈕可用，儲存時只寫入開始、結束日期和鎖定，其他欄位不動。放在 Task 3 修正輪，附測試。另一個選項：對話框的日期和鎖定也改成唯讀，只能用時間軸拖曳改時程 | 已決定 2026-10-02：人類回覆「不是他負責也不是他部門，就不關他的事啊，不能做其他動作」，追問範圍後選「只拿掉時程（建議）」。**任務**的修改時程改成和 `canWork` 一樣（負責人本人、負責部門主管、專案負責人、系統管理員），審核人不能再改別人任務的時程（對話框和時間軸拖曳都不行）；階段本身的時程、設定前置條件、範圍內的關卡核准、跳過申請核准、回報確認都照舊。這一點推翻 spec §4.4「reviewer 不變」，以本條為準。Task 3 修正輪 1 實作，見 W2 執行注意 26 |
-| D24 | W2-T3 | spec 沒有寫的情況（Task 3 spec 審查 Minor 5）：誰可以寫筆記。spec §4.2 只寫「協作人員與協作部門主管照舊可以新增筆記」。照 plan 的 `canNote`，範圍內的審核人（例如陳主管對 t30121）**不能**再寫筆記，除非他是協作人員或部門主管；W2 之前審核人可以在任何任務寫筆記 | **允許範圍內的審核人寫筆記**（和 W2 之前一樣；他們看得到這些任務，也負責關卡）：`canNote` 加上 `inReviewerScope(n)`。放在 Task 3 修正輪，附測試。另一個選項：照 plan，審核人只有在是協作人員或部門主管時才能寫筆記 | 已決定 2026-10-02：允許範圍內審核人（人類選「允許範圍內審核人（建議）」）。Task 3 修正輪 1 實作，見 W2 執行注意 27 |
-| D25 | W2-T3 | spec 沒有寫的情況（Task 3 修正輪 scoped re-review 的範圍外觀察）：時間軸的「連動順延」（`cascadeFrom`／`shiftSubtree`）在某人改了自己任務的時程後，會自動順延**別人負責**的後續任務，不檢查 `can('schedule')`。D23 決定「不是他負責也不是他部門，就不能改時程」，但連動會間接改到別人的任務。W2 之前就是這樣，有稽核紀錄 | **維持現狀**：連動是依前置條件自動保持時程一致，不算個人修改。另一個選項：連動遇到沒有時程權的任務就停下來，並提示要請負責人或主管處理 | 已決定 2026-10-02：遇到沒權限的任務就停（人類選「遇到沒權限的任務就停」）。連動碰到操作者沒有時程權（`can('schedule')`）的任務就停下來，提示要請負責人或部門主管處理。放在 W2 整體修正，附測試。**2026-10-05 改為取消，維持現狀**（人類選「取消，維持現狀（建議）」，D30 展示模式）：連動順延照舊，不在 W2 實作 |
-| D26 | W2-T4 | spec 沒有寫的情況（Task 4 品質審查 Minor 7）：部門主管可以選任何部門成員，包括協作人員（collab，例如業務部的小林）。主管有 `canWork` 和可見性的權限，所以小林被設成業務主管後，就能操作業務部所有的任務、看到未指派的業務任務 | **主管只能選成員、審核人、專案負責人這類角色，排除協作人員和唯讀**：`updateDept` 拒絕並提示，對話框的主管下拉不列出他們。放在 W2 整體修正，附測試。另一個選項：維持現狀（任何部門成員都能當主管） | 已決定 2026-10-02：排除協作人員與唯讀（人類選「排除協作人員與唯讀（建議）」）。放在 W2 整體修正，附測試。**2026-10-05 改為取消，維持現狀**（人類選「取消，維持現狀（建議）」，D30 展示模式）：任何部門成員都能當主管，不在 W2 實作 |
-| D27 | W2-T4 | spec 文字不準確（Task 4 spec 審查 Minor 1）：部門面板「未設主管」的提示文字照 spec §5.1 寫「這個部門的未指派工作只有專案負責人看得到」，但依 Task 2 的可見性，系統管理員（和唯讀）也看得到 | **改成「這個部門的未指派工作只有專案負責人與系統管理員看得到」**，放在 W2 整體修正。另一個選項：維持 spec 原文 | 已決定 2026-10-02：維持 spec 原文（人類選「維持 spec 原文」），不改 |
-| D18 | W1-T2 | §5 W1-T2-m9（Minor，兩位審查者第 2 輪都提到）：D16 只限制了卡片上的成果說明。自訂欄位、退回意見、跳過理由很長或很多時，卡片仍會把葉任務的看板、時程、相依圖擠到看不見。1366×650 實測：自訂欄位達 2 個時，時程的內容區變成 0；達 3 個時，看板和相依圖也是 0，時程的分頁列超出畫面 | **一起限制高度**：自訂欄位最多顯示約 4 列，退回意見和跳過理由最多約 4 行，超過的在卡片內捲動，完整內容在紀錄分頁的回報歷史，只改 CSS。另一個選項：維持現狀（目前種子資料和系統模板的欄位都只有 0–1 個） | 已決定 2026-10-02：維持現狀（人類回覆「D18 維持現狀」）。W1-T2-m9 改列 BY_DESIGN，要改需要人類另外排工作項目 |
-| D28 | W2（流程） | `origin/main` 已經用 GitHub PR #1 的 merge commit `8041e14`（2026-10-05 09:07，parents `670afaf`、`079b035`）合入 W2 Task 1–5 的草稿。這不符合 G5（整體審查後才合併、只用 ff、不建 merge commit）和「有 `feature/*` 分支時 `main` 凍結」。W2 要怎麼繼續？ | **接受，分支跟上**：`feature/w2-departments` 用 `git merge --ff-only origin/main` 前進到 `8041e14`（程式和 `079b035` 相同，只多一個 merge commit），照原流程在分支上做 Task 6、7 和整體審查，完成後再 ff 合併回 `main`。另一個選項：在 GitHub 上 revert | 已決定 2026-10-05：接受，分支跟上（人類選「接受，分支跟上（建議）」）。已 ff 到 `8041e14`，見 W2 執行注意 33 |
-| D29 | W2（流程） | 本機 `main` 有 2 個從沒 push 的 commit（`6c39df8 Progress: note 8001 test server stopped`、`4ed2ab5 Progress: note LAN share server for the demo`，2026-10-02），和 `origin/main` 分岔（ahead 2、behind 27），無法 fast-forward。內容是 8001 測試伺服器已關、8080 區網分享伺服器在跑；2026-10-05 實測兩台都不在 | **捨棄，對齊 `origin/main`**：先留備份 tag，再把本機 `main` 指到 `origin/main`；還有用的事實改寫進分支看板。另一個選項：在本機 `main` 建 merge commit 並解 PROGRESS 衝突（違反 ff-only） | 已決定 2026-10-05：捨棄，對齊 `origin/main`（人類選「捨棄，對齊 origin/main（建議）」）。已建本機 tag `backup/local-main-2026-10-02`（指向 `4ed2ab5`，沒有 push），用 `git branch -f main origin/main` 把 `main` 移到 `8041e14`；8001、8080 的現況寫進 W2 執行注意 17 |
-| D30 | 全專案（流程） | 人類 2026-10-05 指示：「我這個專案是展示用的，先以完成主要功能能使用為主，不用花太多時間在細節的修飾。以最快的速度完成整個專案，這樣需要修改哪些任務目標」 | AI 提案：(1) 流程改成展示模式（WORKFLOW §13）：一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤、不補強測試也不做變異 RED，保留 TDD 和硬性規則；(2) W2 照做 Task 6、7，整體修正只修 4 個看得到的問題（執行注意 32），驗收精簡；(3) W3 見 D31；(4) W4 取消，F11-N1 併入 W2，D4–D8 維持現狀；(5) W5 只改 README §1、§2；(6) Demo 完成條件跟著精簡（§1 第 4 點）；正式產品軌不在範圍內 | 已決定 2026-10-05：人類對提案回答了 D31–D33，並選 D25、D26「取消，維持現狀（建議）」，其餘部分沒有反對，照提案執行。WORKFLOW §13、AGENTS §5、CLAUDE.md、`/pf-next` 已經同步改成展示模式 |
-| D31 | W3 | W3 流程控制原本 7 項（關卡硬性擋住後續階段、範本指定核准人、總經理角色、強制通過關卡與略過整個階段、完成報告必附交付物、連接器範本與示範專案、資料升到 v5），要做到什麼程度 | **精簡版**：只做連接器 6 階段範本與示範專案，加上關卡擋住後續階段；其他延到正式版。spec 由 AI 依甘特圖起草，人類看一次。其他選項：W3 整個不做；照原本 7 項 | 已決定 2026-10-05：精簡版（人類選「精簡版（建議）」）。見 §3 W3 |
-| D32 | 全專案（流程） | spec 沒寫到的小細節，AI 可以自己照建議做、事後再給人類看嗎 | **可以**：記進 §6，狀態寫「AI 代決 YYYY-MM-DD：…（可推翻）」，不標 ⛔，不停下來。範圍、資料版本、新 spec、push 仍然要問。另一個選項：照舊停下來問 | 已決定 2026-10-05：可以，事後給我看（人類選「可以，事後給我看（建議）」）。見 WORKFLOW §13 |
-| D33 | 全專案（流程） | 展示會用手機看嗎？（決定展示模式要不要保留 375px 檢查） | 建議只用電腦展示，不再檢查 375px。另一個選項：手機也要能看 | 已決定 2026-10-05：**手機也要能看**（人類推翻建議）。每個 Task 和驗收都保留 375px 沒有水平捲動的檢查 |
+| D14 | W1-T1 | **Important（plan-mandated，已修正）**：plan Step 3 的 `.rcard .rc-main{min-width:0;flex:1}` 讓 flex-basis 變成 0，`.rc-row` 的 `flex-wrap:wrap` 永遠不會換行。375px 下動作欄固定佔掉右半邊，文字欄只剩 118–141px，自訂欄位會溢出。已在 `dc50e86` 改成 `flex:1 1 240px`，並加 1 個版面測試，所以 W1 的測試變成 14 個 | **接受 `dc50e86` 的修正**。同意後可以視需要用 `Plan: fix` 同步 plan Step 3 和 Task 2 的預期測試數 | 已決定 2026-10-01：接受修正（使用者選「接受修正（建議）」）。plan 不另外同步，以 W1 執行注意 13 為準 |
+| D15 | W1-T1 | §5 W1-T1-m6：F11 原本就有的版面問題。桌面寬度下，紀錄、文件、資料、成員分頁的內容超出畫面時會被截掉，無法捲動。W1 之後葉任務預設進紀錄分頁，上方又多了回報卡，會更常發生。要在 W1 一起修，還是登記到 W4 再修？ | **在 W1 一起修**：這幾個分頁改成整個主區域可以捲動，和手機版一樣，標題和回報卡會跟著捲上去；看板、時程、相依圖維持原樣。放在 Task 2 的修正輪處理，附測試 | 已決定 2026-10-01：在 W1 一起修（使用者選「在 W1 一起修（建議）」），放在 Task 2 的修正輪 |
+| D16 | W1-T2 | **Important（plan-mandated，Task 2 品質審查 I1）**：子任務的回報摘要很長時，置頂回報卡會把葉任務的看板、時程、相依圖分頁擠到看不見。plan 的卡片 CSS 沒有高度上限，而 D15 讓這三個分頁維持主區域不捲動。1366×650 實測：摘要 8 行時，時程的內容區高度變成 0；12 行時連分頁列都被推出畫面，切不回紀錄分頁 | **限制卡片摘要高度**：卡片上的成果說明最多顯示約 6 行，超過的部分在卡片內捲動，完整內容在紀錄分頁的「回報歷史」，只改 CSS。其他選項：子任務頁全部分頁都可以捲動（改動較大，也要調整 D15）；維持現狀 | 已決定 2026-10-02：使用者回覆「都照建議」，也就是限制卡片摘要高度。放在 Task 2 修正輪 1，見 W1 執行注意 16 |
+| D17 | W1-T2 | Task 2 品質審查 m3(b)（spec 沒有寫到，已實測）：在子任務頁按「＋ 新增子任務」新增第一個子任務後，它會變成上層任務，但畫面仍停在「紀錄」分頁的唯讀彙總，看不到剛新增的子任務 | **新增後切到看板**：原本是子任務、而且停在紀錄分頁時，新增第一個子任務後自動切到「看板」。另一個選項是維持現狀 | 已決定 2026-10-02：使用者回覆「都照建議」，也就是新增後切到看板。放在 Task 2 修正輪 1，見 W1 執行注意 17 |
+| D19 | W2-T1 | spec 和 plan 衝突（Task 1 審查 Minor m1，執行注意沒有裁決）：v3 → v4 升級時，模板節點補 `dept` 的順序。spec §3.4(4) 是「有 `who` 取其部門 → 否則模板的第一個 `dp` → 再沒有則 d-rd」；plan Task 1 Step 8（已照做，`e62b39a`）是「`who` → `TAG_DEPT[類別]` → 第一個 `dp` → d-rd」。差別只影響舊 v3 資料升級後的系統模板，例如沒有協作部門的「簽核檢驗費用」，spec 會給研發，plan 給採購；有協作部門的節點，spec 會把協作部門當成負責部門 | **照 plan（維持 `e62b39a`）**：升級後的模板部門和新種子資料一致（`seed()` 的模板也是用 `TAG_DEPT`），不會把協作部門誤當負責部門。spec 文字差異以本條為準，不另外改 spec。另一個選項：照 spec，在 Task 1 修正輪改 `upgrade()` | 已決定 2026-10-02：照 spec（使用者選「照 spec」）。在 Task 1 修正輪 1 改 `upgrade()` 並補測試，見 W2 執行注意 20 |
+| D20 | W2-T2 | **Important（plan-mandated，Task 2 spec 審查 I-1）**：`seeTask` 的下層規則。plan（已照做，`ebab1e1`）是「下層任務直接相關，**或下層任務已指派、而且它的上層任務直接相關**」時顯示為路徑；spec §4.1 字面只有「下層任務直接相關」。只在這種結構下不同：ming 負責 t3012 → 底下有未指派的 N（品保）→ N 底下有指派給小安的 D。plan：ming 看得到 N 和 D；spec 字面：ming 看得到 D，卻看不到 D 的父任務 N，D 在看板和時程上點不到（孤兒）。範本帶入負責人（spec §5.5）或 Task 3 的指派操作都可能做出這種結構 | **照 plan**：程式不改，補一個測試釘住這個行為，spec §4.1 的文字差異以本條為準。其他選項：照 spec 字面（會出現點不到的孤兒任務）；或上層規則遇到未指派節點就停（連 D 也看不到，但違反 spec 對已指派任務的上層規則） | 已決定 2026-10-02：照 spec 字面（使用者選「照 spec 字面」）。Task 2 修正輪 1 改 `seeTask`，見 W2 執行注意 23 |
+| D21 | W2-T2 | spec 沒有寫的情況（Task 2 兩位審查者 Minor）：使用者**一個專案都看不到**時（例如他負責的任務全部改派給別人）。plan Step 4.2 是退回 `projects()[0]`，會帶到他看不到的專案，露出專案標題、階段列和關卡；另外 AI 副手（`aiAsk`）和會議記錄確認（`openMinutesConfirm`）在非專案頁會因為 `ctxProject()` 是 `undefined` 而出錯。種子資料的 7 個身分都至少看得到一個專案，所以目前不會發生 | **顯示空狀態**：主區域顯示「目前沒有你看得到的專案」，不帶到別人的專案；`ctxProject()` 的呼叫端加防護。放在 Task 2 修正輪，附測試。另一個選項：維持 plan（帶到第一個專案，看板顯示空狀態），只修出錯的地方 | 已決定 2026-10-02：顯示空狀態（使用者選「顯示空狀態（建議）」）。Task 2 修正輪 1 實作，見 W2 執行注意 24 |
+| D22 | W2-T2 | spec 沒有寫的情況（Task 2 審查與修正輪的範圍外觀察）：W2 讓「只有相關的人看得到任務」，但有些衍生資訊沒有依可見性過濾。(a) AI 專案問答引用的文件：ming 會看到他看不到的任務的文件名稱和內容（§5 W2-T2-m2，已實測）；(b) 稽核紀錄頁、總覽的人員／部門負載、看板卡片進度和子任務數、時程的採購單交期列，會露出看不到的任務的存在、負責人或數量（§5 W2-T2-m3）。W2 之前就是這樣 | **(a) 在 W2 整體修正時改成依 `can('view')` 過濾**（AI 只引用看得到的任務的文件）；**(b) 維持現狀**，之後另外排工作項目。不擋 Task 3–7，W2 改成 🟢 之前要有結論 | 已決定 2026-10-02：都維持現狀（使用者選「都維持現狀」）。(a)(b) 都不在 W2 處理，§5 W2-T2-m2、m3 留給之後的工作項目 |
+| D23 | W2-T3 | spec 沒有寫的情況（Task 3 品質審查 I-2，已實測）：審核人的「修改時程」權限（spec §4.4：不變）和任務對話框。Task 3 之後，審核人對不是自己負責、也不是自己主管部門的任務，`can('edit')` 是 false、`can('schedule')` 仍是 true。實測陳主管開 t30121：開始、結束日期和鎖定欄位可以改，儲存鈕卻是停用的，畫面寫「唯讀」，改了存不下來；時間軸拖曳仍然可以改時程。W2 之前審核人可以在對話框存時程 | **對話框可以只存時程**：沒有編輯權、但有時程權時，儲存鈕可用，儲存時只寫入開始、結束日期和鎖定，其他欄位不動。放在 Task 3 修正輪，附測試。另一個選項：對話框的日期和鎖定也改成唯讀，只能用時間軸拖曳改時程 | 已決定 2026-10-02：使用者回覆「不是他負責也不是他部門，就不關他的事啊，不能做其他動作」，追問範圍後選「只拿掉時程（建議）」。**任務**的修改時程改成和 `canWork` 一樣（負責人本人、負責部門主管、專案負責人、系統管理員），審核人不能再改別人任務的時程（對話框和時間軸拖曳都不行）；階段本身的時程、設定前置條件、範圍內的關卡核准、跳過申請核准、回報確認都照舊。這一點推翻 spec §4.4「reviewer 不變」，以本條為準。Task 3 修正輪 1 實作，見 W2 執行注意 26 |
+| D24 | W2-T3 | spec 沒有寫的情況（Task 3 spec 審查 Minor 5）：誰可以寫筆記。spec §4.2 只寫「協作人員與協作部門主管照舊可以新增筆記」。照 plan 的 `canNote`，範圍內的審核人（例如陳主管對 t30121）**不能**再寫筆記，除非他是協作人員或部門主管；W2 之前審核人可以在任何任務寫筆記 | **允許範圍內的審核人寫筆記**（和 W2 之前一樣；他們看得到這些任務，也負責關卡）：`canNote` 加上 `inReviewerScope(n)`。放在 Task 3 修正輪，附測試。另一個選項：照 plan，審核人只有在是協作人員或部門主管時才能寫筆記 | 已決定 2026-10-02：允許範圍內審核人（使用者選「允許範圍內審核人（建議）」）。Task 3 修正輪 1 實作，見 W2 執行注意 27 |
+| D25 | W2-T3 | spec 沒有寫的情況（Task 3 修正輪 scoped re-review 的範圍外觀察）：時間軸的「連動順延」（`cascadeFrom`／`shiftSubtree`）在某人改了自己任務的時程後，會自動順延**別人負責**的後續任務，不檢查 `can('schedule')`。D23 決定「不是他負責也不是他部門，就不能改時程」，但連動會間接改到別人的任務。W2 之前就是這樣，有稽核紀錄 | **維持現狀**：連動是依前置條件自動保持時程一致，不算個人修改。另一個選項：連動遇到沒有時程權的任務就停下來，並提示要請負責人或主管處理 | 已決定 2026-10-02：遇到沒權限的任務就停（使用者選「遇到沒權限的任務就停」）。連動碰到操作者沒有時程權（`can('schedule')`）的任務就停下來，提示要請負責人或部門主管處理。放在 W2 整體修正，附測試。**2026-10-05 改為取消，維持現狀**（使用者選「取消，維持現狀（建議）」，D30 展示模式）：連動順延照舊，不在 W2 實作 |
+| D26 | W2-T4 | spec 沒有寫的情況（Task 4 品質審查 Minor 7）：部門主管可以選任何部門成員，包括協作人員（collab，例如業務部的小林）。主管有 `canWork` 和可見性的權限，所以小林被設成業務主管後，就能操作業務部所有的任務、看到未指派的業務任務 | **主管只能選成員、審核人、專案負責人這類角色，排除協作人員和唯讀**：`updateDept` 拒絕並提示，對話框的主管下拉不列出他們。放在 W2 整體修正，附測試。另一個選項：維持現狀（任何部門成員都能當主管） | 已決定 2026-10-02：排除協作人員與唯讀（使用者選「排除協作人員與唯讀（建議）」）。放在 W2 整體修正，附測試。**2026-10-05 改為取消，維持現狀**（使用者選「取消，維持現狀（建議）」，D30 展示模式）：任何部門成員都能當主管，不在 W2 實作 |
+| D27 | W2-T4 | spec 文字不準確（Task 4 spec 審查 Minor 1）：部門面板「未設主管」的提示文字照 spec §5.1 寫「這個部門的未指派工作只有專案負責人看得到」，但依 Task 2 的可見性，系統管理員（和唯讀）也看得到 | **改成「這個部門的未指派工作只有專案負責人與系統管理員看得到」**，放在 W2 整體修正。另一個選項：維持 spec 原文 | 已決定 2026-10-02：維持 spec 原文（使用者選「維持 spec 原文」），不改 |
+| D18 | W1-T2 | §5 W1-T2-m9（Minor，兩位審查者第 2 輪都提到）：D16 只限制了卡片上的成果說明。自訂欄位、退回意見、跳過理由很長或很多時，卡片仍會把葉任務的看板、時程、相依圖擠到看不見。1366×650 實測：自訂欄位達 2 個時，時程的內容區變成 0；達 3 個時，看板和相依圖也是 0，時程的分頁列超出畫面 | **一起限制高度**：自訂欄位最多顯示約 4 列，退回意見和跳過理由最多約 4 行，超過的在卡片內捲動，完整內容在紀錄分頁的回報歷史，只改 CSS。另一個選項：維持現狀（目前種子資料和系統模板的欄位都只有 0–1 個） | 已決定 2026-10-02：維持現狀（使用者回覆「D18 維持現狀」）。W1-T2-m9 改列 BY_DESIGN，要改需要另外排工作項目 |
+| D28 | W2（流程） | `origin/main` 已經用 GitHub PR #1 的 merge commit `8041e14`（2026-10-05 09:07，parents `670afaf`、`079b035`）合入 W2 Task 1–5 的草稿。這不符合 G5（整體審查後才合併、只用 ff、不建 merge commit）和「有 `feature/*` 分支時 `main` 凍結」。W2 要怎麼繼續？ | **接受，分支跟上**：`feature/w2-departments` 用 `git merge --ff-only origin/main` 前進到 `8041e14`（程式和 `079b035` 相同，只多一個 merge commit），照原流程在分支上做 Task 6、7 和整體審查，完成後再 ff 合併回 `main`。另一個選項：在 GitHub 上 revert | 已決定 2026-10-05：接受，分支跟上（使用者選「接受，分支跟上（建議）」）。已 ff 到 `8041e14`，見 W2 執行注意 33 |
+| D29 | W2（流程） | 本機 `main` 有 2 個從沒 push 的 commit（`6c39df8 Progress: note 8001 test server stopped`、`4ed2ab5 Progress: note LAN share server for the demo`，2026-10-02），和 `origin/main` 分岔（ahead 2、behind 27），無法 fast-forward。內容是 8001 測試伺服器已關、8080 區網分享伺服器在跑；2026-10-05 實測兩台都不在 | **捨棄，對齊 `origin/main`**：先留備份 tag，再把本機 `main` 指到 `origin/main`；還有用的事實改寫進分支看板。另一個選項：在本機 `main` 建 merge commit 並解 PROGRESS 衝突（違反 ff-only） | 已決定 2026-10-05：捨棄，對齊 `origin/main`（使用者選「捨棄，對齊 origin/main（建議）」）。已建本機 tag `backup/local-main-2026-10-02`（指向 `4ed2ab5`，沒有 push），用 `git branch -f main origin/main` 把 `main` 移到 `8041e14`；8001、8080 的現況寫進 W2 執行注意 17 |
+| D30 | 全專案（流程） | 使用者 2026-10-05 指示：「我這個專案是展示用的，先以完成主要功能能使用為主，不用花太多時間在細節的修飾。以最快的速度完成整個專案，這樣需要修改哪些任務目標」 | AI 提案：(1) 流程改成展示模式（WORKFLOW §13）：一位審查者、最多一輪修正、只擋會讓展示出問題的錯誤、不補強測試也不做變異 RED，保留 TDD 和硬性規則；(2) W2 照做 Task 6、7，整體修正只修 4 個看得到的問題（執行注意 32），驗收精簡；(3) W3 見 D31；(4) W4 取消，F11-N1 併入 W2，D4–D8 維持現狀；(5) W5 只改 README §1、§2；(6) Demo 完成條件跟著精簡（§1 第 4 點）；正式產品軌不在範圍內 | 已決定 2026-10-05：使用者對提案回答了 D31–D33，並選 D25、D26「取消，維持現狀（建議）」，其餘部分沒有反對，照提案執行。WORKFLOW §13、AGENTS §5、CLAUDE.md、`/pf-next` 已經同步改成展示模式 |
+| D31 | W3 | W3 流程控制原本 7 項（關卡硬性擋住後續階段、範本指定核准人、總經理角色、強制通過關卡與略過整個階段、完成報告必附交付物、連接器範本與示範專案、資料升到 v5），要做到什麼程度 | **精簡版**：只做連接器 6 階段範本與示範專案，加上關卡擋住後續階段；其他延到正式版。spec 由 AI 依甘特圖起草，使用者看一次。其他選項：W3 整個不做；照原本 7 項 | 已決定 2026-10-05：精簡版（使用者選「精簡版（建議）」）。見 §3 W3 |
+| D32 | 全專案（流程） | spec 沒寫到的小細節，AI 可以自己照建議做、事後再給使用者看嗎 | **可以**：記進 §6，狀態寫「AI 代決 YYYY-MM-DD：…（可推翻）」，不標 ⛔，不停下來。範圍、資料版本、新 spec、push 仍然要問。另一個選項：照舊停下來問 | 已決定 2026-10-05：可以，事後給我看（使用者選「可以，事後給我看（建議）」）。見 WORKFLOW §13 |
+| D33 | 全專案（流程） | 展示會用手機看嗎？（決定展示模式要不要保留 375px 檢查） | 建議只用電腦展示，不再檢查 375px。另一個選項：手機也要能看 | 已決定 2026-10-05：**手機也要能看**（使用者推翻建議）。每個 Task 和驗收都保留 375px 沒有水平捲動的檢查 |
 | D34 | W2-T6 | spec 沒寫到的小細節（Task 6 implementer concern、審查 m1）：時程分頁的部門篩選列放在 `height:100%` 的 `.tl` 前面，桌面版 `.tl` 會超出 `.view` 約 40px，下緣和橫向捲軸被 `.main{overflow:hidden}` 裁掉（實測修正前 `.tl` 下緣 920 > `.main` 900） | **只用 CSS 讓有篩選列的 `.view` 改成直向 flex**：`.view:has(> .deptbar){display:flex;flex-direction:column}`、`.deptbar + .tl{flex:1 1 0;min-height:0;height:auto}`，`.deptbar` 加 `flex-shrink:0`，不改 plan 規定的 HTML 結構。缺點是依賴 `:has()`，舊版 Firefox／Safari 沒有退路（§5 W2-T6-m2）。另一個選項：時程分頁的 `.view` 加 class，或用容器包住篩選列和 `.tl` | AI 代決 2026-10-05：有篩選列時 `.view` 改成直向 flex、`.tl` 吃剩下的高度（`7939a66`；桌面 `.tl` 下緣等於 `.view` 下緣，375px 篩選列換 3 行時 `.tl` 仍有 306px 可捲動）（可推翻） |
 | D35 | W2-T6 | spec 沒寫到的小細節（Task 6 implementer concern、審查 m1）：手機版（≤860px）的 `.tl-label` 只有 150px，階段列的件數「▸ N 件」會把階段名稱擠到只剩 3px，名稱完全看不到 | **手機版隱藏階段件數**：在 `@media (max-width:860px)` 加 `.tl-label .cnt{display:none}`，名稱寬度回到改動前（47px），件數仍可以在篩選列看到。這和 spec §5.4「階段列上顯示 ▸ N 件」在手機上不一致。另一個選項：縮短件數文字或加寬標籤欄 | AI 代決 2026-10-05：寬度 ≤860px 時不顯示階段列的件數（`7939a66`）（可推翻） |
 | D36 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：README §2 功能表新增「我的任務｜✅ 可用」列之後，原本的「其他｜分享、總覽、我的任務、AI 收件匣｜⬜ 未實作」會和它直接矛盾 | **從「其他」列拿掉「我的任務」**，只刪一個詞，不算大改 §2（執行注意 7）。另一個選項：保留原列不動 | AI 代決 2026-10-05：「其他」列改成「分享、總覽、AI 收件匣」（`03c9ff5`）（可推翻） |
@@ -1221,21 +1221,21 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 | D38 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：README F5 權限表的「修改時程」列要反映 D23，各角色欄的文字 | **照 `can('schedule')` 寫**（任務走 `canWork`，非任務照舊）：系統管理員 ✅、專案負責人 ✅、階段審核人「階段；任務限自己負責或主管部門的」、成員「自己負責或主管部門的任務」、協作人員「自己負責的任務」、唯讀空白。同表的「新增 / 編輯任務」列也受 `canWork` 影響，但執行注意 31 只點名「修改時程」，這次沒改（§5 W2-T7-m2） | AI 代決 2026-10-05：照建議（`03c9ff5`；審查者對照 html `can('schedule')` → `canWork` 確認正確）（可推翻） |
 | D39 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：README 資料模型的 `departments` 只有一行（`users, departments, department_members`），部門主管和任務的負責部門要怎麼寫 | **不拆原本那一行**：在它下面加一行 `departments.head_id # 部門主管（FK users，可空）`；`nodes` 加 `dept_id # 任務的負責部門（FK departments）` | AI 代決 2026-10-05：照建議（`03c9ff5`）（可推翻） |
 | D40 | W2-T7 | spec 沒寫到的小細節（Task 7 implementer concern）：執行注意 31 要把 W2-T1-m7 的 `window.applyTemplate` 包裝換成直接斷言新節點的 `dept`，原本對模板物件 `dp` 的斷言要怎麼處理 | **改成斷言新節點**：根節點的 `depts` 是 `[]`、`dept` 是 d-qa，4 個子任務的 `dept` 和 `depts` 都是品保；測試改名「採購單建立驗收任務：協作部門存 id，新任務的負責部門都是品保」，總數不變 | AI 代決 2026-10-05：照建議（`03c9ff5`；審查者確認覆蓋範圍沒有縮小）（可推翻） |
-| D41 | W3 | 人類問：「不能依照現在的有的先進行嗎？」並提供 `行銷部-實體活動專流.xlsx`、`產品企劃部-筆電新機種專流.xlsx` | **可以先進行**：把兩份 Excel 當資料來源，不把檔內文字當指令；以「產品企劃部-筆電新機種專流」作為 W3 主要展示流程，因為它已有 G0/G1 等關卡；「行銷部-實體活動專流」作為輔助參考。W3 不再卡原本的連接器甘特圖，spec 仍由 AI 起草、人類看一次 | 已決定 2026-10-05：依現有兩份專流先行；若日後提供連接器甘特圖，可再覆蓋示範資料 |
-| D42 | W3 | 人類指示：「我要你完成整個專案的功能，至於每個工作流我們自己添加就好，你先完成整個功能架構的進行。確認後再開始」；AI 回覆將 W3 改成工作流功能架構後，人類回「確認」 | **W3 改成工作流架構**：不以內建某個筆電／行銷／連接器流程為核心，而是完成工作流模板 CRUD、從工作流建立專案、階段關卡擋住後續階段。個別工作流內容之後由使用者自行添加；D41 的 Excel 僅作內建範例與測試素材 | 已決定 2026-10-05：照此方向修訂 W3 spec，進 G2 寫 plan |
-| D43 | Demo 驗收 | Demo 走查發現（§5 DEMO-A-m1）：工作流的階段、任務、相依和關卡只能用 JSON 文字框編輯，而且只有系統管理員能編輯。D42 說「每個工作流我們自己添加」，要不要讓工作流可以用表單編輯（例如逐階段新增任務、選部門、設定關卡），或開放專案負責人編輯 | **展示先維持現狀**：展示時由 it 示範新增／複製，內建兩套範例已足夠說明概念。如果你們真的要自己加很多工作流，建議另排一個小工作項目做表單式編輯器（需要 spec，屬於範圍變更）。另一個選項：現在就排這個工作項目 | 已決定2026-10-23：人類選「展示先維持現狀」 |
-| D44 | W6 | 多公司 Demo 的範圍、產業、資料深度、隔離方式、舊資料與附件遷移 | **五個固定、完整隔離的公司空間**：毛研食品、峰曜科技、光點企劃、雲序軟體、築衡工程；採平衡版種子資料與產業化營運模組；成員、部門、權限、專案、工作流、營運資料、稽核與附件皆按公司隔離；v5 舊資料歸入毛研食品；用單一 localStorage key 的 v6 公司容器，不做公司 CRUD 或正式後端多租戶 | 已決定 2026-10-08：人類逐項採用建議並批准完整設計，可寫 written spec |
-| D45 | 全專案（流程） | W6 和目前 `feature/p0-formal-product-plan` 的優先順序 | **先暫停 P0 規劃，優先完成 W6**；保留 P0 的 spec、plan 與 commit，W6 完成後恢復 | 已決定 2026-10-08：人類批准 W6 完整設計時同意此執行順序；P0 分支已保留為 `paused/p0-formal-product-plan` |
-| D46 | W6 執行 | W6 plan 的執行方式 | 由目前 session 依 Task 0–6 直接實作；主 checkout、每 Task TDD 與審查、PROGRESS 為唯一進度來源 | 已決定 2026-10-08：人類選擇「Native execution」，授權開始 W6 plan |
-| D51 | 正式版啟動 | 人類指示「開始做到P1c」 | 授權完整P0→P1a→P1b→P1c的正式版MVP實作與必要規則轉換；不是僅恢復規劃。沿用React／FastAPI／PostgreSQL／Docker Compose、核心工作流與公司隔離要求。逐階段補齊可執行計畫、TDD與獨立審查；D50每段更新README並push繼續有效。P2以後非目標不自動納入 | 已決定2026-10-08。先前文件中的「未授權實作」已由本項取代；新計畫的人類審閱關卡保留，不能跳過或把草稿當可執行計畫 |
-| D52 | P0計畫審閱 | 人類回覆「好開始」 | 確認2026-10-08-p0-formal-foundation計畫，立即Native執行Task1–3；正式軌按完整安全／獨立審查標準驗收 | 已決定2026-10-08；解除P0計畫待審閱 |
-| D53 | P1a執行方式 | 人類指示「繼續進行，我只會審核成品的部分，中間你可以自己進行，除非有重大的東西需要詢問」 | 確認P1a計畫可進入Native執行；中間Task由AI自行依計畫TDD與審查流程推進，不逐步請人類審閱。遇到重大範圍變更、安全敏感、plan無法照做、破壞性操作、遠端／合併異常等WORKFLOW §8仍停下來問 | 已決定2026-10-08；解除P1a plan待審閱 |
-| D54 | P1c後續方向 | 人類選取四階段Demo功能移植建議並指示「開始進行」 | 按完整任務操作→回報協作→時程流程→其餘Demo模組推進；先P2a。不是完整產品功能已完成，真AI／ERP另定範圍 | 已決定；2026-10-08直接授權開展G1，不代替新spec／plan審閱 |
-| D55 | P2a G1 | WORKFLOW §8新spec與新增日期資料模型／編輯流程需要設計確認 | 建議第一階段包含工作區、總覽、我的任務、任務新增／編輯、負責人／部門／起迄日期；以migration保留資料，其他模組後續處理 | 2026-10-08人類明確指示「依 docs/formal-feature-roadmap.md 繼續 P2a 規格與計畫」，已授權撰寫兩份文件；當時僅授權撰寫，後續產品規則及G1／G2已依D56核准 |
-| D57 | P2a G3環境 | 本機缺Node/npm、Docker Desktop／WSL，無法跑計畫要求的隔離Compose、E2E與真PostgreSQL migration基準 | 補齊Node24與Docker Desktop Linux容器環境（可能需管理員與重啟），或切換已有Docker環境；未取得完整基準不開始產品實作，不把工具缺失當RED | 已決定2026-10-08：人類選擇在本機補裝環境；授權安裝Node24、Docker Desktop／WSL。已補齊repo-local Python鎖版依賴並通過API80；已確認WSL2.7.13／Docker29.8.2引擎可用，完整隔離G3基準API80／Vitest56／E2E6／build exit0，環境阻塞解除 |
-| D56 | P2a spec／plan審閱 | 新增／改派、一般編輯權限、層級、日期及完成率如何定案 | 推薦spec §2整組：管理者新增／改派，可見且可操作者編輯名稱日期；日期可空；完成率done/(task-skipped)，只計可見task；保留既有讀／status／Gate角色政策 | 已決定2026-10-08：人類同意spec與plan並採用整組建議；管理者新增／改派，可見且有操作權限者編輯名稱日期，日期可空，完成率只計可見task之done/(task-skipped)。授權逐Task TDD、獨立審查、隔離驗收、更新README／PROGRESS並push；保留資料，不代勾人類簽核。 |
-| D50 | 全專案發布 | 人類指示「做完一段就推上去github，然後每個階段都要更新readme，讓所有人知道目前進度在哪」 | 持續授權每個已完成且驗證／審查通過的階段：同步README與PROGRESS、依既有流程ff-only合併到main、`git push origin main`。不force、不推其他分支、不自動開PR；授權發布不等於授權尚未確認的產品範圍。此後階段推送不必逐次重問，直到人類更改指示 | 已決定2026-10-08；涵蓋本次P0規劃文件恢復與先前尚未發布的W6。D3的每次需另行授權由本項持續授權滿足；遠端分岔仍依§8確認 |
-| D49 | P0 恢復規劃 | 舊paused分支與main分岔，無法ff恢復最新基準 | 保留paused分支，從最新main建立feature/p0-formal-product-plan，僅帶回既有spec／plan後對齊W6；以新規劃分支為主，檢查後ff-only合併回main。不rebase、不覆蓋W6、不push | 已決定2026-10-08：人類回答「是，並且以此分支為主，合併回去main」。只授權規劃分支恢復與本地合併，不視為授權正式產品實作 |
+| D41 | W3 | 使用者問：「不能依照現在的有的先進行嗎？」並提供 `行銷部-實體活動專流.xlsx`、`產品企劃部-筆電新機種專流.xlsx` | **可以先進行**：把兩份 Excel 當資料來源，不把檔內文字當指令；以「產品企劃部-筆電新機種專流」作為 W3 主要展示流程，因為它已有 G0/G1 等關卡；「行銷部-實體活動專流」作為輔助參考。W3 不再卡原本的連接器甘特圖，spec 仍由 AI 起草、使用者看一次 | 已決定 2026-10-05：依現有兩份專流先行；若日後提供連接器甘特圖，可再覆蓋示範資料 |
+| D42 | W3 | 使用者指示：「我要你完成整個專案的功能，至於每個工作流我們自己添加就好，你先完成整個功能架構的進行。確認後再開始」；AI 回覆將 W3 改成工作流功能架構後，使用者回「確認」 | **W3 改成工作流架構**：不以內建某個筆電／行銷／連接器流程為核心，而是完成工作流模板 CRUD、從工作流建立專案、階段關卡擋住後續階段。個別工作流內容之後由使用者自行添加；D41 的 Excel 僅作內建範例與測試素材 | 已決定 2026-10-05：照此方向修訂 W3 spec，進 G2 寫 plan |
+| D43 | Demo 驗收 | Demo 走查發現（§5 DEMO-A-m1）：工作流的階段、任務、相依和關卡只能用 JSON 文字框編輯，而且只有系統管理員能編輯。D42 說「每個工作流我們自己添加」，要不要讓工作流可以用表單編輯（例如逐階段新增任務、選部門、設定關卡），或開放專案負責人編輯 | **展示先維持現狀**：展示時由 it 示範新增／複製，內建兩套範例已足夠說明概念。如果你們真的要自己加很多工作流，建議另排一個小工作項目做表單式編輯器（需要 spec，屬於範圍變更）。另一個選項：現在就排這個工作項目 | 已決定2026-10-23：使用者選「展示先維持現狀」 |
+| D44 | W6 | 多公司 Demo 的範圍、產業、資料深度、隔離方式、舊資料與附件遷移 | **五個固定、完整隔離的公司空間**：毛研食品、峰曜科技、光點企劃、雲序軟體、築衡工程；採平衡版種子資料與產業化營運模組；成員、部門、權限、專案、工作流、營運資料、稽核與附件皆按公司隔離；v5 舊資料歸入毛研食品；用單一 localStorage key 的 v6 公司容器，不做公司 CRUD 或正式後端多租戶 | 已決定 2026-10-08：使用者逐項採用建議並批准完整設計，可寫 written spec |
+| D45 | 全專案（流程） | W6 和目前 `feature/p0-formal-product-plan` 的優先順序 | **先暫停 P0 規劃，優先完成 W6**；保留 P0 的 spec、plan 與 commit，W6 完成後恢復 | 已決定 2026-10-08：使用者批准 W6 完整設計時同意此執行順序；P0 分支已保留為 `paused/p0-formal-product-plan` |
+| D46 | W6 執行 | W6 plan 的執行方式 | 由目前 session 依 Task 0–6 直接實作；主 checkout、每 Task TDD 與審查、PROGRESS 為唯一進度來源 | 已決定 2026-10-08：使用者選擇「Native execution」，授權開始 W6 plan |
+| D51 | 正式版啟動 | 使用者指示「開始做到P1c」 | 授權完整P0→P1a→P1b→P1c的正式版MVP實作與必要規則轉換；不是僅恢復規劃。沿用React／FastAPI／PostgreSQL／Docker Compose、核心工作流與公司隔離要求。逐階段補齊可執行計畫、TDD與獨立審查；D50每段更新README並push繼續有效。P2以後非目標不自動納入 | 已決定2026-10-08。先前文件中的「未授權實作」已由本項取代；新計畫的使用者審閱關卡保留，不能跳過或把草稿當可執行計畫 |
+| D52 | P0計畫審閱 | 使用者回覆「好開始」 | 確認2026-10-08-p0-formal-foundation計畫，立即Native執行Task1–3；正式軌按完整安全／獨立審查標準驗收 | 已決定2026-10-08；解除P0計畫待審閱 |
+| D53 | P1a執行方式 | 使用者指示「繼續進行，我只會審核成品的部分，中間你可以自己進行，除非有重大的東西需要詢問」 | 確認P1a計畫可進入Native執行；中間Task由AI自行依計畫TDD與審查流程推進，不逐步請審閱。遇到重大範圍變更、安全敏感、plan無法照做、破壞性操作、遠端／合併異常等WORKFLOW §8仍停下來問 | 已決定2026-10-08；解除P1a plan待審閱 |
+| D54 | P1c後續方向 | 使用者選取四階段Demo功能移植建議並指示「開始進行」 | 按完整任務操作→回報協作→時程流程→其餘Demo模組推進；先P2a。不是完整產品功能已完成，真AI／ERP另定範圍 | 已決定；2026-10-08直接授權開展G1，不代替新spec／plan審閱 |
+| D55 | P2a G1 | WORKFLOW §8新spec與新增日期資料模型／編輯流程需要設計確認 | 建議第一階段包含工作區、總覽、我的任務、任務新增／編輯、負責人／部門／起迄日期；以migration保留資料，其他模組後續處理 | 2026-10-08使用者明確指示「依 docs/formal-feature-roadmap.md 繼續 P2a 規格與計畫」，已授權撰寫兩份文件；當時僅授權撰寫，後續產品規則及G1／G2已依D56核准 |
+| D57 | P2a G3環境 | 本機缺Node/npm、Docker Desktop／WSL，無法跑計畫要求的隔離Compose、E2E與真PostgreSQL migration基準 | 補齊Node24與Docker Desktop Linux容器環境（可能需管理員與重啟），或切換已有Docker環境；未取得完整基準不開始產品實作，不把工具缺失當RED | 已決定2026-10-08：使用者選擇在本機補裝環境；授權安裝Node24、Docker Desktop／WSL。已補齊repo-local Python鎖版依賴並通過API80；已確認WSL2.7.13／Docker29.8.2引擎可用，完整隔離G3基準API80／Vitest56／E2E6／build exit0，環境阻塞解除 |
+| D56 | P2a spec／plan審閱 | 新增／改派、一般編輯權限、層級、日期及完成率如何定案 | 推薦spec §2整組：管理者新增／改派，可見且可操作者編輯名稱日期；日期可空；完成率done/(task-skipped)，只計可見task；保留既有讀／status／Gate角色政策 | 已決定2026-10-08：使用者同意spec與plan並採用整組建議；管理者新增／改派，可見且有操作權限者編輯名稱日期，日期可空，完成率只計可見task之done/(task-skipped)。授權逐Task TDD、獨立審查、隔離驗收、更新README／PROGRESS並push；保留資料，不代勾使用者簽核。 |
+| D50 | 全專案發布 | 使用者指示「做完一段就推上去github，然後每個階段都要更新readme，讓所有人知道目前進度在哪」 | 持續授權每個已完成且驗證／審查通過的階段：同步README與PROGRESS、依既有流程ff-only合併到main、`git push origin main`。不force、不推其他分支、不自動開PR；授權發布不等於授權尚未確認的產品範圍。此後階段推送不必逐次重問，直到使用者更改指示 | 已決定2026-10-08；涵蓋本次P0規劃文件恢復與先前尚未發布的W6。D3的每次需另行授權由本項持續授權滿足；遠端分岔仍依§8確認 |
+| D49 | P0 恢復規劃 | 舊paused分支與main分岔，無法ff恢復最新基準 | 保留paused分支，從最新main建立feature/p0-formal-product-plan，僅帶回既有spec／plan後對齊W6；以新規劃分支為主，檢查後ff-only合併回main。不rebase、不覆蓋W6、不push | 已決定2026-10-08：使用者回答「是，並且以此分支為主，合併回去main」。只授權規劃分支恢復與本地合併，不視為授權正式產品實作 |
 | D48 | W6 Task 6 審查 | 新公司沒有配方比例權限，既有機密文件判斷因此讓所有角色都無法再開啟已存文件 | 毛研保留原有 ratio 判斷；新公司機密文件限目前公司 owner／admin 且節點可見者開啟，其他角色維持拒絕。新公司 ratio 仍為 false，不借用毛研欄位權限 | AI 代決 2026-10-08（可推翻）：展示模式最小修正，修復文件被永久鎖住；自動化覆蓋四公司建立、儲存、重新開啟與未授權拒絕 |
 | D47 | W6 Task 2–3 | plan 測試的空殼節點、Gate／deps 模型及範例命名與 spec 不完全相同 | 切換選第一個可見專案（空殼才 null）；Gate 驗證 `db.gates`、前置驗證 `db.deps`。專案／工作流範例名稱依 plan 明列值；毛研保留既有兩工作流與測試錨點，其他公司採產業專屬工作流。介面相依 T1→T2/3→T4→T5/6 的公司投影、ops 設定與附件鍵已核對一致 | AI 代決 2026-10-08（可推翻）：展示模式的小差異，以既有資料模型與保留毛研相容性為準；不增加功能或改變公司範圍 |
 
@@ -1245,23 +1245,23 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ### 2026-10-27｜Claude Code（Opus 5.5）｜合併 feature/rag-starter-import 進 main
 
-- **做了什麼**：人類指示「推上GitHub，開PR合併進main」，接著指示「照WORKFLOW G5在本地用--ff-only合併進main，然後push origin main」。先推分支（`ae332ad..72e0d8d`）並開[PR #6](https://github.com/chenliyu0410/projectflow/pull/6)，確認origin/main仍是`3c1294e`、為分支祖先，再`git merge --ff-only`（無merge commit），最後在main做這筆G6收尾並push。
+- **做了什麼**：使用者指示「推上GitHub，開PR合併進main」，接著指示「照WORKFLOW G5在本地用--ff-only合併進main，然後push origin main」。先推分支（`ae332ad..72e0d8d`）並開[PR #6](https://github.com/chenliyu0410/projectflow/pull/6)，確認origin/main仍是`3c1294e`、為分支祖先，再`git merge --ff-only`（無merge commit），最後在main做這筆G6收尾並push。
 - **驗證**：合併前完整pytest 804 pass／14 skip、exit 0（見下一筆）。repo沒有設定CI。
 - **沒做的事**：沒有部署；沒有刪除遠端分支；Vitest／E2E與PostgreSQL本輪未重跑。
 
 ### 2026-10-27｜Claude Code（Opus 5.5）｜UTC-TIME 修正SQLite時間少8小時
 
-- **做了什麼**：人類直接指示「先修」TEMPLATE-TRIAL發現的時間少8小時。根因：SQLite存`DateTime(timezone=True)`時丟掉時區，讀回是無時區值，`.isoformat()`沒有`+00:00`，瀏覽器當成本地時間。PostgreSQL回傳含時區，不受影響。`models.py`新增`UTCDateTime`（寫入轉UTC、讀回無時區補UTC），43個時間欄位改用它，所以文件版本、通知、稽核、附件等約20處輸出一次修正；`records`／`ai`原有的個別補丁保留（冪等）。`demo_pack.decode`改為先拆`TypeDecorator`再判斷時間欄位。不改schema、不加migration。
+- **做了什麼**：使用者直接指示「先修」TEMPLATE-TRIAL發現的時間少8小時。根因：SQLite存`DateTime(timezone=True)`時丟掉時區，讀回是無時區值，`.isoformat()`沒有`+00:00`，瀏覽器當成本地時間。PostgreSQL回傳含時區，不受影響。`models.py`新增`UTCDateTime`（寫入轉UTC、讀回無時區補UTC），43個時間欄位改用它，所以文件版本、通知、稽核、附件等約20處輸出一次修正；`records`／`ai`原有的個別補丁保留（冪等）。`demo_pack.decode`改為先拆`TypeDecorator`再判斷時間欄位。不改schema、不加migration。
 - **驗證**：`test_version_times_are_explicit_utc`先RED（`utcoffset()`為None）再GREEN。完整pytest（從repo根目錄）804 pass／14 skip、exit 0；第一次在`api/`目錄跑有19個相對路徑失敗（alembic script_location、`web/src/progress.vectors.json`），改根目錄後通過，另5個`demo_pack`失敗為本修正引起並已修。15176重啟API後實看：10/27產生的會議紀錄顯示下午2:48:14（原上午6:48），與瀏覽器現在時間一致。
 - **沒做的事**：Vitest／E2E未跑（前端未改）；PostgreSQL未實測（只靠既有含時區行為）；未push。
 - **注意**：pytest要從repo根目錄執行；本機`%TEMP%\pytest-of-User`無權限時加`--basetemp`。
 
 ### 2026-10-24｜Claude Code（Opus 5.5）｜AI-DEMO-DATA 重建原有展示資料
 
-- **做了什麼**：人類要可攜包含Text-to-SQL；原始`ai-demo-data`在這台電腦、這台Docker（無任何專流volume）、git都找不到，人類表示另一台拿不到。依核准短規格重建小型虛構版：每家公司照同一劇本（PRJ2超支、S2逾期未交、S3延遲最高、PRJ4不良率最高、PRJ3退回受阻最多、本週到期未完成4筆、至少2批零不良），文件依產業用詞，成本報告只限管理者與專案負責人，其他文件五種角色都可讀。可攜包重新打包（6家都啟用本機模型）。
+- **做了什麼**：使用者要可攜包含Text-to-SQL；原始`ai-demo-data`在這台電腦、這台Docker（無任何專流volume）、git都找不到，使用者表示另一台拿不到。依核准短規格重建小型虛構版：每家公司照同一劇本（PRJ2超支、S2逾期未交、S3延遲最高、PRJ4不良率最高、PRJ3退回受阻最多、本週到期未完成4筆、至少2批零不良），文件依產業用詞，成本報告只限管理者與專案負責人，其他文件五種角色都可讀。可攜包重新打包（6家都啟用本機模型）。
 - **驗證**：`verify.py`以正式匯入器匯入、6家×16種分析與不經SQL算出的預期結果一致（修正一處：SQLite ROUND是四捨五入，Python round是銀行家捨入）、劇本、權限、時間順序、重產一致（SQLite以內容比對）；新檢查對舊資料包先RED後GREEN。pytest相關19 pass。可攜包解壓到含中文與空白路徑、精簡PATH：示範題19/19（D22／D23規則引擎＋實際SQL、D24只引用現行版「4張」、D25一般成員拒答且無成本來源）；6家管理者副手預設都「就緒」（4專案／13文件）、加權不良率最高皆PRJ4；「上週逾期任務」只給建議不執行；ming的SQL選項停用且API回403；reviewer（chen）與readonly（lin）各看到11份文件（不含2份成本報告）並答「4張」；以上19/19與角色檢查是在最終包（`52b3314`、資料包指紋`8f8cc6c629e1`）上重跑的結果；瀏覽器看到表格（採購10、品保1、研發1）與可展開的SQL。隔離版18006跑示範題：15題通過、D22–D25略過、exit 0。
 - **審查**：一位獨立唯讀審查者，初審3應修3輕微，修正後複核Ready；剩一項輕微（可攜包上不得略過）已修。
-- **沒做的事**：第三層（另一台電腦）待人類；正式Docker未匯入新資料（這台Docker沒有專流環境）；原本144專案資料無法還原；未push。
+- **沒做的事**：第三層（另一台電腦）待使用者；正式Docker未匯入新資料（這台Docker沒有專流環境）；原本144專案資料無法還原；未push。
 - **注意**：資料包內容改變後指紋也變，已匯入舊版`dataset-v1`的環境會拒絕新版；正式環境原本就沒有匯入，不受影響。Docker Desktop在本輪被啟動，仍在執行。
 
 ### 2026-10-24｜Claude Code（Opus 5.5）｜PORTABLE 可攜展示包
@@ -1269,7 +1269,7 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **做了什麼**：依核准短規格完成`deploy/portable/`。打包只下載python-build-standalone 3.12.14與鎖版套件；Ollama 0.40.7從本機安裝版複製（不含會自動更新的系統匣程式與`.lnk`）；問答模型由驗收用GGUF（SHA-256 `2fde00…`）以驗收Modelfile重建，與15176內容一致（同權重檔、模板、參數；bge-m3同`daec91…`）。乾淨資料從空資料庫重建：43個專案（資料包39＋AI示範4），索引9份含OCR與向量，無測試殘留。
 - **驗證**：pytest `test_portable.py` 6 pass（UNC路徑先RED後GREEN）；相關回歸28 pass。第一層：zip解壓到含中文與空白的`C:/Users/Public/專流 展示測試/`、PATH只留System32、刻意注入`OLLAMA_KEEP_ALIVE=0`／`CUDA_VISIBLE_DEVICES=-1`／`PYTHONPATH`仍被清除；啟動6秒，兩個服務都綁127.0.0.1且執行檔在包內；15題自動示範題15/15（14題本地模型＋混合檢索、D07規則）；D14–D19以頁面同一API走過（遮罩後雲端內容無原值、不送出）；三份樣板產生、報價3,970／199／4,169；停止無殘留、重啟資料保留、還原回乾淨並保留備份、資料不完整時拒絕啟動且無殘留；API程序的MSVCP140.dll由包內載入。第二層：遮蔽所有顯示卡後ollama記錄`id=cpu`，15/15通過，一題5–22秒（Ryzen 5 9600 6核），共189秒。
 - **審查**：一位獨立唯讀審查者；初審Not ready（VC++執行階段、UNC、環境變數繼承、非原子複製、掃描盲點等），修正後複核Ready；剩授權來源（已加授權說明）與重複停止（無害）兩項輕微。
-- **沒做的事**：第三層（另一台電腦）待人類；`.bat`的`pause`互動只在第一次啟動實跑，其餘以同一`.ps1`驗證；Windows沙箱不可用（Home版）；未改索引變更判斷（見§2已知限制）；未push。`d39ee59`的訊息寫「delivered」但實際只含授權說明，PROGRESS在下一筆commit。
+- **沒做的事**：第三層（另一台電腦）待使用者；`.bat`的`pause`互動只在第一次啟動實跑，其餘以同一`.ps1`驗證；Windows沙箱不可用（Home版）；未改索引變更判斷（見§2已知限制）；未push。`d39ee59`的訊息寫「delivered」但實際只含授權說明，PROGRESS在下一筆commit。
 - **注意**：瀏覽器若先開過15176，同主機cookie會讓15190第一次顯示「登入已失效」，重新登入即可（對方電腦不會發生）。文件版本時間少8小時的問題在包內同樣存在。
 
 ### 2026-10-24｜Claude Code（Opus 5.5）｜TEMPLATE-TRIAL 樣板試用與擋下訊息位置
@@ -1285,10 +1285,10 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 - **驗證**：見▶現在測試基準。樣板API初跑14pass，審查修正後19pass；E2E修了一個「成功訊息早於切換文件」的畫面時序問題。
 - **審查**：一位獨立唯讀審查者；阻擋項（模板語法藏在屬性、孤立頁首、字元參照）已修並複核Ready。
 - **環境**：本機另建`api/.venv`與`web/node_modules`、安裝Playwright chromium 1248；隔離測試資料在session暫存區，已關閉15177／18007。主checkout `D:\@spin\work_flow\projectflow`（舊main＋他人未提交文件）未動。
-- **未做**：PDF等延後項目；正式Docker／PostgreSQL實跑；push（需人類同意）。
+- **未做**：PDF等延後項目；正式Docker／PostgreSQL實跑；push（需同意）。
 
 ### 2026-10-21｜Codex｜LOCAL-MODEL隔離版
-- **交接補充**：程式已提交`65f42a6`；依人類要求另建[交接檔](LOCAL_AI_HANDOFF.md)並本機commit，集中記錄啟動／驗收／待辦。特別註明repo外output不在Git內、單靠clone無法還原測試環境；本次僅文件檢查，未重跑或變更服務。
+- **交接補充**：程式已提交`65f42a6`；依要求另建[交接檔](LOCAL_AI_HANDOFF.md)並本機commit，集中記錄啟動／驗收／待辦。特別註明repo外output不在Git內、單靠clone無法還原測試環境；本次僅文件檢查，未重跑或變更服務。
 - **完成**：沿用本地閘道，Qwen3-4B-Instruct-2507 Q4_K_M與Ollama0.40.6真生成，實際設定16384、temperature0、think=false、1200輸出。來源含版本／專案metadata；嚴格done與answerable、引用enum與後端驗證，資料不足固定拒答，失敗降級原文。網頁保留答案換行及預覽版本標記。
 - **驗證**：新增初跑5fail／2pass；嚴格欄位審查補測6fail／7pass，修正後相關API57pass、最後模型14pass。前端15pass、型別／build exit0、Edge桌面／手機2pass。新環境79原檔hash一致、30表492原列保留，新增虛構文件容量核對。
 - **模型品質**：交付`answers-delivery.json`41例，37次模型、2次無來源、1次規則工單、1次真斷線，另4權限檢查通過。中位1.828秒。Gemma首輪漏答／錯誤前提與Qwen候選結果保留；未採用的短提示變體有拒答格式退步，已恢復選定提示。一次獨立唯讀審查與複核工程可展示；Q07時態、Q09無據專案關係補述、Q28窗口措辭三項限制明列，非獨立盲測。
@@ -1320,14 +1320,14 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 ### 2026-10-20｜Codex｜AI-GATEWAY-LOCAL隔離版
 
-- **做了什麼**：依人類要求接續AI後續工作，`c964f97`加入本地閘道、教材分級、內容預覽、結果摘要稽核；RAG與SQL辨識統一出口。設定直接改檔仍擋公開IP／cloud模型。一般成員不能預覽人資預算；未知分級從嚴，正式節點分級尚未實作。
+- **做了什麼**：依要求接續AI後續工作，`c964f97`加入本地閘道、教材分級、內容預覽、結果摘要稽核；RAG與SQL辨識統一出口。設定直接改檔仍擋公開IP／cloud模型。一般成員不能預覽人資預算；未知分級從嚴，正式節點分級尚未實作。
 - **驗證**：相關API25pass、前端31檔314pass，最後捲動／勾選框調整後11pass與tsc/build重驗，真Edge1280／375兩條E2E2pass。32題版本／權限通過、29來源29找到；教材SQLite兩公司hash前後不變、入口健康200。獨立唯讀審查及小改複核無實質問題；不是實際LLM品質驗收。
 - **限制**：雲端固定關閉；無遮罩、完整繼承、正式附件索引、向量檢索或真模型。預覽不呼叫模型，只呈現業務資料，不含固定系統指令；正式送出重新查權限。查詢後稽核不記正文，未做送出前持久化或稽核管理頁。Docker仍按先前阻塞處理，未動正式環境。
 - **交付／下一步**：15175／18005保留試用，啟動器與更新說明在`../output/rag-starter-acceptance/`；新證據`閘道驗證結果.json`、`gateway-retrieval-evaluation.json`、`gateway-browser-delivery/`。維持feature分支、本機commit，未merge／push；後續依▶現在繼續。
 
 ### 2026-10-20｜Codex｜RAG-STARTER隔離版
 
-- 人類授權新資料改成現有毛研食品／峰曜科技再匯入；後續確認Docker仍出錯，先交付隔離版。
+- 使用者授權新資料改成現有毛研食品／峰曜科技再匯入；後續確認Docker仍出錯，先交付隔離版。
 - `fb9640e`：獨立starter-v1、24份來源、PDF解析、來源引用／歷史版本／完整工單、角色與公司隔離；短計畫及操作文件已保存。
 - 最終證據見「▶ 現在」與repo外`output/rag-starter-acceptance/驗證結果.json`；檢索評估在`output/rag-starter-evaluation.json`。全量前端311pass後最後相關9pass、API17pass、E2E2pass；沒有宣稱模型答案通過。
 - 隔離入口15175，API18005，只使用本次新建SQLite；原資料保留。啟動腳本與PID在`../output/rag-starter-acceptance/`，保持服務供試用。
@@ -1335,28 +1335,28 @@ full demo 定位的文字由 AI 起草，人類看一次（D12）。
 
 
 ### 2026-10-20｜Claude Code Opus 5.5｜DOCS-CLEAN README精簡與架構圖更新
-- **做了什麼**：同步git（origin無新commit）；README移除交付紀錄並重整為目前狀態／快速開始／功能總覽／規格／未完成路線圖（D82）；重畫`docs/projectflow-system-architecture.svg`為正式版現況；更新AGENTS.md文件地圖；提交人類本機的`docs/technical-roadmap.md`。
+- **做了什麼**：同步git（origin無新commit）；README移除交付紀錄並重整為目前狀態／快速開始／功能總覽／規格／未完成路線圖（D82）；重畫`docs/projectflow-system-architecture.svg`為正式版現況；更新AGENTS.md文件地圖；提交使用者本機的`docs/technical-roadmap.md`。
 - **驗證**：只改文件。SVG XML解析通過，headless Edge渲染2400×1350目視無重疊；README連結與錨點核對。未跑產品測試。
 - **沒做的事**：§3–§5規格內容未改寫，只修F11儲存位置註記與§5開頭說明；`docs/formal-feature-roadmap.md`等其他文件的歷史段落未整理。
-- **下一步**：方向待人類指示；外部網路實測公開網址仍待人類。
+- **下一步**：方向待指示；外部網路實測公開網址仍待使用者。
 
 ### 2026-10-15｜Claude Code Opus 5.5｜OPS-PUBLIC恢復公開網址
-- **做了什麼**：查出8443（repo外projectflow-local）打不開，是因為`tailscale serve`只限tailnet，而且會移除既有Funnel；已改為Funnel，並修改該資料夾的`start.bat`和README。用`public_trial.py`重新啟動10000正式版試用（容器未重建）；依人類指示在`shell:startup`加入`ProjectFlow 公開試用.lnk`。
+- **做了什麼**：查出8443（repo外projectflow-local）打不開，是因為`tailscale serve`只限tailnet，而且會移除既有Funnel；已改為Funnel，並修改該資料夾的`start.bat`和README。用`public_trial.py`重新啟動10000正式版試用（容器未重建）；依指示在`shell:startup`加入`ProjectFlow 公開試用.lnk`。
 - **驗證**：用公網DoH解析出的Funnel中繼IP直連，8443與10000皆200；用cmd實跑修改後的`start.bat` Tailscale段，exit0且AllowFunnel含8443；捷徑讀回後目標存在。
 - **沒做的事**：沒有登出重登測試捷徑；沒有從真正的外部裝置開畫面；projectflow-local不在git，修改沒有版控。
-- **下一步**：人類用外部網路實測兩個網址；方向待人類指示。
+- **下一步**：使用者用外部網路實測兩個網址；方向待指示。
 
 ### 2026-10-14｜Claude Code Opus 5.5｜同步PR #3並部署本機
-- **做了什麼**：fetch後把main ff到`28dbecb`（人類合併的PR #3）；用`deploy/public_trial.py`重新部署，維持公開模式；整併合併後重複的▶現在表、補回README網際網路試用說明、PR #3各列🟢改✅。
+- **做了什麼**：fetch後把main ff到`28dbecb`（使用者合併的PR #3）；用`deploy/public_trial.py`重新部署，維持公開模式；整併合併後重複的▶現在表、補回README網際網路試用說明、PR #3各列🟢改✅。
 - **驗證**：本機與公開health 200；只重建web，API／DB容器未重建；新bundle含PR樣式；127.0.0.1以yu登入看到新專案總覽，無新主控台錯誤，之後登出。
 - **沒做的事**：未重跑Vitest／E2E／API測試（沿用PR #3紀錄）；未刪除遠端`feature/ux-child-modules-navigation`。
-- **下一步**：人類外部網路實測公開網址；方向待人類指示。
+- **下一步**：使用者外部網路實測公開網址；方向待指示。
 
 ### 2026-10-14｜Claude Code Opus 5.5｜PUBLIC-TRIAL交付
 - **做了什麼**：`de8a547`短計畫；`b1e209b` Funnel 10000→nginx 81（只收ts.net Host、標https）、`deploy/docker-compose.public.yml`、`start.py public`、`deploy/public_trial.py`、根目錄`開機自動啟動-公開試用.bat`／`停止公開試用.bat`、`.gitattributes`固定.bat為CRLF；`fa49437`找使用者目錄的Docker Desktop。
 - **驗證**：RED 10fail／17error→73pass exit0；nginx暫存容器與正式部署實測Host過濾；兩個.bat經cmd實跑exit0；公開health 200；資料列數一致、DB容器未重建。唯讀獨立審查Ready。
-- **沒做的事**：沒有替人類把捷徑放進`shell:startup`（持續性系統設定）；沒有在公開網址輸入密碼；內建瀏覽器擋公開網址的JS／CSS，未能親眼看到公開畫面；未跑API全量（API程式未改）。
-- **下一步**：人類用外部網路開公開網址確認畫面與登入，決定是否放開機捷徑；方向待人類指示。
+- **沒做的事**：沒有替使用者把捷徑放進`shell:startup`（持續性系統設定）；沒有在公開網址輸入密碼；內建瀏覽器擋公開網址的JS／CSS，未能親眼看到公開畫面；未跑API全量（API程式未改）。
+- **下一步**：使用者用外部網路開公開網址確認畫面與登入，決定是否放開機捷徑；方向待指示。
 - **注意**：15173目前是公開模式（Funnel 10000 開著、`PF_SHOWCASE_LAN=true`）。直接執行`deploy/start.py`（含`--lan`）會拿掉15174，公開網址回502；要恢復就再跑啟動器。審查非阻擋：15174被占用時啟動器失敗後要手動`start.py`；X-Forwarded-For覆寫成nginx看到的位址（目前無功能使用訪客IP）。備份在`.superpowers/public-trial/`。
 
 ### 2026-10-14｜Codex｜PROJECT-DRAWER PR 更新
