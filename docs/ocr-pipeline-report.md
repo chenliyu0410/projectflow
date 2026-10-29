@@ -1,6 +1,6 @@
 # OCR-PIPE 文件解析模組：成果報告
 
-2026-10-28，一日展示版。本文數字全部取自實測：Windows 本機的 `output/ocr-report/result.json`，以及斷網 Linux 容器的同一份輸出。樣本是 `deploy/ocr-eval/make_samples.py` 產生的虛構資料（毛研食品）。
+2026-10-28。本文數字全部取自實測：Windows 本機的 `output/ocr-report/result.json`，以及斷網 Linux 容器的同一份輸出。樣本是 `deploy/ocr-eval/make_samples.py` 產生的虛構資料（毛研食品）。
 
 ## 架構
 
@@ -35,7 +35,7 @@
 ## 實作中依建議做法處理的問題
 
 - **Excel 不加 openpyxl**：沿用既有解析器，它有防壓縮炸彈和 XXE 的保護。
-- **展示入口用指令產生 HTML 報告，不做網頁上傳**：避免在一天內處理登入和權限。
+- **展示入口用指令產生 HTML 報告，不做網頁上傳**：避免處理登入和權限。
 - **標註檔被當成輸入**：`.gt.txt` 的副檔名是 `.txt`，所以在展示指令中排除。
 - **Docker 裡 pip 拒絕安裝 rapidocr**：套件宣告只支援 Python 3.13 以下，但實測在 3.13 可以執行，所以安裝 OCR 鎖版時加上 `--ignore-requires-python`。
 
