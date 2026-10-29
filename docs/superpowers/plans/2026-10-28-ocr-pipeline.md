@@ -1,8 +1,6 @@
-# OCR-PIPE：文件解析與 OCR 模組（一日展示版：短規格與計畫）
+# OCR-PIPE：文件解析與 OCR 模組
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
-依人類 2026-10-28 的架構圖與指示撰寫：「最小規模、一天內做完、可以 Demo 即可；實作中的問題一律採建議做法，不需詢問」。依 WORKFLOW §14（精簡流程），規格和計畫合併在本文件。
+依 WORKFLOW §14（精簡流程），規格和計畫合併在本文件。
 
 **Goal:** 依架構圖做出一條完整的文件解析管線：上傳檔案 → 格式判斷 → 三路擷取 → 清理與正規化 → 統一輸出（文字＋檔名／頁碼）→ 切成可交給 RAG 的段落，再用 1−CER 和每頁秒數產生驗證報告，作為展示和報告的素材。
 
@@ -10,16 +8,13 @@
 
 **Tech Stack:** Python 3.13、pypdf 6.10、rapidocr-onnxruntime 1.4.4＋繁中辨識模型 `chinese_cht_PP-OCRv3_rec_mobile.onnx`、Pillow（前處理）、python-docx（產生樣本）、pytest。
 
-**Spec:** 本文件（§14 短規格與計畫合一）；架構圖由人類在對話中提供，各方塊和本計畫的對照見下表。
 
 ## Global Constraints
 
-- 只在 feature 分支 `feature/ocr-pipeline` 工作，不用 worktree（D2），用 `git checkout -b`；不 push、不合併 main，等人類指示。
-- 不修改 `extractors.extract_document`、`formal_index` 的行為，既有測試必須維持通過。
 - OCR 模型和 OCR 套件放在 repo 外或 `.venv`，不 commit 模型檔。OCR 預設關閉，只有在 `PF_AI_OCR=true`（Task 7 新增）或 `PF_ACCEPTANCE_MODE=true` 時，才會讀取 `PF_AI_OCR_MODEL_DIR`。
 - 沿用既有上限：單檔 10MB、PDF 30 頁、單張影像 4000 萬像素、每檔 OCR 影像 60 張、行信心低於 0.5 丟棄、整份平均低於 0.6 不採用。
 - 範例資料全部虛構（毛研食品），不放真實個資。
-- **可隨處地端部署**（人類 2026-10-28）：OCR 推論全部在本機 CPU 上執行，不呼叫任何雲端服務；Windows 和 Linux 都要能跑；模型能離線攜帶並用 SHA-256 核對；斷網時也要能完成整條管線。預設維持關閉，既有部署不受影響。
+- **可隨處地端部署**：OCR 推論全部在本機 CPU 上執行，不呼叫任何雲端服務；Windows 和 Linux 都要能跑；模型能離線攜帶並用 SHA-256 核對；斷網時也要能完成整條管線。預設維持關閉，既有部署不受影響。
 - 測試指令一律從 repo 根目錄執行：`api/.venv/Scripts/python.exe -m pytest -c api/pyproject.toml <path> -q`
 
 ---
@@ -39,11 +34,11 @@
 | 驗證點：辨識正確率 1−CER、人工標註頁 | 沒有 | `ocr_metrics.cer()`＋`*.gt.txt` 標註檔（Task 4、5） |
 | 驗證點：處理時間（每頁秒數，分路統計） | 沒有 | `Page.seconds`＋`ocr_metrics.route_stats()`（Task 3、4） |
 
-## 實作中已採用的決定（依人類指示不再詢問）
+## 實作中已採用的決定
 
 1. **Excel 不加 openpyxl**：既有的 xlsx 解析已經有解壓上限、拒絕 DTD／ENTITY 等防護，加 openpyxl 會多一個依賴，也會繞過這些防護。圖上的 openpyxl 改用既有解析器實現同樣的功能。
 2. **展示入口用 CLI＋HTML 報告，不做網頁上傳**：網頁上傳要處理登入、權限和前端畫面，一天內做不完。CLI 報告可以完整呈現架構圖的每一步和兩個驗證點。
-3. **標註資料用程式產生**：用微軟正黑體把已知文字畫成「掃描圖」，原文就是標註答案（`.gt.txt`）。另外保留一個步驟，讓人類可以放 1～2 張手機翻拍的照片，並自己打標註文字。
+3. **標註資料用程式產生**：用微軟正黑體把已知文字畫成「掃描圖」，原文就是標註答案（`.gt.txt`）。
 4. **CER 以整份文件比對、忽略空白**：清理後的斷行位置可能和標註不同，所以忽略空白和換行，只比對字元。
 5. **清理只套用在 PDF 和圖片**：Word 段落本來就是完整的句子，不需要合併斷行；Excel 只做表格轉文字。
 6. **頁碼只在頁面邊緣移除**：只檢查每頁的前兩行和最後兩行，避免把表單裡的數字誤刪。
@@ -78,21 +73,6 @@
 | `deploy/ocr-models.sha256` | 新增 | 繁中模型的完整 SHA-256，供離線部署時核對 |
 | `deploy/api.Dockerfile`、`deploy/docker-compose.yml` | 修改 | 可選的 OCR 映像檔（`WITH_OCR`），模型用唯讀 volume 掛載 |
 | `docs/ai-assistant.md`、`docs/PROGRESS.md` | 修改 | 記錄結果與限制（Task 6） |
-
-## 時間預估（一天）
-
-| Task | 內容 | 預估 |
-|---|---|---|
-| 0 | 開分支、安裝 OCR 套件、下載繁中模型 | 0.5–1 h |
-| 1 | OCR 前處理 | 0.5 h |
-| 2 | 清理與正規化 | 1.5 h |
-| 3 | 統一入口與 metadata | 1.5 h |
-| 4 | 指標＋樣本產生 | 1.5 h |
-| 5 | CLI 與 HTML 報告 | 1.5 h |
-| 7 | 可隨處地端部署：OCR 開關、Docker、離線模型、斷網驗證 | 1.5 h（Docker 部分可延） |
-| 6 | 實跑、文件、報告亮點數據、排練 | 1 h |
-
-執行順序：0 → 1 → 2 → 3 → 4 → 5 → 7 → 6。Task 6 收尾時要用到 Task 7 的斷網驗證結果，所以排在最後。
 
 ---
 
@@ -201,6 +181,7 @@ def test_preprocess_keeps_large_scans_at_their_size():
 def preprocess(image):
     """Grayscale, stretch contrast and upscale small scans so faint or tiny text reaches the model."""
     from PIL import ImageOps
+
     gray = ImageOps.autocontrast(ImageOps.grayscale(image), cutoff=1)
     if gray.width < MIN_WIDTH:
         gray = gray.resize((MIN_WIDTH, round(gray.height * MIN_WIDTH / gray.width)))
@@ -259,21 +240,39 @@ def test_running_headers_footers_and_page_numbers_are_removed():
         "毛研食品 內部文件\n設備借用規則二\n- 2 -",
         "毛研食品 內部文件\n設備借用規則三\n3/3",
     ]
-    assert cleanup.clean_pages(pages) == ["設備借用規則一", "設備借用規則二", "設備借用規則三"]
+    assert cleanup.clean_pages(pages) == [
+        "設備借用規則一",
+        "設備借用規則二",
+        "設備借用規則三",
+    ]
 
 
 def test_numbers_inside_the_page_are_kept():
-    assert cleanup.clean_pages(["品名：筆電\n數量\n3\n備註：新人用。"]) == ["品名：筆電\n數量\n3\n備註：新人用。"]
+    assert cleanup.clean_pages(["品名：筆電\n數量\n3\n備註：新人用。"]) == [
+        "品名：筆電\n數量\n3\n備註：新人用。"
+    ]
 
 
 def test_wrapped_sentences_are_rejoined_but_headings_and_items_stay_apart():
-    lines = ["借用設備時請先填寫簽收單並交由部門", "主管簽名後再到資訊室領取。", "注意事項", "1. 歸還時須當面點收。"]
-    assert cleanup.merge_lines(lines) == ["借用設備時請先填寫簽收單並交由部門主管簽名後再到資訊室領取。", "注意事項", "1. 歸還時須當面點收。"]
+    lines = [
+        "借用設備時請先填寫簽收單並交由部門",
+        "主管簽名後再到資訊室領取。",
+        "注意事項",
+        "1. 歸還時須當面點收。",
+    ]
+    assert cleanup.merge_lines(lines) == [
+        "借用設備時請先填寫簽收單並交由部門主管簽名後再到資訊室領取。",
+        "注意事項",
+        "1. 歸還時須當面點收。",
+    ]
 
 
 def test_sheet_rows_become_field_sentences():
     text = "工作表：sheet1（儲存值；公式不重新計算）\nA1=品名 | B1=數量 | C1=單價\nA2=鮪魚罐 | B2=3 | C2=45\nA3=歡迎卡 | C3=12"
-    assert cleanup.sheet_to_text(text) == "工作表：sheet1\n品名：鮪魚罐；數量：3；單價：45\n品名：歡迎卡；單價：12"
+    assert (
+        cleanup.sheet_to_text(text)
+        == "工作表：sheet1\n品名：鮪魚罐；數量：3；單價：45\n品名：歡迎卡；單價：12"
+    )
 ```
 
 - [ ] **Step 2：執行測試，確認失敗**
@@ -286,6 +285,7 @@ def test_sheet_rows_become_field_sentences():
 ```python
 """Clean extracted page text before indexing: drop running headers/footers and page numbers,
 rejoin wrapped lines, and turn spreadsheet rows into field sentences."""
+
 from collections import Counter
 import re
 
@@ -306,12 +306,15 @@ def repeated_edges(pages):
     counts = Counter()
     for lines in pages:
         counts.update({line for line in lines[:2] + lines[-2:]})
-    return {line for line, count in counts.items() if count >= max(2, (len(pages) + 1) // 2)}
+    return {
+        line for line, count in counts.items() if count >= max(2, (len(pages) + 1) // 2)
+    }
 
 
 def strip_edges(lines, repeated):
     def noise(line):
         return line in repeated or PAGE_NUMBER.match(line)
+
     head = 0
     while head < min(2, len(lines)) and noise(lines[head]):
         head += 1
@@ -326,8 +329,12 @@ def merge_lines(lines):
     merged = []
     for line in lines:
         previous = merged[-1] if merged else ""
-        if (len(previous) >= MIN_WRAPPED and not previous.endswith(SENTENCE_END)
-                and CJK.match(previous[-1]) and CJK.match(line)):
+        if (
+            len(previous) >= MIN_WRAPPED
+            and not previous.endswith(SENTENCE_END)
+            and CJK.match(previous[-1])
+            and CJK.match(line)
+        ):
             merged[-1] = previous + line
         else:
             merged.append(line)
@@ -335,7 +342,9 @@ def merge_lines(lines):
 
 
 def clean_pages(texts):
-    pages = [[line.strip() for line in text.splitlines() if line.strip()] for text in texts]
+    pages = [
+        [line.strip() for line in text.splitlines() if line.strip()] for text in texts
+    ]
     repeated = repeated_edges(pages)
     return ["\n".join(merge_lines(strip_edges(lines, repeated))) for lines in pages]
 
@@ -356,7 +365,12 @@ def sheet_to_text(text):
         if header is None:
             header = row
             continue
-        output.append("；".join(f"{header.get(column, column)}：{value}" for column, value in row.items()))
+        output.append(
+            "；".join(
+                f"{header.get(column, column)}：{value}"
+                for column, value in row.items()
+            )
+        )
     return "\n".join(output)
 ```
 
@@ -409,8 +423,15 @@ def mixed_pdf():
 @pytest.fixture()
 def fake_ocr(monkeypatch):
     monkeypatch.setattr(ocr, "enabled", lambda: True)
-    monkeypatch.setattr(ocr, "recognize", lambda data: [
-        ("借用設備時請先填寫簽收單並交由部門", 0.95), ("主管簽名後再到資訊室領取。", 0.9), ("雜訊", 0.2)])
+    monkeypatch.setattr(
+        ocr,
+        "recognize",
+        lambda data: [
+            ("借用設備時請先填寫簽收單並交由部門", 0.95),
+            ("主管簽名後再到資訊室領取。", 0.9),
+            ("雜訊", 0.2),
+        ],
+    )
 
 
 def test_each_pdf_page_records_its_route_time_and_confidence(fake_ocr):
@@ -418,7 +439,9 @@ def test_each_pdf_page_records_its_route_time_and_confidence(fake_ocr):
     assert [p.route for p in result.pages] == ["text_pdf", "ocr"]
     assert [p.page for p in result.pages] == [1, 2]
     scanned = result.pages[1]
-    assert scanned.text == "借用設備時請先填寫簽收單並交由部門主管簽名後再到資訊室領取。"
+    assert (
+        scanned.text == "借用設備時請先填寫簽收單並交由部門主管簽名後再到資訊室領取。"
+    )
     assert scanned.confidence == 0.93 and scanned.seconds >= 0
 
 
@@ -432,7 +455,9 @@ def test_chunks_carry_file_name_and_page(fake_ocr):
 def test_scanned_page_is_marked_skipped_when_ocr_is_off(monkeypatch):
     monkeypatch.setattr(ocr, "enabled", lambda: False)
     result = ingest.ingest(mixed_pdf(), "混合文件.pdf")
-    assert [p.route for p in result.pages] == ["text_pdf", "skipped"] and result.pages[1].text == ""
+    assert [p.route for p in result.pages] == ["text_pdf", "skipped"] and result.pages[
+        1
+    ].text == ""
 
 
 def test_images_go_through_ocr(fake_ocr):
@@ -447,14 +472,24 @@ def test_images_need_ocr(monkeypatch):
 
 
 def test_spreadsheets_become_sentences(monkeypatch):
-    monkeypatch.setattr(extractors, "extract_document",
-                        lambda data, name: ("工作表：s（儲存值；公式不重新計算）\nA1=品名 | B1=數量\nA2=鮪魚罐 | B2=3", ""))
+    monkeypatch.setattr(
+        extractors,
+        "extract_document",
+        lambda data, name: (
+            "工作表：s（儲存值；公式不重新計算）\nA1=品名 | B1=數量\nA2=鮪魚罐 | B2=3",
+            "",
+        ),
+    )
     result = ingest.ingest(b"zip", "清單.xlsx")
-    assert result.pages[0].route == "office" and result.text() == "工作表：s\n品名：鮪魚罐；數量：3"
+    assert (
+        result.pages[0].route == "office"
+        and result.text() == "工作表：s\n品名：鮪魚罐；數量：3"
+    )
 
 
 def test_word_documents_use_the_office_route():
     from docx import Document
+
     document = Document()
     document.add_paragraph("十月新人報到會議紀錄")
     buffer = io.BytesIO()
@@ -478,6 +513,7 @@ def test_unknown_format_is_rejected():
 ```python
 """Unified document intake: judge the format and text layer page by page, extract, clean,
 and return text with file-name and page metadata ready for RAG chunking."""
+
 from dataclasses import asdict, dataclass
 import io
 from pathlib import Path
@@ -487,7 +523,9 @@ from pypdf import PdfReader
 
 from app.ai import cleanup, extractors, ocr
 
-TEXT_LAYER_MIN = 10  # Same threshold as extractors: fewer characters means the page is a scan.
+TEXT_LAYER_MIN = (
+    10  # Same threshold as extractors: fewer characters means the page is a scan.
+)
 
 
 @dataclass
@@ -509,11 +547,24 @@ class Result:
 
     def chunks(self, size=1200, overlap=150):
         """RAG chunks never cross a page, so every chunk can cite its file and page."""
-        return [{"filename": self.filename, "page": page.page, "route": page.route, "text": chunk}
-                for page in self.pages if page.text for chunk in extractors.chunks(page.text, size, overlap)]
+        return [
+            {
+                "filename": self.filename,
+                "page": page.page,
+                "route": page.route,
+                "text": chunk,
+            }
+            for page in self.pages
+            if page.text
+            for chunk in extractors.chunks(page.text, size, overlap)
+        ]
 
     def as_dict(self):
-        return {"filename": self.filename, "pages": [asdict(page) for page in self.pages], "chunks": self.chunks()}
+        return {
+            "filename": self.filename,
+            "pages": [asdict(page) for page in self.pages],
+            "chunks": self.chunks(),
+        }
 
 
 def since(start):
@@ -564,7 +615,9 @@ def ingest(data, filename):
         except extractors.ExtractionError:
             raise
         except Exception:
-            raise extractors.ExtractionError("檔案無法解析；請確認格式或重新上傳") from None
+            raise extractors.ExtractionError(
+                "檔案無法解析；請確認格式或重新上傳"
+            ) from None
     elif extension in extractors.IMAGES:
         pages = [image_page(data)]
     elif extension in {".docx", ".xlsx", ".txt", ".csv"}:
@@ -621,11 +674,17 @@ def test_cer_ignores_whitespace_and_counts_edits():
     assert ocr_metrics.cer("新人 報到\n五樓", "新人報到五樓") == 0
     assert ocr_metrics.cer("新人報到五樓", "新入報到五樓") == pytest.approx(1 / 6)
     assert ocr_metrics.accuracy("新人報到", "") == 0
-    assert ocr_metrics.accuracy("新人", "新人報到五樓多出很多字") == 0  # Never negative.
+    assert (
+        ocr_metrics.accuracy("新人", "新人報到五樓多出很多字") == 0
+    )  # Never negative.
 
 
 def test_route_stats_report_seconds_per_page():
-    pages = [ingest.Page(1, "text_pdf", "a", 0.01), ingest.Page(2, "ocr", "b", 1.2), ingest.Page(3, "ocr", "c", 0.8)]
+    pages = [
+        ingest.Page(1, "text_pdf", "a", 0.01),
+        ingest.Page(2, "ocr", "b", 1.2),
+        ingest.Page(3, "ocr", "c", 0.8),
+    ]
     stats = ocr_metrics.route_stats(pages)
     assert stats["ocr"] == {"pages": 2, "seconds": 2.0, "per_page": 1.0}
     assert stats["text_pdf"]["pages"] == 1
@@ -651,7 +710,13 @@ def cer(reference, hypothesis):
     for i, expected in enumerate(reference, 1):
         current = [i]
         for j, got in enumerate(hypothesis, 1):
-            current.append(min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (expected != got)))
+            current.append(
+                min(
+                    previous[j] + 1,
+                    current[j - 1] + 1,
+                    previous[j - 1] + (expected != got),
+                )
+            )
         previous = current
     return previous[-1] / len(reference)
 
@@ -686,6 +751,7 @@ def route_stats(pages):
 Each scanned sample gets <name>.gt.txt with the text a person would type from it (headers, footers and
 page numbers excluded, because the cleaned output should not contain them).
 """
+
 import io
 from pathlib import Path
 import shutil
@@ -697,24 +763,47 @@ from pypdf import PdfReader, PdfWriter
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = Path(__file__).resolve().parent / "samples"
-FONTS = [Path(r"C:\Windows\Fonts\msjh.ttc"), Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
-         Path("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc"), Path("/System/Library/Fonts/PingFang.ttc")]
-FONT = next((font for font in FONTS if font.is_file()), None)  # Windows, Debian/Ubuntu, Arch/Fedora, macOS.
+FONTS = [
+    Path(r"C:\Windows\Fonts\msjh.ttc"),
+    Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
+    Path("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc"),
+    Path("/System/Library/Fonts/PingFang.ttc"),
+]
+FONT = next(
+    (font for font in FONTS if font.is_file()), None
+)  # Windows, Debian/Ubuntu, Arch/Fedora, macOS.
 TEXT_PDF = ROOT / "deploy/rag-starter/corpus/04_PDF文件/PDF-001_新人報到簡易指南.pdf"
 
-NOTICE = ["新人報到動線公告", "十月新人報到改在五樓大會議室，", "請於上午九點前完成簽到並領取識別證。",
-          "報到當天請攜帶公司配發的筆電與充電器。", "如有疑問請洽人資窗口林小姐分機二一五。"]
-LOAN = [["設備借用簽收單", "借用設備時請先填寫本簽收單並交由部門", "主管簽名後再到資訊室領取。",
-         "借用品項：筆電一台、滑鼠一個、轉接頭一個。"],
-        ["歸還與點收", "歸還時須由資訊室人員當面點收，若有", "損壞請於三個工作天內填寫報修單。",
-         "逾期未歸還者將通知部門主管。"]]
+NOTICE = [
+    "新人報到動線公告",
+    "十月新人報到改在五樓大會議室，",
+    "請於上午九點前完成簽到並領取識別證。",
+    "報到當天請攜帶公司配發的筆電與充電器。",
+    "如有疑問請洽人資窗口林小姐分機二一五。",
+]
+LOAN = [
+    [
+        "設備借用簽收單",
+        "借用設備時請先填寫本簽收單並交由部門",
+        "主管簽名後再到資訊室領取。",
+        "借用品項：筆電一台、滑鼠一個、轉接頭一個。",
+    ],
+    [
+        "歸還與點收",
+        "歸還時須由資訊室人員當面點收，若有",
+        "損壞請於三個工作天內填寫報修單。",
+        "逾期未歸還者將通知部門主管。",
+    ],
+]
 HEADER, FOOTER = "毛研食品 內部文件", "第 {} 頁"
 
 
 def scan(lines, header=None, footer=None, faint=False):
     font = ImageFont.truetype(str(FONT), 34)
     small = ImageFont.truetype(str(FONT), 22)
-    image = Image.new("RGB", (1240, 160 + 70 * len(lines)), (235, 235, 230) if faint else "white")
+    image = Image.new(
+        "RGB", (1240, 160 + 70 * len(lines)), (235, 235, 230) if faint else "white"
+    )
     draw = ImageDraw.Draw(image)
     ink = (120, 120, 120) if faint else "black"
     if header:
@@ -724,7 +813,9 @@ def scan(lines, header=None, footer=None, faint=False):
     if footer:
         draw.text((560, image.height - 50), footer, fill=ink, font=small)
     if faint:
-        image = image.rotate(0.8, fillcolor=(235, 235, 230), expand=True).filter(ImageFilter.GaussianBlur(1.1))
+        image = image.rotate(0.8, fillcolor=(235, 235, 230), expand=True).filter(
+            ImageFilter.GaussianBlur(1.1)
+        )
         image = image.resize((image.width // 2, image.height // 2))
     return image
 
@@ -737,11 +828,17 @@ def png_bytes(image):
 
 def xlsx(rows):
     cells = lambda r, row: "".join(
-        f'<c r="{"ABC"[c]}{r}" t="inlineStr"><is><t>{v}</t></is></c>' for c, v in enumerate(row))
-    sheet = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-             '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'
-             + "".join(f'<row r="{r}">{cells(r, row)}</row>' for r, row in enumerate(rows, 1))
-             + "</sheetData></worksheet>")
+        f'<c r="{"ABC"[c]}{r}" t="inlineStr"><is><t>{v}</t></is></c>'
+        for c, v in enumerate(row)
+    )
+    sheet = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'
+        + "".join(
+            f'<row r="{r}">{cells(r, row)}</row>' for r, row in enumerate(rows, 1)
+        )
+        + "</sheetData></worksheet>"
+    )
     files = {
         "[Content_Types].xml": '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
         '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
@@ -765,7 +862,9 @@ def xlsx(rows):
 
 def main():
     if FONT is None:
-        raise SystemExit("找不到中文字型；請安裝 Noto Sans CJK（Linux：fonts-noto-cjk）")
+        raise SystemExit(
+            "找不到中文字型；請安裝 Noto Sans CJK（Linux：fonts-noto-cjk）"
+        )
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir(parents=True)
@@ -776,8 +875,15 @@ def main():
     (OUT / "報到公告-模糊.png.gt.txt").write_text(notice, encoding="utf-8")
 
     pages = [scan(lines, HEADER, FOOTER.format(n)) for n, lines in enumerate(LOAN, 1)]
-    pages[0].save(OUT / "設備借用簽收單-掃描2頁.pdf", save_all=True, append_images=pages[1:], resolution=150)
-    (OUT / "設備借用簽收單-掃描2頁.pdf.gt.txt").write_text("\n\n".join("\n".join(p) for p in LOAN), encoding="utf-8")
+    pages[0].save(
+        OUT / "設備借用簽收單-掃描2頁.pdf",
+        save_all=True,
+        append_images=pages[1:],
+        resolution=150,
+    )
+    (OUT / "設備借用簽收單-掃描2頁.pdf.gt.txt").write_text(
+        "\n\n".join("\n".join(p) for p in LOAN), encoding="utf-8"
+    )
 
     scanned = io.BytesIO()
     scan(LOAN[1]).save(scanned, "PDF", resolution=150)
@@ -792,10 +898,14 @@ def main():
     document = Document()
     document.add_heading("十月新人報到準備會議紀錄", 1)
     document.add_paragraph("時間：十月二十日上午十點，地點：B會議室。")
-    document.add_paragraph("決議：新人課程改在十月二十八日上午十點舉行，由人資準備簽到表。")
+    document.add_paragraph(
+        "決議：新人課程改在十月二十八日上午十點舉行，由人資準備簽到表。"
+    )
     document.save(OUT / "會議紀錄.docx")
 
-    (OUT / "採購清單.xlsx").write_bytes(xlsx([["品名", "數量", "單價"], ["鮪魚罐", "3", "45"], ["歡迎卡", "20", "12"]]))
+    (OUT / "採購清單.xlsx").write_bytes(
+        xlsx([["品名", "數量", "單價"], ["鮪魚罐", "3", "45"], ["歡迎卡", "20", "12"]])
+    )
     print(f"samples written to {OUT}")
 
 
@@ -840,6 +950,7 @@ git commit -m "OCR-PIPE: CER and per-route timing metrics with fictional labeled
 
 Files with a <name>.gt.txt beside them are scored by 1-CER. Only reads the folder; writes to --out.
 """
+
 import argparse
 from html import escape
 import json
@@ -848,11 +959,17 @@ from pathlib import Path
 import sys
 import time
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'api'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "api"))
 from app.ai import extractors, ingest, ocr, ocr_metrics  # noqa: E402
 
-SUPPORTED = {'.pdf', '.png', '.jpg', '.jpeg', '.docx', '.xlsx', '.txt', '.csv'}
-ROUTE_NAMES = {'text_pdf': '文字層PDF', 'ocr': '掃描→OCR', 'office': 'Word／Excel', 'plain': '純文字', 'skipped': '略過'}
+SUPPORTED = {".pdf", ".png", ".jpg", ".jpeg", ".docx", ".xlsx", ".txt", ".csv"}
+ROUTE_NAMES = {
+    "text_pdf": "文字層PDF",
+    "ocr": "掃描→OCR",
+    "office": "Word／Excel",
+    "plain": "純文字",
+    "skipped": "略過",
+}
 
 
 def run(path):
@@ -860,14 +977,23 @@ def run(path):
     try:
         result = ingest.ingest(path.read_bytes(), path.name)
     except extractors.ExtractionError as exc:
-        return {'filename': path.name, 'error': str(exc), 'pages': [], 'chunks': [], 'seconds': 0, '_pages': []}
+        return {
+            "filename": path.name,
+            "error": str(exc),
+            "pages": [],
+            "chunks": [],
+            "seconds": 0,
+            "_pages": [],
+        }
     item = result.as_dict()
-    item['seconds'] = round(time.perf_counter() - started, 3)
-    truth = path.with_name(path.name + '.gt.txt')
+    item["seconds"] = round(time.perf_counter() - started, 3)
+    truth = path.with_name(path.name + ".gt.txt")
     if truth.is_file():
-        item['accuracy'] = round(ocr_metrics.accuracy(truth.read_text(encoding='utf-8'), result.text()), 4)
-    item['text'] = result.text()
-    item['_pages'] = result.pages
+        item["accuracy"] = round(
+            ocr_metrics.accuracy(truth.read_text(encoding="utf-8"), result.text()), 4
+        )
+    item["text"] = result.text()
+    item["_pages"] = result.pages
     return item
 
 
@@ -876,23 +1002,31 @@ def badge(route):
 
 
 def pct(item):
-    return f"{item['accuracy']:.1%}" if 'accuracy' in item else '—'
+    return f"{item['accuracy']:.1%}" if "accuracy" in item else "—"
 
 
 def html_report(items, stats, comparison):
-    scored = [i['accuracy'] for i in items if 'accuracy' in i]
-    rows = ''.join(
+    scored = [i["accuracy"] for i in items if "accuracy" in i]
+    rows = "".join(
         f"<tr><td>{escape(i['filename'])}</td><td>{''.join(badge(p['route']) for p in i['pages']) or escape(i.get('error', ''))}</td>"
         f"<td>{len(i['pages'])}</td><td>{', '.join(str(p['confidence']) for p in i['pages'] if p['confidence'] is not None) or '—'}</td>"
         f"<td>{i['seconds']}</td><td>{pct(i)}</td><td>{len(i['chunks'])}</td></tr>"
-        for i in items)
-    route_rows = ''.join(f"<tr><td>{badge(r)}</td><td>{s['pages']}</td><td>{s['seconds']}</td><td>{s['per_page']}</td></tr>" for r, s in stats.items())
-    ab = ''.join(f"<tr><td>{escape(n)}</td><td>{off:.1%}</td><td>{on:.1%}</td><td>{on - off:+.1%}</td></tr>" for n, off, on in comparison)
-    details = ''.join(
+        for i in items
+    )
+    route_rows = "".join(
+        f"<tr><td>{badge(r)}</td><td>{s['pages']}</td><td>{s['seconds']}</td><td>{s['per_page']}</td></tr>"
+        for r, s in stats.items()
+    )
+    ab = "".join(
+        f"<tr><td>{escape(n)}</td><td>{off:.1%}</td><td>{on:.1%}</td><td>{on - off:+.1%}</td></tr>"
+        for n, off, on in comparison
+    )
+    details = "".join(
         f"<details><summary>{escape(i['filename'])}</summary><pre>{escape(i.get('text') or i.get('error', ''))}</pre>"
         f"<p class='m'>前 3 段 RAG chunk（含 metadata）</p><pre>{escape(json.dumps([{k: c[k] for k in ('filename', 'page', 'route')} | {'text': c['text'][:60]} for c in i['chunks'][:3]], ensure_ascii=False, indent=1))}</pre></details>"
-        for i in items)
-    average = f'{sum(scored) / len(scored):.1%}' if scored else '—'
+        for i in items
+    )
+    average = f"{sum(scored) / len(scored):.1%}" if scored else "—"
     return f"""<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OCR 管線報告</title><style>
 body{{font-family:system-ui,'Microsoft JhengHei',sans-serif;margin:24px auto;max-width:1000px;padding:0 16px;color:#222;background:#fff}}
@@ -901,50 +1035,67 @@ table{{border-collapse:collapse;width:100%;margin:8px 0 24px}}td,th{{border-bott
 .b{{display:inline-block;border-radius:4px;padding:1px 6px;margin-right:4px;font-size:12px;color:#fff}}.text_pdf{{background:#2e7d5b}}.ocr{{background:#5b4bb7}}
 .office{{background:#2f6f9f}}.plain{{background:#666}}.skipped{{background:#b55}}pre{{white-space:pre-wrap;background:#f6f6f6;padding:8px}}.m{{color:#666}}
 </style><h1>OCR 管線報告</h1>
-<div class="cards"><div class="card">檔案<b>{len(items)}</b></div><div class="card">頁數<b>{sum(len(i['pages']) for i in items)}</b></div>
-<div class="card">平均辨識正確率（1−CER）<b>{average}</b></div><div class="card">RAG 段落<b>{sum(len(i['chunks']) for i in items)}</b></div></div>
+<div class="cards"><div class="card">檔案<b>{len(items)}</b></div><div class="card">頁數<b>{sum(len(i["pages"]) for i in items)}</b></div>
+<div class="card">平均辨識正確率（1−CER）<b>{average}</b></div><div class="card">RAG 段落<b>{sum(len(i["chunks"]) for i in items)}</b></div></div>
 <h2>逐檔結果</h2><table><tr><th>檔案</th><th>逐頁路徑</th><th>頁</th><th>OCR 信心</th><th>秒</th><th>1−CER</th><th>段落</th></tr>{rows}</table>
 <h2>處理時間（分路統計）</h2><table><tr><th>路徑</th><th>頁數</th><th>總秒數</th><th>每頁秒數</th></tr>{route_rows}</table>
-{'<h2>前處理 A/B（1−CER）</h2><table><tr><th>檔案</th><th>關閉</th><th>開啟</th><th>差異</th></tr>' + ab + '</table>' if comparison else ''}
+{"<h2>前處理 A/B（1−CER）</h2><table><tr><th>檔案</th><th>關閉</th><th>開啟</th><th>差異</th></tr>" + ab + "</table>" if comparison else ""}
 <h2>清理後全文與 RAG 段落</h2>{details}</html>"""
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('folder', type=Path)
-    parser.add_argument('--models', type=Path, help='Folder with the Traditional Chinese OCR model')
-    parser.add_argument('--out', type=Path, default=Path('output/ocr-report'))
-    parser.add_argument('--compare-preprocess', action='store_true')
+    parser.add_argument("folder", type=Path)
+    parser.add_argument(
+        "--models", type=Path, help="Folder with the Traditional Chinese OCR model"
+    )
+    parser.add_argument("--out", type=Path, default=Path("output/ocr-report"))
+    parser.add_argument("--compare-preprocess", action="store_true")
     args = parser.parse_args()
     if args.models:
-        os.environ['PF_ACCEPTANCE_MODE'] = 'true'  # The OCR switch is only honoured in isolated runs.
-        os.environ['PF_AI_OCR_MODEL_DIR'] = str(args.models.resolve())
-    print('OCR', 'on' if ocr.enabled() else 'off (images and scanned pages are skipped)')
+        os.environ["PF_ACCEPTANCE_MODE"] = (
+            "true"  # The OCR switch is only honoured in isolated runs.
+        )
+        os.environ["PF_AI_OCR_MODEL_DIR"] = str(args.models.resolve())
+    print(
+        "OCR", "on" if ocr.enabled() else "off (images and scanned pages are skipped)"
+    )
     files = sorted(p for p in args.folder.iterdir() if p.suffix.lower() in SUPPORTED)
     image = next((p for p in files if p.suffix.lower() in extractors.IMAGES), None)
     if ocr.enabled() and image:
         run(image)  # Warm-up so model loading is not counted in the per-page seconds.
     items = [run(path) for path in files]
-    stats = ocr_metrics.route_stats([page for item in items for page in item['_pages']])
+    stats = ocr_metrics.route_stats([page for item in items for page in item["_pages"]])
     comparison = []
     if args.compare_preprocess and ocr.enabled():
         for item, path in zip(items, files):
-            if 'accuracy' in item and any(p['route'] == 'ocr' for p in item['pages']):
+            if "accuracy" in item and any(p["route"] == "ocr" for p in item["pages"]):
                 ocr.PREPROCESS = False
-                off = run(path).get('accuracy', 0.0)
+                off = run(path).get("accuracy", 0.0)
                 ocr.PREPROCESS = True
-                comparison.append((item['filename'], off, item['accuracy']))
+                comparison.append((item["filename"], off, item["accuracy"]))
     for item in items:
-        del item['_pages']
+        del item["_pages"]
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / 'result.json').write_text(json.dumps({'items': items, 'routes': stats, 'preprocess_ab': comparison}, ensure_ascii=False, indent=1), encoding='utf-8')
-    (args.out / 'report.html').write_text(html_report(items, stats, comparison), encoding='utf-8')
+    (args.out / "result.json").write_text(
+        json.dumps(
+            {"items": items, "routes": stats, "preprocess_ab": comparison},
+            ensure_ascii=False,
+            indent=1,
+        ),
+        encoding="utf-8",
+    )
+    (args.out / "report.html").write_text(
+        html_report(items, stats, comparison), encoding="utf-8"
+    )
     for item in items:
-        print(f"{item['filename']}: {[p['route'] for p in item['pages']]} {item.get('accuracy', item.get('error', ''))}")
+        print(
+            f"{item['filename']}: {[p['route'] for p in item['pages']]} {item.get('accuracy', item.get('error', ''))}"
+        )
     print(f"report: {(args.out / 'report.html').resolve()}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 ```
 
@@ -987,7 +1138,7 @@ git commit -m "OCR-PIPE: demo CLI with HTML report, per-route timing and preproc
 
 ### Task 7：可隨處地端部署（OCR 開關、Docker、離線模型、斷網驗證）
 
-人類 2026-10-28 要求「設計成可以隨處地端部署」。RapidOCR 本身在本機用 onnxruntime 在 CPU 上推論，不呼叫雲端。這個 Task 補上「正式環境能開啟」、「映像檔內含 OCR」、「模型可以離線攜帶並驗證」、「斷網也能跑」四件事。時間不夠時，Docker 的部分（Step 5–7）可以延到隔天做，但 Step 1–4 要完成。
+RapidOCR 本身在本機用 onnxruntime 在 CPU 上推論，不呼叫雲端。補上「正式環境能開啟」、「映像檔內含 OCR」、「模型可以離線攜帶並驗證」、「斷網也能跑」四件事。時間不夠時，Docker 的部分（Step 5–7）可以延到隔天做，但 Step 1–4 要完成。
 
 **Files:**
 - Modify: `api/app/ai/ocr.py`（`model_dir()`）
@@ -1033,20 +1184,25 @@ def test_ocr_switch_works_outside_acceptance_mode(monkeypatch, tmp_path):
 改成：
 
 ```python
-    if os.environ.get("PF_AI_OCR") != "true" and os.environ.get("PF_ACCEPTANCE_MODE") != "true":
-        return None  # OCR stays off unless switched on explicitly (any deployment) or in isolated acceptance runs.
+if (
+    os.environ.get("PF_AI_OCR") != "true"
+    and os.environ.get("PF_ACCEPTANCE_MODE") != "true"
+):
+    return None  # OCR stays off unless switched on explicitly (any deployment) or in isolated acceptance runs.
 ```
 
 `deploy/ocr_pipeline.py` 的 `main()` 裡：
 
 ```python
-        os.environ['PF_ACCEPTANCE_MODE'] = 'true'  # The OCR switch is only honoured in isolated runs.
+os.environ["PF_ACCEPTANCE_MODE"] = (
+    "true"  # The OCR switch is only honoured in isolated runs.
+)
 ```
 
 改成：
 
 ```python
-        os.environ['PF_AI_OCR'] = 'true'
+os.environ["PF_AI_OCR"] = "true"
 ```
 
 正式文件索引仍然要 `PF_ACCEPTANCE_MODE` 和 `PF_AI_FORMAL_INDEX` 才會啟動，所以這個開關不會讓正式索引自動開始跑 OCR。
@@ -1150,23 +1306,7 @@ git commit -m "OCR-PIPE: switch OCR on in any deployment, optional OCR image, of
 
 - [ ] **Step 3：更新 `docs/ai-assistant.md` 和 `docs/PROGRESS.md`**
 
-`ai-assistant.md` 加一段 3～5 行：入口、指令、輸出位置、與正式索引的關係（尚未接上）、限制。`PROGRESS.md` 的「▶ 現在」：目前工作項目改為 `OCR-PIPE 🟢 待人類驗證`，分支為 `feature/ocr-pipeline`，測試基準寫實際的 pass／fail 數，下一個動作為「人類排練 Demo、決定是否 push」。
-
-- [ ] **Step 4：Demo 排練（3 分鐘講稿）**
-
-1. 秀架構圖。
-2. 執行 Task 5 Step 4 的指令，終端機逐檔印出路徑。
-3. 打開 report.html：混合文件同一份 PDF 走了兩條路；掃描 2 頁 PDF 的清理結果（頁首尾不見了、斷行接回來）；Excel 變成「品名：鮪魚罐；數量：3」。
-4. 分路秒數表：OCR 每頁比文字層慢多少倍，說明為什麼要逐頁判斷。
-5. 前處理 A/B 表。
-6. 展開 RAG chunk，指出每段都帶檔名和頁碼，引用時可以回溯到頁。
-
-- [ ] **Step 5：Commit**
-
-```bash
-git add docs/ai-assistant.md docs/PROGRESS.md docs/ocr-pipeline-report.md
-git commit -m "OCR-PIPE: record demo results and report highlights"
-```
+`ai-assistant.md` 加一段 3～5 行：入口、指令、輸出位置、與正式索引的關係（尚未接上）、限制。`PROGRESS.md` 的「▶ 現在」：目前工作項目改為 `OCR-PIPE 
 
 ---
 
@@ -1182,22 +1322,3 @@ git commit -m "OCR-PIPE: record demo results and report highlights"
 8. `test_ocr_pipeline.py` 全部通過，既有的 `test_ai_ocr.py` 不受影響。
 9. 在 `--network none` 的 Linux 容器內跑完整條管線，結果和 Windows 本機一致（Task 7 Step 6）。
 10. 沒有設定 `PF_AI_OCR`，或沒有模型檔時，OCR 會自動關閉，既有的部署行為不變。
-
----
-
-## 報告亮點（Demo 結束後的報告素材）
-
-數字一律從 `output/ocr-report/result.json` 取實測值（Task 6 Step 2），以下先寫出要講的觀點。
-
-1. **逐頁分路，而不是逐檔分路**：同一份 PDF 中有文字層的頁面直接用 pypdf 擷取，只有掃描頁才跑 OCR。報告用分路秒數表顯示 OCR 每頁比文字層慢幾倍，說明這個設計省下多少時間，也避免 OCR 把原本正確的文字層弄錯。
-2. **繁體中文專用模型**：預設的簡體模型會把繁體字認成簡體或漏字，所以改用 RapidAI 官方繁中辨識模型，並以 SHA-256 鎖定模型檔。這是「選對工具」的實例。
-3. **前處理有量化證據**：灰階、自動對比、小圖放大，用 A/B 表呈現同一張模糊圖開關前處理的正確率差異；如果沒有提升，也如實報告並說明原因。
-4. **寧缺勿錯的信心門檻**：信心低於 0.5 的行丟掉，整份平均低於 0.6 就拒收；OCR 文字標註「可能有錯字」。對下游 RAG 來說，錯的資料比沒有資料更危險。
-5. **清理讓 RAG 更準**：去掉重複的頁首尾和頁碼，避免每一段都混入相同的雜訊而干擾檢索；把斷行接回完整句子；把表格轉成「欄位：值」，讓模型看得懂每一列的意思。
-6. **統一輸出＋頁碼 metadata**：三條路最後都輸出同一種結構，段落不跨頁，每段都帶檔名和頁碼。AI 回答時的引用可以精準回溯到「哪個檔案第幾頁」。
-7. **可量測、可重現**：用 1−CER 和每頁秒數兩個指標，搭配一行指令產生報告；樣本和標註都在 repo 裡，任何人都能重跑出同樣的結果。
-8. **安全與資源邊界**：沿用 10MB、30 頁、4000 萬像素、每檔 60 張 OCR 影像的上限，以及 Office 檔的 zip bomb／XXE 防護，不執行 Office 程式；OCR 全部在本機執行，資料不外流（呼應專案「部署在公司內網」的北極星）。
-
-9. **可隨處地端部署，並有斷網證據**：同一套程式在 Windows 本機和 Linux 容器都能跑；在完全斷網（`--network none`）的容器裡完成整條管線，證明不依賴任何雲端或外部服務。模型以唯讀 volume 掛載並用 SHA-256 核對，映像檔可以用 `docker save` 帶進隔離網路；沒有模型時自動關閉 OCR，部署不會因此失敗。
-
-**誠實列出的限制（報告最後一頁）**：主要是合成樣本；只用單機 CPU；沒有處理手寫字、多欄版面和傾斜校正；尚未接進正式文件索引和網頁上傳，這些是下一步。
