@@ -16,6 +16,8 @@ export type CopilotCategory = {
   mode: 'rag' | 'sql';
   /** Company names that have this category's data; omitted when every company has it. */
   companies?: string[];
+  /** Company names whose data the shortcut questions are written for; others only get the input box. */
+  questionCompanies?: string[];
   placeholder: string;
   questions: CopilotQuestion[];
 };
@@ -30,7 +32,8 @@ export const CATEGORIES: CopilotCategory[] = [
   { id: 'starter', title: '新人報到', dataset: 'starter-v1', mode: 'rag', companies: FOOD, placeholder: '問報到、教育訓練或工單…',
     questions: [{ text: '新人課程目前什麼時候、在哪裡上？' }, { text: '只有2位新人，為什麼做20份歡迎包？' }, { text: '給新同事用的電腦弄好了沒？' },
       { text: '新人課程原本哪天？為什麼改期？', history: true }, { text: '列出全部未完成工單', mode: 'work_orders' }] },
-  { id: 'formal', title: '正式文件', dataset: 'formal-v1', mode: 'rag', companies: FOOD, placeholder: '問正式文件與附件…',
+  // Every company's own project documents, wherever the formal index is switched on.
+  { id: 'formal', title: '正式文件', dataset: 'formal-v1', mode: 'rag', questionCompanies: FOOD, placeholder: '問正式文件與附件…',
     questions: [{ text: '新人報到地點在哪一樓？', project: '增量索引展示' }, { text: '新人報到地點原本和現在分別在哪一樓？', project: '增量索引展示', history: true },
       { text: '設備申請流程怎麼做？', project: '隔離索引展示' }, { text: '新人報到要先去哪裡換證？', project: 'OCR 示範' }] },
 ];

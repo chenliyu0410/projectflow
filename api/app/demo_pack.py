@@ -22,7 +22,8 @@ import app.models  # noqa: F401  (registers every table)
 from app.security import hash_password
 
 FORMAT = 1
-EXCLUDED = {'sessions', 'audit_logs', 'notifications'}
+# AI answer feedback is usage data like the audit log; full backups keep it.
+EXCLUDED = {'sessions', 'audit_logs', 'notifications', 'ai_answers'}
 SCRUBBED = {'users': {'password_hash'}}
 FILE_TABLES = {'attachments': 'storage_key', 'document_versions': 'storage_key'}
 # A backup also carries the uploaded Word template files.

@@ -1,10 +1,11 @@
-"""Derived, isolated file index. Live operational ACLs are always authoritative."""
+"""Derived file index of formal documents. Live operational ACLs are always authoritative."""
 from contextlib import closing
 from datetime import datetime, timezone
 import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import sqlite3
 import tempfile
 import threading
@@ -27,12 +28,13 @@ _locks_guard = threading.Lock()
 
 
 def enabled():
-    return os.environ.get("PF_AI_FORMAL_INDEX") == "true" and os.environ.get("PF_ACCEPTANCE_MODE") == "true"
+    # The index is a derived SQLite file next to any database, so PostgreSQL deployments may switch it on too.
+    return os.environ.get("PF_AI_FORMAL_INDEX") == "true"
 
 
 def require_enabled(db):
-    if not enabled() or db.bind.dialect.name != "sqlite":
-        raise HTTPException(404, "隔離文件索引未啟用")
+    if not enabled():
+        raise HTTPException(404, "正式文件索引未啟用")
 
 
 def index_path(db, current):
@@ -43,7 +45,8 @@ def index_path(db, current):
     return store.root() / DATASET / (key + ".sqlite")
 
 
-def inventory(db, current, project_id=None, *, include_history=False):
+def inventory(db, current, project_id=None, *, include_history=False, include_disabled=False):
+    """Visible sources. Documents switched off for AI are left out unless include_disabled (index, status, old citations)."""
     require_enabled(db)
     context = load_policy_context(db, current)
     projects = {p.id: p for p in db.scalars(select(Project).where(Project.organization_id == current.organization.id))
@@ -56,7 +59,7 @@ def inventory(db, current, project_id=None, *, include_history=False):
     levels = policy.Resolver(policy.load(current.organization.key), all_nodes)
     descriptors = {}
 
-    def add(kind, source_id, node_id, pid, version, filename, key, digest, size, is_current=True, document_id=None):
+    def add(kind, source_id, node_id, pid, version, filename, key, digest, size, is_current=True, document_id=None, ai_enabled=True):
         if pid not in projects or (project_id and pid != project_id) or (node_id and node_id not in nodes):
             return
         value = dict(source_id=f"{kind}-{source_id}", source_type="document" if kind == "doc" else "attachment",
@@ -64,8 +67,13 @@ def inventory(db, current, project_id=None, *, include_history=False):
                      storage_key=key, sha256=digest, size=size)
         value["fingerprint"] = hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
         value["is_current"] = is_current
-        # Not part of the fingerprint: changing a level must not reparse or re-embed text.
+        # Not part of the fingerprint: changing a level or the AI switch must not reparse or re-embed text.
         value["classification"] = levels.document(document_id, node_id, pid) if kind == "doc" else levels.node(node_id)
+        value["ai_enabled"] = ai_enabled
+        value["document_ref"] = (dict(kind="document", document_id=document_id, version=version) if kind == "doc"
+                                 else dict(kind="attachment", attachment_id=source_id))
+        value["project_title"] = projects[pid].title
+        value["node_title"] = nodes[node_id].title if node_id else None
         descriptors[value["source_id"]] = value
 
     rows = db.execute(select(Document, DocumentVersion).join(DocumentVersion, DocumentVersion.document_id == Document.id)
@@ -73,9 +81,9 @@ def inventory(db, current, project_id=None, *, include_history=False):
                              DocumentVersion.organization_id == current.organization.id))
     for doc, version in rows:
         is_current = version.version == doc.current_version
-        if include_history or is_current:
+        if (include_history or is_current) and (include_disabled or doc.ai_enabled):
             add("doc", f"{doc.id}-v{version.version}", doc.node_id, doc.project_id, version.version, version.filename,
-                version.storage_key, version.sha256, version.size_bytes, is_current, doc.id)
+                version.storage_key, version.sha256, version.size_bytes, is_current, doc.id, doc.ai_enabled)
     for row in db.scalars(select(Attachment).where(Attachment.organization_id == current.organization.id,
                          Attachment.state == "ready", Attachment.deleted_at.is_(None))):
         node = nodes.get(row.node_id)
@@ -110,8 +118,44 @@ def connect(path):
     return db
 
 
+def read_entries(path):
+    if not path.exists():
+        return {}
+    try:
+        with closing(connect(path)) as index:
+            return {r["source_id"]: dict(r) for r in index.execute("SELECT * FROM entries")}
+    except sqlite3.Error:
+        raise HTTPException(503, "索引暫時無法讀取，請管理者更新") from None
+
+
+def entry_state(source, entry):
+    if not source["ai_enabled"]:
+        return "disabled", "已停用AI引用；索引保留，恢復後立即可用"
+    if entry and entry["fingerprint"] == source["fingerprint"]:
+        if entry["state"] == "indexed" and not file_present(source):
+            return "pending", "來源檔案暫時不可用"
+        return entry["state"], entry["reason"]
+    return "pending", "新增或已變更，等待索引更新"
+
+
+def knowledge(db, current, documents):
+    """AI state of each listed document's current version, for the document list."""
+    sources, _ = inventory(db, current, include_disabled=True)
+    entries = read_entries(index_path(db, current))
+    items = []
+    for doc in documents:
+        sid = f"doc-{doc.id}-v{doc.current_version}"
+        source = sources.get(sid)
+        state, reason = entry_state(source, entries.get(sid)) if source else ("pending", "新增或已變更，等待索引更新")
+        if not doc.ai_enabled:
+            state, reason = "disabled", "已停用AI引用；索引保留，恢復後立即可用"
+        items.append(dict(document_id=doc.id, ai_enabled=doc.ai_enabled, state=state, reason=reason,
+                          indexed_version=doc.current_version if state == "indexed" else None))
+    return items
+
+
 def status(db, current):
-    sources, projects = inventory(db, current, include_history=True)
+    sources, projects = inventory(db, current, include_history=True, include_disabled=True)
     path = index_path(db, current)
     entries, updated, last_update = {}, None, None
     if path.exists():
@@ -123,15 +167,10 @@ def status(db, current):
                     last_update = json.loads(index.execute("SELECT changes FROM info").fetchone()[0])
         except sqlite3.Error:
             raise HTTPException(503, "索引暫時無法讀取，請管理者更新") from None
-    counts = dict(indexed=0, pending=0, skipped=0)
+    counts = dict(indexed=0, pending=0, skipped=0, disabled=0)
     items = []
     for sid, source in sources.items():
-        entry = entries.get(sid)
-        state, reason = "pending", "新增或已變更，請更新索引"
-        if entry and entry["fingerprint"] == source["fingerprint"]:
-            state, reason = entry["state"], entry["reason"]
-            if state == "indexed" and not file_present(source):
-                state, reason = "pending", "來源檔案暫時不可用"
+        state, reason = entry_state(source, entries.get(sid))
         counts[state] += 1
         items.append(dict(source_id=sid, title=source["title"], source_type=source["source_type"],
                           version=source["version"], is_current=source["is_current"], state=state, reason=reason))
@@ -218,7 +257,8 @@ def refresh(db, current, *, only_if_changed=False):
         raise HTTPException(409, "文件索引更新中，請稍後")
     temporary = None
     try:
-        sources, _ = inventory(db, current, include_history=True)
+        # Switched-off documents stay indexed: old citations still open and switching back on is instant.
+        sources, _ = inventory(db, current, include_history=True, include_disabled=True)
         signatures = source_signatures(sources)
         signature = snapshot(sources, signatures)
         previous, compatible, stored_vector_model = {}, False, ""
@@ -314,15 +354,34 @@ def valid_sources(index, sources):
             if sid in entries and entries[sid]["fingerprint"] == source["fingerprint"] and file_present(source)}
 
 
+PAGE = re.compile(r"第(\d+)頁")
+
+
+def page_of(body):
+    """chunk_body puts 第N頁 on the first line, or the second after the OCR warning."""
+    for line in body.split("\n", 2)[:2]:
+        match = PAGE.fullmatch(line)
+        if match:
+            return int(match.group(1))
+    return None
+
+
+def locator(row, source):
+    """Where a cited passage comes from, so the reader can find and download the original."""
+    return dict(document_ref=source["document_ref"], project_title=source["project_title"],
+                node_title=source["node_title"], page=page_of(row["body"]))
+
+
 def as_document(row, source, current):
     metadata = dict(company_id=current.organization.key, classification=source["classification"],
                     version=source["version"], is_current=source["is_current"])
     label = "現行版本" if source["is_current"] else "歷史版本，請勿當作現行規定"
+    place = locator(row, source)
     row = dict(row, body=f"來源：{source['title']}／第{source['version']}版（{label}）\n{row['body']}")
     # The role assertion is produced only after checking current operational ACLs.
     return dict(row, title=source["title"], project_id=source["project_id"],
                 node_id=source["node_id"], source_type=source["source_type"], version=source["version"],
-                current=int(source["is_current"]), roles=json.dumps([current.user.role]), metadata=json.dumps(metadata))
+                current=int(source["is_current"]), roles=json.dumps([current.user.role]), metadata=json.dumps(metadata), **place)
 
 
 def search(db, current, question, project_id=None, *, include_history=False):
@@ -383,7 +442,8 @@ def search_with_mode(db, current, question, project_id=None, *, include_history=
 
 
 def document(db, current, document_id, *, include_history=False):
-    sources, _ = inventory(db, current, include_history=include_history)
+    # Citations of a document later switched off for AI stay readable to anyone who may still read it.
+    sources, _ = inventory(db, current, include_history=include_history, include_disabled=True)
     path = index_path(db, current)
     if path.exists():
         try:
@@ -393,8 +453,8 @@ def document(db, current, document_id, *, include_history=False):
         except sqlite3.Error:
             raise HTTPException(503, "索引暫時無法讀取，請管理者更新") from None
         if source and file_present(source, verify_digest=True):
-            return dict(document_id=document_id, title=source["title"], text=row["body"],
-                        version=source["version"], is_current=source["is_current"], section=row["section"])
+            return dict(document_id=document_id, title=source["title"], text=row["body"], project_id=source["project_id"],
+                        version=source["version"], is_current=source["is_current"], section=row["section"], **locator(row, source))
     raise HTTPException(404, "找不到符合版本選項與權限的索引段落，請確認索引狀態")
 
 

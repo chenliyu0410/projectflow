@@ -252,3 +252,49 @@ def test_postgresql_p2c_parallel_edges_cannot_create_cycle(monkeypatch):
                 assert len(list(db.scalars(select(NodeDependency).where(NodeDependency.project_id==pid))))==1
                 assert len(list(db.scalars(select(AuditLog).where(AuditLog.node_id.in_(ids),AuditLog.action=='dependency.create'))))==1
     finally:app.dependency_overrides.clear();engine.dispose()
+
+
+def test_postgresql_formal_index_updates_and_answers_without_acceptance_mode(monkeypatch,tmp_path):
+    from app.ai import index_worker
+    url=os.environ.get('P2B_TEST_DATABASE_URL')
+    if not url:pytest.skip('Dedicated p2b_test PostgreSQL URL required')
+    parsed=make_url(url)
+    assert parsed.get_backend_name()=='postgresql' and parsed.database.startswith('p2b_test_')
+    monkeypatch.setenv('DATABASE_URL',url)
+    root=tmp_path/'files';root.mkdir()
+    monkeypatch.setenv('PF_ATTACHMENT_ROOT',str(root))
+    monkeypatch.setenv('PF_AI_ROOT',str(tmp_path/'ai'))
+    # Docker deployments: PostgreSQL, no acceptance mode, only the two formal index switches.
+    monkeypatch.setenv('PF_ACCEPTANCE_MODE','false')
+    monkeypatch.setenv('PF_AI_FORMAL_INDEX','true')
+    monkeypatch.setenv('PF_AI_INDEX_AUTO_UPDATE','true')
+    command.upgrade(Config('api/alembic.ini'),'head')
+    engine=create_engine(sqlalchemy_url(url),pool_size=5)
+    with Session(engine) as db:
+        seed_demo_data(db);db.commit()
+        member=db.scalars(select(User).where(User.username=='ming')).one()
+        project=db.scalars(select(Project).where(Project.organization_id==member.organization_id)).first()
+        node=Node(organization_id=member.organization_id,project_id=project.id,kind='task',title=f'PG index {uuid4()}',owner_user_id=member.id)
+        db.add(node);db.commit();nid=node.id
+    app=create_app()
+    def session():
+        with Session(engine) as db:yield db
+    app.dependency_overrides[get_session]=session
+    try:
+        client=TestClient(app)  # No lifespan: the worker tick below runs once, deterministically.
+        assert client.post('/auth/login',json={'organization_key':'food','username':'yu','password':'demo-yu'}).status_code==200
+        uploaded=client.post(f'/nodes/{nid}/documents',params={'filename':'G2檢查表.txt','expected_version':1,'comment':'初稿'},
+                             content='G2關卡由品保經理簽核'.encode(),headers={'Content-Type':'application/octet-stream'})
+        assert uploaded.status_code==201,uploaded.text
+        doc=uploaded.json()['document_id']
+        assert client.get('/ai/knowledge',params={'node_id':nid}).json()['items'][0]['state']=='pending'
+        index_worker.tick(engine)
+        assert client.get('/ai/knowledge',params={'node_id':nid}).json()['items'][0]['state']=='indexed'
+        assert client.get('/ai/status').json()['formal_available'] is True
+        answer=client.post('/ai/ask',json={'dataset':'formal-v1','question':'G2關卡'}).json()
+        assert [s['document_ref']['document_id'] for s in answer['sources']]==[doc]
+        assert client.put(f"/ai/answers/{answer['answer_id']}/feedback",json={'rating':'helpful'}).status_code==200
+        # Policy controls stay in isolated previews only.
+        assert client.get('/ai/governance').status_code==404
+    finally:
+        app.dependency_overrides.clear();engine.dispose()

@@ -98,7 +98,7 @@ def answer_documents(company, role, question, documents, base, *, include_histor
     base['gateway'] = prepared.info
     if not documents:
         return dict(base,kind='no_sources',engine='retrieval',answer='在目前公司、專案與權限範圍內找不到可引用資料。請換個關鍵詞、選擇其他專案，或確認文件索引已更新。')
-    base['sources']=[dict(document_id=d['document_id'],title=d['title'],project_id=d['project_id'],excerpt=d['body'][:1200],is_current=bool(d['current']),**{k:d[k] for k in ('source_type','node_id','version','section') if k in d}) for d in documents]
+    base['sources']=[dict(document_id=d['document_id'],title=d['title'],project_id=d['project_id'],excerpt=d['body'][:1200],is_current=bool(d['current']),**{k:d[k] for k in ('source_type','node_id','version','section','document_ref','project_title','node_title','page') if k in d}) for d in documents]
     if prepared.info['route'] == 'blocked':
         base['warning'] = 'AI閘道拒絕目前模型設定；未送出內容，改顯示可核對的檢索原文。'
     if prepared.info['reason'] == 'context_too_large':

@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Integer, false, BigInteger, Boolean, CheckConstraint, Date, DateTime, Index, event, text, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
+from sqlalchemy import Integer, false, true, BigInteger, Boolean, CheckConstraint, Date, DateTime, Index, event, text, ForeignKey, ForeignKeyConstraint, JSON, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship, with_loader_criteria
 from sqlalchemy.types import TypeDecorator
@@ -215,6 +215,8 @@ class Document(Base):
     node_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     project_id: Mapped[str] = mapped_column(String(36), nullable=False)
     current_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Kept on the document, not the version, so a new upload never re-enables AI use on its own.
+    ai_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true(), nullable=False)
 
 
 class DocumentVersion(Base):
@@ -790,3 +792,22 @@ class WeeklyReport(Base):
     generated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
     confirmed_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     confirmed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+
+
+class AIAnswer(Base):
+    """One row per answered AI question, for feedback. Never holds question, answer or document text."""
+    __tablename__ = 'ai_answers'
+    __table_args__ = (
+        ForeignKeyConstraint(['organization_id', 'user_id'], ['users.organization_id', 'users.id']),
+        CheckConstraint("rating IS NULL OR rating IN ('helpful','unhelpful')", name='ck_ai_answer_rating'),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
+    organization_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    dataset: Mapped[str] = mapped_column(String(20), nullable=False)
+    mode: Mapped[str] = mapped_column(String(20), nullable=False)
+    kind: Mapped[str] = mapped_column(String(40), nullable=False)
+    followup: Mapped[str] = mapped_column(String(16), nullable=False)
+    source_ids: Mapped[list] = mapped_column(JsonType, default=list, nullable=False)
+    rating: Mapped[str | None] = mapped_column(String(12), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False, index=True)

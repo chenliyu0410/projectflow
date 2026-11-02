@@ -30,6 +30,9 @@ services:
       PF_AI_ROOT: /var/lib/projectflow-ai
       PF_AI_OCR: ${PF_AI_OCR:-false}
       PF_AI_OCR_MODEL_DIR: /opt/ocr-models
+      # AI formal document index; with auto update on, new uploads are indexed within about 10 s (single API process).
+      PF_AI_FORMAL_INDEX: ${PF_AI_FORMAL_INDEX:-false}
+      PF_AI_INDEX_AUTO_UPDATE: ${PF_AI_INDEX_AUTO_UPDATE:-false}
       PF_N8N_TOKEN: ${PF_N8N_TOKEN:-}
       PF_PUBLIC_URL: ${PF_PUBLIC_URL:-http://127.0.0.1:15173}
       PF_INBOX_ROOT: /var/lib/projectflow-inbox

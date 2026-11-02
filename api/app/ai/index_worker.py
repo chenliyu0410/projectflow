@@ -1,4 +1,4 @@
-"""Single-process polling for explicitly enabled, isolated SQLite previews."""
+"""Single-process polling that keeps the formal document index current; one API process only."""
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import logging
@@ -30,7 +30,7 @@ def status(path):
 
 
 def tick(engine):
-    if not enabled() or engine.dialect.name != "sqlite":
+    if not enabled():
         return
     with Session(engine) as db:
         administrators = db.execute(select(User, Organization).join(Organization, User.organization_id == Organization.id)
@@ -66,11 +66,6 @@ def running(engine=None):
         from app.database import get_engine
         engine = get_engine()
         owned_engine = True
-    if engine.dialect.name != "sqlite":
-        if owned_engine:
-            engine.dispose()
-        yield None
-        return
     stop = threading.Event()
 
     def loop():
@@ -79,10 +74,10 @@ def running(engine=None):
                 tick(engine)
             except Exception:
                 # No DB URLs, file paths or source content in worker logs.
-                logger.warning("Isolated index check failed; retrying on next interval")
+                logger.warning("Formal index check failed; retrying on next interval")
             stop.wait(INTERVAL_SECONDS)
 
-    worker = threading.Thread(target=loop, name="isolated-file-index", daemon=True)
+    worker = threading.Thread(target=loop, name="formal-file-index", daemon=True)
     worker.start()
     try:
         yield worker

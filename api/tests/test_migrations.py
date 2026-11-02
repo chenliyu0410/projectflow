@@ -1059,3 +1059,38 @@ def test_returns_migration_preserves_ledger_and_refuses_loss(tmp_path, monkeypat
         assert c.scalar(text("SELECT reversal_of FROM inventory_movements WHERE id = 'rev'")) == 'use'
         assert c.scalar(text('SELECT count(*) FROM inventory_movements')) == 3
     engine.dispose()
+
+
+def test_ai_knowledge_migration_keeps_documents_enabled_and_refuses_loss(tmp_path, monkeypatch):
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, text
+    import pytest
+    url = f'sqlite:///{tmp_path / "ai-knowledge.db"}'
+    monkeypatch.setenv('DATABASE_URL', url)
+    config = Config(ALEMBIC_INI)
+    command.upgrade(config, '20261102_0023')
+    engine = create_engine(url)
+    with engine.begin() as c:
+        c.execute(text("INSERT INTO organizations (id,key,name) VALUES ('org','org','Org')"))
+        c.execute(text("INSERT INTO documents (id,organization_id,node_id,project_id,current_version) VALUES ('doc','org',NULL,'project',2)"))
+    command.upgrade(config, 'head')
+    with engine.connect() as c:
+        assert tuple(c.execute(text('SELECT id,current_version,ai_enabled FROM documents')).one()) == ('doc', 2, 1)
+        assert c.scalar(text('SELECT count(*) FROM ai_answers')) == 0
+    command.downgrade(config, '20261102_0023')
+    command.upgrade(config, 'head')
+    with engine.begin() as c:
+        c.execute(text('UPDATE documents SET ai_enabled = 0'))
+    with pytest.raises(RuntimeError, match='拒絕有損降級'):
+        command.downgrade(config, '20261102_0023')
+    with engine.begin() as c:
+        c.execute(text('UPDATE documents SET ai_enabled = 1'))
+        c.execute(text("INSERT INTO ai_answers (id,organization_id,user_id,dataset,mode,kind,followup,source_ids,rating,created_at) "
+                       "VALUES ('a','org','user','formal-v1','rag','rag','none','[]','helpful','2026-11-02')"))
+    with pytest.raises(RuntimeError, match='拒絕有損降級'):
+        command.downgrade(config, '20261102_0023')
+    with engine.connect() as c:
+        assert c.scalar(text('SELECT count(*) FROM ai_answers')) == 1
+        assert c.scalar(text('SELECT count(*) FROM documents')) == 1
+    engine.dispose()

@@ -7,6 +7,8 @@ function mock(readonly = false, conflict = false) {
   let version = 1;
   const fetcher = vi.fn(async (url: string, init: RequestInit = {}) => {
     let data: unknown;
+    // The AI document index is off here, as in deployments that never switch it on.
+    if (url.includes('/ai/knowledge')) return new Response('{"detail":"正式文件索引未啟用"}', { status: 404 });
     if (init?.method === 'POST') {
       if (conflict) return new Response('{}', { status: 409 });
       version = 2; data = { ...v1, version: 2 };
@@ -53,4 +55,42 @@ it('supports retry after a failed list request and expires invalid sessions', as
   expect(await screen.findByRole('alert')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: '重新載入文件' }));
   await waitFor(() => expect(expired).toHaveBeenCalledOnce());
+});
+
+it('shows the AI state of each document and lets editors switch AI use off and on', async () => {
+  let enabled = true;
+  const calls: string[] = [];
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit = {}) => {
+    const item = () => ({ document_id: 'd', ai_enabled: enabled, state: enabled ? 'indexed' : 'disabled', reason: '', indexed_version: enabled ? 1 : null });
+    let data: unknown;
+    if (url.includes('/ai/knowledge/d')) { calls.push(`${init.method} ${init.body}`); enabled = JSON.parse(String(init.body)).enabled; data = item(); }
+    else if (url.includes('/ai/knowledge?')) { calls.push(url); data = { items: [item()], can_write: true, automatic: true }; }
+    else if (url.endsWith('/documents')) data = { items: [v1], can_write: true };
+    else if (url.endsWith('/versions')) data = { items: [v1], current_version: 1, can_write: true };
+    else data = { content: '成果' };
+    return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }));
+  render(<DocumentManager scopePath="/nodes/n" expired={vi.fn()} />);
+  expect(await screen.findByText('AI：可查詢')).toBeInTheDocument();
+  expect(calls[0]).toMatch(/\/ai\/knowledge\?node_id=n$/);
+  fireEvent.click(screen.getByRole('button', { name: /成果.txt/ }));
+  fireEvent.click(await screen.findByRole('button', { name: '停用 AI 引用' }));
+  expect(await screen.findByText(/已停用：AI 助手不會再引用這份文件/)).toBeInTheDocument();
+  expect(screen.getByText('AI：已停用')).toBeInTheDocument();
+  expect(calls).toContain('PUT {"enabled":false}');
+  fireEvent.click(screen.getByRole('button', { name: '恢復 AI 引用' }));
+  expect(await screen.findByText('AI 助手可以再引用這份文件。')).toBeInTheDocument();
+});
+
+it('hides the AI switch from readers who cannot edit the document', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+    const data = url.includes('/ai/knowledge') ? { items: [{ document_id: 'd', ai_enabled: true, state: 'pending', reason: '新增或已變更，等待索引更新', indexed_version: null }], can_write: false, automatic: true }
+      : url.endsWith('/documents') ? { items: [v1], can_write: false } : url.endsWith('/versions') ? { items: [v1], current_version: 1, can_write: false } : { content: '成果' };
+    return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }));
+  render(<DocumentManager scopePath="/nodes/n" expired={vi.fn()} />);
+  expect(await screen.findByText('AI：排隊中')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /成果.txt/ }));
+  expect(await screen.findByText('AI 引用：排隊中')).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: '停用 AI 引用' })).toBeNull();
 });
