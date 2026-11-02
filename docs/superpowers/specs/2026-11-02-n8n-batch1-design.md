@@ -29,7 +29,7 @@
 | 站內通知 | 全部經 `notification_service.emit()` 產生，有 `event_key` 去重 | 在 `emit()` 寫入通知的同一交易寫 outbox 事件 |
 | 認證 | 只有 cookie session（`auth.require_session`） | 新增服務帳號 Bearer token，只限白名單 API |
 | 本地模型 | `ai.model.settings(company)`、`model.chat(config, system, prompt, schema)` | 週報 AI 沿用，不另設 Ollama 位址 |
-| 資料分級 | `ai.policy.Resolver` 計算節點等級 | 週報排除機密節點 |
+| 資料分級 | `ai.policy` 公司預設等級為 confidential（未調整時所有節點有效等級皆機密） | 週報只排除明確標機密者（D85） |
 | 前置阻擋 | `notification_service.states()` 判斷 hard 前置 | 「卡住」沿用 |
 | 部署 | `deploy/docker-compose.yml` 有 db、api、web | 新增 n8n、mailpit 服務 |
 
@@ -96,7 +96,7 @@ n8n 使用自己的 SQLite volume；關閉使用統計、版本檢查、範本�
 
 **收件人（D84）**：專案負責人，加上在此專案有負責或協作任務、且角色為 admin／project_owner／reviewer／readonly 的啟用中帳號。一般成員（member）只看得到自己範圍的任務，不收週報，由每日摘要涵蓋。
 
-**權限與分級**：產生時記收件人快照。任務須每位收件人都看得到（`can_view_node`）且非機密才列入；被排除數量提示負責人（「有 N 項因權限或機密等級未列入」），不列名稱。確認寄出時重新檢查：已停用或已看不到列入任務的人移出名單並提示。
+**權限與分級**：產生時記收件人快照。任務須每位收件人都看得到（`can_view_node`），且專案、該任務或其上層節點沒有被明確覆寫為 confidential 才列入（D85：公司預設等級不算）；被排除數量提示負責人（「有 N 項因權限或機密等級未列入」），不列名稱。確認寄出時重新檢查：已停用或已看不到列入任務的人移出名單並提示。
 
 **AI 撰寫**：把程式整理的資料交給本地模型，以固定 schema 輸出四段：整體摘要、本週重點、風險與卡關、下週重點。提到清單外任務的段落捨棄。結果寫入 AI 稽核（功能、模型、本地處理）。
 
