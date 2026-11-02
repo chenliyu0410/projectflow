@@ -26,6 +26,7 @@ def ensure_user(session: Session, organization: Organization, username: str, dis
             display_name=display_name,
             role=role,
             password_hash=hash_password(password),
+            email=f'{username}@demo.local',
         )
         session.add(user)
     return user

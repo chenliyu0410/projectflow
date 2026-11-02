@@ -156,7 +156,9 @@ export default function App() {
     if (!canLeaveDocument()) return;
     const nodes = project?.nodes ?? [];
     begin(); closeCreation(); setMessage(''); setReportIntent(null);
-    setProjectView(preferTab ?? (projectView === 'timeline' || projectView === 'graph' ? projectView : defaultTab(nodes, nodeId)));
+    // The weekly tab only exists at the project level, so it is not carried into a node.
+    const keep = preferTab === 'weekly' && nodeId ? undefined : preferTab;
+    setProjectView(keep ?? (projectView === 'timeline' || projectView === 'graph' ? projectView : defaultTab(nodes, nodeId)));
     setSelectedNodeId(nodeId);
   }
   function openReport(nodeId: string) {

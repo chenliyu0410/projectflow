@@ -1105,3 +1105,20 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .water-login .wl-alert { margin: 0; color: #ad303a; background: rgba(251,233,224,.92); border-radius: 10px; padding: 10px 12px; }
 @media (max-width: 480px) { .water-login .wl-card { padding: 30px 22px 26px; } .water-login h1 { font-size: 27px; } .water-login .wl-brand { padding: 16px; } }
 @media (prefers-reduced-motion: reduce) { .water-login .wl-wave svg, .water-login .wl-field:focus-within::before, .water-login .wl-card.sway { animation: none !important; } }
+
+/* N8N weekly report tab */
+.weekly-report { display: grid; gap: 12px; }
+.weekly-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.weekly-head h3 { margin: 0 0 4px; }
+.weekly-body { display: grid; gap: 10px; }
+.weekly-body label { display: grid; gap: 4px; font-size: 13px; }
+.weekly-body textarea { width: 100%; box-sizing: border-box; }
+.weekly-body .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.weekly-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; margin: 0; }
+.weekly-counts div { border: 1px solid var(--line, #dde5e2); border-radius: 8px; padding: 6px 8px; }
+.weekly-counts dt { color: var(--muted); font-size: 12px; }
+.weekly-counts dd { margin: 0; font-size: 20px; font-weight: 700; }
+.weekly-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 16px; }
+.weekly-lists h4 { margin: 4px 0; }
+.weekly-lists ul, .weekly-body ul { margin: 0; padding-left: 18px; overflow-wrap: anywhere; }
+.weekly-report .notice { color: var(--teal, #2f7d6b); }

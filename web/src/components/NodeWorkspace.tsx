@@ -1,4 +1,5 @@
 import CollaborationActions from './CollaborationDialogs';
+import WeeklyReportPanel from './WeeklyReportPanel';
 import MemberPermissions from './MemberPermissions';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DragEvent, FocusEvent, KeyboardEvent, ReactNode } from 'react';
@@ -20,11 +21,12 @@ const columns: { label: string; match: NodeStatus[] }[] = [
   { label: '待處理', match: ['todo'] }, { label: '進行中', match: ['doing'] },
   { label: '待確認', match: ['review'] }, { label: '完成', match: ['done', 'skipped'] },
 ];
-export type NodeTab = 'board' | 'timeline' | 'graph' | 'people' | 'records' | 'documents' | 'data';
+export type NodeTab = 'board' | 'timeline' | 'graph' | 'people' | 'records' | 'documents' | 'data' | 'weekly';
 const TABS: { tab: NodeTab | null; label: string }[] = [
   { tab: 'board', label: '看板' }, { tab: 'timeline', label: '時程' }, { tab: 'graph', label: '相依圖' },
   { tab: 'documents', label: '文件' }, { tab: 'data', label: '資料' }, { tab: 'people', label: '成員與權限' }, { tab: 'records', label: '紀錄' },
 ];
+const WEEKLY_TAB: { tab: NodeTab; label: string } = { tab: 'weekly', label: '週報' };
 const CLOSED: NodeStatus[] = ['done', 'skipped'];
 const label = (status: NodeStatus) => statuses.find(item => item.status === status)?.label ?? status;
 const shortDate = (value: string | null) => value ? value.slice(5).replace('-', '/') : '?';
@@ -125,7 +127,8 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     : top.flatMap(node => node.kind === 'phase' ? childrenOf(nodes, node.id) : [node]);
   const phaseOf = (node: NodeItem) => !selected && node.parent_id ? phases.find(phase => phase.id === node.parent_id) : undefined;
   const gate = selected?.kind === 'phase' ? project.gates.find(item => item.node_id === selected.id) : undefined;
-  const tabs = leaf ? [TABS[6], ...TABS.slice(0, 6)] : TABS;
+  // The weekly report covers the whole project, so it is only offered at the project level.
+  const tabs = leaf ? [TABS[6], ...TABS.slice(0, 6)] : selected ? TABS : [...TABS, WEEKLY_TAB];
   const active: NodeTab = tab;
   const values = useMemo(() => progressMap(nodes), [nodes]);
   const nodePercent = (node: NodeItem) => percent(values.get(node.id) ?? 0);
@@ -351,7 +354,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
 
     </div>
     {/* 用「…內容」命名而非 aria-labelledby，避免和內層同名區塊（如「看板」）撞名。 */}
-    <div className="node-view-content" role="tabpanel" id="node-tabpanel" aria-label={`${TABS.find(item => item.tab === active)?.label ?? ''}內容`}>
+    <div className="node-view-content" role="tabpanel" id="node-tabpanel" aria-label={`${[...TABS, WEEKLY_TAB].find(item => item.tab === active)?.label ?? ''}內容`}>
       {active === 'board' && <p className="tools-hint">{canMoveAny ? '拖曳卡片改狀態；拖到另一張卡片上 = 變成它的子任務' : anyDraggable ? '拖曳卡片或用卡片上的狀態選單改狀態；點卡片標題進入下一層' : '點卡片標題進入下一層'}</p>}
     {editor}
     {active === 'board' && <section aria-label="看板" className="board-scroll">
@@ -370,6 +373,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     {(active === 'documents' || active === 'data') && preview}
     {active === 'timeline' && timeline}
     {active === 'graph' && graph}
+    {active === 'weekly' && !selected && <WeeklyReportPanel projectId={project.id} expired={expired} />}
     {active === 'people' && selected && <div className="people-view">
       <div className="grid2">
         <section className="panel" aria-label="此節點的成員"><h3>此節點的成員</h3>

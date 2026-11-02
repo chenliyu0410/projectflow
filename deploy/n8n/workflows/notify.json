@@ -1,0 +1,205 @@
+{
+  "id": "pfNotify0000001",
+  "name": "專流：通知轉寄（每分鐘）",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "name": "每分鐘",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "schedule"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PF_API_URL }}/integrations/events?limit=20",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.PF_N8N_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "拉取待送事件",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "拉取待送事件"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "items",
+        "options": {}
+      },
+      "name": "逐封",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        440,
+        0
+      ],
+      "id": "split"
+    },
+    {
+      "parameters": {
+        "fromEmail": "專流 <projectflow@demo.local>",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "both",
+        "text": "={{ $json.text }}",
+        "html": "={{ $json.html }}",
+        "options": {}
+      },
+      "name": "寄信",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        0
+      ],
+      "id": "send",
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "smtp": {
+          "id": "pfMailpitSmtp01",
+          "name": "Mailpit SMTP"
+        }
+      },
+      "webhookId": "pf-send"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PF_API_URL }}/integrations/events/{{ $('逐封').item.json.id }}/result",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.PF_N8N_TOKEN }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"ok\": true}"
+      },
+      "name": "回報已寄出",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -100
+      ],
+      "id": "回報已寄出"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PF_API_URL }}/integrations/events/{{ $('逐封').item.json.id }}/result",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.PF_N8N_TOKEN }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ ok: false, error: String($json.error?.message ?? $json.error ?? \"寄送失敗\").slice(0, 500) }) }}"
+      },
+      "name": "回報寄送失敗",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        100
+      ],
+      "id": "回報寄送失敗"
+    }
+  ],
+  "connections": {
+    "每分鐘": {
+      "main": [
+        [
+          {
+            "node": "拉取待送事件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "拉取待送事件": {
+      "main": [
+        [
+          {
+            "node": "逐封",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "逐封": {
+      "main": [
+        [
+          {
+            "node": "寄信",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "寄信": {
+      "main": [
+        [
+          {
+            "node": "回報已寄出",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "回報寄送失敗",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {},
+  "tags": []
+}

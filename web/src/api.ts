@@ -240,6 +240,10 @@ export const api = {
   decideException: (id: string, decision: string, comment: string, signal?: AbortSignal) => requestJson(`/requests/${id}/decision`, {method:'POST',body:JSON.stringify({decision,comment}),signal}),
   notifications: (offset=0, signal?: AbortSignal) => requestJson<import('./types').NotificationPage>(`/notifications?offset=${offset}`, {signal}),
   readNotification: (id: string) => requestJson(`/notifications/${id}/read`, {method:'POST'}),
+  weeklyReports: (projectId: string, signal?: AbortSignal) => requestJson<{can_manage: boolean; items: import('./types').WeeklyReport[]}>(`/projects/${projectId}/weekly-reports`, {signal}),
+  generateWeeklyReport: (projectId: string) => requestJson<import('./types').WeeklyReport>(`/projects/${projectId}/weekly-reports/generate`, {method:'POST', timeoutMs:180_000}),
+  saveWeeklyReport: (id: string, sections: import('./types').WeeklySections) => requestJson<import('./types').WeeklyReport>(`/weekly-reports/${id}`, {method:'PATCH', body:JSON.stringify({sections})}),
+  confirmWeeklyReport: (id: string, sections: import('./types').WeeklySections) => requestJson<{report: import('./types').WeeklyReport; removed: string[]}>(`/weekly-reports/${id}/confirm`, {method:'POST', body:JSON.stringify({sections})}),
 
   workflow: (id: string, signal?: AbortSignal) =>
     requestJson<WorkflowDetail>(`/workflows/${id}`, { signal }),

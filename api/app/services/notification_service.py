@@ -22,6 +22,10 @@ def emit(db, current, node, recipient_id, message, event_key):
     if db.scalar(select(Notification.id).where(Notification.organization_id == current.organization.id, Notification.recipient_id == recipient_id, Notification.event_key == event_key)):
         return
     db.add(Notification(organization_id=current.organization.id, recipient_id=recipient_id, node_id=node.id, event_key=event_key, message=message))
+    # Same transaction as the notification, so mail is never sent for a change that rolled back.
+    from app.services.outbox_service import enqueue
+    enqueue(db, current.organization.id, 'notification', recipient_id, f'[專流] {message}', f'任務：{node.title}\n{message}',
+            f'notification:{recipient_id}:{event_key}')
 
 
 def states(db, current, project_id):

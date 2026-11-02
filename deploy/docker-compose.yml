@@ -30,6 +30,8 @@ services:
       PF_AI_ROOT: /var/lib/projectflow-ai
       PF_AI_OCR: ${PF_AI_OCR:-false}
       PF_AI_OCR_MODEL_DIR: /opt/ocr-models
+      PF_N8N_TOKEN: ${PF_N8N_TOKEN:-}
+      PF_PUBLIC_URL: ${PF_PUBLIC_URL:-http://127.0.0.1:15173}
     volumes:
       - files:/var/lib/projectflow-files
       - ai_data:/var/lib/projectflow-ai
@@ -53,7 +55,38 @@ services:
     depends_on:
       api:
         condition: service_healthy
+  # N8N batch 1 (opt-in: docker compose --profile n8n up -d). Mailpit is the demo mailbox; nothing leaves this machine.
+  mailpit:
+    profiles: [n8n]
+    image: ghcr.io/axllent/mailpit:v1.32.0
+    ports:
+      - '127.0.0.1:${MAILPIT_PORT:-8025}:8025'
+  n8n:
+    profiles: [n8n]
+    image: docker.n8n.io/n8nio/n8n:2.45.7
+    environment:
+      GENERIC_TIMEZONE: Asia/Taipei
+      TZ: Asia/Taipei
+      N8N_DIAGNOSTICS_ENABLED: 'false'
+      N8N_VERSION_NOTIFICATIONS_ENABLED: 'false'
+      N8N_TEMPLATES_ENABLED: 'false'
+      N8N_PERSONALIZATION_ENABLED: 'false'
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: 'false'
+      N8N_SECURE_COOKIE: 'false'
+      PF_API_URL: http://api:8000
+      PF_N8N_TOKEN: ${PF_N8N_TOKEN:-}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n:/opt/projectflow-n8n:ro
+    ports:
+      - '127.0.0.1:${N8N_PORT:-5678}:5678'
+    depends_on:
+      api:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
 volumes:
   pgdata:
   files:
   ai_data:
+  n8n_data:
