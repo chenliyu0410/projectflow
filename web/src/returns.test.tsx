@@ -46,6 +46,8 @@ it('returns a received purchase line within what was received and shows the retu
   expect(screen.getByRole('button', { name: '確認採購退貨' })).toBeDisabled();
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '3' } });
   state.current = purchase({ lines: [line({ received: '7.000', remaining: '3.000', returned: '3.000', status: 'partial' }), (purchase() as { lines: object[] }).lines[1]] });
+  // The button only enables after the new quantity is validated; clicking earlier is a no-op.
+  await waitFor(() => expect(screen.getByRole('button', { name: '確認採購退貨' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: '確認採購退貨' }));
   await screen.findByText('已入帳，庫存與異動紀錄已保存。', {}, SLOW);
   expect(posts[0]).toMatchObject({ path: '/api/operations/po/returns', body: { resource_id: 'flour', quantity: '3', unit: 'kg', reason: '受潮退回' } });
@@ -75,6 +77,7 @@ it('returns issued material to stock from a work order', async () => {
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '2' } });
   fireEvent.change(screen.getByLabelText('異動原因／收貨說明'), { target: { value: '剩料退回' } });
   state.current = production([{ ...meat, quantity: '10.500', returned: '2.000' }]);
+  await waitFor(() => expect(screen.getByRole('button', { name: '確認工單退料' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: '確認工單退料' }));
   await screen.findByText('已入帳，庫存與異動紀錄已保存。', {}, SLOW);
   expect(posts[0]).toMatchObject({ path: '/api/operations/wo/issue-returns', body: { resource_id: 'meat', quantity: '2', unit: 'kg', reason: '剩料退回' } });

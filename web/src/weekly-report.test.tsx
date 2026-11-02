@@ -21,8 +21,10 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('WeeklyReportPanel', () => {
   it('lets the owner edit the AI draft and confirm after a prompt', async () => {
-    vi.spyOn(api, 'weeklyReports').mockResolvedValue({ can_manage: true, items: [report()] });
-    const save = vi.spyOn(api, 'saveWeeklyReport').mockResolvedValue(report());
+    // Like the real API, a reload after saving returns the saved text.
+    let stored = report();
+    vi.spyOn(api, 'weeklyReports').mockImplementation(async () => ({ can_manage: true, items: [stored] }));
+    const save = vi.spyOn(api, 'saveWeeklyReport').mockImplementation(async (_id, sections) => (stored = report({ sections })));
     const confirmCall = vi.spyOn(api, 'confirmWeeklyReport').mockResolvedValue({ report: report({ status: 'sent' }), removed: ['游專案'] });
     const prompt = vi.spyOn(window, 'confirm').mockReturnValue(true);
     render(<WeeklyReportPanel projectId="p" />);
@@ -33,7 +35,9 @@ describe('WeeklyReportPanel', () => {
     fireEvent.change(summary, { target: { value: '負責人改寫' } });
     fireEvent.click(screen.getByRole('button', { name: '儲存' }));
     await waitFor(() => expect(save).toHaveBeenCalledWith('r1', expect.objectContaining({ summary: '負責人改寫' })));
-    fireEvent.click(await screen.findByRole('button', { name: '確認寄出（2 位）' }));
+    const send = await screen.findByRole('button', { name: '確認寄出（2 位）' });
+    await waitFor(() => expect(send).toBeEnabled());
+    fireEvent.click(send);
     expect(prompt).toHaveBeenCalled();
     await waitFor(() => expect(confirmCall).toHaveBeenCalledWith('r1', expect.objectContaining({ summary: '負責人改寫' })));
     expect(await screen.findByText(/游專案 已停用或無法查看部分任務/)).toBeTruthy();
