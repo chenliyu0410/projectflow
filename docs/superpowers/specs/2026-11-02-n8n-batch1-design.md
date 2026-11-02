@@ -60,7 +60,7 @@
 ### 3.2 n8n 流程（匯出 JSON 進 repo，`deploy/n8n/`）
 
 1. **通知轉寄**：每分鐘 → 拉待送事件 → 依 Email 寄信 → 回報已送出或失敗
-2. **每日摘要**：週一至五 09:00 → 讀每日摘要 → 每人一封
+2. **每日摘要**：週一至五 09:00 → 呼叫每日摘要（寫成事件，由流程 1 寄出）
 3. **週報草稿**：週五 17:00 → 呼叫「產生草稿」（全部專案）
 
 寄給負責人的「草稿待確認」與確認後寄全組的「週報」都由專流寫成 outbox 事件，經流程 1 寄出，不另設流程。
@@ -74,7 +74,7 @@ n8n 使用自己的 SQLite volume；關閉使用統計、版本檢查、範本�
 | `GET /integrations/events?limit=` | 讀待送事件 |
 | `POST /integrations/events/{id}/result` | 回報 sent 或 failed（附錯誤） |
 | `POST /integrations/weekly-reports/generate` | 為全部或指定專案產生本週草稿 |
-| `GET /integrations/daily-digest` | 讀每人每日摘要 |
+| `POST /integrations/daily-digest` | 把每人每日摘要寫成 outbox 事件（同人同日去重，經流程 1 寄出；計畫調整） |
 
 所有呼叫寫稽核，執行者記為該服務帳號。
 
