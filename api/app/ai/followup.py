@@ -8,7 +8,7 @@ MAX_TURNS = 6
 MAX_CHARS = 6000
 CLARIFY = '請補充您指的是哪個專案、階段或文件，以及要查詢的事項。'
 # Points back at something said earlier ("那需要誰簽核？"), unless it names the project itself.
-REFERENTIAL = re.compile(r'(那個|那些|那|這個|這些|這項|上述|前述|它們|它|他們)(?!專案)')
+REFERENTIAL = re.compile(r'(那個|那些|那|這個|這些|這項|上述|前述|它們|它|他們)(?!個?專案)')
 # Questions too short to stand alone.
 ELLIPSIS = re.compile(r'(誰(簽核|核准|追蹤)|還缺哪些(文件)?|接著呢|然後呢|怎麼辦)[？?。]?')
 SYSTEM = ('你把使用者的追問改寫成可以單獨理解的完整問題，只補上被省略的主詞或對象，不加入新條件，也不要回答問題。'

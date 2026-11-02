@@ -37,6 +37,7 @@ def test_complete_questions_and_first_questions_are_not_rewritten(monkeypatch):
     assert followup.resolve("food", "那需要誰簽核？", []) == ("那需要誰簽核？", "none")
     assert followup.resolve("food", "G2需要誰簽核？", ["G2要具備什麼？"]) == ("G2需要誰簽核？", "none")
     assert followup.resolve("food", "這個專案的進度？", ["G2要具備什麼？"]) == ("這個專案的進度？", "none")
+    assert followup.resolve("food", "那個專案的進度？", ["G2要具備什麼？"]) == ("那個專案的進度？", "none")
     assert calls == []
 
 

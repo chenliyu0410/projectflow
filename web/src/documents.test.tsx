@@ -94,3 +94,20 @@ it('hides the AI switch from readers who cannot edit the document', async () => 
   expect(await screen.findByText('AI 引用：排隊中')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: '停用 AI 引用' })).toBeNull();
 });
+
+it('says an administrator must update the index when automatic updates are off, without polling', async () => {
+  const fetcher = vi.fn(async (url: string) => {
+    const data = url.includes('/ai/knowledge') ? { items: [{ document_id: 'd', ai_enabled: true, state: 'pending', reason: '新增或已變更，等待索引更新', indexed_version: null }], can_write: true, automatic: false }
+      : url.endsWith('/documents') ? { items: [v1], can_write: true } : { content: '成果' };
+    return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  });
+  vi.stubGlobal('fetch', fetcher);
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  try {
+    render(<DocumentManager scopePath="/nodes/n" expired={vi.fn()} />);
+    expect(await screen.findByText('AI：待管理者更新')).toBeInTheDocument();
+    const calls = fetcher.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(12000);
+    expect(fetcher.mock.calls.length).toBe(calls);
+  } finally { vi.useRealTimers(); }
+});
