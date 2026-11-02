@@ -34,6 +34,7 @@ deploy/backups/                    ← 每日完整備份 projectflow-backup-<�
 
 - 檔名用營運資料的分類名稱，例如「供應商.xlsx」「原料.xlsx」，或英文代號（partners、resources…）。
 - 欄名含「到期」或「有效期限」的欄位會被每日維運檢查。
+- 備份檔含帳號密碼雜湊且未加密，備份資料夾請只讓管理者存取，並另外保存到安全的地方。
 - 還原備份：在空的資料庫升級 migration 到同一版後，於 api 容器執行 `python -m app.demo_pack import /var/lib/projectflow-backups/<備份.zip>`（帳號密碼維持原樣；目標資料庫有資料時會拒絕覆蓋）。
 
 ## 啟動展示環境（獨立資料庫，不動平常的 projectflow-formal）
