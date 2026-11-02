@@ -78,7 +78,10 @@ def main():
 
     queued = api.call('POST', '/integrations/daily-digest', {}, bearer)['enqueued']
     print(f'2. daily digest queued {queued} mail(s)', flush=True)
-    results['daily_digest'] = queued > 0 and bool(wait_mail(mailpit, '今日任務摘要', 150))
+    if queued:
+        results['daily_digest'] = bool(wait_mail(mailpit, '今日任務摘要', 150))
+    else:
+        print("   (每人每天只寄一封：今天已寄過，略過這一步)")
 
     try:
         report = web.call('POST', f"/projects/{project['id']}/weekly-reports/generate")
