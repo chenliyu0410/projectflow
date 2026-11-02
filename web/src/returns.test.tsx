@@ -38,6 +38,8 @@ it('returns a received purchase line within what was received and shows the retu
   await screen.findByLabelText('收貨狀態');
   fireEvent.change(screen.getByLabelText('採購操作'), { target: { value: 'returns' } });
   expect(screen.getByRole('button', { name: 'SUGAR｜糖 · 尚無可退數量' })).toBeDisabled();
+  // The form is disabled while the panel loads; a browser ignores clicks until then.
+  await waitFor(() => expect(screen.getByRole('button', { name: 'MAT｜麵粉 · 可退 10.000 kg' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: 'MAT｜麵粉 · 可退 10.000 kg' }));
   expect(await screen.findByLabelText('本次可退')).toHaveTextContent('本次最多可退 10.000 kg（已收 10.000，已退 0.000）');
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '10.001' } });
@@ -72,6 +74,8 @@ it('returns issued material to stock from a work order', async () => {
   fireEvent.change(screen.getByLabelText('工單操作'), { target: { value: 'issue-returns' } });
   expect(screen.queryByLabelText('搜尋物料或成品')).toBeNull();
   expect(screen.getByRole('button', { name: 'SALT｜鹽 · 已全數退回' })).toBeDisabled();
+  // The form is disabled while the panel loads; a browser ignores clicks until then.
+  await waitFor(() => expect(screen.getByRole('button', { name: 'MEAT｜雞肉 · 可退 12.500 kg' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: 'MEAT｜雞肉 · 可退 12.500 kg' }));
   expect(await screen.findByLabelText('本次可退')).toHaveTextContent('本次最多可退 12.500 kg（本工單淨領料）');
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '2' } });

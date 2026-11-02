@@ -29,6 +29,8 @@ it('receives against a listed line, blocks over-receipt and refreshes progress',
   render(<PurchaseOrderPanel record={order} expired={vi.fn()} leaveGuard={{ current: null }} onChanged={onChanged} />);
   expect(await screen.findByLabelText('收貨狀態')).toHaveTextContent('部分收貨（0/2 列已收齊）');
   expect(screen.queryByLabelText('搜尋收貨物料')).toBeNull();
+  // The form is disabled while the panel loads; a browser ignores clicks until then.
+  await waitFor(() => expect(screen.getByRole('button', { name: 'MAT｜麵粉 · 未收 6.000 kg' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: 'MAT｜麵粉 · 未收 6.000 kg' }));
   expect(await screen.findByLabelText('本次可收')).toHaveTextContent('本次最多可收 6.000 kg');
   expect(screen.getByLabelText('庫存單位')).toBeDisabled();
