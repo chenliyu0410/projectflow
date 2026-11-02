@@ -765,6 +765,8 @@ class OutboxEvent(Base):
     last_error: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
     sent_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    # Set when n8n pulls the event; it is offered again only after the lease runs out.
+    claimed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
 
 class WeeklyReport(Base):

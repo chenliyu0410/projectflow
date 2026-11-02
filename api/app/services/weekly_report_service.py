@@ -57,6 +57,15 @@ def explicit_confidential(organization_key, project_id, nodes):
         overrides = policy.load(organization_key)['overrides']
     except ValueError:
         overrides = {}
+    else:
+        # policy.load falls back to an empty override list when the file is damaged; for mail that would
+        # silently publish tasks someone marked confidential, so stop instead.
+        path = policy.path(organization_key)
+        try:
+            if path.exists():
+                json.loads(path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            raise HTTPException(503, '資料分級設定無法讀取，暫停產生與寄出週報') from None
     if overrides.get(f'project:{project_id}') == 'confidential':
         return set(nodes)
     hidden = set()
@@ -231,6 +240,9 @@ def confirm(db, current, project, report, sections=None):
     organization = current.organization
     users = {u.id: u for u in db.scalars(select(User).where(User.organization_id == organization.id, User.id.in_(report.recipient_ids)))}
     nodes = {n.id: n for n in db.scalars(select(Node).where(Node.organization_id == organization.id, Node.id.in_(report.facts['node_ids'])))}
+    project_nodes = {n.id: n for n in db.scalars(select(Node).where(Node.organization_id == organization.id, Node.project_id == project.id))}
+    if explicit_confidential(organization.key, project.id, project_nodes) & set(nodes):
+        raise HTTPException(409, '有任務在草稿產生後被標為機密，請重新產生草稿')
     kept, removed = [], []
     for user_id in report.recipient_ids:
         user = users.get(user_id)

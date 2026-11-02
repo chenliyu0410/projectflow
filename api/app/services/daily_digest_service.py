@@ -8,14 +8,15 @@ from app.models import Node, Organization, TaskReport, User, now_utc
 from app.services.outbox_service import deliverable, enqueue
 from app.services.weekly_report_service import CLOSED, local_day
 
-TITLES = {'done_yesterday': '昨天完成', 'due_today': '今天到期', 'overdue': '已逾期', 'blocked': '卡住（前置條件未滿足）'}
+TITLES = {'done_yesterday': '上個工作日完成', 'due_today': '今天到期', 'overdue': '已逾期', 'blocked': '卡住（前置條件未滿足）'}
 
 
 def enqueue_all(db, now=None):
     from app.services.notification_service import states
     now = now or now_utc()
     today = local_day(now)
-    yesterday = today - timedelta(days=1)
+    # Monday looks back to Friday; the digest itself only runs on weekdays.
+    yesterday = today - timedelta(days=3 if today.weekday() == 0 else 1)
     queued = 0
     for organization in db.scalars(select(Organization)):
         users = [u for u in db.scalars(select(User).where(User.organization_id == organization.id)) if deliverable(u)]

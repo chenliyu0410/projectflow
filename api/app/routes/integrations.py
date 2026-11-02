@@ -67,3 +67,21 @@ def daily_digest(db: Session = Depends(get_session)):
     queued = daily_digest_service.enqueue_all(db)
     db.commit()
     return {'enqueued': queued}
+
+
+@router.post('/inbox/scan')
+async def inbox_scan(db: Session = Depends(get_session)):
+    from app.services import inbox_service
+    return await inbox_service.scan(db)
+
+
+@router.post('/maintenance/backup')
+def maintenance_backup(db: Session = Depends(get_session)):
+    from app.services import maintenance_service
+    return maintenance_service.backup(db)
+
+
+@router.post('/maintenance/expiry')
+def maintenance_expiry(db: Session = Depends(get_session)):
+    from app.services import maintenance_service
+    return maintenance_service.expiry(db)

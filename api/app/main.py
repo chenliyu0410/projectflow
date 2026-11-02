@@ -9,7 +9,7 @@ from starlette.requests import Request
 
 from app.routes import collaboration, notifications, report_fields, ai, documents, doc_templates, accounts, operations, operation_links, inventory, purchasing, production
 from app.routes import audit_logs, auth, departments, projects, reports, workflows, workspace, records, collaborators, attachments, dependencies, conditions
-from app.routes import integrations, weekly_reports
+from app.routes import integrations, mail_settings, weekly_reports
 
 
 def database_ready() -> bool:
@@ -92,6 +92,7 @@ def create_app(checker: Callable[[], bool] | None = None) -> FastAPI:
     application.include_router(conditions.router)
     application.include_router(integrations.router)
     application.include_router(weekly_reports.router)
+    application.include_router(mail_settings.router)
 
     @application.get("/health")
     def health():
