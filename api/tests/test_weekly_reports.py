@@ -137,7 +137,7 @@ def test_old_draft_becomes_unsent(client, engine, tree, week):
 
 def test_integration_generate_and_daily_digest(client, engine, tree, week):
     response = client.post('/integrations/weekly-reports/generate', json={'project_ids': ['tp']}, headers=BEARER)
-    assert response.json() == {'generated': 1, 'skipped_sent': 0}
+    assert response.json() == {'generated': 1, 'skipped_sent': 0, 'kept_draft': 0}
     with Session(engine) as db:
         assert db.scalar(select(AuditLog).where(AuditLog.action == 'weekly_report.generate')).payload['via'] == 'n8n'
     first = client.post('/integrations/daily-digest', headers=BEARER).json()['enqueued']
@@ -147,3 +147,26 @@ def test_integration_generate_and_daily_digest(client, engine, tree, week):
     with Session(engine) as db:
         body = db.scalar(select(OutboxEvent).where(OutboxEvent.kind == 'daily_digest', OutboxEvent.recipient_id == tree['ming'])).body_text
         assert '已逾期（1）' in body and '另一個任務' in body
+
+
+def test_schedule_keeps_edited_draft_and_deleted_task_keeps_recipients(client, engine, tree, week):
+    switch(client, 'owner')
+    report = generate(client)
+    client.patch(f"/weekly-reports/{report['id']}", json={'sections': dict(report['sections'], summary='手動改過')})
+    again = client.post('/integrations/weekly-reports/generate', json={'project_ids': ['tp']}, headers=BEARER).json()
+    assert again == {'generated': 0, 'skipped_sent': 0, 'kept_draft': 1}
+    with Session(engine) as db:
+        db.get(Node, 'a1').deleted_at = now_utc()
+        db.commit()
+    confirmed = client.post(f"/weekly-reports/{report['id']}/confirm", json={}).json()
+    assert confirmed['removed'] == [] and confirmed['report']['sections']['summary'] == '手動改過'
+    assert len(events(engine, 'weekly_report')) == 2
+
+
+def test_long_ai_output_is_capped(client, tree, week, monkeypatch):
+    monkeypatch.setattr(model, 'settings', lambda company: {'enabled': True, 'model': 'fake-local', 'base_url': 'http://127.0.0.1:1'})
+    monkeypatch.setattr(model, 'chat', lambda *a: {'summary': '長' * 3000, 'highlights': ['點' * 900] * 30, 'risks': [], 'next': []})
+    switch(client, 'owner')
+    report = generate(client)
+    assert len(report['sections']['summary']) == 2000 and len(report['sections']['highlights']) == 20
+    assert client.post(f"/weekly-reports/{report['id']}/confirm", json={}).status_code == 200

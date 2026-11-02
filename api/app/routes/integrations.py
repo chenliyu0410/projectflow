@@ -44,19 +44,22 @@ def generate(payload: GenerateRequest, db: Session = Depends(get_session)):
         .join(User, (User.organization_id == Project.organization_id) & (User.id == Project.owner_user_id))
     if payload.project_ids is not None:
         query = query.where(Project.id.in_(payload.project_ids))
-    generated, skipped_sent = 0, 0
+    generated, skipped_sent, kept_draft = 0, 0, 0
     for project, organization, owner in db.execute(query.order_by(Project.id)).all():
         try:
             # n8n has no user of its own: the project owner is recorded as the author, with via=n8n in the audit.
-            weekly_report_service.generate(db, organization, project, CurrentUser(owner, organization, ''), via='n8n')
+            report = weekly_report_service.generate(db, organization, project, CurrentUser(owner, organization, ''), via='n8n')
             db.commit()
-            generated += 1
+            if report is None:
+                kept_draft += 1
+            else:
+                generated += 1
         except HTTPException as exc:
             db.rollback()
             if exc.status_code != 409:
                 raise
             skipped_sent += 1
-    return {'generated': generated, 'skipped_sent': skipped_sent}
+    return {'generated': generated, 'skipped_sent': skipped_sent, 'kept_draft': kept_draft}
 
 
 @router.post('/daily-digest')

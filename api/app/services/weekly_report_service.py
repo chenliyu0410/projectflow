@@ -155,6 +155,9 @@ def write_sections(organization_key, facts):
         ok = isinstance(part, str) if key == 'summary' else isinstance(part, list) and all(isinstance(x, str) for x in part)
         text = json.dumps(part, ensure_ascii=False) if ok else ''
         # A section that cites a task outside the facts is dropped, not trusted.
+        if ok:
+            # Capped to what clean_sections accepts, so an unedited draft can always be confirmed.
+            part = part[:2000] if key == 'summary' else [x[:500] for x in part[:20]]
         sections[key] = part if ok and set(REF.findall(text)) <= known else plain[key]
     return sections, config.get('model', '本地模型')
 
@@ -178,6 +181,8 @@ def generate(db, organization, project, actor, now=None, via='web'):
                                                   WeeklyReport.week_start == start))
     if report is not None and report.status == 'sent':
         raise HTTPException(409, '本週週報已寄出')
+    if report is not None and via == 'n8n':
+        return None  # the schedule never overwrites a draft the owner may already have edited
     for old in db.scalars(select(WeeklyReport).where(WeeklyReport.organization_id == organization.id, WeeklyReport.project_id == project.id,
                                                      WeeklyReport.status == 'draft', WeeklyReport.week_start < start)):
         old.status = 'unsent'
@@ -229,7 +234,8 @@ def confirm(db, current, project, report, sections=None):
     kept, removed = [], []
     for user_id in report.recipient_ids:
         user = users.get(user_id)
-        ok = user is not None and user.status == 'active' and len(nodes) == len(report.facts['node_ids']) and \
+        # Tasks deleted since the draft are ignored; only tasks that still exist must stay visible.
+        ok = user is not None and user.status == 'active' and \
             len(visible_to_all(db, organization, [user], list(nodes), nodes)) == len(nodes)
         (kept if ok else removed).append(user)
     text = render(project, report)
