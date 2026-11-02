@@ -212,3 +212,25 @@ def test_expiry_reminds_and_opens_one_task_under_linked_node(client, engine, tre
         assert task.parent_id == 'ph' and task.kind == 'task' and task.owner_user_id == tree['ming']
         assert db.scalar(select(Node).where(Node.title.like('更新到期：遠期證書%'))) is None
     assert all('HACCP' in m.subject for m in kinds(engine, 'expiry'))
+
+
+def test_full_backup_restores_into_empty_database_with_real_passwords(client, engine, tmp_path, monkeypatch):
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine
+    from app.demo_pack import export_pack, import_pack
+    from test_migrations import ALEMBIC_INI
+    command.stamp(Config(ALEMBIC_INI), 'head')  # the fixture database is built with create_all, so give it a revision
+    pack = export_pack(engine, tmp_path / 'files', full=True)
+    url = f'sqlite:///{tmp_path / "restored.db"}'
+    monkeypatch.setenv('DATABASE_URL', url)
+    command.upgrade(Config(ALEMBIC_INI), 'head')
+    target = create_engine(url)
+    (tmp_path / 'restored-files').mkdir()
+    counts = import_pack(target, pack.__getitem__, tmp_path / 'restored-files')
+    assert counts['users'] >= 5 and 'audit_logs' in counts
+    with Session(engine) as db:
+        original = {u.username: u.password_hash for u in db.scalars(select(User))}
+    with Session(target) as db:
+        assert {u.username: u.password_hash for u in db.scalars(select(User))} == original
+    target.dispose()

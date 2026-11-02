@@ -4,9 +4,12 @@ Run after `python deploy/n8n/setup.py --seed-demo`; uses the same env file. Exit
 """
 import argparse
 import http.cookiejar
+import io
 import json
+import os
 import sys
 import time
+import zipfile
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -28,6 +31,39 @@ class Client:
             raw = response.read()
             # Mailpit answers some calls with plain "ok"; only JSON bodies are parsed.
             return json.loads(raw) if raw and response.headers.get_content_type() == 'application/json' else None
+
+
+def xlsx(rows):
+    """Minimal one-sheet workbook with inline strings (no extra packages needed)."""
+    def cell(ref, value):
+        return f'<c r="{ref}" t="inlineStr"><is><t>{value}</t></is></c>'
+    sheet = ''.join(f'<row r="{n}">' + ''.join(cell(f'{chr(65 + i)}{n}', v) for i, v in enumerate(row)) + '</row>' for n, row in enumerate(rows, 1))
+    ns = 'http://schemas.openxmlformats.org'
+    parts = {
+        '[Content_Types].xml': f'<Types xmlns="{ns}/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+        '_rels/.rels': f'<Relationships xmlns="{ns}/package/2006/relationships"><Relationship Id="rId1" Type="{ns}/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+        'xl/workbook.xml': f'<workbook xmlns="{ns}/spreadsheetml/2006/main" xmlns:r="{ns}/officeDocument/2006/relationships"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>',
+        'xl/_rels/workbook.xml.rels': f'<Relationships xmlns="{ns}/package/2006/relationships"><Relationship Id="rId1" Type="{ns}/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+        'xl/worksheets/sheet1.xml': f'<worksheet xmlns="{ns}/spreadsheetml/2006/main"><sheetData>{sheet}</sheetData></worksheet>',
+    }
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w') as archive:
+        for name, body in parts.items():
+            archive.writestr(name, body)
+    return buffer.getvalue()
+
+
+def drop(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    old = time.time() - 60
+    os.utime(path, (old, old))
+
+
+def host_folder(env, key, default):
+    value = env.get(key) or default
+    path = Path(value)
+    return path if path.is_absolute() else ROOT / 'deploy' / value
 
 
 def wait_mail(mailpit, needle, seconds):
@@ -94,6 +130,31 @@ def main():
         sent = web.call('POST', f"/weekly-reports/{report['id']}/confirm", {})
         print(f"3. weekly report for 「{project['title']}」 ({report['model_label']}) sent to {len(sent['report']['recipients'])} recipient(s)", flush=True)
         results['weekly_report'] = bool(wait_mail(mailpit, '週報（', 150))
+
+    inbox = host_folder(env, 'PF_INBOX_HOST', './inbox')
+    stamp = time.strftime('%H%M%S')
+    drop(inbox / args.org / project['title'] / f'verify-{stamp}.txt', f'n8n 收件匣驗證 {stamp}：殺菌溫度 121 度。'.encode('utf-8'))
+    print(f"4. dropped a file into the 「{project['title']}」 inbox folder; waiting for n8n…", flush=True)
+    results['inbox_document'] = bool(wait_mail(mailpit, '收件匣新文件', 150))
+
+    code = f'N8N-{stamp}'
+    expires = time.strftime('%Y-%m-%d', time.gmtime(time.time() + 8 * 3600 + 10 * 86400))
+    drop(inbox / args.org / '_營運資料匯入' / '供應商.xlsx', xlsx([['代碼', '名稱', '證書到期日'], [code, f'驗證供應商 {stamp}', expires]]))
+    print('5. dropped 供應商.xlsx into the import folder; waiting for n8n…', flush=True)
+    results['excel_import'] = bool(wait_mail(mailpit, '營運資料匯入完成', 150))
+
+    records = web.call('GET', f'/operations?category=partners&q={code}')
+    record = next((r for r in records.get('items', []) if r['code'] == code), None)
+    if record:
+        web.call('POST', f"/nodes/{task['id']}/operation-links", {'record_id': record['id']})
+    expiry = api.call('POST', '/integrations/maintenance/expiry', {}, bearer)
+    print(f"6. expiry check: {expiry}", flush=True)
+    results['expiry'] = bool(record) and expiry['tasks'] >= 1 and bool(wait_mail(mailpit, '即將到期', 150))
+
+    backup = api.call('POST', '/integrations/maintenance/backup', {}, bearer)
+    folder = host_folder(env, 'PF_BACKUP_HOST', './backups')
+    print(f"7. backup {backup['file']} ({backup['bytes']} bytes) in {folder}", flush=True)
+    results['backup'] = (folder / backup['file']).is_file() and bool(wait_mail(mailpit, '每日備份完成', 150))
 
     for name, ok in results.items():
         print(f"{'PASS' if ok else 'FAIL'} {name}")

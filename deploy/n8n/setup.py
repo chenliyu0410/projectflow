@@ -12,7 +12,8 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-WORKFLOWS = ['notify', 'daily-digest', 'weekly-draft']
+WORKFLOWS = {'notify': 'pfNotify0000001', 'daily-digest': 'pfDailyDigest01', 'weekly-draft': 'pfWeeklyDraft01',
+             'inbox': 'pfInbox00000001', 'maintenance': 'pfMaintenance01'}
 
 
 def env_values(path):
@@ -30,7 +31,8 @@ def ensure_env(path):
     path.parent.mkdir(parents=True, exist_ok=True)
     values = {'POSTGRES_PASSWORD': secrets.token_urlsafe(24), 'PF_N8N_TOKEN': secrets.token_urlsafe(32),
               'WEB_PORT': '15183', 'API_PORT': '18010', 'MAILPIT_PORT': '8025', 'N8N_PORT': '5678',
-              'PF_PUBLIC_URL': 'http://127.0.0.1:15183', 'PF_AI_OCR': 'false'}
+              'PF_PUBLIC_URL': 'http://127.0.0.1:15183', 'PF_AI_OCR': 'false',
+              'PF_INBOX_HOST': str(path.parent / 'inbox'), 'PF_BACKUP_HOST': str(path.parent / 'backups')}
     path.write_text(''.join(f'{k}={v}\n' for k, v in values.items()), encoding='utf-8')
     return values
 
@@ -60,6 +62,15 @@ def main():
     parser.add_argument('--seed-demo', action='store_true', help='seed demo accounts (use only on a new, empty database)')
     args = parser.parse_args()
     values = ensure_env(args.env_file)
+    for key, default in (('PF_INBOX_HOST', 'inbox'), ('PF_BACKUP_HOST', 'backups')):
+        if key not in values and args.env_file.resolve() != (ROOT / 'deploy/.env').resolve():
+            # Isolated stacks keep their folders beside their env file instead of sharing deploy/inbox.
+            values[key] = str(args.env_file.parent / default)
+            with args.env_file.open('a', encoding='utf-8') as handle:
+                handle.write(f'{key}={values[key]}\n')
+        folder = Path(values.get(key, ''))
+        folder = folder if folder.is_absolute() else ROOT / 'deploy' / default
+        folder.mkdir(parents=True, exist_ok=True)
     if len(values.get('PF_N8N_TOKEN', '')) < 24:
         raise SystemExit('PF_N8N_TOKEN must be at least 24 characters')
     compose(args.project, args.env_file, 'up', '-d', '--build', '--wait')
@@ -73,7 +84,7 @@ def main():
             '--input=/opt/projectflow-n8n/credentials/mailpit-smtp.json')
     for name in WORKFLOWS:
         compose(args.project, args.env_file, 'exec', '-T', 'n8n', 'n8n', 'import:workflow', f'--input=/opt/projectflow-n8n/workflows/{name}.json')
-    for workflow_id in ('pfNotify0000001', 'pfDailyDigest01', 'pfWeeklyDraft01'):
+    for workflow_id in WORKFLOWS.values():
         compose(args.project, args.env_file, 'exec', '-T', 'n8n', 'n8n', 'publish:workflow', f'--id={workflow_id}')
     # Schedules are registered at start-up, so n8n restarts once after the workflows are published.
     compose(args.project, args.env_file, 'restart', 'n8n')
