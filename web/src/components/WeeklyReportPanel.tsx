@@ -6,6 +6,12 @@ const LISTS: [keyof Omit<WeeklySections, 'summary'>, string][] = [['highlights',
 const COUNTS: [keyof WeeklyReport['facts']['counts'], string][] = [['completed', '完成'], ['pending_review', '待確認'], ['doing', '進行中'], ['due_next_week', '下週到期'], ['overdue', '逾期'], ['blocked', '卡住']];
 const STATUS: Record<WeeklyReport['status'], string> = { draft: '草稿', sent: '已寄出', unsent: '未寄出' };
 
+/** Monday of this week in local time, matching the report's week_start (server uses Taipei time). */
+export function thisMonday(now = new Date()) {
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+  return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+}
+
 function message(error: unknown) {
   return error instanceof ApiError ? error.message : '操作失敗，請稍後再試';
 }
@@ -25,6 +31,7 @@ export default function WeeklyReportPanel({ projectId, expired }: { projectId: s
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [version, setVersion] = useState(0);
+  const [memberOnly, setMemberOnly] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -36,6 +43,7 @@ export default function WeeklyReportPanel({ projectId, expired }: { projectId: s
     }).catch(e => {
       if (controller.signal.aborted) return;
       if (e instanceof ApiError && e.status === 401) expired?.();
+      else if (e instanceof ApiError && e.status === 403) { setItems([]); setMemberOnly(true); }
       else { setItems([]); setError(message(e)); }
     });
     return () => controller.abort();
@@ -43,6 +51,8 @@ export default function WeeklyReportPanel({ projectId, expired }: { projectId: s
 
   const current = items?.find(item => item.status === 'draft') ?? null;
   const latest = current ?? items?.[0] ?? null;
+  // One report per project per week: once this week's is sent, generating again would only fail.
+  const sentThisWeek = items?.some(item => item.status === 'sent' && item.week_start === thisMonday()) ?? false;
 
   async function run(label: string, action: () => Promise<string | void>) {
     setBusy(label); setError(''); setNotice('');
@@ -68,10 +78,11 @@ export default function WeeklyReportPanel({ projectId, expired }: { projectId: s
   const setList = (key: keyof Omit<WeeklySections, 'summary'>, text: string) => draft && setDraft({ ...draft, [key]: text.split('\n') });
 
   if (items === null) return <p className="muted">載入週報中…</p>;
+  if (memberOnly) return <section className="weekly-report" aria-label="週報"><h3>專案週報</h3><p className="empty">週報只寄給專案負責人與管理角色。你負責的任務會出現在每天早上的「今日任務摘要」信件裡。</p></section>;
   return <section className="weekly-report" aria-label="週報">
     <div className="weekly-head">
       <div><h3>專案週報</h3><p className="small muted">每週五 17:00 自動產生草稿，專案負責人確認後才會寄給管理角色；一般成員改收每日摘要。</p></div>
-      {canManage && <button disabled={!!busy || current?.status === 'sent'} onClick={() => void generate()}>{busy === 'generate' ? '產生中…' : '立即產生草稿'}</button>}
+      {canManage && <button disabled={!!busy || sentThisWeek} title={sentThisWeek ? '本週週報已寄出' : undefined} onClick={() => void generate()}>{busy === 'generate' ? '產生中…' : sentThisWeek ? '本週已寄出' : '立即產生草稿'}</button>}
     </div>
     {error && <p role="alert" className="error">{error}</p>}
     {notice && <p role="status" className="notice">{notice}</p>}

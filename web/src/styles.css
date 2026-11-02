@@ -1122,3 +1122,9 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .weekly-lists h4 { margin: 4px 0; }
 .weekly-lists ul, .weekly-body ul { margin: 0; padding-left: 18px; overflow-wrap: anywhere; }
 .weekly-report .notice { color: var(--teal, #2f7d6b); }
+.email-settings { display: grid; gap: 8px; max-width: 420px; }
+.email-settings label { display: grid; gap: 4px; font-size: 13px; }
+.email-settings label.check { display: flex; align-items: center; gap: 6px; }
+.mail-failures { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mail-failures li { border: 1px solid var(--line, #dde5e2); border-radius: 8px; padding: 8px 10px; display: grid; gap: 4px; overflow-wrap: anywhere; }
+.mail-failures li button { justify-self: start; }
