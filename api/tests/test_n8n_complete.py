@@ -28,6 +28,9 @@ def isolated(monkeypatch, tmp_path):
     monkeypatch.setenv('PF_ATTACHMENT_ROOT', str(tmp_path / 'files'))
     (tmp_path / 'inbox').mkdir()
     (tmp_path / 'files').mkdir()
+    from app.services import inbox_service
+    # Files written by the test are "settled" except the one that simulates a copy still in progress.
+    monkeypatch.setattr(inbox_service, 'settled', lambda path: path.name != '還在複製.txt')
     return tmp_path
 
 
@@ -157,7 +160,10 @@ def test_excel_import_creates_then_updates_records(client, engine, isolated, tre
     folder = isolated / 'inbox' / 'food' / '_營運資料匯入'
     drop(folder / '供應商.xlsx', xlsx([['代碼', '名稱', '狀態', '電話', '到期日'], ['sup-x', '新供應商', '合作中', '02-1234', 46387]]))
     assert client.post('/integrations/inbox/scan', headers=BEARER).json()['imports'] == 1
-    drop(folder / '供應商.xlsx', xlsx([['代碼', '名稱', '電話'], ['SUP-X', '新供應商（更名）', '02-9999']]))
+    with Session(engine) as db:
+        db.scalar(select(OperationsRecord).where(OperationsRecord.code == 'SUP-X')).visibility = 'restricted'
+        db.commit()
+    drop(folder / '供應商.xlsx', xlsx([['代碼', '名稱', '電話', '保存日數'], ['SUP-X', '新供應商（更名）', '02-9999', 30000]]))
     assert client.post('/integrations/inbox/scan', headers=BEARER).json()['imports'] == 1
     drop(folder / '供應商.xlsx', xlsx([['名稱'], ['沒有代碼']]))
     assert client.post('/integrations/inbox/scan', headers=BEARER).json()['failed'] == 1
@@ -166,9 +172,9 @@ def test_excel_import_creates_then_updates_records(client, engine, isolated, tre
     with Session(engine) as db:
         record = db.scalar(select(OperationsRecord).where(OperationsRecord.code == 'SUP-X'))
         assert record.title == '新供應商（更名）' and record.revision == 2 and record.source == 'import'
-        assert {f['label']: f['value'] for f in record.fields} == {'電話': '02-9999'}
-        first = db.scalar(select(AuditLog).where(AuditLog.action == 'operations.create'))
-        assert {f['label']: f['value'] for f in first.payload['after']['fields']}['到期日'] == '2026-12-31'
+        # An update merges: the restricted visibility, the status and fields missing from the sheet are kept.
+        assert record.visibility == 'restricted' and record.status == '合作中'
+        assert {f['label']: f['value'] for f in record.fields} == {'電話': '02-9999', '到期日': '2026-12-31', '保存日數': '30000'}
     assert len(kinds(engine, 'inbox_import')) == 2
 
 
@@ -177,6 +183,17 @@ def test_excel_import_creates_then_updates_records(client, engine, isolated, tre
 def test_backup_is_full_restorable_pack_and_keeps_seven(client, engine, isolated, tree):
     backups = isolated / 'backups'
     backups.mkdir()
+    from app.models import DocumentTemplate, DocumentTemplateVersion
+    (isolated / 'files' / 'template-key').write_bytes(b'docx bytes')
+    with Session(engine) as db:
+        org = db.get(Project, 'tp').organization_id
+        db.add(DocumentTemplate(id='tpl', organization_id=org, name='報價單', category='報價', current_version=1, status='active',
+                                created_by=tree['yu'], created_at=now_utc()))
+        db.flush()
+        db.add(DocumentTemplateVersion(id='tplv', organization_id=org, template_id='tpl', version=1, filename='報價單.docx',
+                                       storage_key='template-key', size_bytes=10, sha256='0' * 64, fields=[], numbering='Q-{seq}',
+                                       tax_rate='0.05', rounding='round', has_lines=False, created_by=tree['yu'], created_at=now_utc()))
+        db.commit()
     for n in range(8):
         (backups / f'projectflow-backup-2020010{n}-000000.zip').write_bytes(b'old')
     result = client.post('/integrations/maintenance/backup', headers=BEARER).json()
@@ -187,6 +204,7 @@ def test_backup_is_full_restorable_pack_and_keeps_seven(client, engine, isolated
         users = json.loads(archive.read('tables/users.json'))
     assert manifest['full'] is True and 'audit_logs' in manifest['tables'] and 'sessions' not in manifest['tables']
     assert all(u.get('password_hash') for u in users)
+    assert set(manifest['files']) == {'template-key'}  # Word template files travel with a backup
     with Session(engine) as db:
         admins = set(db.scalars(select(User.id).where(User.role == 'admin')))
     assert {m.recipient_id for m in kinds(engine, 'backup')} == admins

@@ -70,9 +70,10 @@ def daily_digest(db: Session = Depends(get_session)):
 
 
 @router.post('/inbox/scan')
-async def inbox_scan(db: Session = Depends(get_session)):
+def inbox_scan(db: Session = Depends(get_session)):
+    # A plain def runs in FastAPI's thread pool, so parsing and OCR never stall other requests.
     from app.services import inbox_service
-    return await inbox_service.scan(db)
+    return inbox_service.scan_sync(db)
 
 
 @router.post('/maintenance/backup')

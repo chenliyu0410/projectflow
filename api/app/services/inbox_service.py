@@ -5,8 +5,10 @@ Layout under PF_INBOX_ROOT (mounted from the host):
   <company key>/_營運資料匯入/<category>.xlsx      -> operations records added or updated by code
 Processed files move to `已匯入/`, rejected ones to `失敗/` with a `.原因.txt` beside them. n8n only triggers the scan.
 """
+import asyncio
 import os
 import re
+import threading
 import time
 import uuid
 from datetime import date, timedelta
@@ -25,8 +27,10 @@ from app.services.outbox_service import enqueue
 IMPORT_DIR = '_營運資料匯入'
 DONE, FAILED = '已匯入', '失敗'
 SKIP = {DONE, FAILED}
-# Files still being copied in are left for the next scan.
+# Files still being copied in are left for the next scan. ctime is checked too: inside the Linux container it
+# changes on every write, while Windows copies keep the source file's old mtime.
 SETTLE_SECONDS = 5
+_scan_lock = threading.Lock()
 CELL = re.compile(r'^([A-Z]+)(\d+)=(.*)$')
 EXCEL_EPOCH = date(1899, 12, 30)
 
@@ -49,11 +53,14 @@ def move(path, folder, reason=None):
     return target
 
 
+def settled(path):
+    info = path.stat()
+    return time.time() - max(info.st_mtime, info.st_ctime) >= SETTLE_SECONDS
+
+
 def ready_files(folder):
-    now = time.time()
     return sorted(p for p in folder.iterdir()
-                  if p.is_file() and not p.name.startswith(('.', '~$')) and not p.name.endswith('.原因.txt')
-                  and now - p.stat().st_mtime >= SETTLE_SECONDS)
+                  if p.is_file() and not p.name.startswith(('.', '~$')) and not p.name.endswith('.原因.txt') and settled(p))
 
 
 def ensure_layout(db):
@@ -106,9 +113,15 @@ def excel_rows(data, filename):
     return [[rows[n].get(c, '') for c in columns] for n in sorted(rows)]
 
 
+DATE_LABEL = re.compile(r'日期|到期|期限|日$')
+
+
 def as_date(label, value):
-    """Excel stores dates as day serials; date-like columns are written back as YYYY-MM-DD."""
-    if ('日' in label or '期限' in label) and re.fullmatch(r'\d{4,6}(\.0+)?', value):
+    """Excel stores dates as day serials; date-like columns are written back as YYYY-MM-DD.
+
+    Only serials between 1954 and 2119 in a date-named column are converted, so counts such as「保存日數」stay numbers.
+    """
+    if DATE_LABEL.search(label) and re.fullmatch(r'\d{5}(\.0+)?', value) and 20000 <= int(float(value)) <= 80000:
         return (EXCEL_EPOCH + timedelta(days=int(float(value)))).isoformat()
     return value
 
@@ -146,11 +159,17 @@ def import_records(db, organization, path):
         record = dict(zip(header, values))
         if not record.get('代碼') or not record.get('名稱'):
             continue
-        fields = [{'label': label, 'value': as_date(label, value)} for label, value in record.items()
-                  if label and label not in {'代碼', '名稱', '狀態'} and value]
-        body = {'category': category, 'code': record['代碼'], 'title': record['名稱'], 'status': record.get('狀態') or '啟用', 'fields': fields}
+        incoming = {label: as_date(label, value) for label, value in record.items() if label and label not in {'代碼', '名稱', '狀態'} and value}
         existing = db.scalar(select(OperationsRecord).where(OperationsRecord.organization_id == organization.id,
-                                                            OperationsRecord.category == category, OperationsRecord.code == body['code'].upper()))
+                                                            OperationsRecord.category == category, OperationsRecord.code == record['代碼'].strip().upper()))
+        body = {'category': category, 'code': record['代碼'], 'title': record['名稱'],
+                'fields': [{'label': k, 'value': v} for k, v in incoming.items()], 'status': record.get('狀態') or '啟用'}
+        if existing is not None:
+            # An update only changes what the sheet contains: other fields, the status and who may see the record stay.
+            merged = {f['label']: f['value'] for f in existing.fields or []}
+            merged.update(incoming)
+            body.update(fields=[{'label': k, 'value': v} for k, v in merged.items()], visibility=existing.visibility,
+                        status=record.get('狀態') or existing.status)
         try:
             if existing is None:
                 save(db, current, RecordWrite(**body), source='import')
@@ -160,8 +179,19 @@ def import_records(db, organization, path):
                 updated += 1
         except (ValidationError, HTTPException) as exc:
             detail = exc.detail if isinstance(exc, HTTPException) else exc.errors()[0]['msg']
-            raise ValueError(f'第 {number} 列無法匯入：{detail}') from None
+            done = f'（前面 {created + updated} 筆已匯入）' if created + updated else ''
+            raise ValueError(f'第 {number} 列無法匯入：{detail}{done}') from None
     return created, updated, admin
+
+
+def scan_sync(db):
+    """Entry point for the API: one scan at a time, run off the event loop so OCR does not block other requests."""
+    if not _scan_lock.acquire(blocking=False):
+        return {'documents': 0, 'imports': 0, 'failed': 0, 'note': '上一輪掃描尚未結束'}
+    try:
+        return asyncio.run(scan(db))
+    finally:
+        _scan_lock.release()
 
 
 async def scan(db):
@@ -195,6 +225,13 @@ async def scan(db):
                     move(path, DONE)
                 except (ValueError, HTTPException) as exc:
                     db.rollback()
-                    move(path, FAILED, exc.detail if isinstance(exc, HTTPException) else exc)
+                    try:
+                        move(path, FAILED, exc.detail if isinstance(exc, HTTPException) else exc)
+                    except OSError:
+                        pass  # left in place; the next scan reports it again
+                    summary['failed'] += 1
+                except OSError:
+                    # A locked or vanished file only skips this file; the rest of the inbox is still processed.
+                    db.rollback()
                     summary['failed'] += 1
     return summary

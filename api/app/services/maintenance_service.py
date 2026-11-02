@@ -53,6 +53,7 @@ def backup(db):
             path.unlink()
     except Exception as exc:
         db.rollback()
+        target.with_suffix('.zip.part').unlink(missing_ok=True)
         notify_admins(db, 'backup', '[專流] 每日備份失敗', f'{stamp} 的備份沒有完成：{type(exc).__name__}。請檢查備份資料夾空間與權限。',
                       f'backup-failed:{stamp}')
         db.commit()
@@ -65,8 +66,10 @@ def backup(db):
 
 
 def parse_date(value):
+    """YYYY-MM-DD or YYYY/M/D, as typed in Excel or the operations form."""
+    match = re.match(r'^\s*(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})', str(value))
     try:
-        return date.fromisoformat(str(value).strip().replace('/', '-')[:10])
+        return date(*map(int, match.groups())) if match else None
     except ValueError:
         return None
 

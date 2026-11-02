@@ -25,6 +25,8 @@ FORMAT = 1
 EXCLUDED = {'sessions', 'audit_logs', 'notifications'}
 SCRUBBED = {'users': {'password_hash'}}
 FILE_TABLES = {'attachments': 'storage_key', 'document_versions': 'storage_key'}
+# A backup also carries the uploaded Word template files.
+BACKUP_FILE_TABLES = {**FILE_TABLES, 'document_template_versions': 'storage_key'}
 
 
 # Backups keep audit logs and notifications but never live login sessions.
@@ -86,7 +88,7 @@ def parents_first(table, rows):
 
 def export_pack(engine, files_root, full=False):
     """Return {relative path: bytes} for the pack; full=True is a backup (every table, password hashes kept)."""
-    excluded, scrubbed = (BACKUP_EXCLUDED, {}) if full else (EXCLUDED, SCRUBBED)
+    excluded, scrubbed, file_tables = (BACKUP_EXCLUDED, {}, BACKUP_FILE_TABLES) if full else (EXCLUDED, SCRUBBED, FILE_TABLES)
     out, manifest = {}, {'format': FORMAT, 'exported_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'excluded_tables': sorted(excluded), 'scrubbed_columns': {k: sorted(v) for k, v in scrubbed.items()},
         'tables': {}, 'files': {}}
@@ -104,8 +106,8 @@ def export_pack(engine, files_root, full=False):
             body = json.dumps(rows, ensure_ascii=False, indent=1, sort_keys=True).encode('utf-8')
             out[f'tables/{table.name}.json'] = body
             manifest['tables'][table.name] = {'rows': len(rows), 'sha256': hashlib.sha256(body).hexdigest()}
-            if table.name in FILE_TABLES:
-                keys.update(row[FILE_TABLES[table.name]] for row in rows if row.get(FILE_TABLES[table.name]))
+            if table.name in file_tables:
+                keys.update(row[file_tables[table.name]] for row in rows if row.get(file_tables[table.name]))
     root = Path(files_root)
     for key in sorted(keys):
         path = root / key
