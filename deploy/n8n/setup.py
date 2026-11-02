@@ -78,8 +78,8 @@ def main():
     # Schedules are registered at start-up, so n8n restarts once after the workflows are published.
     compose(args.project, args.env_file, 'restart', 'n8n')
     wait_for(f"http://127.0.0.1:{values.get('N8N_PORT', '5678')}/healthz")
-    print(f"ready: web http://127.0.0.1:{values.get('WEB_PORT')}  mailpit http://127.0.0.1:{values.get('MAILPIT_PORT')}  "
-          f"n8n http://127.0.0.1:{values.get('N8N_PORT')}")
+    print(f"ready: web http://127.0.0.1:{values.get('WEB_PORT', '15173')}  mailpit http://127.0.0.1:{values.get('MAILPIT_PORT', '8025')}  "
+          f"n8n http://127.0.0.1:{values.get('N8N_PORT', '5678')}")
     return 0
 
 
