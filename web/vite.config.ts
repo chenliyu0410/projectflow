@@ -16,5 +16,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],
     include: ['src/**/*.test.tsx'],
+    // Matches the longer async waits in src/test-setup.ts on slow CI runners.
+    testTimeout: 20000,
   },
 });

@@ -9,6 +9,8 @@ import WorkflowLibrary from './components/WorkflowLibrary';
 import DocTemplateLibrary from './components/DocTemplateLibrary';
 import AccountManager from './components/AccountManager';
 import ChangePassword from './components/ChangePassword';
+import EmailSettings from './components/EmailSettings';
+import MailFailures from './components/MailFailures';
 import TimelineView from './components/TimelineView';
 import DependencyPanel from './components/DependencyPanel';
 import ReviewCenter from './components/ReviewCenter';
@@ -156,7 +158,9 @@ export default function App() {
     if (!canLeaveDocument()) return;
     const nodes = project?.nodes ?? [];
     begin(); closeCreation(); setMessage(''); setReportIntent(null);
-    setProjectView(preferTab ?? (projectView === 'timeline' || projectView === 'graph' ? projectView : defaultTab(nodes, nodeId)));
+    // The weekly tab only exists at the project level, so it is not carried into a node.
+    const keep = preferTab === 'weekly' && nodeId ? undefined : preferTab;
+    setProjectView(keep ?? (projectView === 'timeline' || projectView === 'graph' ? projectView : defaultTab(nodes, nodeId)));
     setSelectedNodeId(nodeId);
   }
   function openReport(nodeId: string) {
@@ -522,7 +526,7 @@ export default function App() {
           {state === 'ready' && !busy && !creationOpen && route.page === 'workflows' && session?.user.role === 'admin' && <DocTemplateLibrary key={session.organization.id} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'reviews' && <ReviewCenter openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
           {state === 'ready' && !busy && !creationOpen && route.page === 'audit' && <AuditLogView openNode={(projectId, nodeId) => navigate({page:'project', projectId, nodeId})} expired={expireSession} />}
-          {state === 'ready' && route.page === 'accounts' && <><ChangePassword done={() => undefined} expired={expireSession} />{session.user.role === 'admin' && <AccountManager key={session.organization.id} expired={expireSession} />}</>}
+          {state === 'ready' && route.page === 'accounts' && <><ChangePassword done={() => undefined} expired={expireSession} /><EmailSettings key={`email:${session.user.id}`} expired={expireSession} />{session.user.role === 'admin' && <><AccountManager key={session.organization.id} expired={expireSession} /><MailFailures key={`mail:${session.organization.id}`} expired={expireSession} /></>}</>}
           {state === 'ready' && route.page === 'my-tasks' && <MyTasks userName={session.user.display_name} openNode={(projectId, nodeId) => navigate({ page: 'project', projectId, nodeId })} expired={expireSession} />}
           {state==='ready'&&route.page==='project'&&project&&templateDialog&&<TemplateDialogs key={`${project.id}:${selectedNodeId}:${templateDialog}`} mode={templateDialog}
             target={selectedNode&&selectedNode.kind!=='project'?`/nodes/${selectedNode.id}`:`/projects/${project.id}`} title={selectedNode?.title??project.title} projectTarget={!selectedNode||selectedNode.kind==='project'}

@@ -138,8 +138,9 @@ def test_default_off_and_failed_refresh_keeps_index(client, engine, isolated, mo
     assert client.post("/ai/index/refresh").status_code == 404
     assert ask(client).status_code == 404
     monkeypatch.setenv("PF_AI_FORMAL_INDEX", "true")
+    # The formal index alone gates the feature, so PostgreSQL deployments without acceptance mode can use it.
     monkeypatch.setenv("PF_ACCEPTANCE_MODE", "false")
-    assert ask(client).status_code == 404
+    assert ask(client).status_code == 200
 
 
 def test_parser_limits_do_not_expand_untrusted_xml_or_zip():

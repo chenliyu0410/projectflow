@@ -4,10 +4,10 @@ import CopilotPanel from './components/CopilotPanel';
 import { ai } from './ai';
 import type { AIResult, AIStatus } from './ai';
 import { ApiError } from './api';
-vi.mock('./ai', () => ({ ai: { status: vi.fn(), ask: vi.fn(), preview: vi.fn(), refreshIndex: vi.fn(), document: vi.fn(), config: vi.fn(), save: vi.fn(), test: vi.fn() } }));
+vi.mock('./ai', async importOriginal => ({ ...await importOriginal<typeof import('./ai')>(), ai: { status: vi.fn(), ask: vi.fn(), preview: vi.fn(), refreshIndex: vi.fn(), document: vi.fn(), config: vi.fn(), save: vi.fn(), test: vi.fn(), feedback: vi.fn(), feedbackSummary: vi.fn() } }));
 const status: AIStatus = { ready: true, as_of: '2026-10-11', company_name: '食品', model_enabled: false, model_name: '', can_configure: true, can_sql: true, projects: [{ project_id: 'P1', title: '展示案' }], queries: [{ query_id: 'q02', label: '各部門逾期未完成數' }], counts: { projects: 1, documents: 2 } };
 const retrieved: AIResult = { kind: 'retrieval', engine: 'retrieval', answer: '檢索原文', warning: null, sources: [{ document_id: 'D1', title: '交付規範', project_id: 'P1', excerpt: '<script>文字</script> 截圖4張' }], analysis: null };
-beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(status); vi.mocked(ai.ask).mockResolvedValue(retrieved); vi.mocked(ai.document).mockResolvedValue({ title: '交付規範', text: '原文截圖4張' }); vi.mocked(ai.config).mockResolvedValue({ enabled: false, base_url: '', model: '' }); });
+beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(status); vi.mocked(ai.ask).mockResolvedValue(retrieved); vi.mocked(ai.document).mockResolvedValue({ title: '交付規範', text: '原文截圖4張' }); vi.mocked(ai.config).mockResolvedValue({ enabled: false, base_url: '', model: '' }); vi.mocked(ai.feedbackSummary).mockRejectedValue(new ApiError(403, '只有管理者可查看回饋統計')); });
 
 const gateway = { policy: 'local_only' as const, cloud_enabled: false as const, function: 'rag', classification: 'confidential' as const, classification_reason: 'source_level', route: 'none' as const, reason: 'model_disabled', outcome: 'not_sent' as const, source_count: 1, model: '' };
 const FOOD = '毛研食品';
@@ -90,7 +90,8 @@ it('updates isolated formal index and defaults to current sources', async () => 
   expect(ai.ask).toHaveBeenCalledWith(expect.objectContaining({ dataset: 'formal-v1', include_history: false, mode: 'rag', project_id: null }), expect.any(AbortSignal));
   fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
   await screen.findByText('原文截圖4張');
-  expect(ai.document).toHaveBeenCalledWith('D1', expect.any(AbortSignal), 'formal-v1', false);
+  // A cited formal version stays readable after a newer upload, so sources always open with history allowed.
+  expect(ai.document).toHaveBeenCalledWith('D1', expect.any(AbortSignal), 'formal-v1', true);
 });
 
 it('lets a shortcut ask for history and one project, and opens citations with that history', async () => {
@@ -349,4 +350,89 @@ it('expires the session when a question or citation returns 401', async () => {
   fireEvent.click(screen.getByText('D1 · 交付規範'));
   fireEvent.click(screen.getByRole('button', { name: '開啟原文 D1' }));
   await waitFor(() => expect(expired).toHaveBeenCalledTimes(2));
+});
+
+const send = async (text: string) => {
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: text } });
+  // After a category change the button waits for that category's data to load.
+  await waitFor(() => expect(screen.getByRole('button', { name: '送出 AI 問題' })).toBeEnabled());
+  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  await screen.findByText(text, { selector: '.copilot-question' });
+};
+const lastAsk = () => vi.mocked(ai.ask).mock.calls.at(-1)![0];
+
+it('sends earlier questions as follow-up history and a new conversation starts over', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  await send('G2 要具備什麼？');
+  expect(lastAsk()).not.toHaveProperty('history');
+  vi.mocked(ai.ask).mockResolvedValueOnce({ ...retrieved, followup: 'model', standalone_question: 'G2 需要誰簽核？' });
+  await send('那需要誰簽核？');
+  expect(lastAsk().history).toEqual(['G2 要具備什麼？']);
+  expect(await screen.findByText('已理解為：G2 需要誰簽核？')).toBeInTheDocument();
+  vi.mocked(ai.ask).mockResolvedValueOnce({ ...retrieved, followup: 'combined', standalone_question: 'G2 需要誰簽核？ 還缺哪些？' });
+  await send('還缺哪些？');
+  expect(await screen.findByText('已合併上一題一起查詢')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '新對話' }));
+  expect(screen.queryByText('G2 要具備什麼？', { selector: '.copilot-question' })).toBeNull();
+  await send('新的問題');
+  expect(lastAsk()).not.toHaveProperty('history');
+  // Switching category also starts over; data analysis never carries history.
+  category('資料分析');
+  await send('各部門逾期未完成數');
+  await send('那哪個部門最多？');
+  expect(lastAsk()).not.toHaveProperty('history');
+});
+
+it('bounds follow-up history to six questions and 6000 characters', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  for (const text of ['一', '二', '三', '四', '五', '六', '七']) await send(text);
+  await send('那呢？');
+  expect(lastAsk().history).toEqual(['二', '三', '四', '五', '六', '七']);
+  fireEvent.click(screen.getByRole('button', { name: '新對話' }));
+  const long = ['a'.repeat(1500), 'b'.repeat(2000), 'c'.repeat(2000), 'd'.repeat(1500)];
+  for (const text of long) await send(text);
+  await send('那呢？');
+  expect(lastAsk().history).toEqual(long.slice(1));
+});
+
+it('records helpful or not for each answer and shows the counts to administrators', async () => {
+  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, answer_id: 'A1' });
+  vi.mocked(ai.feedback).mockResolvedValue({ ok: true, rating: 'helpful' });
+  vi.mocked(ai.feedbackSummary).mockResolvedValue({ days: 30, helpful: 3, unhelpful: 1, total_answers: 5 });
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  await send('現行交付需要幾張截圖？');
+  fireEvent.click(screen.getByRole('button', { name: '有幫助' }));
+  expect(await screen.findByText('已記錄：有幫助')).toBeInTheDocument();
+  expect(ai.feedback).toHaveBeenCalledWith('A1', 'helpful');
+  expect(screen.getByRole('button', { name: '有幫助' })).toHaveAttribute('aria-pressed', 'true');
+  advanced();
+  expect(await screen.findByText('回饋（近30天）：有幫助 3／沒有幫助 1／回答 5')).toBeInTheDocument();
+});
+
+it('shows where a formal source comes from, links its download and reports a source that can no longer be read', async () => {
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true });
+  const source = { document_id: 'doc-X-v1-c3', title: 'G2檢查表.pdf', project_id: 'P1', excerpt: 'G2 由品保經理簽核', is_current: true, source_type: 'document', version: 1, section: 3,
+    document_ref: { kind: 'document' as const, document_id: 'X', version: 1 }, project_title: '展示案', node_title: '試產', page: 2 };
+  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, sources: [source] });
+  vi.mocked(ai.document).mockResolvedValue({ title: 'G2檢查表.pdf', text: '第2頁\nG2 由品保經理簽核', version: 1, is_current: true, section: 3,
+    document_ref: source.document_ref, project_title: '展示案', node_title: '試產', page: 2 });
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName="峰曜科技" />);
+  await ready();
+  // Every company may ask its own formal documents; only 毛研食品 has written shortcut questions.
+  vi.mocked(ai.status).mockResolvedValue({ ...status, formal_available: true, can_sql: false });
+  category('正式文件');
+  expect(screen.getByRole('group', { name: '副手快捷動作' })).toBeEmptyDOMElement();
+  await send('G2 誰簽核？');
+  expect(screen.getByText('文件・G2檢查表.pdf・第1版／第3段・第2頁')).toBeInTheDocument();
+  expect(screen.getByText('展示案／試產')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '開啟索引段落：G2檢查表.pdf／3' }));
+  expect(await screen.findByRole('link', { name: '下載原檔（第1版）' })).toHaveAttribute('href', '/api/documents/X/versions/1/download');
+  expect(screen.getByText('第1版・現行版本・第2頁')).toBeInTheDocument();
+  vi.mocked(ai.document).mockRejectedValueOnce(new ApiError(404, '找不到'));
+  fireEvent.click(screen.getByRole('button', { name: '開啟索引段落：G2檢查表.pdf／3' }));
+  expect(await screen.findByText('你目前無法查看這個來源。')).toBeInTheDocument();
+  expect(screen.queryByRole('alert')).toBeNull();
 });

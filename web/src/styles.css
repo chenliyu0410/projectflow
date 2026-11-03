@@ -1105,3 +1105,37 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .water-login .wl-alert { margin: 0; color: #ad303a; background: rgba(251,233,224,.92); border-radius: 10px; padding: 10px 12px; }
 @media (max-width: 480px) { .water-login .wl-card { padding: 30px 22px 26px; } .water-login h1 { font-size: 27px; } .water-login .wl-brand { padding: 16px; } }
 @media (prefers-reduced-motion: reduce) { .water-login .wl-wave svg, .water-login .wl-field:focus-within::before, .water-login .wl-card.sway { animation: none !important; } }
+
+/* N8N weekly report tab */
+.weekly-report { display: grid; gap: 12px; }
+.weekly-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.weekly-head h3 { margin: 0 0 4px; }
+.weekly-body { display: grid; gap: 10px; }
+.weekly-body label { display: grid; gap: 4px; font-size: 13px; }
+.weekly-body textarea { width: 100%; box-sizing: border-box; }
+.weekly-body .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.weekly-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; margin: 0; }
+.weekly-counts div { border: 1px solid var(--line, #dde5e2); border-radius: 8px; padding: 6px 8px; }
+.weekly-counts dt { color: var(--muted); font-size: 12px; }
+.weekly-counts dd { margin: 0; font-size: 20px; font-weight: 700; }
+.weekly-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 16px; }
+.weekly-lists h4 { margin: 4px 0; }
+.weekly-lists ul, .weekly-body ul { margin: 0; padding-left: 18px; overflow-wrap: anywhere; }
+.weekly-report .notice { color: var(--teal, #2f7d6b); }
+.email-settings { display: grid; gap: 8px; max-width: 420px; }
+.email-settings label { display: grid; gap: 4px; font-size: 13px; }
+.email-settings label.check { display: flex; align-items: center; gap: 6px; }
+.mail-failures { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mail-failures li { border: 1px solid var(--line, #dde5e2); border-radius: 8px; padding: 8px 10px; display: grid; gap: 4px; overflow-wrap: anywhere; }
+.mail-failures li button { justify-self: start; }
+
+/* RAG-PORT：追問提示、回答回饋、新對話與文件 AI 狀態 */
+.copilot-new { flex: 0 0 auto; width: auto; min-height: 30px; padding: 2px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); font-size: 13px; }
+.copilot-chat .copilot-understood { align-self: flex-end; max-width: 85%; margin: -4px 0 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.copilot-feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+/* aside button 預設撐滿整列；回饋鈕維持一列兩顆小按鈕。 */
+.copilot-feedback button { width: auto; min-height: 28px; padding: 2px 10px; font-size: 12px; text-align: center; }
+.copilot-feedback button[aria-pressed="true"] { border-color: var(--teal); color: var(--teal); }
+.document-list .ai-state { justify-self: start; padding: 1px 8px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.document-list .ai-state-indexed { border-color: var(--teal); color: var(--teal); }
+.ai-knowledge { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }

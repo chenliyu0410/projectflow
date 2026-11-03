@@ -1,7 +1,11 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { ai } from './ai';
+
+// CI runners are much slower than a laptop: findBy*/waitFor wait up to 5s instead of 1s.
+// They still return as soon as the UI matches, so passing runs are not slowed down.
+configure({ asyncUtilTimeout: 5000 });
 
 // Existing workflow tests own their fetch queues; AI has its own contract tests.
 beforeEach(() => {

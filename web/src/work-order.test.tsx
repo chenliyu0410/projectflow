@@ -30,6 +30,8 @@ it('shows plan progress and issued totals, and completes only the planned produc
   expect(screen.getByLabelText('搜尋物料或成品')).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText('工單操作'), { target: { value: 'completions' } });
   expect(screen.queryByLabelText('搜尋物料或成品')).toBeNull();
+  // The form is disabled while the panel loads; a browser ignores clicks until then.
+  await waitFor(() => expect(screen.getByRole('button', { name: 'FG｜成貓罐 · 尚可完工 60.000 罐' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: 'FG｜成貓罐 · 尚可完工 60.000 罐' }));
   expect(await screen.findByLabelText('本次可完工')).toHaveTextContent('本次最多可完工 60.000 罐（計畫 100.000，已完工 40.000）');
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '61' } });

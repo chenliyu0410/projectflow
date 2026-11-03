@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, requestJson } from '../api';
+import { ai, type Knowledge, type KnowledgeItem } from '../ai';
 import DocTemplateFill, { type SavedVersion } from './DocTemplateFill';
 
 type Version = { document_id: string; version: number; filename: string; size_bytes: number; created_at: string; created_by: string; comment: string; editable: boolean; from_template?: boolean };
 type Listing = { items: Version[]; can_write: boolean };
 type History = Listing & { current_version: number };
 const ACCEPT = '.txt,.csv,.pdf,.png,.jpg,.jpeg,.docx,.xlsx,.pptx,.zip';
+const AI_STATE: Record<KnowledgeItem['state'], string> = { indexed: '可查詢', pending: '排隊中', skipped: '無法索引', disabled: '已停用' };
 
 export default function DocumentManager({ scopePath, expired, leaveGuard }: { scopePath: string; expired: () => void; leaveGuard?: { current: (() => boolean) | null } }) {
   const [listing, setListing] = useState<Listing | null>(null);
@@ -18,6 +20,8 @@ export default function DocumentManager({ scopePath, expired, leaveGuard }: { sc
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [filling, setFilling] = useState<'new' | 'again' | null>(null);
+  // Null where the AI document index is off: the AI column and switch are not shown at all.
+  const [knowledge, setKnowledge] = useState<Knowledge | null>(null);
   const controller = useRef<AbortController | null>(null);
   const inFlight = useRef(false);
   useEffect(() => {
@@ -46,8 +50,31 @@ export default function DocumentManager({ scopePath, expired, leaveGuard }: { sc
   async function load(signal: AbortSignal) {
     const value = await requestJson<Listing>(`${scopePath}/documents`, { signal });
     if (!signal.aborted) setListing(value);
+    await loadKnowledge(signal);
+  }
+  async function loadKnowledge(signal: AbortSignal) {
+    try { const value = await ai.knowledge(scopePath, signal); if (!signal.aborted) setKnowledge(value); }
+    catch (e) { if (e instanceof ApiError && e.status === 401) expired(); else if (!signal.aborted) setKnowledge(null); }
   }
   useEffect(() => { void run(load); return () => { controller.current?.abort(); inFlight.current = false; }; }, [scopePath]);
+  // New uploads are indexed in the background; check again until none is waiting. Without automatic
+  // updates nothing changes until an administrator refreshes the index, so there is nothing to wait for.
+  const waiting = !!knowledge?.automatic && knowledge.items.some(i => i.state === 'pending');
+  const aiLabel = (item: KnowledgeItem) => item.state === 'pending' && !knowledge?.automatic ? '待管理者更新' : AI_STATE[item.state];
+  useEffect(() => {
+    if (!waiting) return;
+    const request = new AbortController();
+    const timer = window.setTimeout(() => void loadKnowledge(request.signal), 5000);
+    return () => { window.clearTimeout(timer); request.abort(); };
+  }, [waiting, knowledge]);
+  async function toggleAI(item: KnowledgeItem) {
+    await run(async signal => {
+      const value = await ai.setKnowledge(item.document_id, !item.ai_enabled, signal);
+      if (signal.aborted) return;
+      setKnowledge(current => current && { ...current, items: current.items.map(i => i.document_id === value.document_id ? value : i) });
+      setNotice(value.ai_enabled ? 'AI 助手可以再引用這份文件。' : '已停用：AI 助手不會再引用這份文件；原檔與先前回答的來源都保留。');
+    });
+  }
   async function open(version: Version, signal: AbortSignal) {
     const value = await requestJson<History>(`/documents/${version.document_id}/versions`, { signal });
     const body = version.editable ? await requestJson<{ content: string }>(`/documents/${version.document_id}/versions/${version.version}/text`, { signal }) : null;
@@ -95,13 +122,15 @@ export default function DocumentManager({ scopePath, expired, leaveGuard }: { sc
     {!listing ? <p>{busy ? '載入文件中…' : '尚未載入文件，請重試。'}</p> : <>
       {!listing.can_write && <p>目前僅可檢視與下載文件。</p>}
       {listing.items.length === 0 && <p>目前沒有文件。有編輯權限的人員可上傳第一份文件。</p>}
-      <div className="document-list">{listing.items.map(v => <button key={v.document_id} disabled={busy} aria-pressed={selected?.document_id === v.document_id} onClick={() => { if (discard()) { setFilling(null); void run(signal => open(v, signal)); } }}><strong>{v.filename}</strong><span>v{v.version} · {v.created_by} · {new Date(v.created_at).toLocaleString('zh-TW')}</span></button>)}</div>
+      <div className="document-list">{listing.items.map(v => { const item = knowledge?.items.find(i => i.document_id === v.document_id); return <button key={v.document_id} disabled={busy} aria-pressed={selected?.document_id === v.document_id} onClick={() => { if (discard()) { setFilling(null); void run(signal => open(v, signal)); } }}><strong>{v.filename}</strong><span>v{v.version} · {v.created_by} · {new Date(v.created_at).toLocaleString('zh-TW')}</span>{item && <span className={`ai-state ai-state-${item.state}`} title={item.reason}>AI：{aiLabel(item)}</span>}</button>; })}</div>
     </>}
     {selected && history && <article className="document-detail"><h3>{selected.filename}</h3>
       <label>版本紀錄<select aria-label="版本紀錄" disabled={busy} value={selected.version} onChange={e => { const v = history.items.find(row => row.version === Number(e.target.value)); if (v && discard()) void run(signal => open(v, signal)); }}>{history.items.map(v => <option key={v.version} value={v.version}>v{v.version} · {v.created_by} · {new Date(v.created_at).toLocaleString('zh-TW')}</option>)}</select></label>
       <p>{selected.version === history.current_version ? '目前版本' : '歷史版本（唯讀）'} · {selected.size_bytes.toLocaleString()} bytes</p>
       <p>版本說明：{selected.comment || '未填寫'}</p>
       <a href={`/api/documents/${selected.document_id}/versions/${selected.version}/download`}>下載 v{selected.version}</a>
+      {(() => { const item = knowledge?.items.find(i => i.document_id === selected.document_id); return item && <p className="ai-knowledge">AI 引用：{aiLabel(item)}{item.state === 'skipped' && item.reason ? `（${item.reason}）` : ''}
+        {knowledge?.can_write && <button disabled={busy} onClick={() => void toggleAI(item)}>{item.ai_enabled ? '停用 AI 引用' : '恢復 AI 引用'}</button>}</p>; })()}
       {content !== null && draft === null && <pre className="document-text">{content}</pre>}
       {content === null && <p>此檔案請下載查看；原始檔案與歷史版本均已保存。</p>}
       {history.can_write && selected.version === history.current_version && selected.from_template && (filling === 'again'

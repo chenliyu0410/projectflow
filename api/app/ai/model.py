@@ -52,11 +52,11 @@ def validate_config(config):
         raise ValueError('Model required')
 
 
-def request(config, path, payload=None):
+def request(config, path, payload=None, *, timeout=180):
     if payload is not None:
         validate_config(dict(config, enabled=True))
     base=validate_endpoint(config['base_url'])
-    with httpx.Client(timeout=httpx.Timeout(180,connect=5),follow_redirects=False,trust_env=False) as client:
+    with httpx.Client(timeout=httpx.Timeout(timeout,connect=5),follow_redirects=False,trust_env=False) as client:
         with client.stream('POST' if payload is not None else 'GET',base+path,json=payload) as response:
             response.raise_for_status()
             content=bytearray()
@@ -96,11 +96,11 @@ def fits(system, prompt):
     return estimated_tokens(system+prompt)+OUTPUT_TOKENS+TEMPLATE_TOKENS<=CONTEXT_TOKENS
 
 
-def chat(config, system, prompt, schema):
+def chat(config, system, prompt, schema, *, output_tokens=OUTPUT_TOKENS, timeout=None):
     # Refuse instead of letting the server silently drop the start of an oversized prompt.
     if not fits(system, prompt):
         raise ValueError('Model context too large')
-    result=request(config,'/api/chat',dict(model=config['model'],stream=False,think=False,format=schema,options={'temperature':0,'num_predict':OUTPUT_TOKENS,'num_ctx':CONTEXT_TOKENS},messages=[{'role':'system','content':system},{'role':'user','content':prompt}]))
+    result=request(config,'/api/chat',dict(model=config['model'],stream=False,think=False,format=schema,options={'temperature':0,'num_predict':output_tokens,'num_ctx':CONTEXT_TOKENS},messages=[{'role':'system','content':system},{'role':'user','content':prompt}]),**({} if timeout is None else {'timeout':timeout}))
     if result.get('done') is not True or result.get('done_reason') != 'stop':
         raise ValueError('Incomplete model response')
     value=json.loads(result['message']['content'])

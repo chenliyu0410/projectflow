@@ -1,0 +1,75 @@
+{
+  "id": "pfWeeklyDraft01",
+  "name": "專流：週報草稿（週五 17:00）",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * 5"
+            }
+          ]
+        }
+      },
+      "name": "週五 17:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "schedule"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PF_API_URL }}/integrations/weekly-reports/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.PF_N8N_TOKEN }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 600000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}"
+      },
+      "name": "產生週報草稿",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "產生週報草稿"
+    }
+  ],
+  "connections": {
+    "週五 17:00": {
+      "main": [
+        [
+          {
+            "node": "產生週報草稿",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {},
+  "tags": []
+}

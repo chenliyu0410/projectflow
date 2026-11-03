@@ -16,7 +16,7 @@ P0至P1c為已交付本機MVP，P2a任務工作區已完成獨立審查、main�
 python deploy/start.py --seed-demo
 ```
 
-之後重啟用 `python deploy/start.py`，不重新種資料。此入口仍為 http://127.0.0.1:15173 。初次Compose會下載Python／Node／PostgreSQL映像與鎖版套件，需要網路。這不是LAN／正式環境部署或人類試用簽核。
+之後重啟用 `python deploy/start.py`，不重新種資料。此入口仍為 http://127.0.0.1:15173 。`deploy/.env`有`PF_N8N_TOKEN`（照`deploy/n8n/README.md`「接到平常的本機環境」設定過n8n）時，會一起啟動n8n與Mailpit（`--profile n8n`）；沒有token就不碰它們。初次Compose會下載Python／Node／PostgreSQL映像與鎖版套件，需要網路。這不是LAN／正式環境部署或人類試用簽核。
 
 ### 同網域試用（LAN-TRIAL）
 
@@ -48,7 +48,7 @@ python deploy/start.py --lan
 
 - **啟動**：雙擊 repo 根目錄的 `開機自動啟動-公開試用.bat`，或執行 `python deploy/public_trial.py`。它會依序：
   1. 等 Docker 就緒。必要時會自動開 Docker Desktop，最多等 5 分鐘。
-  2. 用公開模式啟動 15173。資料保留，不 seed。
+  2. 用公開模式啟動 15173。資料保留，不 seed。已設定 n8n 的話，n8n 與 Mailpit 也會一起啟動。
   3. 等 Tailscale 連線，最多等 2 分鐘。
   4. 發布 Funnel 的 10000 埠，然後印出本機和公開網址的健檢結果。
 

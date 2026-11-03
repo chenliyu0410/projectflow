@@ -29,6 +29,8 @@ it('receives against a listed line, blocks over-receipt and refreshes progress',
   render(<PurchaseOrderPanel record={order} expired={vi.fn()} leaveGuard={{ current: null }} onChanged={onChanged} />);
   expect(await screen.findByLabelText('收貨狀態')).toHaveTextContent('部分收貨（0/2 列已收齊）');
   expect(screen.queryByLabelText('搜尋收貨物料')).toBeNull();
+  // The form is disabled while the panel loads; a browser ignores clicks until then.
+  await waitFor(() => expect(screen.getByRole('button', { name: 'MAT｜麵粉 · 未收 6.000 kg' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: 'MAT｜麵粉 · 未收 6.000 kg' }));
   expect(await screen.findByLabelText('本次可收')).toHaveTextContent('本次最多可收 6.000 kg');
   expect(screen.getByLabelText('庫存單位')).toBeDisabled();
@@ -38,6 +40,7 @@ it('receives against a listed line, blocks over-receipt and refreshes progress',
   expect(screen.getByRole('button', { name: '確認收貨入庫' })).toBeDisabled();
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '6' } });
   state.current = purchase({ status: 'partial', lines: [line({ received: '10.000', remaining: '0.000', status: 'received' }), (purchase() as { lines: object[] }).lines[1]] });
+  await waitFor(() => expect(screen.getByRole('button', { name: '確認收貨入庫' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: '確認收貨入庫' }));
   await screen.findByText('已入帳，庫存與異動紀錄已保存。');
   expect(posts[0]).toMatchObject({ path: '/api/operations/po/receipts', body: { resource_id: 'flour', quantity: '6', unit: 'kg', reason: '第二批' } });

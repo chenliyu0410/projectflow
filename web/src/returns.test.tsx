@@ -1,5 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { expect, it, vi } from 'vitest';
+
+// Submit -> reload chains can exceed the 1s default on slow CI runners; the messages stay on screen, so waiting longer is safe.
+const SLOW = { timeout: 5000 };
 import InventoryPanel from './components/InventoryPanel';
 import PurchaseOrderPanel from './components/PurchaseOrderPanel';
 import WorkOrderPanel from './components/WorkOrderPanel';
@@ -35,6 +38,8 @@ it('returns a received purchase line within what was received and shows the retu
   await screen.findByLabelText('收貨狀態');
   fireEvent.change(screen.getByLabelText('採購操作'), { target: { value: 'returns' } });
   expect(screen.getByRole('button', { name: 'SUGAR｜糖 · 尚無可退數量' })).toBeDisabled();
+  // The form is disabled while the panel loads; a browser ignores clicks until then.
+  await waitFor(() => expect(screen.getByRole('button', { name: 'MAT｜麵粉 · 可退 10.000 kg' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: 'MAT｜麵粉 · 可退 10.000 kg' }));
   expect(await screen.findByLabelText('本次可退')).toHaveTextContent('本次最多可退 10.000 kg（已收 10.000，已退 0.000）');
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '10.001' } });
@@ -43,16 +48,18 @@ it('returns a received purchase line within what was received and shows the retu
   expect(screen.getByRole('button', { name: '確認採購退貨' })).toBeDisabled();
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '3' } });
   state.current = purchase({ lines: [line({ received: '7.000', remaining: '3.000', returned: '3.000', status: 'partial' }), (purchase() as { lines: object[] }).lines[1]] });
+  // The button only enables after the new quantity is validated; clicking earlier is a no-op.
+  await waitFor(() => expect(screen.getByRole('button', { name: '確認採購退貨' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: '確認採購退貨' }));
-  await screen.findByText('已入帳，庫存與異動紀錄已保存。');
+  await screen.findByText('已入帳，庫存與異動紀錄已保存。', {}, SLOW);
   expect(posts[0]).toMatchObject({ path: '/api/operations/po/returns', body: { resource_id: 'flour', quantity: '3', unit: 'kg', reason: '受潮退回' } });
-  await waitFor(() => expect(screen.getByText('訂購 10.000 kg · 已收 7.000 · 未收 3.000 · 已退 3.000')).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText('訂購 10.000 kg · 已收 7.000 · 未收 3.000 · 已退 3.000')).toBeInTheDocument(), SLOW);
   // A line with ledger history stays locked even if returns bring it back to zero.
   state.current = purchase({ lines: [line({ received: '0.000', remaining: '10.000', returned: '10.000', status: 'pending' })] });
   fireEvent.click(screen.getByRole('button', { name: '重新載入收貨進度' }));
-  fireEvent.click(await screen.findByRole('button', { name: '編輯採購明細' }));
+  fireEvent.click(await screen.findByRole('button', { name: '編輯採購明細' }, SLOW));
   expect(screen.getByRole('button', { name: '移除 MAT' })).toBeDisabled();
-});
+}, 20000);
 
 it('returns issued material to stock from a work order', async () => {
   vi.spyOn(window, 'confirm').mockReturnValue(true);
@@ -67,16 +74,19 @@ it('returns issued material to stock from a work order', async () => {
   fireEvent.change(screen.getByLabelText('工單操作'), { target: { value: 'issue-returns' } });
   expect(screen.queryByLabelText('搜尋物料或成品')).toBeNull();
   expect(screen.getByRole('button', { name: 'SALT｜鹽 · 已全數退回' })).toBeDisabled();
+  // The form is disabled while the panel loads; a browser ignores clicks until then.
+  await waitFor(() => expect(screen.getByRole('button', { name: 'MEAT｜雞肉 · 可退 12.500 kg' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: 'MEAT｜雞肉 · 可退 12.500 kg' }));
   expect(await screen.findByLabelText('本次可退')).toHaveTextContent('本次最多可退 12.500 kg（本工單淨領料）');
   fireEvent.change(screen.getByLabelText('異動數量'), { target: { value: '2' } });
   fireEvent.change(screen.getByLabelText('異動原因／收貨說明'), { target: { value: '剩料退回' } });
   state.current = production([{ ...meat, quantity: '10.500', returned: '2.000' }]);
+  await waitFor(() => expect(screen.getByRole('button', { name: '確認工單退料' })).toBeEnabled());
   fireEvent.click(screen.getByRole('button', { name: '確認工單退料' }));
-  await screen.findByText('已入帳，庫存與異動紀錄已保存。');
+  await screen.findByText('已入帳，庫存與異動紀錄已保存。', {}, SLOW);
   expect(posts[0]).toMatchObject({ path: '/api/operations/wo/issue-returns', body: { resource_id: 'meat', quantity: '2', unit: 'kg', reason: '剩料退回' } });
-  await waitFor(() => expect(within(screen.getByLabelText('累計領料')).getByText('已領 10.500 kg')).toBeInTheDocument());
-});
+  await waitFor(() => expect(within(screen.getByLabelText('累計領料')).getByText('已領 10.500 kg')).toBeInTheDocument(), SLOW);
+}, 20000);
 
 it('reverses one entry with a reason and retries an uncertain reversal with the same request', async () => {
   vi.spyOn(window, 'confirm').mockReturnValue(true);
@@ -96,16 +106,16 @@ it('reverses one entry with a reason and retries an uncertain reversal with the 
   expect(screen.getByRole('button', { name: '確認沖銷' })).toBeDisabled();
   fireEvent.change(screen.getByLabelText('沖銷原因'), { target: { value: '期初數量填錯' } });
   fireEvent.click(screen.getByRole('button', { name: '確認沖銷' }));
-  await waitFor(() => expect(screen.getByRole('button', { name: '重試相同沖銷' })).toBeEnabled());
+  await waitFor(() => expect(screen.getByRole('button', { name: '重試相同沖銷' })).toBeEnabled(), SLOW);
   expect(screen.getByLabelText('沖銷原因')).toBeDisabled();
   expect(guard.current?.()).toBe(false);
   fireEvent.click(screen.getByRole('button', { name: '重試相同沖銷' }));
-  await screen.findByText('已沖銷，庫存與相關進度已回復；原紀錄保留。');
+  await screen.findByText('已沖銷，庫存與相關進度已回復；原紀錄保留。', {}, SLOW);
   expect(posts.map(post => post.path)).toEqual(['/api/inventory/movements/m1/reversal', '/api/inventory/movements/m1/reversal']);
   expect(posts[0].body).toEqual(posts[1].body);
   expect(posts[0].body.reason).toBe('期初數量填錯');
-  await waitFor(() => expect(guard.current?.()).toBe(true));
-});
+  await waitFor(() => expect(guard.current?.()).toBe(true), SLOW);
+}, 20000);
 
 it('keeps a rejected reversal editable and disables reversals on a closed order', async () => {
   vi.spyOn(window, 'confirm').mockReturnValue(true);
@@ -115,7 +125,7 @@ it('keeps a rejected reversal editable and disables reversals on a closed order'
   fireEvent.click(await screen.findByRole('button', { name: '沖銷此筆' }));
   fireEvent.change(screen.getByLabelText('沖銷原因'), { target: { value: '錯帳' } });
   fireEvent.click(screen.getByRole('button', { name: '確認沖銷' }));
-  expect(await screen.findByText('未沖銷：庫存不足，無法沖銷。')).toHaveAttribute('role', 'alert');
+  expect(await screen.findByText('未沖銷：庫存不足，無法沖銷。', {}, SLOW)).toHaveAttribute('role', 'alert');
   expect(screen.getByLabelText('沖銷原因')).toBeEnabled();
   expect(screen.getByRole('button', { name: '確認沖銷' })).toBeEnabled();
   unmount();
@@ -123,4 +133,4 @@ it('keeps a rejected reversal editable and disables reversals on a closed order'
   render(<PurchaseOrderPanel record={order} expired={vi.fn()} leaveGuard={{ current: null }} />);
   expect(await screen.findByRole('button', { name: '沖銷此筆' })).toBeDisabled();
   expect(screen.getByLabelText('採購操作')).toBeDisabled();
-});
+}, 20000);

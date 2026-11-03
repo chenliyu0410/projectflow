@@ -158,7 +158,7 @@ def test_missing_source_file_is_skipped_without_blocking_other_sources(client, e
     file.unlink()
     upload_doc(client, nid, "新人報到保留檔案".encode())
     result = refresh(client)
-    assert result["counts"] == {"indexed": 1, "pending": 0, "skipped": 1}
+    assert result["counts"] == {"indexed": 1, "pending": 0, "skipped": 1, "disabled": 0}
     assert any("不存在" in item["reason"] for item in result["items"])
     assert "保留檔案" in ask(client).text and "遺失檔案" not in ask(client).text
     file.write_bytes(saved)

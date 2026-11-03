@@ -100,7 +100,7 @@ def test_auto_failure_preserves_index_and_retries(client, engine, isolated, monk
     assert not client.get("/ai/status?dataset=formal-v1").json()["index"]["automatic"]["last_error"]
 
 
-def test_worker_requires_all_isolation_gates_and_stops(engine, isolated, monkeypatch):
+def test_worker_gates_and_stops(engine, isolated, monkeypatch):
     from app.ai import index_worker
     visited = threading.Event()
     monkeypatch.setattr(index_worker, "tick", lambda _engine: visited.set())
@@ -112,12 +112,14 @@ def test_worker_requires_all_isolation_gates_and_stops(engine, isolated, monkeyp
         assert worker.is_alive()
     assert not worker.is_alive()
     visited.clear()
+    # Docker deployments use PostgreSQL without acceptance mode; the two formal index switches are enough.
     monkeypatch.setenv("PF_ACCEPTANCE_MODE", "false")
-    with index_worker.running(engine):
-        assert not visited.is_set()
-    monkeypatch.setenv("PF_ACCEPTANCE_MODE", "true")
     from types import SimpleNamespace
     with index_worker.running(SimpleNamespace(dialect=SimpleNamespace(name="postgresql"))):
+        assert visited.wait(2)
+    visited.clear()
+    monkeypatch.delenv("PF_AI_FORMAL_INDEX")
+    with index_worker.running(engine):
         assert not visited.is_set()
 
 

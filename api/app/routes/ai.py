@@ -1,19 +1,21 @@
 from contextlib import closing
-from datetime import timezone
+from datetime import datetime, timedelta, timezone
 import json
 import os
 import sqlite3
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ConfigDict, Field
-from typing import Literal
-from sqlalchemy import select
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from typing import Annotated, Literal
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.audit import log_audit
-from app.ai import store, service, model, starter, formal_index, vectors, policy, masking
-from app.models import AuditLog, Document, DocumentVersion, Node, Organization, Project
+from app.ai import store, service, model, starter, formal_index, vectors, policy, masking, followup, gateway, index_worker
+from app.models import AIAnswer, AuditLog, Document, DocumentVersion, Node, Organization, Project
+from app.services import document_store
 
 router=APIRouter(prefix='/ai',tags=['ai'])
 Dataset = Literal['dataset-v1', 'starter-v1', 'formal-v1']
@@ -27,6 +29,14 @@ class Ask(BaseModel):
     include_history: bool=False
     project_id: str | None=Field(default=None,max_length=120)
     query_id: str | None=Field(default=None,pattern=r'^q(0[1-9]|1[0-6])$')
+    # Earlier questions of this conversation, oldest first; answers are never sent back.
+    history: list[Annotated[str,Field(min_length=1,max_length=2000)]]=Field(default_factory=list,max_length=followup.MAX_TURNS)
+
+    @model_validator(mode='after')
+    def history_limits(self):
+        if self.history and self.mode!='rag': raise ValueError('只有文件問答可以追問')
+        if sum(len(q) for q in self.history)>followup.MAX_CHARS: raise ValueError('追問紀錄過長')
+        return self
 
 
 class ModelConfig(BaseModel):
@@ -65,7 +75,7 @@ def status(request:Request,dataset:Dataset='dataset-v1',current:CurrentUser=Depe
     result['dataset'] = dataset
     result['gateway'] = dict(policy='local_only', cloud_enabled=False)
     result['vectors'] = dict(enabled=vectors.available(current.organization.key) and dataset != 'dataset-v1', model=vectors.model_name() if dataset != 'dataset-v1' else '')
-    result['formal_available'] = formal_index.enabled() and db.bind.dialect.name == 'sqlite'
+    result['formal_available'] = formal_index.enabled()
     if dataset == 'formal-v1':
         index = formal_index.status(db,current)
         result.update(ready=True,as_of=index['updated_at'],can_sql=False,projects=index.pop('projects'),
@@ -96,8 +106,16 @@ def evaluate(payload,current,db,*,preview):
     if not payload.question.strip(): raise HTTPException(422,'請輸入問題')
     # Other companies' names only: their documents are never visible here.
     others=list(db.scalars(select(Organization.name).where(Organization.id!=current.organization.id)))
+    # A preview never calls the model, so there a follow-up is only combined with the previous question.
+    question,how=followup.resolve(current.organization.key,payload.question,payload.history,use_model=not preview)
+    asked=payload.question
+    payload=payload.model_copy(update={'question':question})
     try:
-        if payload.dataset == 'formal-v1':
+        if how == 'clarification':
+            prepared=gateway.prepare(current.organization.key,current.user.role,'rag',asked,use_model=False,reason='clarification')
+            result=dict(as_of=datetime.now().astimezone().date().isoformat(),synthetic=payload.dataset!='formal-v1',project_id=payload.project_id,
+                        sources=[],analysis=None,warning=None,gateway=prepared.info,kind='clarification',engine='model',answer=followup.CLARIFY)
+        elif payload.dataset == 'formal-v1':
             result=formal_index.ask(db,current,payload,preview=preview,other_companies=others)
         else:
             with closing(connection(current, payload.dataset)) as data:
@@ -109,7 +127,14 @@ def evaluate(payload,current,db,*,preview):
     except store.QueryTooLarge: raise HTTPException(422,'查詢過於複雜，超過執行上限；請指定專案或換個問法後再試') from None
     except ValueError: raise HTTPException(422,'不支援此查詢') from None
     except sqlite3.Error: raise HTTPException(503,'AI展示資料暫時無法查詢，請稍後再試') from None
-    log_audit(db,current,'ai.preview' if preview else 'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':'preview' if preview else result['kind'],'source_count':result['gateway']['source_count'],'query_id':result['analysis']['query_id'] if not preview and result['analysis'] else None,'gateway':result['gateway']})
+    log_audit(db,current,'ai.preview' if preview else 'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':'preview' if preview else result['kind'],'source_count':result['gateway']['source_count'],'query_id':result['analysis']['query_id'] if not preview and result['analysis'] else None,'followup':how,'gateway':result['gateway']})
+    if not preview:
+        result.update(followup=how,standalone_question=question if how in {'model','combined'} else None)
+        if result['kind']!='clarification':
+            # Feedback refers to this row; it keeps ids and labels only, never question, answer or document text.
+            result['answer_id']=str(uuid.uuid4())
+            db.add(AIAnswer(id=result['answer_id'],organization_id=current.organization.id,user_id=current.user.id,dataset=payload.dataset,
+                            mode=payload.mode,kind=result['kind'],followup=how,source_ids=[s['document_id'] for s in result['sources']]))
     db.commit()
     return result
 
@@ -133,6 +158,55 @@ def refresh_index(current:CurrentUser=Depends(require_session),db:Session=Depend
     log_audit(db,current,'ai.index.refresh',payload={'dataset':'formal-v1','counts':result['counts']})
     db.commit()
     return result
+
+
+class Knowledge(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    enabled: bool
+
+
+@router.get('/knowledge')
+def knowledge(node_id:str|None=None,project_id:str|None=None,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    formal_index.require_enabled(db)
+    if (node_id is None)==(project_id is None): raise HTTPException(422,'請指定節點或專案其中之一')
+    allowed,_=document_store.permission(db,current,node_id,project_id=project_id)
+    query=select(Document).where(Document.organization_id==current.organization.id)
+    query=query.where(Document.node_id==node_id) if node_id else query.where(Document.project_id==project_id,Document.node_id.is_(None))
+    return {'items':formal_index.knowledge(db,current,list(db.scalars(query))),'can_write':allowed,'automatic':index_worker.enabled()}
+
+
+@router.put('/knowledge/{document_id}')
+def set_knowledge(document_id:str,payload:Knowledge,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    formal_index.require_enabled(db)
+    doc,_,_=document_store.get_document(db,current,document_id,write=True)
+    doc.ai_enabled=payload.enabled
+    log_audit(db,current,'ai.knowledge',doc.node_id,payload={'document_id':doc.id,'enabled':payload.enabled})
+    db.commit()
+    return formal_index.knowledge(db,current,[doc])[0]
+
+
+class Feedback(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    rating: Literal['helpful','unhelpful']
+
+
+@router.put('/answers/{answer_id}/feedback')
+def feedback(answer_id:str,payload:Feedback,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    row=db.get(AIAnswer,answer_id)
+    # Only the person who asked may rate; anyone else cannot tell the answer exists.
+    if row is None or row.organization_id!=current.organization.id or row.user_id!=current.user.id: raise HTTPException(404,'找不到這則回答')
+    row.rating=payload.rating
+    log_audit(db,current,'ai.feedback',payload={'answer_id':row.id,'rating':payload.rating})
+    db.commit()
+    return {'ok':True,'rating':row.rating}
+
+
+@router.get('/feedback/summary')
+def feedback_summary(current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    if current.user.role!='admin': raise HTTPException(403,'只有管理者可查看回饋統計')
+    since=datetime.now(timezone.utc)-timedelta(days=30)
+    counts=dict(db.execute(select(AIAnswer.rating,func.count()).where(AIAnswer.organization_id==current.organization.id,AIAnswer.created_at>=since).group_by(AIAnswer.rating)).all())
+    return {'days':30,'helpful':counts.get('helpful',0),'unhelpful':counts.get('unhelpful',0),'total_answers':sum(counts.values())}
 
 
 @router.get('/model')
@@ -185,7 +259,9 @@ def utc(value):
 
 
 def governance_admin(db,current):
-    formal_index.require_enabled(db)
+    # Real policy controls stay in isolated SQLite previews; other deployments keep the example page.
+    if not (formal_index.enabled() and os.environ.get('PF_ACCEPTANCE_MODE')=='true' and db.bind.dialect.name=='sqlite'):
+        raise HTTPException(404,'隔離文件索引未啟用')
     if current.user.role!='admin': raise HTTPException(403,'只有管理者可管理AI政策與分級')
 
 

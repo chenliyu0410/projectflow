@@ -1,0 +1,114 @@
+{
+  "id": "pfMaintenance01",
+  "name": "專流：每日維運（02:00 備份＋到期檢查）",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "name": "每天 02:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "schedule"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PF_API_URL }}/integrations/maintenance/backup",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.PF_N8N_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "name": "完整備份",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "完整備份",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PF_API_URL }}/integrations/maintenance/expiry",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.PF_N8N_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={}",
+        "options": {}
+      },
+      "name": "到期檢查",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "到期檢查"
+    }
+  ],
+  "connections": {
+    "每天 02:00": {
+      "main": [
+        [
+          {
+            "node": "完整備份",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "完整備份": {
+      "main": [
+        [
+          {
+            "node": "到期檢查",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Taipei"
+  },
+  "pinData": {},
+  "tags": []
+}

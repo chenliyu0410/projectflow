@@ -69,3 +69,7 @@ export interface NotificationPage { items: {id: string; message: string; node_ti
 
 export interface ReportField { id: string | null; label: string; type: "text" | "number" | "date" | "select"; unit: string; required: boolean; options: string[]; }
 export interface ReportFieldSet { fields: ReportField[]; version: number; active: boolean; can_edit: boolean; }
+export interface WeeklyItem { ref: string; title: string; owner: string; due_date: string | null; result?: string; summary?: string; progress?: number | null; }
+export interface WeeklySections { summary: string; highlights: string[]; risks: string[]; next: string[]; }
+export interface WeeklyFacts { week_start: string; today: string; project: string; completed: WeeklyItem[]; pending_review: WeeklyItem[]; doing: WeeklyItem[]; due_next_week: WeeklyItem[]; overdue: WeeklyItem[]; blocked: WeeklyItem[]; silent_members: string[]; counts: Record<'completed' | 'pending_review' | 'doing' | 'due_next_week' | 'overdue' | 'blocked', number>; }
+export interface WeeklyReport { id: string; week_start: string; status: 'draft' | 'sent' | 'unsent'; sections: WeeklySections; facts: WeeklyFacts; excluded_count: number; model_label: string; recipients: string[]; generated_by: string | null; generated_at: string; confirmed_by: string | null; confirmed_at: string | null; }

@@ -231,6 +231,60 @@ def test_regular_start_has_no_public_overlay_or_target(tmp_path, start_module, f
     assert result['public_target'] is None
 
 
+def has_n8n_profile(args):
+    return any(args[i:i + 2] == ['--profile', 'n8n'] for i in range(len(args) - 1))
+
+
+def write_env(path, text):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding='utf-8')
+
+
+def test_regular_start_includes_n8n_once_setup_wrote_a_token(tmp_path, start_module, fake_commands):
+    write_env(tmp_path / 'deploy/.env', 'POSTGRES_PASSWORD=keep\nPF_N8N_TOKEN=abcdefghijklmnopqrstuvwxyz\n')
+    start_module.start(tmp_path)
+    assert fake_commands and all(has_n8n_profile(args) for args in fake_commands)
+
+
+def test_public_start_keeps_n8n_beside_the_overlay(tmp_path, start_module, monkeypatch):
+    calls = []
+    write_env(tmp_path / 'deploy/.env', 'PF_N8N_TOKEN=abcdefghijklmnopqrstuvwxyz\n')
+    monkeypatch.setattr(start_module.subprocess, 'run', public_runner(calls))
+    monkeypatch.setattr(start_module, 'check_readiness', MagicMock())
+    start_module.start(tmp_path, public=True)
+    assert calls and all(has_n8n_profile(args) and str(tmp_path / 'deploy/docker-compose.public.yml') in args
+                         for args, _ in calls)
+
+
+@pytest.mark.parametrize('text', ['', 'PF_N8N_TOKEN=\n', 'PF_N8N_TOKEN=   \n', '# PF_N8N_TOKEN=commented-out-token\n'])
+def test_regular_start_skips_n8n_without_a_token(tmp_path, start_module, fake_commands, text):
+    write_env(tmp_path / 'deploy/.env', 'POSTGRES_PASSWORD=keep\n' + text)
+    start_module.start(tmp_path)
+    assert fake_commands and not any('--profile' in args for args in fake_commands)
+
+
+@pytest.mark.parametrize('text, expected', [
+    ('PF_N8N_TOKEN=\nPF_N8N_TOKEN=abcdefghijklmnopqrstuvwxyz\n', True),
+    ('PF_N8N_TOKEN=abcdefghijklmnopqrstuvwxyz\nPF_N8N_TOKEN=\n', False),
+    ('﻿PF_N8N_TOKEN=abcdefghijklmnopqrstuvwxyz\r\n', True),
+])
+def test_n8n_token_is_read_like_compose(tmp_path, start_module, text, expected):
+    path = tmp_path / '.env'
+    path.write_text(text, encoding='utf-8', newline='')
+    assert start_module.n8n_configured(path) is expected
+
+
+def test_new_env_starts_without_n8n(tmp_path, start_module, fake_commands):
+    start_module.start(tmp_path)
+    assert fake_commands and not any('--profile' in args for args in fake_commands)
+
+
+def test_acceptance_never_starts_n8n(tmp_path, start_module, fake_commands):
+    write_env(tmp_path / '.superpowers/p1c/acceptance.env', 'PF_N8N_TOKEN=abcdefghijklmnopqrstuvwxyz\n')
+    start_module.start(tmp_path, acceptance=True)
+    assert fake_commands and not any('--profile' in args for args in fake_commands)
+
+
 def test_public_is_refused_for_acceptance_before_any_command(tmp_path, start_module, monkeypatch):
     runner = MagicMock()
     monkeypatch.setattr(start_module.subprocess, 'run', runner)
