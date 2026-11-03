@@ -336,6 +336,7 @@ it('shows written help on separate lines with shortcut analyses', async () => {
   fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
   const answer = await screen.findByText(/我是資料分析小幫手/);
   expect(answer).toHaveStyle({ whiteSpace: 'pre-line' });
+  expect(screen.getByRole('group', { name: '「你可以幫我查什麼？」的建議查詢' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: '查詢：各部門逾期未完成數' })).toBeInTheDocument();
 });
 

@@ -80,11 +80,75 @@ def test_other_wording_suggests_the_analysis_without_inventing_conditions(demo, 
     assert len(result['suggestions']) <= 3
 
 
+def test_answer_says_these_conditions_when_there_are_several(demo):
+    assert '「王建宏」、「上週」這些條件' in ask(demo, '上週王建宏有幾件逾期？')['answer']
+    assert '「上週」這個條件' in ask(demo, '上週有多少工作逾期？')['answer']
+
+
 def test_cancelled_is_not_covered_by_the_not_cancelled_purchase_analysis(demo):
     # q12 sums orders that were NOT cancelled, so asking for cancelled ones is a condition it cannot apply.
     result = ask(demo, '已取消的採購金額是多少？')
     assert result['analysis'] is None and ids(result)[0] == 'q12'
     assert {'type': 'status', 'text': '已取消', 'label': '狀態'} in result['conditions']
+
+
+def test_each_suggestion_lists_the_conditions_it_leaves_out_and_the_model_cannot_hide_one(demo, monkeypatch):
+    # Review 1: coverage is judged per suggestion, and the model's pick never removes a condition from the reply.
+    for chosen in (None, 'q10'):
+        if chosen:
+            model.save('food', dict(enabled=True, base_url='http://127.0.0.1:11434', model='test'))
+            monkeypatch.setattr(model, 'chat', lambda *args, **kwargs: {'query_id': chosen})
+        result = ask(demo, '上週逾期最多的前五個部門')
+        assert {c['text'] for c in result['conditions']} == {'上週', '前五'}
+        omits = {s['query_id']: s['omits'] for s in result['suggestions']}
+        assert '「前五」' in omits['q02'] and '「上週」' in omits['q02']
+        if chosen:
+            assert ids(result)[0] == 'q10' and '「前五」' not in omits['q10'] and '「上週」' in omits['q10']
+
+
+@pytest.mark.parametrize('question', ['沒有完成的工作有幾件？', '還沒有做完的任務有哪些？'])
+def test_not_done_is_not_turned_into_the_done_analysis(demo, question):
+    # Review 2: a negated "完成" must not score the finished-task analysis or count as a status condition.
+    result = ask(demo, question)
+    assert ids(result)[0] in {'q02', 'q10', 'q13'} and 'q11' not in ids(result)
+    assert result['conditions'] == []
+
+
+@pytest.mark.parametrize('question', ['這週新增了多少任務？', '哪些任務最近有更新？', '被刪除的任務有幾件？', '列出超支專案的所有資料'])
+def test_ordinary_data_questions_are_not_refused(demo, question):
+    # Review 3 and 5: only commands and real override attempts are refused.
+    assert ask(demo, question)['kind'] == 'fallback'
+
+
+@pytest.mark.parametrize('question', ['請刪除逾期的任務', '把王建宏的任務刪掉', '幫我新增一個任務'])
+def test_imperative_changes_are_still_refused(demo, question):
+    assert ask(demo, question)['fallback']['reason'] == 'command'
+
+
+@pytest.mark.parametrize('question,company', [('光點的成本', '光點企劃'), ('禾沐的逾期任務有幾件', '禾沐寵物營養股份有限公司'), ('雲序有哪些專案超支', '雲序軟體')])
+def test_short_names_of_other_companies_are_refused(demo, question, company):
+    # Review 4: strip every company suffix so the short name people actually say is recognised.
+    result = ask(demo, question)
+    assert result['fallback']['reason'] == 'other_company' and company in result['answer']
+
+
+def test_finished_share_is_the_completion_rate_not_a_status_condition(demo):
+    # Review 6.
+    result = ask(demo, '各專案已完成的比例')
+    assert ids(result)[0] == 'q03' and result['conditions'] == []
+
+
+def test_capability_question_with_a_count_word_gets_help(demo):
+    # Review 7: "幾" alone does not make "你可以查幾種資料" a data question.
+    assert ask(demo, '你可以查幾種資料？')['fallback']['reason'] == 'capabilities'
+
+
+@pytest.mark.parametrize('question,word', [('過去 30 天逾期的任務', '過去 30 天'), ('最近一週的成本', '最近一週'), ('前3個月的成本', '前3個月')])
+def test_whole_time_phrases_are_named(demo, question, word):
+    # Review 8: name the whole phrase, and "前3個月" is a time, not a ranking.
+    result = ask(demo, question)
+    assert {'type': 'time', 'text': word, 'label': '時間'} in result['conditions']
+    assert not any(c['type'] == 'ranking' for c in result['conditions'])
 
 
 def test_exact_wording_still_runs_the_template(demo):
