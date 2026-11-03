@@ -316,15 +316,19 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
     {selected?.kind === 'task' && recordsEnabled && reloadRecords && expired && <ReportPanel key={`report:${selected.id}:${generation('report')}`} version={recordVersion} node={selected} userId={userId} reload={reloadAfter('report')!} expired={expired}
       autoOpen={reportIntent === selected.id} openChildren={openChildren(nodes, selected)}
       parentClosed={['review', 'done', 'skipped'].includes(nodes.find(node => node.id === selected.parent_id)?.status ?? '')} />}
-    {!selected && phases.length > 0 && <section className="phases" aria-label="開發階段與閘門">{phases.map(phase => {
+    {!selected && phases.length > 0 && <section className="phases" aria-label="開發階段與閘門">{phases.map((phase, index) => {
       const phaseGate = project.gates.find(item => item.node_id === phase.id);
       const value = nodePercent(phase);
       const complete = CLOSED.includes(phase.status);
       const started = !complete && subtree(nodes, phase.id).some(node => node.status !== 'todo');
-      const state = complete ? 'done' : started ? 'doing' : 'todo';
-      const stateText = complete ? '已完成' : started ? '進行中' : '尚未開始';
-      const unavailable = !started;
-      const reason = complete ? '已完成階段不開放此入口' : !started ? '尚未開始，暫不開放此入口' : '';
+      // 新專案所有任務都還是待處理，第一個未完成的階段仍要能進入；前面階段的閘門未核准時照樣鎖住。
+      const current = !complete && !started && phases.findIndex(item => !CLOSED.includes(item.status)) === index;
+      const gateBlocked = current && phases.slice(0, index).some(item => project.gates.some(g => g.node_id === item.id && g.status === 'pending'));
+      const ready = current && !gateBlocked;
+      const state = complete ? 'done' : started || ready ? 'doing' : 'todo';
+      const stateText = complete ? '已完成' : started ? '進行中' : ready ? '可開始' : '尚未開始';
+      const unavailable = !started && !ready;
+      const reason = complete ? '已完成階段不開放此入口' : gateBlocked ? '前一階段閘門待核准' : unavailable ? '尚未開始，暫不開放此入口' : '';
       // 尚未開始又是空的階段沒有任何卡片可點，只好在卡片上給新增入口；卡片本身仍不開放進入。
       const creatable = !!createIn && !readonly && !started && !complete && childrenOf(nodes, phase.id).length === 0 && !childCreationReason(phase, !!phase.capabilities?.create_child);
       if (creatable) return <div key={phase.id} className="phase phase-todo" role="group" aria-label={`階段：${phase.title}`}>
@@ -335,7 +339,7 @@ export default function NodeWorkspace({ project, selectedNodeId, select, readonl
       </div>;
       return <button key={phase.id} className={`phase phase-${state}`} disabled={disabled || unavailable} title={reason || undefined}
         onClick={() => select(phase.id)} aria-label={`進入階段：${phase.title}`} aria-describedby={`phase-state-${phase.id} phase-progress-${phase.id} phase-gate-${phase.id}`}>
-        <span className="phase-row"><span className="phase-state" id={`phase-state-${phase.id}`}>{complete ? '✓ ' : ''}{stateText}</span>{started && <span className="phase-arrow" aria-label="進行中階段">→</span>}</span>
+        <span className="phase-row"><span className="phase-state" id={`phase-state-${phase.id}`}>{complete ? '✓ ' : ''}{stateText}</span>{(started || ready) && <span className="phase-arrow" aria-label={started ? '進行中階段' : '目前階段'}>→</span>}</span>
         <span className="phase-name">{phase.title}</span>
         <span className="phase-progress-label" id={`phase-progress-${phase.id}`}><span>完成度</span><strong>{value}%</strong></span>
         <span className="phase-progress-track" aria-hidden="true"><span style={{ width: `${value}%` }} /></span>

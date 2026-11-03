@@ -451,4 +451,26 @@ describe('phase status cards', () => {
     expect(phaseButton('下一階段')).toHaveTextContent('尚未開始');
     expect(within(phaseButton('下一階段')).queryByLabelText('進行中階段')).not.toBeInTheDocument();
   });
+
+  it('opens the first unfinished phase of a fresh project and keeps it locked behind a pending earlier gate', () => {
+    const first = {...node('第一階段', null, 'phase'), sort_order:0};
+    const second = {...node('第二階段', null, 'phase'), sort_order:1};
+    const project: ProjectDetail = {...detail, nodes:[first, second, node('第一任務', first.id), node('第二任務', second.id)], gates:[]};
+    const select=vi.fn();
+    const props={project, selectedNodeId:null, select, readonly:false, canApprove:true, disabled:false, mutate:vi.fn()};
+    const {rerender}=render(<NodeWorkspace {...props}/>);
+    expect(phaseButton('第一階段')).toBeEnabled();
+    expect(phaseButton('第一階段')).toHaveTextContent('可開始');
+    expect(within(phaseButton('第一階段')).getByLabelText('目前階段')).toHaveTextContent('→');
+    expect(phaseButton('第二階段')).toBeDisabled();
+    expect(phaseButton('第二階段')).toHaveTextContent('尚未開始，暫不開放此入口');
+    fireEvent.click(phaseButton('第一階段')); expect(select).toHaveBeenCalledWith(first.id);
+    const finished = {...project, nodes:[{...first, status:'done' as const}, second, node('第一任務', first.id, 'task', 'done'), node('第二任務', second.id)]};
+    rerender(<NodeWorkspace {...props} project={{...finished, gates:[{id:'g',project_id:'p',node_id:first.id,status:'pending'}]}}/>);
+    expect(phaseButton('第二階段')).toBeDisabled();
+    expect(phaseButton('第二階段')).toHaveTextContent('前一階段閘門待核准');
+    rerender(<NodeWorkspace {...props} project={{...finished, gates:[{id:'g',project_id:'p',node_id:first.id,status:'approved'}]}}/>);
+    expect(phaseButton('第二階段')).toBeEnabled();
+    expect(phaseButton('第二階段')).toHaveTextContent('可開始');
+  });
 });
