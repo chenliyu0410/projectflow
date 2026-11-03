@@ -1,5 +1,5 @@
 import re
-from app.ai import gateway, store
+from app.ai import fallback, gateway, store
 
 ALIASES = {
  'q01': ['任務狀態統計'],
@@ -40,22 +40,26 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
     if mode=='sql':
         if role not in {'admin','project_owner'}: raise PermissionError('SQL role')
         chosen=query_id or infer(question)
-        prepared = gateway.prepare(company, role, mode, question, catalog=store.catalog(), use_model=not chosen, reason='rules_only' if chosen else None)
+        names = None if chosen else fallback.vocabulary(db)
+        # Refusals and written help are decided by rules alone, so the model never sees those questions.
+        early = None if chosen else fallback.early_reply(question, other_companies, names)
+        prepared = gateway.prepare(company, role, mode, question, catalog=store.catalog(), use_model=not (chosen or early), reason='rules_only' if chosen or early else None)
         if preview: return prepared.preview()
         base['gateway'] = prepared.info
+        if early:
+            return dict(base, engine='rules', **early)
         if prepared.info['route'] == 'blocked':
             base['warning'] = 'AI閘道拒絕目前模型設定；未送出內容，請管理者檢查本地模型設定。'
         engine='rules'
-        if not chosen and prepared.info['route'] == 'local':
-            try:
-                proposed=prepared.run(); engine='model'
-                if proposed:
-                    label=next(q['label'] for q in store.catalog() if q['query_id']==proposed)
-                    return dict(base,kind='query_suggestion',engine=engine,answer=f'模型建議使用「{label}」。尚未執行，請核對是否符合原問題。此分析只使用目前公司可見的AI專案範圍，基準日固定2026-10-11，不加入原問題中的其他條件。',suggestion={'query_id':proposed,'label':label})
-            except Exception:
-                base['warning']='模型無法完成辨識；請點下方快捷題，或換個問法。'
         if not chosen:
-            return dict(base,kind='unsupported',engine=engine,answer='目前支援16種分析，尚無法可靠判斷這個問題。請點下方快捷題，或改問「各部門逾期未完成數」。時間基準固定2026-10-11；其他日期條件尚未支援。')
+            proposed = None
+            if prepared.info['route'] == 'local':
+                try:
+                    proposed=prepared.run(); engine='model'
+                except Exception:
+                    base['warning']='模型無法完成辨識；請點下方快捷題，或換個問法。'
+            # The model may only add a catalog id; its own words never reach the reply.
+            return dict(base, engine=engine, **fallback.suggest(question, names, proposed))
         result=store.execute_query(db,chosen,company,project_id)
         base['analysis']=result
         return dict(base,kind='sql',engine=engine,answer=f'查詢：{result["label"]}。找到{len(result["rows"])}列結果'+('（已截取前200列）。' if result['truncated'] else '。')+'以下為資料庫實際計算；未執行任意模型SQL。')

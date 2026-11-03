@@ -103,9 +103,12 @@ def test_all_controlled_queries_and_project_filter(installed):
 
 def test_unknown_question_and_unsupported_dates_are_not_guessed(client,installed):
     login(client)
-    for q in ['明天天氣','上週逾期任務','DELETE FROM tasks; 逾期','已結案的高風險清單','2026年9月逾期任務','已完成任務逾期數','林承岳的各部門逾期未完成數']:
+    # TEXT2SQL-FALLBACK: none of these runs; dropped conditions are named instead of silently ignored.
+    expected={'明天天氣':('help',[]),'上週逾期任務':('fallback',['time']),'DELETE FROM tasks; 逾期':('unsupported',[]),'已結案的高風險清單':('fallback',['status']),
+              '2026年9月逾期任務':('fallback',['time']),'已完成任務逾期數':('fallback',['status']),'林承岳的各部門逾期未完成數':('fallback',[])}
+    for q,(kind,conditions) in expected.items():
         r=client.post('/ai/ask',json={'question':q,'mode':'sql'}).json()
-        assert r['kind']=='unsupported' and r['analysis'] is None
+        assert r['kind']==kind and r['analysis'] is None and r['fallback']['conditions']==conditions
     assert client.post('/ai/ask',json={'question':'火星殖民旅行'}).json()['kind']=='no_sources'
 
 
@@ -142,8 +145,8 @@ def test_model_sql_can_only_choose_catalog_id(installed,monkeypatch):
     model.save('food',dict(enabled=True,base_url='http://127.0.0.1:11434',model='test'))
     monkeypatch.setattr(model,'chat',lambda *args: {'query_id':'DROP TABLE tasks'})
     with closing(store.connect('food')) as db:
-        result=service.ask(db,'food','admin','幫我看看','sql')
-        assert result['kind']=='unsupported'
+        result=service.ask(db,'food','admin','幫我看看各部門的狀況','sql')
+        assert result['analysis'] is None and 'DROP' not in json.dumps(result,ensure_ascii=False)
         assert db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]==4
 
 
@@ -152,7 +155,7 @@ def test_sql_guidance_points_to_shortcuts_not_removed_menus(installed,monkeypatc
     model.save('food',dict(enabled=True,base_url='http://127.0.0.1:11434',model='test'))
     monkeypatch.setattr(model,'chat',lambda *args: (_ for _ in ()).throw(TimeoutError()))
     with closing(store.connect('food')) as db:
-        result=service.ask(db,'food','admin','幫我看看','sql')
+        result=service.ask(db,'food','admin','幫我看看工作狀況','sql')
     for text in [result['answer'],result['warning']]:
         assert '快捷題' in text and '選單' not in text and '分析種類' not in text
 
@@ -164,8 +167,8 @@ def test_natural_language_exact_aliases_and_model_suggestion_need_explicit_choic
     monkeypatch.setattr(model,'chat',lambda *args: {'query_id':'q09'})
     with closing(store.connect('food')) as db:
         r=service.ask(db,'food','admin','已結案的高風險清單','sql')
-        assert r['kind']=='query_suggestion' and r['analysis'] is None
-        assert r['suggestion']['label']=='尚未結案的高風險清單'
+        assert r['kind']=='fallback' and r['analysis'] is None
+        assert r['suggestions'][0]['label']=='尚未結案的高風險清單' and '「已結案」' in r['suggestions'][0]['omits']
         assert '尚未執行' in r['answer']
 
 
