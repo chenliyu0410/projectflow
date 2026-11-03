@@ -29,10 +29,24 @@ def initialize_env(path: Path, web_port: int, api_port: int, acceptance: bool) -
         return
 
 
-def compose_prefix(root: Path, project: str, env_file: Path, *, public: bool = False) -> list[str]:
+def n8n_configured(env_file: Path) -> bool:
+    """Setting up n8n adds PF_N8N_TOKEN (deploy/n8n/README.md); without it n8n's images may be missing here."""
+    token = ''
+    # Like Compose: a BOM is ignored and the last assignment wins.
+    for line in env_file.read_text(encoding='utf-8-sig', errors='replace').splitlines():
+        key, sep, value = line.partition('=')
+        if sep and key.strip() == 'PF_N8N_TOKEN':
+            token = value.strip()
+    return bool(token)
+
+
+def compose_prefix(root: Path, project: str, env_file: Path, *, public: bool = False, n8n: bool = False) -> list[str]:
     prefix = ['docker', 'compose', '--project-name', project, '--env-file', str(env_file),
               '-f', str(root / 'deploy/docker-compose.yml')]
-    return prefix + ['-f', str(root / 'deploy/docker-compose.public.yml')] if public else prefix
+    if public:
+        prefix += ['-f', str(root / 'deploy/docker-compose.public.yml')]
+    # Without the profile, a logon restart would leave n8n and Mailpit stopped (Compose sets no restart policy).
+    return prefix + ['--profile', 'n8n'] if n8n else prefix
 
 
 def run(args: list[str], *, acceptance: bool = False, lan: bool = False, public: bool = False) -> str:
@@ -87,7 +101,7 @@ def start(root: Path, *, acceptance: bool = False, seed_demo: bool = False, lan:
     project = 'projectflow-acceptance' if acceptance else 'projectflow-formal'
     env_file = root / ('.superpowers/p1c/acceptance.env' if acceptance else 'deploy/.env')
     initialize_env(env_file, 15175 if acceptance else 15173, 18002 if acceptance else 18000, acceptance)
-    prefix = compose_prefix(root, project, env_file, public=public)
+    prefix = compose_prefix(root, project, env_file, public=public, n8n=not acceptance and n8n_configured(env_file))
     options = {'acceptance': acceptance, 'lan': lan, 'public': public}
     run(prefix + ['config', '--quiet'], **options)
     run(prefix + ['up', '-d', '--build', '--wait'], **options)
