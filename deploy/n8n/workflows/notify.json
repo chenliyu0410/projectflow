@@ -141,6 +141,75 @@
         100
       ],
       "id": "回報寄送失敗"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "line-needed",
+              "leftValue": "={{ $env.PF_LINE_CHANNEL_TOKEN ? $('逐封').item.json.line_text : '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "name": "要推 LINE？",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        -100
+      ],
+      "id": "line-if"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/broadcast",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.PF_LINE_CHANNEL_TOKEN }}"
+            },
+            {
+              "name": "X-Line-Retry-Key",
+              "value": "={{ $('逐封').item.json.id }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messages: [{ type: 'text', text: $('逐封').item.json.line_text }] }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "name": "LINE 廣播",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        -160
+      ],
+      "id": "line-broadcast",
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
@@ -193,6 +262,29 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "回報已寄出": {
+      "main": [
+        [
+          {
+            "node": "要推 LINE？",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "要推 LINE？": {
+      "main": [
+        [
+          {
+            "node": "LINE 廣播",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
       ]
     }
   },

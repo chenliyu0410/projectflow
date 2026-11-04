@@ -85,7 +85,7 @@ async def store_document(db, organization, project, owner, path):
         note = f'無法解析文字（{exc}）'
     enqueue(db, organization.id, 'inbox_document', owner.id, f'[專流] 收件匣新文件：{path.name}',
             f'「{path.name}」已存入專案「{project.title}」的文件。\n解析結果：{note}',
-            f"inbox:{saved['document_id']}:{saved['version']}")
+            f"inbox:{saved['document_id']}:{saved['version']}", line=f'[專流] 收件匣新文件：{path.name}\n專案：{project.title}')
     log_audit(db, current, 'inbox.document', payload={'project_id': project.id, 'filename': path.name, 'note': note[:200]})
     db.commit()
     return note
@@ -213,7 +213,8 @@ async def scan(db):
                     if folder.name == IMPORT_DIR:
                         created, updated, admin = import_records(db, organization, path)
                         enqueue(db, organization.id, 'inbox_import', admin.id, f'[專流] 營運資料匯入完成：{path.name}',
-                                f'「{path.name}」新增 {created} 筆、更新 {updated} 筆營運資料。', f'import:{uuid.uuid4()}')
+                                f'「{path.name}」新增 {created} 筆、更新 {updated} 筆營運資料。', f'import:{uuid.uuid4()}',
+                                line=f'[專流] 營運資料匯入完成：{path.name}（新增 {created}、更新 {updated}）')
                         db.commit()
                         summary['imports'] += 1
                     elif folder.name in projects:

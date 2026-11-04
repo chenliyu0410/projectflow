@@ -251,9 +251,11 @@ def confirm(db, current, project, report, sections=None):
             len(visible_to_all(db, organization, [user], list(nodes), nodes)) == len(nodes)
         (kept if ok else removed).append(user)
     text = render(project, report)
-    for user in kept:
+    for index, user in enumerate(kept):
+        # One LINE broadcast per report, carried by the first recipient's mail; the content itself stays in mail.
+        line = f"[專流] {project.title} 週報已寄出（{report.facts['week_start']} 起），請查看信箱" if index == 0 else None
         enqueue(db, organization.id, 'weekly_report', user.id, f"[專流] {project.title} 週報（{report.facts['week_start']} 起）",
-                text, f'weekly_report:{report.id}:{user.id}')
+                text, f'weekly_report:{report.id}:{user.id}', line=line)
     report.status, report.confirmed_by, report.confirmed_at = 'sent', current.user.id, now_utc()
     edited = [k for k in SECTIONS if report.sections.get(k) != report.ai_sections.get(k)]
     log_audit(db, current, 'weekly_report.confirm', payload={'project_id': project.id, 'report_id': report.id,

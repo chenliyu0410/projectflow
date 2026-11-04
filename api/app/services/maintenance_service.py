@@ -27,10 +27,13 @@ def admins(db, organization_id, roles=('admin',)):
     return list(db.scalars(select(User).where(User.organization_id == organization_id, User.role.in_(roles), User.status == 'active')))
 
 
-def notify_admins(db, kind, subject, text, key):
+def notify_admins(db, kind, subject, text, key, line=False):
+    """line=True also broadcasts the subject to LINE once (with the first admin's mail)."""
+    first = True
     for organization in db.scalars(select(Organization)).all():
         for admin in admins(db, organization.id):
-            enqueue(db, organization.id, kind, admin.id, subject, text, f'{key}:{admin.id}')
+            enqueue(db, organization.id, kind, admin.id, subject, text, f'{key}:{admin.id}', line=subject if line and first else None)
+            first = False
 
 
 def backup(db):
@@ -55,7 +58,7 @@ def backup(db):
         db.rollback()
         target.with_suffix('.zip.part').unlink(missing_ok=True)
         notify_admins(db, 'backup', '[專流] 每日備份失敗', f'{stamp} 的備份沒有完成：{type(exc).__name__}。請檢查備份資料夾空間與權限。',
-                      f'backup-failed:{stamp}')
+                      f'backup-failed:{stamp}', line=True)
         db.commit()
         raise HTTPException(500, '備份失敗，已通知管理者') from None
     size = target.stat().st_size
@@ -118,10 +121,11 @@ def expiry(db, now=None):
             label, day = found
             days = (day - today).days
             when = f'已過期 {-days} 天' if days < 0 else '今天到期' if days == 0 else f'{days} 天後到期'
-            for user in managers:
-                if enqueue(db, organization.id, 'expiry', user.id, f'[專流] 即將到期：{record.title}（{day.isoformat()}）',
+            subject = f'[專流] 即將到期：{record.title}（{day.isoformat()}）'
+            for index, user in enumerate(managers):
+                if enqueue(db, organization.id, 'expiry', user.id, subject,
                            f'營運資料「{record.code}｜{record.title}」的「{label}」是 {day.isoformat()}，{when}。請安排更新。',
-                           f'expiry:{record.id}:{day.isoformat()}:{user.id}'):
+                           f'expiry:{record.id}:{day.isoformat()}:{user.id}', line=f'{subject}，{when}' if index == 0 else None):
                     reminded += 1
             db.commit()
             if admin is None:

@@ -769,6 +769,8 @@ class OutboxEvent(Base):
     sent_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     # Set when n8n pulls the event; it is offered again only after the lease runs out.
     claimed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    # Short text n8n also broadcasts to LINE (D89); empty for mail-only events.
+    line_text: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class WeeklyReport(Base):

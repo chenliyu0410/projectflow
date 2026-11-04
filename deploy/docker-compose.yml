@@ -83,6 +83,8 @@ services:
       N8N_SECURE_COOKIE: 'false'
       PF_API_URL: http://api:8000
       PF_N8N_TOKEN: ${PF_N8N_TOKEN:-}
+      # LINE broadcast (D89): empty token means mail only.
+      PF_LINE_CHANNEL_TOKEN: ${PF_LINE_CHANNEL_TOKEN:-}
     volumes:
       - n8n_data:/home/node/.n8n
       - ./n8n:/opt/projectflow-n8n:ro

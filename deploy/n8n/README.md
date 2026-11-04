@@ -54,6 +54,18 @@ python deploy/n8n/verify.py
 1. 在 `deploy/.env` 加上 `PF_N8N_TOKEN=<至少 24 字元的隨機字串>`。
 2. 先備份資料庫，再執行 `python deploy/n8n/setup.py --project projectflow-formal --env-file deploy/.env`（會升級 migration 到 `20261102_0022`，並替沒有 Email 的帳號填 `<帳號>@demo.local`）。
 
+## LINE 廣播（選用）
+
+1. 在 LINE Developers 建立 Messaging API channel（同時會建立 LINE 官方帳號），發行 Channel access token。
+2. 在 `deploy/.env` 填 `PF_LINE_CHANNEL_TOKEN=<token>`（不進 git），重新執行 `python deploy/start.py`。
+3. 想收通知的人用 LINE 加官方帳號為好友。
+
+「通知轉寄」寄出 Email 後，標記要推 LINE 的事件會再廣播一則：站內通知（指派、待審核等）、週報已寄出、收件匣新文件與匯入完成、到期提醒、備份失敗。每日摘要、週報草稿、備份成功只寄 Email。
+
+- 廣播會送給**所有好友**，訊息只含標題與任務名稱，不含連結（專流只綁 127.0.0.1，手機打不開）、內文或機密欄位。
+- 需要連外網；LINE 失敗不影響 Email 的寄送結果，也不會重試。免費方案每月有則數上限。
+- 收件人沒有 Email 或關閉通知而被略過的事件，不會推 LINE。
+
 ## 離線與安全
 
 - 映像版本寫死：`docker.n8n.io/n8nio/n8n:2.45.7`、`ghcr.io/axllent/mailpit:v1.32.0`；先下載好即可離線使用。

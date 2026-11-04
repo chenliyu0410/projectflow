@@ -8,6 +8,8 @@ from sqlalchemy import or_, select
 from app.models import OutboxEvent, User, now_utc
 
 MAX_ATTEMPTS = 5
+# LINE text messages allow 5,000 characters; ours stay short (title and task name only).
+LINE_LIMIT = 500
 # A pulled event is not offered again until this passes, so a slow send is not duplicated.
 LEASE = timedelta(minutes=5)
 
@@ -16,14 +18,19 @@ def site_url():
     return os.environ.get('PF_PUBLIC_URL', 'http://127.0.0.1:15173').rstrip('/')
 
 
-def enqueue(db, organization_id, kind, recipient_id, subject, text, dedupe_key):
-    """Queue one mail; the same dedupe key in one organization is only ever queued once."""
+def enqueue(db, organization_id, kind, recipient_id, subject, text, dedupe_key, line=None):
+    """Queue one mail; the same dedupe key in one organization is only ever queued once.
+
+    line: optional short text n8n also broadcasts to LINE. Callers set it on one event per happening, never on
+    content beyond a title, because a broadcast reaches every follower of the official account.
+    """
     if db.scalar(select(OutboxEvent.id).where(OutboxEvent.organization_id == organization_id, OutboxEvent.dedupe_key == dedupe_key)):
         return None
     url = site_url()
     body = '<p>' + html.escape(text).replace('\n', '<br>') + f'</p><p><a href="{html.escape(url)}">在專流開啟</a></p>'
     event = OutboxEvent(organization_id=organization_id, kind=kind, recipient_id=recipient_id, subject=subject[:300],
-                        body_text=f'{text}\n\n在專流開啟：{url}', body_html=body, dedupe_key=dedupe_key[:200])
+                        body_text=f'{text}\n\n在專流開啟：{url}', body_html=body, dedupe_key=dedupe_key[:200],
+                        line_text=line[:LINE_LIMIT] if line else None)
     db.add(event)
     return event
 
@@ -45,7 +52,8 @@ def pull(db, limit):
             continue
         event.claimed_at = now_utc()
         items.append({'id': event.id, 'kind': event.kind, 'to': user.email, 'name': user.display_name,
-                      'subject': event.subject, 'text': event.body_text, 'html': event.body_html})
+                      'subject': event.subject, 'text': event.body_text, 'html': event.body_html,
+                      'line_text': event.line_text or ''})
     return items
 
 
