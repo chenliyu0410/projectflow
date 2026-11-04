@@ -24,8 +24,12 @@ def emit(db, current, node, recipient_id, message, event_key):
     db.add(Notification(organization_id=current.organization.id, recipient_id=recipient_id, node_id=node.id, event_key=event_key, message=message))
     # Same transaction as the notification, so mail is never sent for a change that rolled back.
     from app.services.outbox_service import enqueue
+    # One happening can notify several people (e.g. every reviewer of a request); LINE gets it once.
+    broadcast = db.info.setdefault('line_event_keys', set())
+    line = None if event_key in broadcast else f'[專流] {message}\n任務：{node.title}'
+    broadcast.add(event_key)
     enqueue(db, current.organization.id, 'notification', recipient_id, f'[專流] {message}', f'任務：{node.title}\n{message}',
-            f'notification:{recipient_id}:{event_key}', line=f'[專流] {message}\n任務：{node.title}')
+            f'notification:{recipient_id}:{event_key}', line=line)
 
 
 def states(db, current, project_id):

@@ -107,3 +107,19 @@ def test_line_migration_round_trip(tmp_path, monkeypatch):
     command.downgrade(config, '20261102_0024')
     assert 'line_text' not in {c['name'] for c in inspect(create_engine(url)).get_columns('outbox_events')}
     engine.dispose()
+
+
+def test_one_happening_for_several_recipients_broadcasts_once(client, engine, tree):
+    """Like a skip request that notifies every reviewer: same event key, many recipients, one LINE text."""
+    from app.auth import CurrentUser
+    from app.models import Node, Organization
+    from app.services.notification_service import emit
+    with Session(engine) as db:
+        owner = db.get(User, tree['owner'])
+        current = CurrentUser(owner, db.get(Organization, owner.organization_id), '')
+        node = db.get(Node, 'b')
+        for reviewer in ('yu', 'chen'):
+            emit(db, current, node, tree[reviewer], '有新的跳過／覆寫申請待審核', 'req-1:requested')
+        db.commit()
+    texts = lines(engine, 'notification')
+    assert len(texts) == 2 and sum(bool(x) for x in texts) == 1

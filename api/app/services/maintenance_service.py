@@ -24,7 +24,9 @@ def backup_root():
 
 
 def admins(db, organization_id, roles=('admin',)):
-    return list(db.scalars(select(User).where(User.organization_id == organization_id, User.role.in_(roles), User.status == 'active')))
+    # A fixed order keeps "the first admin" (who carries the single LINE broadcast) the same on every run.
+    return list(db.scalars(select(User).where(User.organization_id == organization_id, User.role.in_(roles), User.status == 'active')
+                           .order_by(User.created_at, User.id)))
 
 
 def notify_admins(db, kind, subject, text, key, line=False):
