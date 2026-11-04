@@ -69,6 +69,7 @@ python deploy/n8n/verify.py
 ## 離線與安全
 
 - 映像版本寫死：`docker.n8n.io/n8nio/n8n:2.45.7`、`ghcr.io/axllent/mailpit:v1.32.0`；先下載好即可離線使用。
-- n8n 已關閉使用統計、版本檢查、範本庫；所有埠只綁 127.0.0.1。
+- n8n 已關閉使用統計、版本檢查、範本庫，也關閉開機時向 api.n8n.io 抓 MCP 伺服器清單的模組（`N8N_DISABLED_MODULES: mcp-registry`）；所有埠只綁 127.0.0.1。
+- 斷網實測（2026-11-04）：整套放進沒有對外網路的 Docker 網路，`verify.py` 七項全過；n8n 本身沒有連外嘗試。唯一會連外的是選用的 LINE 廣播，斷網時不會送，Email 照常。
 - 不使用 n8n 的雲端 AI 節點；週報的 AI 走專流既有的本地模型設定，模型沒開時改用程式整理的條列。
 - 換成公司真正的郵件伺服器時，只要在 n8n 修改「Mailpit SMTP」這組 SMTP 設定。

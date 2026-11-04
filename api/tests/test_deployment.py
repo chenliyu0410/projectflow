@@ -522,3 +522,12 @@ def test_postgresql_stage_uses_acceptance_container_stdin_and_propagates_failure
     runner.reset_mock()
     assert verify_module.postgresql_acceptance(tmp_path,{**result,'project':'projectflow-formal'}, {})==1
     runner.assert_not_called()
+
+
+def test_n8n_background_calls_to_n8n_servers_are_off():
+    """N8N-OFFLINE: besides telemetry/version/templates, n8n 2.45 fetches an MCP server list from api.n8n.io on start."""
+    compose = (Path(__file__).resolve().parents[2] / 'deploy/docker-compose.yml').read_text(encoding='utf-8')
+    n8n = compose[compose.index('\n  n8n:'):]
+    for line in ("N8N_DIAGNOSTICS_ENABLED: 'false'", "N8N_VERSION_NOTIFICATIONS_ENABLED: 'false'",
+                 "N8N_TEMPLATES_ENABLED: 'false'", 'N8N_DISABLED_MODULES: mcp-registry'):
+        assert line in n8n
