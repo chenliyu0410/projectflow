@@ -201,18 +201,19 @@ export default function CopilotPanel({ scope, open, close, companyName = '目前
         {result.followup === 'model' && result.standalone_question && <p className="copilot-understood">已理解為：{result.standalone_question}</p>}
         {result.followup === 'combined' && <p className="copilot-understood">已合併上一題一起查詢</p>}
         <div className="copilot-reply">
-          <p className="copilot-answer" style={result.kind === 'work_orders' || result.engine === 'model' ? { whiteSpace: 'pre-line' } : undefined}>{result.answer}</p>
+          <p className="copilot-answer" style={result.kind === 'work_orders' || result.kind === 'help' || result.engine === 'model' ? { whiteSpace: 'pre-line' } : undefined}>{result.answer}</p>
           {result.warning && <p role="status">{result.warning}</p>}
           {result.answer_id && <div className="copilot-feedback" role="group" aria-label="這則回答有幫助嗎">
             {rating && <small role="status">已記錄：{rating === 'helpful' ? '有幫助' : '沒有幫助'}</small>}
             <button type="button" aria-pressed={rating === 'helpful'} onClick={() => void rate(id, result.answer_id!, 'helpful')}>有幫助</button>
             <button type="button" aria-pressed={rating === 'unhelpful'} onClick={() => void rate(id, result.answer_id!, 'unhelpful')}>沒有幫助</button>
           </div>}
-          {result.suggestion && <button disabled={busy} onClick={() => void ask(result.suggestion!.label, undefined, result.suggestion!.query_id)}>確認執行：{result.suggestion.label}</button>}
+          {/* Suggestions never ran; each one runs its template only when clicked and says which conditions it leaves out. */}
+          {!!result.suggestions?.length && <div className="copilot-chips" role="group" aria-label={`「${question}」的建議查詢`}>{result.suggestions.map(s => <button key={s.query_id} disabled={busy} onClick={() => void ask(s.label, undefined, s.query_id)}>查詢：{s.label}{s.omits && `（${s.omits}）`}</button>)}</div>}
           {result.analysis && <><div className="ai-table-scroll" tabIndex={0} aria-label="查詢結果"><table><thead><tr>{result.analysis.columns.map(c => <th key={c}>{HEADINGS[c] ?? c}</th>)}</tr></thead><tbody>{result.analysis.rows.map((row, i) => <tr key={i}>{result.analysis!.columns.map(c => <td key={c}>{c === 'status' ? STATUS[String(row[c])] ?? row[c] : row[c] ?? '—'}</td>)}</tr>)}</tbody></table>{!result.analysis.rows.length && <p>沒有符合條件的資料。</p>}</div><details><summary>查看 SQL 與查詢範圍</summary><pre>{result.analysis.sql}</pre><pre>{JSON.stringify(result.analysis.parameters, null, 2)}</pre></details></>}
           <div className="copilot-meta">
             {!!result.sources.length && <details className="ai-sources-group"><summary>來源 {result.sources.length} 份</summary><div className="ai-sources">{result.sources.map(s => <details key={s.document_id}><summary style={{ overflowWrap: 'anywhere' }}>{s.source_type ? `${s.source_type === 'document' ? '文件' : '附件'}・${s.title}・第${s.version}版／第${s.section}段${s.page ? `・第${s.page}頁` : ''}` : `${s.document_id} · ${s.title}`}{s.is_current === false ? '（歷史版本）' : ''}{result.citations?.includes(s.document_id) ? '（模型引用）' : ''}</summary>{s.project_title && <p>{s.project_title}{s.node_title ? `／${s.node_title}` : ''}</p>}<p>{s.excerpt}</p>{denied === s.document_id && <p role="status">你目前無法查看這個來源。</p>}<button disabled={loadingDocument} style={{ overflowWrap: 'anywhere' }} onClick={() => void showDocument(s.document_id, dataset === 'formal-v1' || history)}>{s.source_type ? `開啟索引段落：${s.title}／${s.section}` : `開啟原文 ${s.document_id}`}</button></details>)}</div></details>}
-            {result.gateway && <details><summary>資料處理紀錄</summary><p>{result.engine === 'model' ? '本地模型處理・請核對來源' : result.kind === 'sql' ? '受控SQL・資料庫實算' : result.kind === 'work_orders' ? '完整工單查詢' : result.kind === 'other_company' ? '規則判斷・其他公司' : '本地文件檢索'}</p><GatewaySummary info={result.gateway} />{result.retrieval && <p>檢索方式：{RETRIEVAL[result.retrieval]}</p>}</details>}
+            {result.gateway && <details><summary>資料處理紀錄</summary><p>{['fallback', 'help', 'unsupported'].includes(result.kind) ? (result.engine === 'model' ? '本地模型協助挑選・未執行查詢' : '規則判斷・未執行查詢') : result.engine === 'model' ? '本地模型處理・請核對來源' : result.kind === 'sql' ? '受控SQL・資料庫實算' : result.kind === 'work_orders' ? '完整工單查詢' : result.kind === 'other_company' ? '規則判斷・其他公司' : '本地文件檢索'}</p><GatewaySummary info={result.gateway} />{result.retrieval && <p>檢索方式：{RETRIEVAL[result.retrieval]}</p>}</details>}
           </div>
         </div>
       </article>)}

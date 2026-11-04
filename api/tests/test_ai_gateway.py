@@ -141,7 +141,8 @@ def test_sql_gateway_preview_contains_catalog_not_business_rows(installed, monke
         assert "queries" in preview["content"] and "sources" not in preview["content"]
         assert "rows" not in json.dumps(preview)
         result = service.ask(db, "food", "admin", "想看工作情況", "sql")
-        assert result["kind"] == "query_suggestion" and result["gateway"]["outcome"] == "completed"
+        assert result["kind"] == "fallback" and result["gateway"]["outcome"] == "completed"
+        assert result["suggestions"][0]["query_id"] == "q02" and result["analysis"] is None
         deterministic = service.ask(db, "food", "admin", "各部門逾期未完成數", "sql")
         assert deterministic["gateway"]["reason"] == "rules_only"
         with pytest.raises(PermissionError):

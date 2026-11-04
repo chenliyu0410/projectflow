@@ -310,17 +310,34 @@ it('lets admin test and save local model settings', async () => {
   expect(ai.save).toHaveBeenCalledWith({ enabled: true, base_url: 'http://192.168.1.20:11434', model: 'test:1' }, expect.any(AbortSignal));
 });
 
-it('makes model-selected SQL scope reviewable before execution', async () => {
-  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'query_suggestion', analysis: null, sources: [], answer: '尚未執行', suggestion: { query_id: 'q02', label: '各部門逾期未完成數' } });
+it('names a dropped condition and runs a suggested analysis only when clicked', async () => {
+  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'fallback', engine: 'rules', analysis: null, sources: [], answer: '目前的分析還不能套用「上週」這個條件。尚未執行',
+    conditions: [{ type: 'time', label: '時間', text: '上週' }],
+    suggestions: [{ query_id: 'q02', label: '各部門逾期未完成數', omits: '不含「上週」條件' }, { query_id: 'q13', label: '本週到期未完成任務', omits: '不含「上週」條件' }] });
   render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
   await ready();
   category('資料分析');
-  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '想知道工作情況' } });
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '上週有多少工作逾期？' } });
   fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
-  await screen.findByText('尚未執行');
+  await screen.findByText(/還不能套用「上週」/);
   expect(screen.queryByLabelText('查詢結果')).toBeNull();
-  fireEvent.click(screen.getByRole('button', { name: '確認執行：各部門逾期未完成數' }));
+  expect(ai.ask).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('button', { name: '查詢：各部門逾期未完成數（不含「上週」條件）' }));
   await waitFor(() => expect(ai.ask).toHaveBeenLastCalledWith(expect.objectContaining({ query_id: 'q02', mode: 'sql' }), expect.any(AbortSignal)));
+});
+
+it('shows written help on separate lines with shortcut analyses', async () => {
+  vi.mocked(ai.ask).mockResolvedValue({ ...retrieved, kind: 'help', engine: 'rules', analysis: null, sources: [], answer: '我是資料分析小幫手\n・工作進度',
+    suggestions: [{ query_id: 'q02', label: '各部門逾期未完成數', omits: '' }] });
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} />);
+  await ready();
+  category('資料分析');
+  fireEvent.change(screen.getByLabelText('詢問 AI'), { target: { value: '你可以幫我查什麼？' } });
+  fireEvent.click(screen.getByRole('button', { name: '送出 AI 問題' }));
+  const answer = await screen.findByText(/我是資料分析小幫手/);
+  expect(answer).toHaveStyle({ whiteSpace: 'pre-line' });
+  expect(screen.getByRole('group', { name: '「你可以幫我查什麼？」的建議查詢' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '查詢：各部門逾期未完成數' })).toBeInTheDocument();
 });
 
 it('cancels a pending citation request when a new question starts', async () => {

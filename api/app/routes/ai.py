@@ -127,7 +127,9 @@ def evaluate(payload,current,db,*,preview):
     except store.QueryTooLarge: raise HTTPException(422,'查詢過於複雜，超過執行上限；請指定專案或換個問法後再試') from None
     except ValueError: raise HTTPException(422,'不支援此查詢') from None
     except sqlite3.Error: raise HTTPException(503,'AI展示資料暫時無法查詢，請稍後再試') from None
-    log_audit(db,current,'ai.preview' if preview else 'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':'preview' if preview else result['kind'],'source_count':result['gateway']['source_count'],'query_id':result['analysis']['query_id'] if not preview and result['analysis'] else None,'followup':how,'gateway':result['gateway']})
+    log_audit(db,current,'ai.preview' if preview else 'ai.query',payload={'mode':payload.mode,'dataset':payload.dataset,'include_history':payload.include_history,'project_id':payload.project_id,'kind':'preview' if preview else result['kind'],'source_count':result['gateway']['source_count'],'query_id':result['analysis']['query_id'] if not preview and result['analysis'] else None,'followup':how,'gateway':result['gateway'],
+        # Reason and condition types only, never the question words that triggered them.
+        **({'fallback':result['fallback']} if not preview and 'fallback' in result else {})})
     if not preview:
         result.update(followup=how,standalone_question=question if how in {'model','combined'} else None)
         if result['kind']!='clarification':
