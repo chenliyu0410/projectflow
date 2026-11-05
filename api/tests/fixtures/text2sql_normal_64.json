@@ -1,0 +1,993 @@
+[
+  {
+    "id": "N001",
+    "variant": "standard",
+    "queryId": "q01",
+    "question": "任務狀態分布",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "status": "blocked",
+        "count": 2
+      },
+      {
+        "status": "doing",
+        "count": 2
+      },
+      {
+        "status": "done",
+        "count": 2
+      },
+      {
+        "status": "rejected",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "id": "N002",
+    "variant": "standard",
+    "queryId": "q02",
+    "question": "各部門逾期未完成數",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "department": "研發",
+        "overdue_count": 6
+      }
+    ]
+  },
+  {
+    "id": "N003",
+    "variant": "standard",
+    "queryId": "q03",
+    "question": "各專案完成率",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "total": 4,
+        "done_count": 1,
+        "completion_pct": 25.0
+      },
+      {
+        "project_id": "food-P2",
+        "total": 4,
+        "done_count": 1,
+        "completion_pct": 25.0
+      }
+    ]
+  },
+  {
+    "id": "N004",
+    "variant": "standard",
+    "queryId": "q04",
+    "question": "超支專案及超支金額",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P2",
+        "budget_twd": 100,
+        "actual_twd": 240,
+        "overrun_twd": 140
+      },
+      {
+        "project_id": "food-P1",
+        "budget_twd": 100,
+        "actual_twd": 120,
+        "overrun_twd": 20
+      }
+    ]
+  },
+  {
+    "id": "N005",
+    "variant": "standard",
+    "queryId": "q05",
+    "question": "供應商未交逾期訂單數與金額",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "supplier_id": "s1",
+        "overdue_count": 2,
+        "amount_twd": 40
+      }
+    ]
+  },
+  {
+    "id": "N006",
+    "variant": "standard",
+    "queryId": "q06",
+    "question": "供應商已收貨延遲率",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "supplier_id": "s1",
+        "received_count": 4,
+        "late_count": 2,
+        "late_pct": 50.0
+      }
+    ]
+  },
+  {
+    "id": "N007",
+    "variant": "standard",
+    "queryId": "q07",
+    "question": "各專案加權不良率",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "samples": 50,
+        "defects": 2,
+        "defect_pct": 4.0
+      },
+      {
+        "project_id": "food-P2",
+        "samples": 50,
+        "defects": 2,
+        "defect_pct": 4.0
+      }
+    ]
+  },
+  {
+    "id": "N008",
+    "variant": "standard",
+    "queryId": "q08",
+    "question": "各月各類已入帳成本",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "month": "2026-10",
+        "category": "測試",
+        "amount_twd": 360
+      }
+    ]
+  },
+  {
+    "id": "N009",
+    "variant": "standard",
+    "queryId": "q09",
+    "question": "尚未結案的高風險清單",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "risk_id": "food-P1-R1",
+        "project_id": "food-P1",
+        "cause": "交期延遲",
+        "action": "追蹤交期"
+      },
+      {
+        "risk_id": "food-P2-R1",
+        "project_id": "food-P2",
+        "cause": "交期延遲",
+        "action": "追蹤交期"
+      }
+    ]
+  },
+  {
+    "id": "N010",
+    "variant": "standard",
+    "queryId": "q10",
+    "question": "未完成工作最多的前五位負責人",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "person_id": "p1",
+        "name": "窗口",
+        "open_tasks": 6
+      }
+    ]
+  },
+  {
+    "id": "N011",
+    "variant": "standard",
+    "queryId": "q11",
+    "question": "已完成任務工時超估清單",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "task_id": "food-P1-T2",
+        "estimated_hours": 8,
+        "actual_hours": 10,
+        "extra_hours": 2
+      },
+      {
+        "task_id": "food-P2-T2",
+        "estimated_hours": 8,
+        "actual_hours": 10,
+        "extra_hours": 2
+      }
+    ]
+  },
+  {
+    "id": "N012",
+    "variant": "standard",
+    "queryId": "q12",
+    "question": "各專案未取消的採購承諾金額",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "committed_twd": 200
+      },
+      {
+        "project_id": "food-P2",
+        "committed_twd": 200
+      }
+    ]
+  },
+  {
+    "id": "N013",
+    "variant": "standard",
+    "queryId": "q13",
+    "question": "本週到期未完成任務",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "task_id": "food-P1-T1",
+        "due_date": "2026-10-09",
+        "status": "doing"
+      },
+      {
+        "task_id": "food-P2-T1",
+        "due_date": "2026-10-09",
+        "status": "doing"
+      },
+      {
+        "task_id": "food-P1-T3",
+        "due_date": "2026-10-10",
+        "status": "rejected"
+      },
+      {
+        "task_id": "food-P1-T4",
+        "due_date": "2026-10-10",
+        "status": "blocked"
+      },
+      {
+        "task_id": "food-P2-T3",
+        "due_date": "2026-10-10",
+        "status": "rejected"
+      },
+      {
+        "task_id": "food-P2-T4",
+        "due_date": "2026-10-10",
+        "status": "blocked"
+      }
+    ]
+  },
+  {
+    "id": "N014",
+    "variant": "standard",
+    "queryId": "q14",
+    "question": "各專案退回與受阻任務數",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "rejected_count": 1,
+        "blocked_count": 1
+      },
+      {
+        "project_id": "food-P2",
+        "rejected_count": 1,
+        "blocked_count": 1
+      }
+    ]
+  },
+  {
+    "id": "N015",
+    "variant": "standard",
+    "queryId": "q15",
+    "question": "尚未收貨但未逾期的訂單",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "order_id": "food-P1-PO4",
+        "promised_date": "2026-10-20",
+        "amount_twd": 80
+      },
+      {
+        "order_id": "food-P2-PO4",
+        "promised_date": "2026-10-20",
+        "amount_twd": 80
+      }
+    ]
+  },
+  {
+    "id": "N016",
+    "variant": "standard",
+    "queryId": "q16",
+    "question": "零不良批次數",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "zero_defect_batches": 2
+      }
+    ]
+  },
+  {
+    "id": "N017",
+    "variant": "polite",
+    "queryId": "q01",
+    "question": "請問任務狀態分布？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "status": "blocked",
+        "count": 2
+      },
+      {
+        "status": "doing",
+        "count": 2
+      },
+      {
+        "status": "done",
+        "count": 2
+      },
+      {
+        "status": "rejected",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "id": "N018",
+    "variant": "polite",
+    "queryId": "q02",
+    "question": "請問各部門逾期未完成數？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "department": "研發",
+        "overdue_count": 6
+      }
+    ]
+  },
+  {
+    "id": "N019",
+    "variant": "polite",
+    "queryId": "q03",
+    "question": "請問各專案完成率？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "total": 4,
+        "done_count": 1,
+        "completion_pct": 25.0
+      },
+      {
+        "project_id": "food-P2",
+        "total": 4,
+        "done_count": 1,
+        "completion_pct": 25.0
+      }
+    ]
+  },
+  {
+    "id": "N020",
+    "variant": "polite",
+    "queryId": "q04",
+    "question": "請問超支專案及超支金額？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P2",
+        "budget_twd": 100,
+        "actual_twd": 240,
+        "overrun_twd": 140
+      },
+      {
+        "project_id": "food-P1",
+        "budget_twd": 100,
+        "actual_twd": 120,
+        "overrun_twd": 20
+      }
+    ]
+  },
+  {
+    "id": "N021",
+    "variant": "polite",
+    "queryId": "q05",
+    "question": "請問供應商未交逾期訂單數與金額？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "supplier_id": "s1",
+        "overdue_count": 2,
+        "amount_twd": 40
+      }
+    ]
+  },
+  {
+    "id": "N022",
+    "variant": "polite",
+    "queryId": "q06",
+    "question": "請問供應商已收貨延遲率？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "supplier_id": "s1",
+        "received_count": 4,
+        "late_count": 2,
+        "late_pct": 50.0
+      }
+    ]
+  },
+  {
+    "id": "N023",
+    "variant": "polite",
+    "queryId": "q07",
+    "question": "請問各專案加權不良率？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "samples": 50,
+        "defects": 2,
+        "defect_pct": 4.0
+      },
+      {
+        "project_id": "food-P2",
+        "samples": 50,
+        "defects": 2,
+        "defect_pct": 4.0
+      }
+    ]
+  },
+  {
+    "id": "N024",
+    "variant": "polite",
+    "queryId": "q08",
+    "question": "請問各月各類已入帳成本？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "month": "2026-10",
+        "category": "測試",
+        "amount_twd": 360
+      }
+    ]
+  },
+  {
+    "id": "N025",
+    "variant": "polite",
+    "queryId": "q09",
+    "question": "請問尚未結案的高風險清單？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "risk_id": "food-P1-R1",
+        "project_id": "food-P1",
+        "cause": "交期延遲",
+        "action": "追蹤交期"
+      },
+      {
+        "risk_id": "food-P2-R1",
+        "project_id": "food-P2",
+        "cause": "交期延遲",
+        "action": "追蹤交期"
+      }
+    ]
+  },
+  {
+    "id": "N026",
+    "variant": "polite",
+    "queryId": "q10",
+    "question": "請問未完成工作最多的前五位負責人？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "person_id": "p1",
+        "name": "窗口",
+        "open_tasks": 6
+      }
+    ]
+  },
+  {
+    "id": "N027",
+    "variant": "polite",
+    "queryId": "q11",
+    "question": "請問已完成任務工時超估清單？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "task_id": "food-P1-T2",
+        "estimated_hours": 8,
+        "actual_hours": 10,
+        "extra_hours": 2
+      },
+      {
+        "task_id": "food-P2-T2",
+        "estimated_hours": 8,
+        "actual_hours": 10,
+        "extra_hours": 2
+      }
+    ]
+  },
+  {
+    "id": "N028",
+    "variant": "polite",
+    "queryId": "q12",
+    "question": "請問各專案未取消的採購承諾金額？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "committed_twd": 200
+      },
+      {
+        "project_id": "food-P2",
+        "committed_twd": 200
+      }
+    ]
+  },
+  {
+    "id": "N029",
+    "variant": "polite",
+    "queryId": "q13",
+    "question": "請問本週到期未完成任務？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "task_id": "food-P1-T1",
+        "due_date": "2026-10-09",
+        "status": "doing"
+      },
+      {
+        "task_id": "food-P2-T1",
+        "due_date": "2026-10-09",
+        "status": "doing"
+      },
+      {
+        "task_id": "food-P1-T3",
+        "due_date": "2026-10-10",
+        "status": "rejected"
+      },
+      {
+        "task_id": "food-P1-T4",
+        "due_date": "2026-10-10",
+        "status": "blocked"
+      },
+      {
+        "task_id": "food-P2-T3",
+        "due_date": "2026-10-10",
+        "status": "rejected"
+      },
+      {
+        "task_id": "food-P2-T4",
+        "due_date": "2026-10-10",
+        "status": "blocked"
+      }
+    ]
+  },
+  {
+    "id": "N030",
+    "variant": "polite",
+    "queryId": "q14",
+    "question": "請問各專案退回與受阻任務數？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "rejected_count": 1,
+        "blocked_count": 1
+      },
+      {
+        "project_id": "food-P2",
+        "rejected_count": 1,
+        "blocked_count": 1
+      }
+    ]
+  },
+  {
+    "id": "N031",
+    "variant": "polite",
+    "queryId": "q15",
+    "question": "請問尚未收貨但未逾期的訂單？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "order_id": "food-P1-PO4",
+        "promised_date": "2026-10-20",
+        "amount_twd": 80
+      },
+      {
+        "order_id": "food-P2-PO4",
+        "promised_date": "2026-10-20",
+        "amount_twd": 80
+      }
+    ]
+  },
+  {
+    "id": "N032",
+    "variant": "polite",
+    "queryId": "q16",
+    "question": "請問零不良批次數？",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "zero_defect_batches": 2
+      }
+    ]
+  },
+  {
+    "id": "N033",
+    "variant": "project",
+    "queryId": "q01",
+    "question": "任務狀態分布",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "status": "blocked",
+        "count": 1
+      },
+      {
+        "status": "doing",
+        "count": 1
+      },
+      {
+        "status": "done",
+        "count": 1
+      },
+      {
+        "status": "rejected",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "N034",
+    "variant": "project",
+    "queryId": "q02",
+    "question": "各部門逾期未完成數",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "department": "研發",
+        "overdue_count": 3
+      }
+    ]
+  },
+  {
+    "id": "N035",
+    "variant": "project",
+    "queryId": "q03",
+    "question": "各專案完成率",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "total": 4,
+        "done_count": 1,
+        "completion_pct": 25.0
+      }
+    ]
+  },
+  {
+    "id": "N036",
+    "variant": "project",
+    "queryId": "q04",
+    "question": "超支專案及超支金額",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "budget_twd": 100,
+        "actual_twd": 120,
+        "overrun_twd": 20
+      }
+    ]
+  },
+  {
+    "id": "N037",
+    "variant": "project",
+    "queryId": "q05",
+    "question": "供應商未交逾期訂單數與金額",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "supplier_id": "s1",
+        "overdue_count": 1,
+        "amount_twd": 20
+      }
+    ]
+  },
+  {
+    "id": "N038",
+    "variant": "project",
+    "queryId": "q06",
+    "question": "供應商已收貨延遲率",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "supplier_id": "s1",
+        "received_count": 2,
+        "late_count": 1,
+        "late_pct": 50.0
+      }
+    ]
+  },
+  {
+    "id": "N039",
+    "variant": "project",
+    "queryId": "q07",
+    "question": "各專案加權不良率",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "samples": 50,
+        "defects": 2,
+        "defect_pct": 4.0
+      }
+    ]
+  },
+  {
+    "id": "N040",
+    "variant": "project",
+    "queryId": "q08",
+    "question": "各月各類已入帳成本",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "month": "2026-10",
+        "category": "測試",
+        "amount_twd": 120
+      }
+    ]
+  },
+  {
+    "id": "N041",
+    "variant": "project",
+    "queryId": "q09",
+    "question": "尚未結案的高風險清單",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "risk_id": "food-P1-R1",
+        "project_id": "food-P1",
+        "cause": "交期延遲",
+        "action": "追蹤交期"
+      }
+    ]
+  },
+  {
+    "id": "N042",
+    "variant": "project",
+    "queryId": "q10",
+    "question": "未完成工作最多的前五位負責人",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "person_id": "p1",
+        "name": "窗口",
+        "open_tasks": 3
+      }
+    ]
+  },
+  {
+    "id": "N043",
+    "variant": "project",
+    "queryId": "q11",
+    "question": "已完成任務工時超估清單",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "task_id": "food-P1-T2",
+        "estimated_hours": 8,
+        "actual_hours": 10,
+        "extra_hours": 2
+      }
+    ]
+  },
+  {
+    "id": "N044",
+    "variant": "project",
+    "queryId": "q12",
+    "question": "各專案未取消的採購承諾金額",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "committed_twd": 200
+      }
+    ]
+  },
+  {
+    "id": "N045",
+    "variant": "project",
+    "queryId": "q13",
+    "question": "本週到期未完成任務",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "task_id": "food-P1-T1",
+        "due_date": "2026-10-09",
+        "status": "doing"
+      },
+      {
+        "task_id": "food-P1-T3",
+        "due_date": "2026-10-10",
+        "status": "rejected"
+      },
+      {
+        "task_id": "food-P1-T4",
+        "due_date": "2026-10-10",
+        "status": "blocked"
+      }
+    ]
+  },
+  {
+    "id": "N046",
+    "variant": "project",
+    "queryId": "q14",
+    "question": "各專案退回與受阻任務數",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "rejected_count": 1,
+        "blocked_count": 1
+      }
+    ]
+  },
+  {
+    "id": "N047",
+    "variant": "project",
+    "queryId": "q15",
+    "question": "尚未收貨但未逾期的訂單",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "order_id": "food-P1-PO4",
+        "promised_date": "2026-10-20",
+        "amount_twd": 80
+      }
+    ]
+  },
+  {
+    "id": "N048",
+    "variant": "project",
+    "queryId": "q16",
+    "question": "零不良批次數",
+    "projectId": "food-P1",
+    "expectedRows": [
+      {
+        "zero_defect_batches": 1
+      }
+    ]
+  },
+  {
+    "id": "N049",
+    "variant": "empty",
+    "queryId": "q01",
+    "question": "任務狀態分布",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N050",
+    "variant": "empty",
+    "queryId": "q02",
+    "question": "各部門逾期未完成數",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N051",
+    "variant": "empty",
+    "queryId": "q03",
+    "question": "各專案完成率",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N052",
+    "variant": "empty",
+    "queryId": "q04",
+    "question": "超支專案及超支金額",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N053",
+    "variant": "empty",
+    "queryId": "q05",
+    "question": "供應商未交逾期訂單數與金額",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N054",
+    "variant": "empty",
+    "queryId": "q06",
+    "question": "供應商已收貨延遲率",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N055",
+    "variant": "empty",
+    "queryId": "q07",
+    "question": "各專案加權不良率",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N056",
+    "variant": "empty",
+    "queryId": "q08",
+    "question": "各月各類已入帳成本",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N057",
+    "variant": "empty",
+    "queryId": "q09",
+    "question": "尚未結案的高風險清單",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N058",
+    "variant": "empty",
+    "queryId": "q10",
+    "question": "未完成工作最多的前五位負責人",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N059",
+    "variant": "empty",
+    "queryId": "q11",
+    "question": "已完成任務工時超估清單",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N060",
+    "variant": "empty",
+    "queryId": "q12",
+    "question": "各專案未取消的採購承諾金額",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N061",
+    "variant": "empty",
+    "queryId": "q13",
+    "question": "本週到期未完成任務",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N062",
+    "variant": "empty",
+    "queryId": "q14",
+    "question": "各專案退回與受阻任務數",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N063",
+    "variant": "empty",
+    "queryId": "q15",
+    "question": "尚未收貨但未逾期的訂單",
+    "projectId": null,
+    "expectedRows": []
+  },
+  {
+    "id": "N064",
+    "variant": "empty",
+    "queryId": "q16",
+    "question": "零不良批次數",
+    "projectId": null,
+    "expectedRows": [
+      {
+        "zero_defect_batches": 0
+      }
+    ]
+  }
+]
