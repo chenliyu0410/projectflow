@@ -65,9 +65,12 @@ def story(cid, results):
     return problems
 
 
-def verify(pack):
+def verify(pack, counts=None):
     from app.ai import store
     problems = []
+    # 呼叫端傳入 dict 才能拿到比對組數；回傳值維持問題清單，既有呼叫不用改
+    counts = {} if counts is None else counts
+    counts.update(queries_checked=0, queries_matched=0)
     manifest = json.loads((pack / 'manifest.json').read_text(encoding='utf-8'))
     for relative, digest in manifest['files'].items():
         if hashlib.sha256((pack / relative).read_bytes()).hexdigest() != digest:
@@ -85,7 +88,10 @@ def verify(pack):
                 with closing(store.connect(cid)) as db:
                     results = {q['query_id']: store.execute_query(db, q['query_id'], cid)['rows'] for q in store.catalog()}
                     for query_id, rows in results.items():
-                        if not same(rows, expected[cid][query_id]):
+                        counts['queries_checked'] += 1
+                        if same(rows, expected[cid][query_id]):
+                            counts['queries_matched'] += 1
+                        else:
                             problems.append(f'{cid} {query_id} 與預期不符')
                     problems += story(cid, results)
                     member = {d['document_id'] for d in store.search(db, '成本報告 超支 預算', 'member', include_history=True)}
@@ -145,8 +151,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--pack', type=Path, default=HERE / 'pack')
     args = parser.parse_args()
-    problems = verify(args.pack.resolve())
-    print(json.dumps(dict(ok=not problems, problems=problems), ensure_ascii=False, indent=1))
+    counts = {}
+    problems = verify(args.pack.resolve(), counts)
+    print(json.dumps(dict(ok=not problems, **counts, problems=problems), ensure_ascii=False, indent=1))
     if problems:
         raise SystemExit(1)
 

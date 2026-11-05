@@ -88,6 +88,19 @@ def test_api_session_company_project_and_role_filters(client,installed):
     assert client.put('/ai/model',json={'enabled':False}).status_code==403
 
 
+def test_four_out_of_four_cross_boundary_scenarios_are_refused(client,installed):
+    # 簡報第 6 頁「4/4 越權情境」逐條列出；只整理既有行為，所以這個測試一寫好就會通過。
+    login(client)
+    results={
+        '看不到別家公司的文件':client.get('/ai/documents/electronics-current').status_code,
+        '不能指定別家公司的專案':client.post('/ai/ask',json={'question':'交付','project_id':'electronics-P1'}).status_code,
+        '不能用 company_id 參數換公司':client.post('/ai/ask',json={'question':'逾期','mode':'sql','company_id':'electronics'}).status_code,
+    }
+    login(client,'ming')
+    results['角色不足不能做資料分析']=client.post('/ai/ask',json={'question':'逾期','mode':'sql'}).status_code
+    assert results=={'看不到別家公司的文件':404,'不能指定別家公司的專案':404,'不能用 company_id 參數換公司':422,'角色不足不能做資料分析':403}
+
+
 def test_all_controlled_queries_and_project_filter(installed):
     with closing(store.connect('food')) as db:
         for q in store.catalog():
