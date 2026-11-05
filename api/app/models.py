@@ -811,5 +811,32 @@ class AIAnswer(Base):
     kind: Mapped[str] = mapped_column(String(40), nullable=False)
     followup: Mapped[str] = mapped_column(String(16), nullable=False)
     source_ids: Mapped[list] = mapped_column(JsonType, default=list, nullable=False)
+    # 只存那次給了哪些分析建議（id），確認問法時用來驗證；不存問句，也不存問句指紋
+    suggested_ids: Mapped[list] = mapped_column(JsonType, default=list, server_default='[]', nullable=False)
     rating: Mapped[str | None] = mapped_column(String(12), nullable=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False, index=True)
+
+
+AI_QUERY_IDS = tuple(f'q{i:02d}' for i in range(1, 17))
+
+
+class AILearnedPhrase(Base):
+    """TEXT2SQL-LEARNING：使用者確認過的問法與它對到的既有分析；問句原文只存在這張表。"""
+    __tablename__ = 'ai_learned_phrases'
+    __table_args__ = (
+        ForeignKeyConstraint(['organization_id', 'reviewed_by'], ['users.organization_id', 'users.id']),
+        UniqueConstraint('organization_id', 'phrase', 'query_id', name='uq_ai_learned_phrase'),
+        CheckConstraint("status IN ('pending','approved','rejected','disabled')", name='ck_ai_learned_phrase_status'),
+        CheckConstraint('query_id IN (' + ','.join(f"'{q}'" for q in AI_QUERY_IDS) + ')', name='ck_ai_learned_phrase_query'),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_text)
+    organization_id: Mapped[str] = mapped_column(ForeignKey('organizations.id'), nullable=False, index=True)
+    phrase: Mapped[str] = mapped_column(String(60), nullable=False)
+    query_id: Mapped[str] = mapped_column(String(3), nullable=False)
+    status: Mapped[str] = mapped_column(String(12), default='pending', nullable=False)
+    confirmed_by: Mapped[list] = mapped_column(JsonType, default=list, nullable=False)
+    first_confirmed_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
+    last_confirmed_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now_utc, nullable=False)
+    reviewed_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    checks: Mapped[dict | None] = mapped_column(JsonType, nullable=True)

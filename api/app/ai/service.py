@@ -11,16 +11,24 @@ ALIASES = {
 }
 
 
-def infer(question):
+def normalize(question):
     # Full phrase matching prevents silently dropping dates, names, negations or status filters.
     phrase=question.strip().rstrip('？?。！!')
-    phrase=re.sub(r'^(?:請問|請幫我查詢|幫我查詢|請查詢|查詢|請列出|列出)\s*','',phrase)
+    return re.sub(r'^(?:請問|請幫我查詢|幫我查詢|請查詢|查詢|請列出|列出)\s*','',phrase)
+
+
+def lookup(phrase, learned=None):
     for q in store.catalog():
         if phrase in [q['label'],*ALIASES.get(q['query_id'],[])]: return q['query_id']
-    return None
+    # 已上線的學習問法排在內建之後：內建標籤與 ALIASES 永遠優先，學到的蓋不掉
+    return (learned or {}).get(phrase)
 
 
-def ask(db, company, role, question, mode, project_id=None, query_id=None, dataset='dataset-v1', include_history=False, *, preview=False, other_companies=()):
+def infer(question, learned=None):
+    return lookup(normalize(question), learned)
+
+
+def ask(db, company, role, question, mode, project_id=None, query_id=None, dataset='dataset-v1', include_history=False, *, preview=False, other_companies=(), learned=None):
     base=dict(as_of=store.AS_OF,synthetic=True,project_id=project_id,sources=[],analysis=None,warning=None)
     if dataset == 'starter-v1':
         from app.ai import starter
@@ -39,7 +47,8 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
         return dict(base, kind='work_orders', engine='rules', answer=f"截至{base['as_of']}，目前範圍共有{len(rows)}張未完成工單（日曆日計算）。\n" + '\n'.join(lines))
     if mode=='sql':
         if role not in {'admin','project_owner'}: raise PermissionError('SQL role')
-        chosen=query_id or infer(question)
+        builtin=query_id or infer(question)
+        chosen=builtin or infer(question,learned)
         names = None if chosen else fallback.vocabulary(db)
         # Refusals and written help are decided by rules alone, so the model never sees those questions.
         early = None if chosen else fallback.early_reply(question, other_companies, names)
@@ -62,7 +71,7 @@ def ask(db, company, role, question, mode, project_id=None, query_id=None, datas
             return dict(base, engine=engine, **fallback.suggest(question, names, proposed))
         result=store.execute_query(db,chosen,company,project_id)
         base['analysis']=result
-        return dict(base,kind='sql',engine=engine,answer=f'查詢：{result["label"]}。找到{len(result["rows"])}列結果'+('（已截取前200列）。' if result['truncated'] else '。')+'以下為資料庫實際計算；未執行任意模型SQL。')
+        return dict(base,kind='sql',engine=engine,learned=not builtin,answer=f'查詢：{result["label"]}。找到{len(result["rows"])}列結果'+('（已截取前200列）。' if result['truncated'] else '。')+'以下為資料庫實際計算；未執行任意模型SQL。')
     if dataset == 'starter-v1':
         documents, base['retrieval'] = starter.search(db, company, question, role, project_id, include_history)
     else:
