@@ -133,7 +133,7 @@
 
 ## 允許修改的檔案
 
-`api/alembic/versions/<新 migration>.py`、`api/app/models.py`、`api/app/ai/learning.py`（新）、`api/app/ai/learning_checks.json`（新）、`api/app/ai/service.py`、`api/app/routes/ai.py`、`api/tests/test_ai_learning.py`（新）、既有 AI／migration 測試中因新欄位需要調整的斷言、`web/src/ai.ts`、`web/src/components/CopilotPanel.tsx`、`web/src/components/LearningReview.tsx`（新）、`web/src/styles.css`、對應 Vitest 檔、`docs/PROGRESS.md`、`README.md`；Task 0 另加 `api/tests/test_ai.py`、`deploy/ai-demo-data/verify.py`。
+`api/alembic/versions/<新 migration>.py`、`api/app/models.py`、`api/app/ai/learning.py`（新）、`api/app/ai/learning_checks.json`（新）、`api/app/ai/service.py`、`api/app/routes/ai.py`、`api/tests/test_ai_learning.py`（新）、既有 AI／migration 測試中因新欄位需要調整的斷言、`web/src/ai.ts`、`web/src/components/CopilotPanel.tsx`、`web/src/components/LearningReview.tsx`（新）、`web/src/styles.css`、對應 Vitest 檔、`docs/PROGRESS.md`、`README.md`；Task 0 另加 `api/tests/test_ai.py`、`deploy/ai-demo-data/verify.py`；`api/tests/test_health.py` 只補新路徑到既有路由白名單（全量回歸時發現）。
 
 ## 分支與 Git
 
