@@ -67,6 +67,8 @@
 
 ## 2. 工作佇列（由上往下執行）
 
+- TEXT2SQL-EXPANDED-TESTS 追加核可（2026-11-05）：使用者核可正常查詢64案例＋回訓流程8案例，只改測試和測試資料。先固定預期後執行；產品 app/ 與原有測試檔不改，若失敗先討論。4題重複決定仍待確認。
+
 - TEXT2SQL-EXPANDED-TESTS 待確認（2026-11-05）：題庫 commit `698f29a`，217 pass；相關回歸89 pass／1 skip。自查T010/T026/T027/T081與既有7題重複，實際96題新增＋4題回歸，已詢問是否替換再跑。獨立審查因額度未執行。完整紀錄：`docs/reports/2026-11-05-text2sql-expanded-tests.md`。暫不開PR、不改產品。
 
 - TEXT2SQL-EXPANDED-TESTS 🔨（2026-11-05）：使用者授權以含回訓的 a42e5fa 為基底，新增 100 陷阱題＋100 API 越權案例，另開 PR；codex/text2sql-expanded-tests。短規格與計畫：`docs/superpowers/plans/2026-11-05-text2sql-expanded-tests.md`。既有基準35 pass／1 skip，題庫先固定再跑；若失敗先詢問，不改產品。原有未追蹤 artifacts/ 與架構 PNG 保留、不提交。

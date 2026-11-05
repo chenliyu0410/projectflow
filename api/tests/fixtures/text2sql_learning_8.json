@@ -1,0 +1,126 @@
+[
+  {
+    "id": "L001",
+    "queryId": "q02",
+    "question": "想了解各部門逾期未完成的數量",
+    "expectedRows": [
+      {
+        "department": "研發",
+        "overdue_count": 6
+      }
+    ]
+  },
+  {
+    "id": "L002",
+    "queryId": "q03",
+    "question": "想看各個專案的完成比例",
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "total": 4,
+        "done_count": 1,
+        "completion_pct": 25.0
+      },
+      {
+        "project_id": "food-P2",
+        "total": 4,
+        "done_count": 1,
+        "completion_pct": 25.0
+      }
+    ]
+  },
+  {
+    "id": "L003",
+    "queryId": "q04",
+    "question": "想了解哪些案子超出預算以及金額",
+    "expectedRows": [
+      {
+        "project_id": "food-P2",
+        "budget_twd": 100,
+        "actual_twd": 240,
+        "overrun_twd": 140
+      },
+      {
+        "project_id": "food-P1",
+        "budget_twd": 100,
+        "actual_twd": 120,
+        "overrun_twd": 20
+      }
+    ]
+  },
+  {
+    "id": "L004",
+    "queryId": "q05",
+    "question": "想查供應商還沒交而且逾期的訂單金額",
+    "expectedRows": [
+      {
+        "supplier_id": "s1",
+        "overdue_count": 2,
+        "amount_twd": 40
+      }
+    ]
+  },
+  {
+    "id": "L005",
+    "queryId": "q06",
+    "question": "想看供應商晚交貨的比例",
+    "expectedRows": [
+      {
+        "supplier_id": "s1",
+        "received_count": 4,
+        "late_count": 2,
+        "late_pct": 50.0
+      }
+    ]
+  },
+  {
+    "id": "L006",
+    "queryId": "q07",
+    "question": "想了解各專案品質的不良比例",
+    "expectedRows": [
+      {
+        "project_id": "food-P1",
+        "samples": 50,
+        "defects": 2,
+        "defect_pct": 4.0
+      },
+      {
+        "project_id": "food-P2",
+        "samples": 50,
+        "defects": 2,
+        "defect_pct": 4.0
+      }
+    ]
+  },
+  {
+    "id": "L007",
+    "queryId": "q09",
+    "question": "想看還沒解決的高風險事項",
+    "expectedRows": [
+      {
+        "risk_id": "food-P1-R1",
+        "project_id": "food-P1",
+        "cause": "交期延遲",
+        "action": "追蹤交期"
+      },
+      {
+        "risk_id": "food-P2-R1",
+        "project_id": "food-P2",
+        "cause": "交期延遲",
+        "action": "追蹤交期"
+      }
+    ]
+  },
+  {
+    "id": "L008",
+    "queryId": "q10",
+    "question": "想找未完成工作最多的前五位負責人",
+    "expectedRows": [
+      {
+        "person_id": "p1",
+        "name": "窗口",
+        "open_tasks": 6
+      }
+    ]
+  }
+]

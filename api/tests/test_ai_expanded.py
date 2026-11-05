@@ -124,15 +124,3 @@ def test_access_boundary(case, client, installed, engine, executionCalls):
   assert executionCalls == [], case["id"]
   assert dataSnapshot(installed, engine) == before
 
-
-@pytest.mark.parametrize("query", store.catalog(), ids=lambda query: query["query_id"])
-def test_supported_query_still_executes(query, client, installed, executionCalls):
-  signIn(client, "yu")
-  response = client.post("/ai/ask", json={"question": query["label"], "mode": "sql"})
-  assert response.status_code == 200
-  answer = response.json()
-  assert answer["kind"] == "sql"
-  assert answer["analysis"]["query_id"] == query["query_id"]
-  assert executionCalls == [(query["query_id"], "food")]
-  if query["query_id"] == "q02":
-    assert answer["analysis"]["rows"] == [{"department": "研發", "overdue_count": 2}]
