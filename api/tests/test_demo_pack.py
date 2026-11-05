@@ -58,6 +58,12 @@ def test_round_trip_restores_business_data_without_credentials(client, engine, f
         import_pack(target, pack.__getitem__, restored_files)
 
 
+def test_learned_question_text_is_never_exported():
+    # D90：候選問法存的是使用者打的原句與確認者 id；展示包會進 git，和 ai_answers 一樣不匯出
+    assert {'ai_answers', 'ai_learned_phrases'} <= EXCLUDED
+    assert 'ai_learned_phrases' not in {table.name for table in tables()}
+
+
 def test_import_refuses_tampered_or_mismatched_pack(client, engine, files, tmp_path):
     pack = export_pack(engine, files)
     target = create_engine(f"sqlite+pysqlite:///{tmp_path / 'target.db'}")

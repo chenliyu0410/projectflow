@@ -23,7 +23,8 @@ from app.security import hash_password
 
 FORMAT = 1
 # AI answer feedback is usage data like the audit log; full backups keep it.
-EXCLUDED = {'sessions', 'audit_logs', 'notifications', 'ai_answers'}
+# 學會的問法存的是使用者打的原句；展示包會進 git，所以只留在完整備份（D90）。
+EXCLUDED = {'sessions', 'audit_logs', 'notifications', 'ai_answers', 'ai_learned_phrases'}
 SCRUBBED = {'users': {'password_hash'}}
 FILE_TABLES = {'attachments': 'storage_key', 'document_versions': 'storage_key'}
 # A backup also carries the uploaded Word template files.
