@@ -162,6 +162,20 @@ def test_condition_and_command_like_questions_offer_no_confirm_and_are_refused(c
         assert db.scalars(select(AILearnedPhrase)).all() == []
 
 
+def test_off_topic_question_with_only_starter_suggestions_is_not_learnable(client, engine, demo):
+    # 審查應修 1：規則找不到相近分析時只補固定快捷題，那些建議不是在回答這句，學起來會讓離題問句直接查資料
+    login(client)
+    off_topic = ask(client, '幾點下班？')
+    assert off_topic['kind'] == 'fallback' and off_topic['fallback']['reason'] == 'no_match' and off_topic['suggestions']
+    assert all(s['learnable'] is False for s in off_topic['suggestions'])
+    for s in off_topic['suggestions']:
+        assert confirm(client, off_topic, s['query_id'], '幾點下班？').status_code == 422
+    # 拿別次回覆的 answer_id 配這句離題問句也要被拒
+    assert confirm(client, ask(client), 'q06', '幾點下班？').status_code == 422
+    with Session(engine) as db:
+        assert db.scalars(select(AILearnedPhrase)).all() == []
+
+
 def test_help_replies_and_too_long_questions_are_not_learnable(client, engine, demo):
     login(client)
     help_reply = ask(client, '你可以查什麼？')
@@ -223,15 +237,17 @@ def test_rejected_phrase_stays_rejected(client, demo):
     assert ask(client)['kind'] == 'fallback'
 
 
-@pytest.mark.parametrize('phrase,query_id,code,reason', [
-    ('上個月各部門逾期任務有幾件', 'q02', 'C1', 'condition'),
-    ('請刪除逾期任務', 'q02', 'C2', 'command'),
-    ('刪除逾期任務', 'q02', 'C2', 'command'),
-    ('你可以查什麼', 'q02', 'C2', 'capabilities'),
-    ('各部門逾期任務數', 'q05', 'C3', 'builtin'),
-    ('哪幾家廠商最常晚交貨', 'q06', 'C4', 'bank_changed'),
+@pytest.mark.parametrize('phrase,query_id,code,reason,also', [
+    ('上個月各部門逾期任務有幾件', 'q02', 'C1', 'condition', set()),
+    ('幾點下班', 'q06', 'C1', 'not_suggested', set()),
+    ('請刪除逾期任務', 'q02', 'C2', 'command', set()),
+    ('刪除逾期任務', 'q02', 'C2', 'command', set()),
+    # 使用說明不是在問任何分析，所以 C1 也不過
+    ('你可以查什麼', 'q02', 'C2', 'capabilities', {'C1'}),
+    ('各部門逾期任務數', 'q05', 'C3', 'builtin', set()),
+    ('哪幾家廠商最常晚交貨', 'q06', 'C4', 'bank_changed', set()),
 ])
-def test_each_failed_check_keeps_the_phrase_pending(client, engine, demo, phrase, query_id, code, reason):
+def test_each_failed_check_keeps_the_phrase_pending(client, engine, demo, phrase, query_id, code, reason, also):
     # 驗收情境 5（C1–C4）
     item_id = add_candidate(engine, phrase, query_id)
     login(client)
@@ -240,7 +256,7 @@ def test_each_failed_check_keeps_the_phrase_pending(client, engine, demo, phrase
     reviewed = reviewed.json()
     assert reviewed['status'] == 'pending' and reviewed['checks']['passed'] is False
     failed = {c['code']: c for c in reviewed['checks']['items'] if not c['ok']}
-    assert set(failed) == {code} and failed[code]['reason'] == reason and failed[code]['message']
+    assert set(failed) == {code} | also and failed[code]['reason'] == reason and failed[code]['message']
     assert ask(client, phrase).get('learned') is not True
     [item] = candidates(client)
     assert item['checks'] == reviewed['checks'] and item['status'] == 'pending'

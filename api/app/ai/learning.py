@@ -73,6 +73,10 @@ def blocked(phrase, others, names):
 
 def left_out(phrase, query_id, names):
     """C1：只用規則重算，這個分析在建議裡、而且沒有它套用不到的條件時回 None（決定 9、10）。"""
+    # 規則找不到相近分析時，建議會補上固定快捷題；那些不是在回答這句，只認規則真的判定相關的分析
+    text = names.sub(' ', phrase) if names else phrase
+    if query_id not in fallback.rank(text):
+        return 'not_suggested'
     for s in fallback.suggest(phrase, names)['suggestions']:
         if s['query_id'] == query_id:
             return None if s['omits'] == NO_CONDITIONS else 'condition'
