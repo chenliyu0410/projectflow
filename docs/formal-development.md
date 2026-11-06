@@ -197,6 +197,20 @@ docker compose --project-name projectflow-acceptance --env-file .superpowers/p1c
 
 Docker基礎映像使用開發方便用的版本tag，本次實測image ID／digest見PROGRESS；不是離線或正式環境可重現部署保證。
 
+## 持續整合（CI）
+
+`.github/workflows/ci.yml` 在 push 到 `main`、每個 PR，以及在 GitHub「Actions」頁手動觸發時執行，五個 job 互不相依：
+
+| Job | 檢查什麼 | 本機對應 |
+|---|---|---|
+| API (pytest, SQLite) | `api/tests` 全部；需要專用 PostgreSQL 的測試在這裡 skip | `python -m pytest api/tests -q` |
+| API (dedicated PostgreSQL) | migration 與併發測試，每階段一個新資料庫 | `python .github/scripts/run_postgresql_tests.py`（需 `PG_ADMIN_URL`） |
+| Web (Vitest, build) | 前端單元測試、型別檢查與建置 | `cd web && npx vitest run && npm run build` |
+| Demo (tests/records.html, headless) | 原生 HTML Demo 的瀏覽器測試頁，任何失敗或 console error 都算失敗 | 先在 repo 根目錄 `python -m http.server 8765 --bind 127.0.0.1`，再 `node .github/scripts/run_demo_tests.mjs http://127.0.0.1:8765` |
+| Deploy config | 兩份 Compose（含 n8n profile、公開試用覆寫）能解析；部署腳本能編譯；n8n 流程檔與 `setup.py` 清單一致 | `docker compose -f deploy/docker-compose.yml --env-file deploy/.env.example --profile n8n config -q`（需先設定一次性的 `POSTGRES_PASSWORD`） |
+
+CI 不放任何密碼：PostgreSQL 用 runner 本機的 trust 連線，Compose 檢查用假值，不建置映像也不啟動容器。
+
 ## P1a 後端資料庫
 
 P1a 使用 Alembic migration 管理正式業務 schema。啟動完整 Compose 後，從 repo 根目錄執行：

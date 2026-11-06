@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -81,3 +82,58 @@ jobs:
         run: npx vitest run
       - name: Type check and build
         run: npm run build
+
+  demo:
+    # 專題的原生 HTML Demo（projectflow-full-demo.html）：用無頭 Chromium 跑 tests/records.html，
+    # 任何測試失敗或 console error 都算失敗。Demo 本身不引入依賴，Playwright 借用 web 已鎖版的套件。
+    name: Demo (tests/records.html, headless)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install locked dependencies and Chromium
+        working-directory: web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Serve the repo over HTTP (file:// breaks the test page)
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 > /dev/null 2>&1 &
+          for i in $(seq 1 20); do curl -fs http://127.0.0.1:8000/AGENTS.md > /dev/null && break; sleep 1; done
+      - name: Run the Demo test page
+        run: node .github/scripts/run_demo_tests.mjs http://127.0.0.1:8000
+
+  deploy:
+    # 地端部署設定：Compose（正式 stack＋n8n profile、公開試用覆寫）、部署腳本與 n8n 流程檔。
+    # 只檢查設定能被解析，不建置映像、不啟動容器；密碼用一次性的假值，repo 不放任何秘密。
+    name: Deploy config (Compose, n8n workflows)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      POSTGRES_PASSWORD: ci-placeholder
+      PF_N8N_TOKEN: ci-placeholder-token-0123456789
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compose files resolve
+        run: |
+          docker compose -f deploy/docker-compose.yml --env-file deploy/.env.example --profile n8n config -q
+          docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.public.yml --env-file deploy/.env.example --profile n8n config -q
+      - name: Deploy scripts compile
+        run: python3 -m py_compile deploy/*.py deploy/n8n/*.py deploy/portable/*.py
+      - name: n8n workflows parse and match setup.py
+        run: |
+          python3 - <<'PY'
+          import json, re
+          from pathlib import Path
+          files = sorted(Path('deploy/n8n/workflows').glob('*.json'))
+          ids = {json.loads(f.read_text(encoding='utf-8'))['id']: f.stem for f in files}
+          setup = Path('deploy/n8n/setup.py').read_text(encoding='utf-8')
+          listed = dict(re.findall(r"'([\w-]+)': '(pf\w+)'", setup.split('REMOVED_WORKFLOWS')[0]))
+          assert {v: k for k, v in listed.items()} == ids, (listed, ids)
+          print('n8n workflows:', ', '.join(f.stem for f in files))
+          PY
