@@ -1,9 +1,9 @@
-"""N8N complete (D87): mail settings, failed-mail resend, outbox lease, weekly safeguards, inbox, Excel import, backup, expiry."""
-import io
+"""N8N complete (D87): mail settings, failed-mail resend, outbox lease, weekly safeguards, backup, expiry.
+
+The inbox folder scan (batch 2) was removed by D90: files enter only through the signed-in upload."""
 import json
-import os
-import time
 import zipfile
+from pathlib import Path
 from datetime import date, datetime, timedelta, timezone
 
 import pytest
@@ -23,43 +23,10 @@ BEARER = {'Authorization': f'Bearer {TOKEN}'}
 def isolated(monkeypatch, tmp_path):
     monkeypatch.setenv('PF_N8N_TOKEN', TOKEN)
     monkeypatch.setenv('PF_AI_ROOT', str(tmp_path / 'ai'))
-    monkeypatch.setenv('PF_INBOX_ROOT', str(tmp_path / 'inbox'))
     monkeypatch.setenv('PF_BACKUP_ROOT', str(tmp_path / 'backups'))
     monkeypatch.setenv('PF_ATTACHMENT_ROOT', str(tmp_path / 'files'))
-    (tmp_path / 'inbox').mkdir()
     (tmp_path / 'files').mkdir()
-    from app.services import inbox_service
-    # Files written by the test are "settled" except the one that simulates a copy still in progress.
-    monkeypatch.setattr(inbox_service, 'settled', lambda path: path.name != '還在複製.txt')
     return tmp_path
-
-
-def xlsx(rows):
-    """Minimal workbook with inline strings, enough for the hardened parser."""
-    def cell(ref, value):
-        if isinstance(value, (int, float)):
-            return f'<c r="{ref}"><v>{value}</v></c>'
-        return f'<c r="{ref}" t="inlineStr"><is><t>{value}</t></is></c>'
-    sheet = ''.join(f'<row r="{n}">' + ''.join(cell(f'{chr(65 + i)}{n}', v) for i, v in enumerate(row)) + '</row>' for n, row in enumerate(rows, 1))
-    files = {
-        '[Content_Types].xml': '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
-        '_rels/.rels': '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
-        'xl/workbook.xml': '<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="供應商" sheetId="1" r:id="rId1"/></sheets></workbook>',
-        'xl/_rels/workbook.xml.rels': '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
-        'xl/worksheets/sheet1.xml': f'<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>{sheet}</sheetData></worksheet>',
-    }
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, 'w') as archive:
-        for name, body in files.items():
-            archive.writestr(name, body)
-    return buffer.getvalue()
-
-
-def drop(path, data):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(data)
-    old = time.time() - 60
-    os.utime(path, (old, old))  # already "settled", as if copied in a minute ago
 
 
 def kinds(engine, kind):
@@ -135,47 +102,25 @@ def test_monday_digest_looks_back_to_friday(client, engine, tree):
     assert '上個工作日完成（1）' in body and '已完成任務' in body
 
 
-# ---- batch 2: inbox -----------------------------------------------------------------------------
+# ---- batch 2 removed (D90) ---------------------------------------------------------------------
 
-def test_inbox_document_is_stored_parsed_and_owner_notified(client, engine, isolated, tree):
-    folder = isolated / 'inbox' / 'food' / '規劃器專案'
-    drop(folder / '會議紀錄.txt', '殺菌溫度改為 121 度。'.encode('utf-8'))
-    drop(folder / '工具.exe', b'MZ')
-    fresh = folder / '還在複製.txt'
-    fresh.write_bytes(b'copying')
-    summary = client.post('/integrations/inbox/scan', headers=BEARER).json()
-    assert summary == {'documents': 1, 'imports': 0, 'failed': 1}
-    assert fresh.exists()  # too new to touch
-    assert [p.name.split('-', 2)[-1] for p in (folder / '已匯入').iterdir()] == ['會議紀錄.txt']
-    failed = sorted(p.name for p in (folder / '失敗').iterdir())
-    assert len(failed) == 2 and any(n.endswith('.原因.txt') for n in failed)
-    with Session(engine) as db:
-        assert db.scalar(select(Document).where(Document.project_id == 'tp')) is not None
-        owner = db.get(Project, 'tp').owner_user_id
-    mail = kinds(engine, 'inbox_document')
-    assert [m.recipient_id for m in mail] == [owner] and '規劃器專案' in mail[0].body_text and '解析結果' in mail[0].body_text
+N8N_DIR = Path(__file__).resolve().parents[2] / 'deploy' / 'n8n'
 
 
-def test_excel_import_creates_then_updates_records(client, engine, isolated, tree):
-    folder = isolated / 'inbox' / 'food' / '_營運資料匯入'
-    drop(folder / '供應商.xlsx', xlsx([['代碼', '名稱', '狀態', '電話', '到期日'], ['sup-x', '新供應商', '合作中', '02-1234', 46387]]))
-    assert client.post('/integrations/inbox/scan', headers=BEARER).json()['imports'] == 1
-    with Session(engine) as db:
-        db.scalar(select(OperationsRecord).where(OperationsRecord.code == 'SUP-X')).visibility = 'restricted'
-        db.commit()
-    drop(folder / '供應商.xlsx', xlsx([['代碼', '名稱', '電話', '保存日數'], ['SUP-X', '新供應商（更名）', '02-9999', 30000]]))
-    assert client.post('/integrations/inbox/scan', headers=BEARER).json()['imports'] == 1
-    drop(folder / '供應商.xlsx', xlsx([['名稱'], ['沒有代碼']]))
-    assert client.post('/integrations/inbox/scan', headers=BEARER).json()['failed'] == 1
-    drop(folder / '不存在的分類.xlsx', xlsx([['代碼', '名稱'], ['A', 'B']]))
-    assert client.post('/integrations/inbox/scan', headers=BEARER).json()['failed'] == 1
-    with Session(engine) as db:
-        record = db.scalar(select(OperationsRecord).where(OperationsRecord.code == 'SUP-X'))
-        assert record.title == '新供應商（更名）' and record.revision == 2 and record.source == 'import'
-        # An update merges: the restricted visibility, the status and fields missing from the sheet are kept.
-        assert record.visibility == 'restricted' and record.status == '合作中'
-        assert {f['label']: f['value'] for f in record.fields} == {'電話': '02-9999', '到期日': '2026-12-31', '保存日數': '30000'}
-    assert len(kinds(engine, 'inbox_import')) == 2
+def test_inbox_folder_scan_is_gone(client):
+    assert client.post('/integrations/inbox/scan', headers=BEARER).status_code == 404
+    with pytest.raises(ImportError):
+        from app.services import inbox_service  # noqa: F401
+
+
+def test_n8n_runs_four_workflows_and_setup_unpublishes_the_old_inbox():
+    names = sorted(p.stem for p in (N8N_DIR / 'workflows').glob('*.json'))
+    assert names == ['daily-digest', 'maintenance', 'notify', 'weekly-draft']
+    setup = (N8N_DIR / 'setup.py').read_text(encoding='utf-8')
+    assert "'inbox'" not in setup and 'PF_INBOX_HOST' not in setup
+    assert "REMOVED_WORKFLOWS = ['pfInbox00000001']" in setup and "'unpublish:workflow'" in setup
+    compose = (N8N_DIR.parent / 'docker-compose.yml').read_text(encoding='utf-8')
+    assert 'INBOX' not in compose and 'inbox' not in compose
 
 
 # ---- batch 3: backup and expiry -----------------------------------------------------------------

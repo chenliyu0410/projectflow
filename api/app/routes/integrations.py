@@ -69,13 +69,6 @@ def daily_digest(db: Session = Depends(get_session)):
     return {'enqueued': queued}
 
 
-@router.post('/inbox/scan')
-def inbox_scan(db: Session = Depends(get_session)):
-    # A plain def runs in FastAPI's thread pool, so parsing and OCR never stall other requests.
-    from app.services import inbox_service
-    return inbox_service.scan_sync(db)
-
-
 @router.post('/maintenance/backup')
 def maintenance_backup(db: Session = Depends(get_session)):
     from app.services import maintenance_service

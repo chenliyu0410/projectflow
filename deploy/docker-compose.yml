@@ -35,14 +35,12 @@ services:
       PF_AI_INDEX_AUTO_UPDATE: ${PF_AI_INDEX_AUTO_UPDATE:-false}
       PF_N8N_TOKEN: ${PF_N8N_TOKEN:-}
       PF_PUBLIC_URL: ${PF_PUBLIC_URL:-http://127.0.0.1:15173}
-      PF_INBOX_ROOT: /var/lib/projectflow-inbox
       PF_BACKUP_ROOT: /var/lib/projectflow-backups
     volumes:
       - files:/var/lib/projectflow-files
       - ai_data:/var/lib/projectflow-ai
       - ${PF_OCR_MODELS_HOST:-./ocr-models}:/opt/ocr-models:ro
-      # N8N: drop files here (inbox) and find daily backups here; both are folders on this computer.
-      - ${PF_INBOX_HOST:-./inbox}:/var/lib/projectflow-inbox
+      # N8N: daily backups are written to this folder on this computer.
       - ${PF_BACKUP_HOST:-./backups}:/var/lib/projectflow-backups
     ports:
       - '127.0.0.1:${API_PORT:-18000}:8000'

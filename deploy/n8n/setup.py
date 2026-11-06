@@ -13,7 +13,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = {'notify': 'pfNotify0000001', 'daily-digest': 'pfDailyDigest01', 'weekly-draft': 'pfWeeklyDraft01',
-             'inbox': 'pfInbox00000001', 'maintenance': 'pfMaintenance01'}
+             'maintenance': 'pfMaintenance01'}
+# The inbox folder scan was removed (D90): files enter only through the signed-in upload. n8n installs set up
+# before that still hold this workflow, so it is unpublished; a missing workflow is not an error.
+REMOVED_WORKFLOWS = ['pfInbox00000001']
 
 
 def env_values(path):
@@ -32,7 +35,7 @@ def ensure_env(path):
     values = {'POSTGRES_PASSWORD': secrets.token_urlsafe(24), 'PF_N8N_TOKEN': secrets.token_urlsafe(32),
               'WEB_PORT': '15183', 'API_PORT': '18010', 'MAILPIT_PORT': '8025', 'N8N_PORT': '5678',
               'PF_PUBLIC_URL': 'http://127.0.0.1:15183', 'PF_AI_OCR': 'false',
-              'PF_INBOX_HOST': str(path.parent / 'inbox'), 'PF_BACKUP_HOST': str(path.parent / 'backups')}
+              'PF_BACKUP_HOST': str(path.parent / 'backups')}
     path.write_text(''.join(f'{k}={v}\n' for k, v in values.items()), encoding='utf-8')
     return values
 
@@ -62,9 +65,9 @@ def main():
     parser.add_argument('--seed-demo', action='store_true', help='seed demo accounts (use only on a new, empty database)')
     args = parser.parse_args()
     values = ensure_env(args.env_file)
-    for key, default in (('PF_INBOX_HOST', 'inbox'), ('PF_BACKUP_HOST', 'backups')):
+    for key, default in (('PF_BACKUP_HOST', 'backups'),):
         if key not in values and args.env_file.resolve() != (ROOT / 'deploy/.env').resolve():
-            # Isolated stacks keep their folders beside their env file instead of sharing deploy/inbox.
+            # Isolated stacks keep their folder beside their env file instead of sharing deploy/backups.
             values[key] = str(args.env_file.parent / default)
             with args.env_file.open('a', encoding='utf-8') as handle:
                 handle.write(f'{key}={values[key]}\n')
@@ -86,6 +89,8 @@ def main():
         compose(args.project, args.env_file, 'exec', '-T', 'n8n', 'n8n', 'import:workflow', f'--input=/opt/projectflow-n8n/workflows/{name}.json')
     for workflow_id in WORKFLOWS.values():
         compose(args.project, args.env_file, 'exec', '-T', 'n8n', 'n8n', 'publish:workflow', f'--id={workflow_id}')
+    for workflow_id in REMOVED_WORKFLOWS:
+        compose(args.project, args.env_file, 'exec', '-T', 'n8n', 'n8n', 'unpublish:workflow', f'--id={workflow_id}', check=False)
     # Schedules are registered at start-up, so n8n restarts once after the workflows are published.
     compose(args.project, args.env_file, 'restart', 'n8n')
     wait_for(f"http://127.0.0.1:{values.get('N8N_PORT', '5678')}/healthz")

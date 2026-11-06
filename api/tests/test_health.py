@@ -171,7 +171,6 @@ def test_only_health_routes_exist():
         "/projects/{project_id}/weekly-reports/generate",
         "/weekly-reports/{report_id}",
         "/weekly-reports/{report_id}/confirm",
-        "/integrations/inbox/scan",
         "/integrations/maintenance/backup",
         "/integrations/maintenance/expiry",
         "/accounts/me/email",
