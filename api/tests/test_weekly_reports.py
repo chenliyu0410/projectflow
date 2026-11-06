@@ -82,6 +82,27 @@ def test_ai_section_citing_unknown_task_falls_back(client, engine, tree, week, m
         assert db.scalar(select(AuditLog).where(AuditLog.action == 'ai.weekly_report')).payload['model'] == 'fake-local'
 
 
+def test_ai_section_with_number_not_in_facts_falls_back(client, tree, week, monkeypatch):
+    """WEEKLY-AI-m1: a number the model computed itself (70% from progress 30) drops that section to the plain listing."""
+    monkeypatch.setattr(model, 'settings', lambda company: {'enabled': True, 'model': 'fake-local', 'base_url': 'http://127.0.0.1:1'})
+    monkeypatch.setattr(model, 'chat', lambda *a: {
+        'summary': '本週完成 1 項，[T3] 仍有 70% 延遲。',
+        'highlights': ['[T5] 已完成，共 01 項達成'],
+        'risks': ['[T3] 進度 3.5 倍落後'], 'next': ['準備試產']})
+    switch(client, 'owner')
+    report = generate(client)
+    s = report['sections']
+    assert s['summary'].startswith('本週完成 1 項、待確認')  # plain summary replaces the 70% sentence
+    assert s['highlights'] == ['[T5] 已完成，共 01 項達成']  # 01 == 1 from counts; [T5] digits are not checked
+    assert s['risks'] and all('3.5' not in x and x.endswith('：已逾期') for x in s['risks'])  # plain listing
+    assert s['next'] == ['準備試產']
+
+
+def test_numbers_normalization():
+    n = weekly_report_service.numbers
+    assert n('[T12] 進度 ３０%，共 1,200 件、第1,2週，0.50 與 007') == {'30', '1200', '1', '2', '0.5', '7'}
+
+
 def test_model_failure_still_produces_a_draft(client, tree, week, monkeypatch):
     monkeypatch.setattr(model, 'settings', lambda company: {'enabled': True, 'model': 'fake-local', 'base_url': 'http://127.0.0.1:1'})
     def boom(*a):
