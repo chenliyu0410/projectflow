@@ -1,0 +1,1282 @@
+[
+  {
+    "id": "A001",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "任務狀態分布",
+      "mode": "sql",
+      "query_id": "q01"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A002",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "query_id": "q02"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A003",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各專案完成率",
+      "mode": "sql",
+      "query_id": "q03"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A004",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "超支專案及超支金額",
+      "mode": "sql",
+      "query_id": "q04"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A005",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "供應商未交逾期訂單數與金額",
+      "mode": "sql",
+      "query_id": "q05"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A006",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "供應商已收貨延遲率",
+      "mode": "sql",
+      "query_id": "q06"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A007",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各專案加權不良率",
+      "mode": "sql",
+      "query_id": "q07"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A008",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各月各類已入帳成本",
+      "mode": "sql",
+      "query_id": "q08"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A009",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "尚未結案的高風險清單",
+      "mode": "sql",
+      "query_id": "q09"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A010",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "未完成工作最多的前五位負責人",
+      "mode": "sql",
+      "query_id": "q10"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A011",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "已完成任務工時超估清單",
+      "mode": "sql",
+      "query_id": "q11"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A012",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各專案未取消的採購承諾金額",
+      "mode": "sql",
+      "query_id": "q12"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A013",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "本週到期未完成任務",
+      "mode": "sql",
+      "query_id": "q13"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A014",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各專案退回與受阻任務數",
+      "mode": "sql",
+      "query_id": "q14"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A015",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "尚未收貨但未逾期的訂單",
+      "mode": "sql",
+      "query_id": "q15"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A016",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "零不良批次數",
+      "mode": "sql",
+      "query_id": "q16"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A017",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "GET",
+    "path": "/ai/model",
+    "body": null,
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A018",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "GET",
+    "path": "/ai/learning",
+    "body": null,
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A019",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/learning/confirm",
+    "body": {
+      "answer_id": "missing",
+      "query_id": "q06",
+      "question": "哪些供應商常常遲交？"
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A020",
+    "category": "unauthenticated",
+    "actor": "anonymous",
+    "method": "PUT",
+    "path": "/ai/model",
+    "body": {
+      "enabled": false,
+      "base_url": "",
+      "model": ""
+    },
+    "status": 401,
+    "setupLearning": false
+  },
+  {
+    "id": "A021",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "任務狀態分布",
+      "mode": "sql",
+      "query_id": "q01"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A022",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "query_id": "q02"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A023",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各專案完成率",
+      "mode": "sql",
+      "query_id": "q03"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A024",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "超支專案及超支金額",
+      "mode": "sql",
+      "query_id": "q04"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A025",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "供應商未交逾期訂單數與金額",
+      "mode": "sql",
+      "query_id": "q05"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A026",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "供應商已收貨延遲率",
+      "mode": "sql",
+      "query_id": "q06"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A027",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各專案加權不良率",
+      "mode": "sql",
+      "query_id": "q07"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A028",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各月各類已入帳成本",
+      "mode": "sql",
+      "query_id": "q08"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A029",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "尚未結案的高風險清單",
+      "mode": "sql",
+      "query_id": "q09"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A030",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "未完成工作最多的前五位負責人",
+      "mode": "sql",
+      "query_id": "q10"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A031",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "已完成任務工時超估清單",
+      "mode": "sql",
+      "query_id": "q11"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A032",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各專案未取消的採購承諾金額",
+      "mode": "sql",
+      "query_id": "q12"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A033",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "本週到期未完成任務",
+      "mode": "sql",
+      "query_id": "q13"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A034",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各專案退回與受阻任務數",
+      "mode": "sql",
+      "query_id": "q14"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A035",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "尚未收貨但未逾期的訂單",
+      "mode": "sql",
+      "query_id": "q15"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A036",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "零不良批次數",
+      "mode": "sql",
+      "query_id": "q16"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A037",
+    "category": "role",
+    "actor": "ming",
+    "method": "GET",
+    "path": "/ai/model",
+    "body": null,
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A038",
+    "category": "role",
+    "actor": "ming",
+    "method": "GET",
+    "path": "/ai/learning",
+    "body": null,
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A039",
+    "category": "role",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/learning/confirm",
+    "body": {
+      "answer_id": "missing",
+      "query_id": "q06",
+      "question": "哪些供應商常常遲交？"
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A040",
+    "category": "role",
+    "actor": "ming",
+    "method": "PUT",
+    "path": "/ai/model",
+    "body": {
+      "enabled": false,
+      "base_url": "",
+      "model": ""
+    },
+    "status": 403,
+    "setupLearning": false
+  },
+  {
+    "id": "A041",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "company_id": "electronics"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A042",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "organization_id": "electronics"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A043",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "organization_key": "electronics"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A044",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "role": "admin"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A045",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "user_id": "other-user"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A046",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "username": "elaine"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A047",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "sql": "SELECT * FROM users"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A048",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "as_of": "2027-01-01"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A049",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "is_admin": true
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A050",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "database": "electronics.sqlite"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A051",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "company_id": "electronics"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A052",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "organization_id": "electronics"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A053",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "organization_key": "electronics"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A054",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "role": "admin"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A055",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "user_id": "other-user"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A056",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "username": "elaine"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A057",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "sql": "SELECT * FROM users"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A058",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "as_of": "2027-01-01"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A059",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "is_admin": true
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A060",
+    "category": "forged_parameters",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "database": "electronics.sqlite"
+    },
+    "status": 422,
+    "setupLearning": false
+  },
+  {
+    "id": "A061",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/electronics-current",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A062",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/electronics-cost",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A063",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "electronics-P1"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A064",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "electronics-P2"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A065",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/events-current",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A066",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/events-cost",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A067",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "events-P1"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A068",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "events-P2"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A069",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/software-current",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A070",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/software-cost",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A071",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "software-P1"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A072",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "software-P2"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A073",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/construction-current",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A074",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/construction-cost",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A075",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "construction-P1"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A076",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "construction-P2"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A077",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/hemu-current",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A078",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "GET",
+    "path": "/ai/documents/hemu-cost",
+    "body": null,
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A079",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/ask",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "hemu-P1"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A080",
+    "category": "cross_company",
+    "actor": "yu",
+    "method": "POST",
+    "path": "/ai/preview",
+    "body": {
+      "question": "各部門逾期未完成數",
+      "mode": "sql",
+      "project_id": "hemu-P2"
+    },
+    "status": 404,
+    "setupLearning": false
+  },
+  {
+    "id": "A081",
+    "category": "learning_boundary",
+    "actor": "ming",
+    "method": "GET",
+    "path": "/ai/learning",
+    "body": null,
+    "status": 403,
+    "setupLearning": true
+  },
+  {
+    "id": "A082",
+    "category": "learning_boundary",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/learning/confirm",
+    "body": {
+      "answer_id": "{answerId}",
+      "query_id": "q06",
+      "question": "哪些供應商常常遲交？"
+    },
+    "status": 403,
+    "setupLearning": true
+  },
+  {
+    "id": "A083",
+    "category": "learning_boundary",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/approve",
+    "body": null,
+    "status": 403,
+    "setupLearning": true
+  },
+  {
+    "id": "A084",
+    "category": "learning_boundary",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/reject",
+    "body": null,
+    "status": 403,
+    "setupLearning": true
+  },
+  {
+    "id": "A085",
+    "category": "learning_boundary",
+    "actor": "ming",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/disable",
+    "body": null,
+    "status": 403,
+    "setupLearning": true
+  },
+  {
+    "id": "A086",
+    "category": "learning_boundary",
+    "actor": "owner",
+    "method": "GET",
+    "path": "/ai/learning",
+    "body": null,
+    "status": 403,
+    "setupLearning": true
+  },
+  {
+    "id": "A087",
+    "category": "learning_boundary",
+    "actor": "owner",
+    "method": "POST",
+    "path": "/ai/learning/confirm",
+    "body": {
+      "answer_id": "{answerId}",
+      "query_id": "q06",
+      "question": "哪些供應商常常遲交？"
+    },
+    "status": 404,
+    "setupLearning": true
+  },
+  {
+    "id": "A088",
+    "category": "learning_boundary",
+    "actor": "owner",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/approve",
+    "body": null,
+    "status": 403,
+    "setupLearning": true
+  },
+  {
+    "id": "A089",
+    "category": "learning_boundary",
+    "actor": "owner",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/reject",
+    "body": null,
+    "status": 403,
+    "setupLearning": true
+  },
+  {
+    "id": "A090",
+    "category": "learning_boundary",
+    "actor": "owner",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/disable",
+    "body": null,
+    "status": 403,
+    "setupLearning": true
+  },
+  {
+    "id": "A091",
+    "category": "learning_boundary",
+    "actor": "foreignAdmin",
+    "method": "GET",
+    "path": "/ai/learning",
+    "body": null,
+    "status": 200,
+    "setupLearning": true
+  },
+  {
+    "id": "A092",
+    "category": "learning_boundary",
+    "actor": "foreignAdmin",
+    "method": "POST",
+    "path": "/ai/learning/confirm",
+    "body": {
+      "answer_id": "{answerId}",
+      "query_id": "q06",
+      "question": "哪些供應商常常遲交？"
+    },
+    "status": 404,
+    "setupLearning": true
+  },
+  {
+    "id": "A093",
+    "category": "learning_boundary",
+    "actor": "foreignAdmin",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/approve",
+    "body": null,
+    "status": 404,
+    "setupLearning": true
+  },
+  {
+    "id": "A094",
+    "category": "learning_boundary",
+    "actor": "foreignAdmin",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/reject",
+    "body": null,
+    "status": 404,
+    "setupLearning": true
+  },
+  {
+    "id": "A095",
+    "category": "learning_boundary",
+    "actor": "foreignAdmin",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/disable",
+    "body": null,
+    "status": 404,
+    "setupLearning": true
+  },
+  {
+    "id": "A096",
+    "category": "learning_boundary",
+    "actor": "anonymous",
+    "method": "GET",
+    "path": "/ai/learning",
+    "body": null,
+    "status": 401,
+    "setupLearning": true
+  },
+  {
+    "id": "A097",
+    "category": "learning_boundary",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/learning/confirm",
+    "body": {
+      "answer_id": "{answerId}",
+      "query_id": "q06",
+      "question": "哪些供應商常常遲交？"
+    },
+    "status": 401,
+    "setupLearning": true
+  },
+  {
+    "id": "A098",
+    "category": "learning_boundary",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/approve",
+    "body": null,
+    "status": 401,
+    "setupLearning": true
+  },
+  {
+    "id": "A099",
+    "category": "learning_boundary",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/reject",
+    "body": null,
+    "status": 401,
+    "setupLearning": true
+  },
+  {
+    "id": "A100",
+    "category": "learning_boundary",
+    "actor": "anonymous",
+    "method": "POST",
+    "path": "/ai/learning/{phraseId}/disable",
+    "body": null,
+    "status": 401,
+    "setupLearning": true
+  }
+]

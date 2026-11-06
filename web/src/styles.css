@@ -1139,3 +1139,24 @@ button.danger:not(:disabled):hover { background: var(--red-soft); }
 .document-list .ai-state { justify-self: start; padding: 1px 8px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
 .document-list .ai-state-indexed { border-color: var(--teal); color: var(--teal); }
 .ai-knowledge { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* TEXT2SQL-LEARNING：確認鈕、學會後的標記與管理者審核區塊，版面照簡報錄影。 */
+.copilot-reply .copilot-learned { align-self: flex-start; margin: 0; padding: 2px 10px; border-radius: 999px; background: var(--teal); color: white; font-size: 12px; }
+.copilot-learn { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+/* aside button 預設撐滿整列；確認鈕照錄影是一顆實心小膠囊。 */
+.copilot-learn button { width: auto; min-height: 30px; padding: 3px 14px; border: 1px solid var(--teal); border-radius: 999px; background: var(--teal); color: white; font-size: 13px; text-align: center; }
+.copilot-learn button:hover:not(:disabled) { border-color: #174A47; background: #174A47; }
+.copilot-reply .copilot-learn-saved { margin: 0; padding: 8px 10px; border: 1px solid #EFD9C8; border-radius: 8px; background: #FBF3EC; color: var(--orange-ink); font-size: 13px; }
+.copilot-advanced .ai-learning { align-self: stretch; }
+.ai-learning summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+.ai-learning .ai-error button { width: auto; min-height: 26px; margin-left: 6px; padding: 0 8px; font-size: 12px; }
+.ai-learning-item { display: grid; gap: 4px; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); overflow-wrap: anywhere; }
+.ai-learning-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin: 0; color: var(--ink); font-size: 13px; }
+.ai-learning-state { flex-shrink: 0; padding: 1px 8px; border-radius: 999px; background: var(--ground); color: var(--muted); font-size: 11px; white-space: nowrap; }
+.ai-learning-state.pending { background: var(--orange-soft); color: var(--orange-ink); }
+.ai-learning-state.approved { background: var(--teal); color: white; }
+.ai-learning-checks { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.ai-learning-checks li.ok strong { color: var(--teal); }
+.ai-learning-checks li.failed strong { color: var(--red); }
+.ai-learning-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-learning-actions button { width: auto; min-height: 28px; padding: 2px 10px; border-radius: 8px; font-size: 12px; text-align: center; }

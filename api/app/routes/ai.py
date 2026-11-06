@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.auth import CurrentUser, require_session
 from app.database import get_session
 from app.audit import log_audit
-from app.ai import store, service, model, starter, formal_index, vectors, policy, masking, followup, gateway, index_worker
+from app.ai import store, service, model, starter, formal_index, vectors, policy, masking, followup, gateway, index_worker, learning
 from app.models import AIAnswer, AuditLog, Document, DocumentVersion, Node, Organization, Project
 from app.services import document_store
 
@@ -118,11 +118,14 @@ def evaluate(payload,current,db,*,preview):
         elif payload.dataset == 'formal-v1':
             result=formal_index.ask(db,current,payload,preview=preview,other_companies=others)
         else:
+            # 只有資料分析會用到本公司使用者確認、管理者審核上線的問法
+            learned=learning.approved(db,current.organization.id) if payload.mode=='sql' and payload.dataset=='dataset-v1' else None
             with closing(connection(current, payload.dataset)) as data:
                 if payload.project_id:
                     visible = {p['project_id'] for p in starter.visible_projects(data,current.user.role)} if payload.dataset == 'starter-v1' else {r[0] for r in data.execute('SELECT project_id FROM projects')}
                     if payload.project_id not in visible: raise HTTPException(404,'找不到AI專案')
-                result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history,preview=preview,other_companies=others)
+                result=service.ask(data,current.organization.key,current.user.role,payload.question,payload.mode,payload.project_id,payload.query_id,payload.dataset,payload.include_history,preview=preview,other_companies=others,learned=learned)
+                if learned is not None and not preview: learning.mark(result,payload.question,data,others)
     except PermissionError: raise HTTPException(403,'沒有此AI查詢的資料權限') from None
     except store.QueryTooLarge: raise HTTPException(422,'查詢過於複雜，超過執行上限；請指定專案或換個問法後再試') from None
     except ValueError: raise HTTPException(422,'不支援此查詢') from None
@@ -136,9 +139,51 @@ def evaluate(payload,current,db,*,preview):
             # Feedback refers to this row; it keeps ids and labels only, never question, answer or document text.
             result['answer_id']=str(uuid.uuid4())
             db.add(AIAnswer(id=result['answer_id'],organization_id=current.organization.id,user_id=current.user.id,dataset=payload.dataset,
-                            mode=payload.mode,kind=result['kind'],followup=how,source_ids=[s['document_id'] for s in result['sources']]))
+                            mode=payload.mode,kind=result['kind'],followup=how,source_ids=[s['document_id'] for s in result['sources']],
+                            suggested_ids=[s['query_id'] for s in result.get('suggestions') or []]))
     db.commit()
     return result
+
+
+class Confirm(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    answer_id: str=Field(min_length=1,max_length=36)
+    query_id: str=Field(pattern=r'^q(0[1-9]|1[0-6])$')
+    question: str=Field(min_length=1,max_length=2000)
+
+
+def other_names(db,current):
+    return list(db.scalars(select(Organization.name).where(Organization.id!=current.organization.id)))
+
+
+@router.post('/learning/confirm')
+def learning_confirm(payload:Confirm,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    # 能查資料分析的人都能確認，但只有管理者能審核（決定 5）
+    if current.user.role not in {'admin','project_owner'}: raise HTTPException(403,'沒有確認問法的權限')
+    with closing(connection(current)) as data:
+        return learning.confirm(db,current,payload,data,other_names(db,current))
+
+
+@router.get('/learning')
+def learning_list(current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    return learning.listing(db,current)
+
+
+@router.post('/learning/{phrase_id}/approve')
+def learning_approve(phrase_id:str,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    row=learning.find(db,current,phrase_id)
+    with closing(connection(current)) as data:
+        return learning.approve(db,current,row,data,other_names(db,current))
+
+
+@router.post('/learning/{phrase_id}/reject')
+def learning_reject(phrase_id:str,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    return learning.reject(db,current,learning.find(db,current,phrase_id))
+
+
+@router.post('/learning/{phrase_id}/disable')
+def learning_disable(phrase_id:str,current:CurrentUser=Depends(require_session),db:Session=Depends(get_session)):
+    return learning.disable(db,current,learning.find(db,current,phrase_id))
 
 
 @router.get('/documents/{document_id}')

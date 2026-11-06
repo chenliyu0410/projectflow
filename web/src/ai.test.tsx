@@ -4,10 +4,10 @@ import CopilotPanel from './components/CopilotPanel';
 import { ai } from './ai';
 import type { AIResult, AIStatus } from './ai';
 import { ApiError } from './api';
-vi.mock('./ai', async importOriginal => ({ ...await importOriginal<typeof import('./ai')>(), ai: { status: vi.fn(), ask: vi.fn(), preview: vi.fn(), refreshIndex: vi.fn(), document: vi.fn(), config: vi.fn(), save: vi.fn(), test: vi.fn(), feedback: vi.fn(), feedbackSummary: vi.fn() } }));
+vi.mock('./ai', async importOriginal => ({ ...await importOriginal<typeof import('./ai')>(), ai: { status: vi.fn(), ask: vi.fn(), preview: vi.fn(), refreshIndex: vi.fn(), document: vi.fn(), config: vi.fn(), save: vi.fn(), test: vi.fn(), feedback: vi.fn(), feedbackSummary: vi.fn(), confirmLearning: vi.fn(), learning: vi.fn(), reviewLearning: vi.fn() } }));
 const status: AIStatus = { ready: true, as_of: '2026-10-11', company_name: '食品', model_enabled: false, model_name: '', can_configure: true, can_sql: true, projects: [{ project_id: 'P1', title: '展示案' }], queries: [{ query_id: 'q02', label: '各部門逾期未完成數' }], counts: { projects: 1, documents: 2 } };
 const retrieved: AIResult = { kind: 'retrieval', engine: 'retrieval', answer: '檢索原文', warning: null, sources: [{ document_id: 'D1', title: '交付規範', project_id: 'P1', excerpt: '<script>文字</script> 截圖4張' }], analysis: null };
-beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(status); vi.mocked(ai.ask).mockResolvedValue(retrieved); vi.mocked(ai.document).mockResolvedValue({ title: '交付規範', text: '原文截圖4張' }); vi.mocked(ai.config).mockResolvedValue({ enabled: false, base_url: '', model: '' }); vi.mocked(ai.feedbackSummary).mockRejectedValue(new ApiError(403, '只有管理者可查看回饋統計')); });
+beforeEach(() => { vi.clearAllMocks(); vi.mocked(ai.status).mockResolvedValue(status); vi.mocked(ai.ask).mockResolvedValue(retrieved); vi.mocked(ai.document).mockResolvedValue({ title: '交付規範', text: '原文截圖4張' }); vi.mocked(ai.config).mockResolvedValue({ enabled: false, base_url: '', model: '' }); vi.mocked(ai.feedbackSummary).mockRejectedValue(new ApiError(403, '只有管理者可查看回饋統計')); vi.mocked(ai.learning).mockRejectedValue(new ApiError(403, '只有管理者可以審核問法')); });
 
 const gateway = { policy: 'local_only' as const, cloud_enabled: false as const, function: 'rag', classification: 'confidential' as const, classification_reason: 'source_level', route: 'none' as const, reason: 'model_disabled', outcome: 'not_sent' as const, source_count: 1, model: '' };
 const FOOD = '毛研食品';
@@ -451,5 +451,92 @@ it('shows where a formal source comes from, links its download and reports a sou
   vi.mocked(ai.document).mockRejectedValueOnce(new ApiError(404, '找不到'));
   fireEvent.click(screen.getByRole('button', { name: '開啟索引段落：G2檢查表.pdf／3' }));
   expect(await screen.findByText('你目前無法查看這個來源。')).toBeInTheDocument();
+  expect(screen.queryByRole('alert')).toBeNull();
+});
+
+// TEXT2SQL-LEARNING：確認鈕、學會後的標記與審核區塊在面板裡的位置。
+const supplierFallback: AIResult = { ...retrieved, kind: 'fallback', engine: 'rules', analysis: null, sources: [], answer_id: 'A-fallback', answer: '我不確定你要哪一種分析，你是指：',
+  suggestions: [{ query_id: 'q06', label: '供應商已收貨延遲率', omits: '不套用問題裡的其他條件', learnable: true }, { query_id: 'q05', label: '供應商未交逾期訂單數與金額', omits: '不套用問題裡的其他條件', learnable: false }] };
+const supplierResult = (query_id: string, label: string, learned = false): AIResult => ({ ...retrieved, kind: 'sql', engine: 'rules', sources: [], answer_id: `A-${query_id}`, learned, answer: `查詢：${label}。找到1列結果。`,
+  analysis: { query_id, label, sql: 'SELECT 1', parameters: {}, columns: ['supplier_id', 'late_pct'], rows: [{ supplier_id: 'S3', late_pct: 80 }], truncated: false } });
+const REMEMBER = '✓ 結果正確，記住這個問法';
+const learningList = (pending: number, items: Awaited<ReturnType<typeof ai.learning>>['items'] = []) => ({ items, pending });
+
+it('offers to remember a phrase only under a learnable suggestion and sends the original question with that reply id', async () => {
+  vi.mocked(ai.learning).mockResolvedValue(learningList(0));
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  category('資料分析');
+  advanced();
+  expect(await screen.findByText('使用者確認的問法（0 筆待審核）')).toBeInTheDocument();
+  vi.mocked(ai.ask).mockResolvedValueOnce(supplierFallback);
+  await send('哪些供應商常常遲交？');
+  // 伺服器沒標 learnable 的建議照舊執行，不出現確認鈕。
+  vi.mocked(ai.ask).mockResolvedValueOnce(supplierResult('q05', '供應商未交逾期訂單數與金額'));
+  fireEvent.click(screen.getByRole('button', { name: '查詢：供應商未交逾期訂單數與金額（不套用問題裡的其他條件）' }));
+  await screen.findByText('查詢：供應商未交逾期訂單數與金額。找到1列結果。');
+  expect(screen.queryByRole('button', { name: REMEMBER })).toBeNull();
+  vi.mocked(ai.ask).mockResolvedValueOnce(supplierResult('q06', '供應商已收貨延遲率'));
+  fireEvent.click(screen.getByRole('button', { name: '查詢：供應商已收貨延遲率（不套用問題裡的其他條件）' }));
+  await screen.findByText('查詢：供應商已收貨延遲率。找到1列結果。');
+  expect(lastAsk()).toEqual(expect.objectContaining({ question: '供應商已收貨延遲率', query_id: 'q06', mode: 'sql' }));
+  expect(screen.getAllByRole('button', { name: REMEMBER })).toHaveLength(1);
+  // 被拒時保留按鈕，並顯示伺服器給的原因。
+  vi.mocked(ai.confirmLearning).mockRejectedValueOnce(new ApiError(422, '這類問句不能記住。'));
+  fireEvent.click(screen.getByRole('button', { name: REMEMBER }));
+  expect(await screen.findByText('這類問句不能記住。')).toBeInTheDocument();
+  vi.mocked(ai.confirmLearning).mockResolvedValueOnce({ id: 'L1', phrase: '哪些供應商常常遲交', query_id: 'q06', label: '供應商已收貨延遲率', status: 'pending', confirmations: 1 });
+  vi.mocked(ai.learning).mockResolvedValue(learningList(1, [{ id: 'L1', phrase: '哪些供應商常常遲交', query_id: 'q06', label: '供應商已收貨延遲率', status: 'pending', confirmations: 1, first_confirmed_at: null, last_confirmed_at: null, reviewed_at: null, checks: null }]));
+  fireEvent.click(screen.getByRole('button', { name: REMEMBER }));
+  expect(await screen.findByText('已存成候選問法：「哪些供應商常常遲交」→ 供應商已收貨延遲率，等管理者審核')).toBeInTheDocument();
+  expect(ai.confirmLearning).toHaveBeenLastCalledWith({ answer_id: 'A-fallback', query_id: 'q06', question: '哪些供應商常常遲交？' });
+  expect(screen.queryByRole('button', { name: REMEMBER })).toBeNull();
+  // 管理者的審核清單要馬上看到新的候選。
+  expect(await screen.findByText('使用者確認的問法（1 筆待審核）')).toBeInTheDocument();
+});
+
+it('says when a confirmed phrase is already live or was rejected before', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  category('資料分析');
+  vi.mocked(ai.ask).mockResolvedValueOnce(supplierFallback);
+  await send('哪些供應商常常遲交？');
+  vi.mocked(ai.ask).mockResolvedValueOnce(supplierResult('q06', '供應商已收貨延遲率'));
+  fireEvent.click(screen.getByRole('button', { name: '查詢：供應商已收貨延遲率（不套用問題裡的其他條件）' }));
+  vi.mocked(ai.confirmLearning).mockResolvedValueOnce({ id: 'L1', phrase: '哪些供應商常常遲交', query_id: 'q06', label: '供應商已收貨延遲率', status: 'approved', confirmations: 2 });
+  fireEvent.click(await screen.findByRole('button', { name: REMEMBER }));
+  expect(await screen.findByText(/已上線：「哪些供應商常常遲交」→ 供應商已收貨延遲率/)).toBeInTheDocument();
+  vi.mocked(ai.ask).mockResolvedValueOnce(supplierResult('q06', '供應商已收貨延遲率'));
+  fireEvent.click(screen.getByRole('button', { name: '查詢：供應商已收貨延遲率（不套用問題裡的其他條件）' }));
+  vi.mocked(ai.confirmLearning).mockResolvedValueOnce({ id: 'L1', phrase: '哪些供應商常常遲交', query_id: 'q06', label: '供應商已收貨延遲率', status: 'rejected', confirmations: 1 });
+  fireEvent.click(await screen.findByRole('button', { name: REMEMBER }));
+  expect(await screen.findByText(/先前已被管理者退回：「哪些供應商常常遲交」→ 供應商已收貨延遲率/)).toBeInTheDocument();
+});
+
+it('marks a reply answered from a user-confirmed phrase', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  category('資料分析');
+  vi.mocked(ai.ask).mockResolvedValueOnce(supplierResult('q02', '各部門逾期未完成數'));
+  await send('各部門逾期未完成數');
+  await screen.findByLabelText('查詢結果');
+  expect(screen.queryByText('✓ 使用者確認過的問法・直接查詢')).toBeNull();
+  vi.mocked(ai.ask).mockResolvedValueOnce(supplierResult('q06', '供應商已收貨延遲率', true));
+  await send('哪些供應商常常遲交？');
+  expect(await screen.findByText('✓ 使用者確認過的問法・直接查詢')).toBeInTheDocument();
+  expect(screen.getAllByText('✓ 使用者確認過的問法・直接查詢')).toHaveLength(1);
+});
+
+it('shows the phrase review only to administrators and only on the data-analysis tab', async () => {
+  render(<CopilotPanel scope="總覽" open close={vi.fn()} companyName={FOOD} />);
+  await ready();
+  advanced();
+  // 文件問答沒有可學的問法，連清單都不讀。
+  expect(ai.learning).not.toHaveBeenCalled();
+  category('資料分析');
+  // 專案負責人能確認但不能審核：清單被拒（403）時整個區塊不出現。
+  await waitFor(() => expect(ai.learning).toHaveBeenCalledTimes(1));
+  await act(async () => {});
+  expect(screen.queryByText(/使用者確認的問法/)).toBeNull();
   expect(screen.queryByRole('alert')).toBeNull();
 });
