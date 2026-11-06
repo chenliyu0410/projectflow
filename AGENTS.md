@@ -12,7 +12,7 @@
 
 - Demo為`projectflow-full-demo.html`，原生HTML/CSS/JS、localStorage與IndexedDB。P0不修改Demo或其測試。
 - 正式版位於`api/`（FastAPI）、`web/`（React）、`deploy/`（Compose／PostgreSQL）；執行方式見[正式版開發](docs/formal-development.md)。
-- 產品規格（F1–F11）和路線圖都寫在 `README.md`。
+- 產品規格（F1–F11）和路線圖都寫在 `docs/product-spec.md`；`README.md` 是簡短的專案介紹。舊文件寫的「README §n」對照方式見 product-spec 開頭。
 - 新功能一律依序走：spec（`docs/superpowers/specs/`）→ plan（`docs/superpowers/plans/`）→ 照 plan 逐個 Task 用 TDD 實作。
 - `projectflow-petfood-demo.html` 是階段 0 的存檔，**不要修改**。
 
@@ -105,7 +105,9 @@
 |---|---|
 | [docs/PROGRESS.md](docs/PROGRESS.md) | **進度看板**：現在在做什麼、工作佇列、各 Task 狀態、驗收清單、待處理問題、待人類決定、交接紀錄 |
 | [docs/WORKFLOW.md](docs/WORKFLOW.md) | 流程：生命週期關卡、Task 迴圈、審查清單與提示範本、測試程序、Git 規則、何時停下來、中斷復原 |
-| [README.md](README.md) | 產品說明與目前狀態：§1 快速開始、§2 正式版功能總覽、§4 產品規格 F1–F11、§5 資料模型、§6 架構、§8 正式版尚未完成的路線圖、§9 待決定事項。不放交付紀錄（D82），進度以 PROGRESS 為準 |
+| [README.md](README.md) | 簡短的專案介紹（2026-11-06 改版）：解決什麼問題、簡易動畫、技術與理由、架構、工程亮點、快速開始、深入閱讀、授權 |
+| [docs/product-spec.md](docs/product-spec.md) | 產品規格與路線圖（原 README §2–§10）：§1 正式版功能總覽、§2 核心概念、§3 規格 F1–F11、§4 資料模型、§5 專案結構、§6 正式版尚未完成的路線圖、§7 待決定事項、§9 系統架構細節。階段交付時「更新 README」包含更新這裡的 §1 與 §6；不放交付紀錄（D82），進度以 PROGRESS 為準 |
+| [docs/getting-started.md](docs/getting-started.md) | 安裝、區網／公開試用、可攜展示包、自動驗收、單檔 Demo，以及怎麼請 AI 接手（原 README §1 與「給接手的人」） |
 | `docs/superpowers/specs/` | 各工作項目的設計規格 |
 | `docs/superpowers/plans/` | 各工作項目的實作計畫（逐 Task 寫，附程式片段與測試） |
 | `tests/records.html`、`tests/*.test.js` | 瀏覽器測試頁：用 iframe 載入 Demo，在 Demo 的全域環境裡執行測試 |
