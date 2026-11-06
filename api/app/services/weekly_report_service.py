@@ -1,6 +1,7 @@
 """Project weekly report: facts are computed here, the local model only rewrites them as prose (spec §4, D84, D85)."""
 import json
 import re
+import unicodedata
 from datetime import datetime, time, timedelta, timezone
 from types import SimpleNamespace
 
@@ -26,6 +27,17 @@ SYSTEM = ('你是專案週報助理。只根據使用者提供的 JSON 資料，
           '提到任務時必須用資料中的代號，例如 [T1]，不可提到資料裡沒有的任務，不可自行計算或改動數字。'
           'summary 為一段話；highlights、risks、next 各為 0 到 5 句。')
 REF = re.compile(r'\[(T\d+)\]')
+NUMBER = re.compile(r'[0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?')
+
+
+def numbers(text):
+    """Arabic numbers in text, normalized (full-width digits, thousands commas, leading or trailing zeros); [T1] refs are ignored."""
+    found = set()
+    for raw in NUMBER.findall(REF.sub(' ', unicodedata.normalize('NFKC', text))):
+        whole, _, frac = raw.replace(',', '').partition('.')
+        frac = frac.rstrip('0')
+        found.add((whole.lstrip('0') or '0') + (f'.{frac}' if frac else ''))
+    return found
 
 
 def local_day(now):
@@ -154,8 +166,10 @@ def write_sections(organization_key, facts):
         return plain, 'AI 未啟用'
     known = {i['ref'] for key in ('completed', 'pending_review', 'doing', 'due_next_week', 'overdue', 'blocked') for i in facts[key]}
     data = {k: v for k, v in facts.items() if k != 'node_ids'}
+    payload = json.dumps(data, ensure_ascii=False)
+    allowed = numbers(payload)
     try:
-        value = model.chat(config, SYSTEM, json.dumps(data, ensure_ascii=False), SCHEMA)
+        value = model.chat(config, SYSTEM, payload, SCHEMA)
     except Exception:
         return plain, f"{config.get('model', '本地模型')}（失敗，改用原始整理）"
     sections = {}
@@ -163,7 +177,9 @@ def write_sections(organization_key, facts):
         part = value.get(key)
         ok = isinstance(part, str) if key == 'summary' else isinstance(part, list) and all(isinstance(x, str) for x in part)
         text = json.dumps(part, ensure_ascii=False) if ok else ''
-        # A section that cites a task outside the facts is dropped, not trusted.
+        # A section that cites a task outside the facts, or a number the model computed itself
+        # (WEEKLY-AI-m1: progress 30 written as "70% 延遲"), is dropped, not trusted.
+        ok = ok and numbers(text) <= allowed
         if ok:
             # Capped to what clean_sections accepts, so an unedited draft can always be confirmed.
             part = part[:2000] if key == 'summary' else [x[:500] for x in part[:20]]
