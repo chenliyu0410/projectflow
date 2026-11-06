@@ -17,7 +17,8 @@ jobs:
   api:
     name: API (pytest, SQLite)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # 2026-11-06 乾淨 Linux 容器實測全量 1249 pass 約 23 分鐘，留餘裕避免逾時。
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
