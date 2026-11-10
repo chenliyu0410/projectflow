@@ -10,8 +10,10 @@ import unicodedata
 import cv2
 import numpy as np
 
-CHECKED_AT = 0.06  # interior ink share at or above this: checked
-EMPTY_BELOW = 0.03  # below this: unchecked; in between: ask a person
+# Chosen on the OCR-FORMS tune pages only (2026-11-10): real marks scored 0.21+ except some off-centre ticks; empty boxes
+# and stray marks stayed under 0.09. The band in between goes to a person rather than being guessed.
+CHECKED_AT = 0.15  # interior ink share at or above this: checked
+EMPTY_BELOW = 0.06  # below this: unchecked; in between: ask a person
 PUNCTUATION = re.compile(r"[\s:：,，、。;；|｜()（）「」『』\[\]【】*#_~'\"`]+")
 
 

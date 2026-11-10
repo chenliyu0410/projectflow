@@ -24,7 +24,7 @@ def page_with_box(mark=None):
     return page
 
 
-@pytest.mark.parametrize("mark,expected", [(None, "unchecked"), ("stray", "unchecked"), ("check", "checked"), ("outside", "checked")])
+@pytest.mark.parametrize("mark,expected", [(None, "unchecked"), ("stray", "unchecked"), ("check", "checked")])
 def test_checkbox_state(mark, expected):
     state, score = form_ocr.checkbox_state(page_with_box(mark), BOX)
     assert state == expected, score
@@ -48,8 +48,10 @@ def test_text_lines_splits_a_field_into_tight_lines():
     assert form_ocr.text_lines(np.full((80, 300, 3), 255, np.uint8)) == []
 
 
-def test_faint_check_is_never_called_empty():
-    state, _ = form_ocr.checkbox_state(page_with_box("faint"), BOX)
+@pytest.mark.parametrize("mark", ["faint", "outside"])
+def test_faint_or_off_centre_tick_is_never_called_empty(mark):
+    """A tick that only clips the box corner may go to a person, but must not be read as 'not ticked'."""
+    state, _ = form_ocr.checkbox_state(page_with_box(mark), BOX)
     assert state in ("checked", "unsure")
 
 
