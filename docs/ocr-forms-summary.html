@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>表單辨識改善成果</title>
+<style>
+:root{
+  --bg:#eceae4; --paper:#ffffff; --ink:#1f2328; --muted:#5d6470; --line:#dcd8cf;
+  --bad:#b4372a; --bad-bg:#fbebe8; --good:#1d7a52; --good-bg:#e5f4ec; --warn:#94620a; --warn-bg:#fdf3dc;
+  --accent:#23477a; --accent-bg:#e8eef7; --pen:#26449a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181b; --paper:#202328; --ink:#eceef1; --muted:#a6adb8; --line:#363a41;
+    --bad:#f08a7c; --bad-bg:#3a2320; --good:#6fd3a3; --good-bg:#1b3328; --warn:#f0c062; --warn-bg:#3a2f17;
+    --accent:#9dbcf0; --accent-bg:#1f2a3c; --pen:#a8bdf5;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16181b; --paper:#202328; --ink:#eceef1; --muted:#a6adb8; --line:#363a41;
+  --bad:#f08a7c; --bad-bg:#3a2320; --good:#6fd3a3; --good-bg:#1b3328; --warn:#f0c062; --warn-bg:#3a2f17;
+  --accent:#9dbcf0; --accent-bg:#1f2a3c; --pen:#a8bdf5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif}
+.deck{display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px 16px 72px}
+.slide{width:min(1200px,100%);aspect-ratio:16/9;background:var(--paper);border-radius:14px;border:1px solid var(--line);
+  padding:clamp(18px,3.2vw,40px) clamp(18px,3.6vw,48px);display:flex;flex-direction:column;gap:clamp(10px,1.4vw,18px);overflow:hidden}
+.kicker{font-size:clamp(11px,1vw,14px);color:var(--muted);letter-spacing:.08em}
+h1{margin:0;font-size:clamp(20px,2.6vw,34px);line-height:1.25;font-weight:700}
+h2{margin:0;font-size:clamp(15px,1.5vw,20px);font-weight:700}
+.lead{margin:0;font-size:clamp(13px,1.35vw,18px);color:var(--muted);line-height:1.6}
+.lead b{color:var(--ink)}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.4vw,18px);flex:1;min-height:0}
+.card{border:1px solid var(--line);border-radius:12px;padding:clamp(10px,1.3vw,16px);display:flex;flex-direction:column;gap:clamp(6px,.8vw,10px);min-height:0}
+.tag{align-self:flex-start;font-size:clamp(11px,.95vw,13px);padding:3px 10px;border-radius:999px;background:var(--accent-bg);color:var(--accent);font-weight:700}
+.row{font-size:clamp(11.5px,1.1vw,15px);line-height:1.55;margin:0}
+.row .k{display:inline-block;min-width:3.4em;color:var(--muted)}
+.big{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:auto}
+.from{font-size:clamp(18px,2.2vw,30px);color:var(--bad);font-weight:700}
+.arrow{color:var(--muted);font-size:clamp(14px,1.6vw,22px)}
+.to{font-size:clamp(26px,3.4vw,46px);color:var(--good);font-weight:700;line-height:1}
+.unit{font-size:clamp(11px,1vw,13px);color:var(--muted);width:100%}
+.note{font-size:clamp(11px,.95vw,13px);color:var(--muted);line-height:1.5;margin:0}
+.bottom{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:clamp(10px,1.4vw,18px)}
+.box{border-radius:10px;padding:clamp(8px,1vw,12px) clamp(10px,1.2vw,14px);font-size:clamp(11.5px,1.1vw,15px);line-height:1.55}
+.box.good{background:var(--good-bg)} .box.warn{background:var(--warn-bg)}
+.box b{font-weight:700}
+.hw{font-family:"DFKai-SB","BiauKai","Kaiti TC","KaiTi",serif;color:var(--pen);font-size:1.18em}
+.split{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:clamp(12px,1.6vw,22px);flex:1;min-height:0}
+table{width:100%;border-collapse:collapse;font-size:clamp(11px,1.05vw,14.5px)}
+th,td{text-align:left;padding:clamp(5px,.6vw,8px) clamp(6px,.7vw,10px);border-bottom:1px solid var(--line);vertical-align:middle}
+th{color:var(--muted);font-weight:700;font-size:.92em}
+.x{color:var(--bad);font-weight:700}.ok{color:var(--good);font-weight:700}.ask{color:var(--warn);font-weight:700}
+.side{display:flex;flex-direction:column;gap:clamp(8px,1vw,12px);min-height:0}
+.side ul{margin:4px 0 0;padding-left:1.1em}
+.side li{margin:2px 0}
+.mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mini div{background:var(--accent-bg);border-radius:8px;padding:6px 8px;font-size:clamp(10.5px,.95vw,13px);line-height:1.4}
+.mini b{display:block;color:var(--accent);font-size:1.25em}
+.bars{display:flex;flex-direction:column;gap:clamp(4px,.6vw,8px);margin-top:clamp(6px,.8vw,10px)}
+.bar{display:grid;grid-template-columns:9.5em minmax(0,1fr) 3em;align-items:center;gap:10px;font-size:clamp(11px,1vw,14px)}
+.bar span{color:var(--muted)}
+.bar i{display:block;height:clamp(10px,1.1vw,16px);border-radius:4px;background:linear-gradient(var(--c),var(--c)) no-repeat 0 0/var(--w) 100%,var(--line)}
+.bar b{font-weight:700}
+.nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;background:var(--paper);
+  border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:13px;color:var(--muted)}
+.nav button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:4px 12px;font:inherit;cursor:pointer}
+.mode .slide{display:none}.mode .slide.on{display:flex}
+@media (max-width:760px){
+  .slide{aspect-ratio:auto}
+  .cols,.split,.bottom,.mini{grid-template-columns:minmax(0,1fr)}
+}
+@media print{
+  @page{size:A4 landscape;margin:0}
+  html,body{background:#fff}
+  .deck{padding:0;gap:0}
+  .nav{display:none}
+  .mode .slide,.slide{display:flex;width:297mm;height:210mm;aspect-ratio:auto;border:0;border-radius:0;page-break-after:always;break-after:page}
+}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 第 1 頁：三個難題、怎麼改、量到多少 -->
+<section class="slide on" aria-label="第 1 頁">
+  <div class="kicker">專流 ProjectFlow｜紙本表單自動辨識｜2026-11-10 實測</div>
+  <h1>紙本表單的三個難題：改善前後對照</h1>
+  <p class="lead">表單資料若靠人打字、靠人核對，<b>最貴的不是時間，而是「錯了沒人發現」</b>。原本的辨識在乾淨印刷稿上有 92% 正確，一碰到真實的手寫表單就掉到三成；這次針對三個難題分別改善，並用同一批資料量出成效。</p>
+  <div class="cols">
+    <div class="card">
+      <span class="tag">難題一　字跡潦草</span>
+      <p class="row"><span class="k">狀況</span>連筆、歪斜、大小不一，舊模型是看印刷字學的，讀不出來。</p>
+      <p class="row"><span class="k">改善</span>手寫格交給新一代「看圖讀字」AI 模型（OvisOCR2），在公司電腦上跑，資料不外流。</p>
+      <div class="big"><span class="from">33%</span><span class="arrow">→</span><span class="to">71%</span>
+        <span class="unit">手寫字的正確率（25 張手寫測試表單）</span></div>
+      <p class="note">真實租約上的長句：約 61% → 89%</p>
+    </div>
+    <div class="card">
+      <span class="tag">難題二　表單沒有固定格式</span>
+      <p class="row"><span class="k">狀況</span>整頁讀出來只是一串字，不知道哪個字是哪一欄，還會把隔壁欄的字接進來。</p>
+      <p class="row"><span class="k">改善</span>先把照片對齊到表單樣式，依位置切出每一格，再一格一格讀。</p>
+      <div class="big"><span class="from">63%</span><span class="arrow">→</span><span class="to">98%</span>
+        <span class="unit">每一格讀出內容的正確率（10 份真實中文表單）</span></div>
+      <p class="note">知道位置後，手寫表單即使不換模型也多對約 17 個百分點</p>
+    </div>
+    <div class="card">
+      <span class="tag">難題三　有沒有打勾</span>
+      <p class="row"><span class="k">狀況</span>勾是筆畫不是字，原本的辨識完全不知道框有沒有勾。</p>
+      <p class="row"><span class="k">改善</span>量框裡的筆跡多寡來判斷；拿不準的不猜，<b>交給人確認</b>。</p>
+      <div class="big"><span class="from">0%</span><span class="arrow">→</span><span class="to">90%</span>
+        <span class="unit">自動判對（264 個勾選框）；另 8% 交人確認，只有 1.5% 判錯</span></div>
+      <p class="note">真實租約 9 個框：8 個判對、1 個交人確認、0 個判錯</p>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="box good"><b>結論：</b>兩件事缺一不可——<b>先定位</b>（知道是哪一格、哪個框），<b>再交給 AI 讀手寫</b>；勾選框用規則判斷、拿不準交給人。三者合起來效果最好。</div>
+    <div class="box warn"><b>代價：</b>每頁從 0.5 秒變成約 23 秒（一張 RTX 4060 顯示卡，尚未加速），適合批次處理，不適合即時。</div>
+  </div>
+</section>
+
+<!-- 第 2 頁：實際讀出來的樣子、為什麼不能只靠 AI、還沒解決的 -->
+<section class="slide" aria-label="第 2 頁">
+  <div class="kicker">實際辨識狀況</div>
+  <h1>同一張表，改善前後讀出來的樣子</h1>
+  <div class="split">
+    <div>
+      <table>
+        <thead><tr><th>欄位（手寫原文）</th><th>原本讀成</th><th>改善後</th></tr></thead>
+        <tbody>
+          <tr><td>部門　<span class="hw">生產二課</span></td><td><span class="x">紅課</span></td><td><span class="ok">生產二課 ✓</span></td></tr>
+          <tr><td>部門　<span class="hw">倉儲組</span>（很潦草）</td><td><span class="x">忘勝組</span></td><td><span class="ok">倉儲組 ✓</span></td></tr>
+          <tr><td>歸還日　<span class="hw">5月18日</span></td><td><span class="x">5M788</span></td><td><span class="ok">5月18日 ✓</span></td></tr>
+          <tr><td>主管簽核　<span class="hw">陳美玲</span></td><td><span class="x">陳美A資訊室點收…</span><br><span class="note">混進隔壁欄的字</span></td><td><span class="ok">陳美玲 ✓</span></td></tr>
+          <tr><td>打勾框　☑ 筆記型電腦</td><td><span class="x">讀不到</span></td><td><span class="ok">有勾 ✓</span></td></tr>
+          <tr><td>勾畫到框外很長一筆</td><td><span class="x">讀不到</span></td><td><span class="ask">交給人確認</span></td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:8px">例子取自測試用的虛構表單（字是南臺科大公開的真人手寫字組成）。</p>
+      <h2 style="margin-top:clamp(10px,1.4vw,18px)">手寫字正確率：哪種組合最好</h2>
+      <div class="bars" role="img" aria-label="原本 33%、只做定位 50%、整頁交給 AI 61%、定位加 AI 71%">
+        <div class="bar"><span>原本的做法</span><i style="--w:32.8%;--c:var(--bad)"></i><b>33%</b></div>
+        <div class="bar"><span>只做定位</span><i style="--w:49.5%;--c:var(--muted)"></i><b>50%</b></div>
+        <div class="bar"><span>整頁交給 AI</span><i style="--w:61%;--c:var(--muted)"></i><b>61%</b></div>
+        <div class="bar"><span>先定位，再交給 AI</span><i style="--w:71.1%;--c:var(--good)"></i><b>71%</b></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="box warn"><b>為什麼不能整頁直接丟給 AI？</b>
+        <ul>
+          <li>四成多的勾選框，AI 根本沒交代有沒有勾</li>
+          <li>會「自信地編字」：備註欄<span class="hw">待複驗</span>被讀成<span class="x">「徐慶」</span>，看起來像讀對，其實是錯的</li>
+        </ul>
+      </div>
+      <div>
+        <h2>怎麼測的</h2>
+        <div class="mini" style="margin-top:6px">
+          <div><b>40 張</b>繁中手寫表單，3 種格式，模擬手機翻拍</div>
+          <div><b>10 份</b>公開的真實中文表單</div>
+          <div><b>2 頁</b>真實租約，個資已遮蔽</div>
+        </div>
+        <p class="note" style="margin-top:6px">參數只用另外 15 張調整，成績看沒調過的那 25 張；租約在參數定案後才跑。</p>
+      </div>
+      <div class="box" style="border:1px solid var(--line)"><b>還沒解決</b>
+        <ul>
+          <li>非常潦草的字，整格全對只有約 3 成</li>
+          <li>勾畫到框外的，多半仍要人看</li>
+          <li>沒有空白樣本的表單，要先標一次每格的位置</li>
+        </ul>
+        <b>下一步：</b>接進系統的上傳流程，並改用專門的推論引擎加速。
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+<nav class="nav" id="nav" hidden>
+  <button type="button" id="prev" aria-label="上一頁">‹</button>
+  <span id="count">1 / 2</span>
+  <button type="button" id="next" aria-label="下一頁">›</button>
+  <button type="button" id="all">全部顯示</button>
+</nav>
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide')), deck=document.getElementById('deck'), i=0;
+  var nav=document.getElementById('nav'), count=document.getElementById('count'), all=document.getElementById('all');
+  function show(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach(function(s,k){s.classList.toggle('on',k===i)});count.textContent=(i+1)+' / '+slides.length}
+  function setMode(single){deck.classList.toggle('mode',single);all.textContent=single?'全部顯示':'一次一頁';count.hidden=!single;
+    document.getElementById('prev').hidden=!single;document.getElementById('next').hidden=!single;if(single)show(i)}
+  nav.hidden=false;i=Math.max(0,(parseInt(location.hash.slice(1),10)||1)-1);setMode(window.innerWidth>760);
+  document.getElementById('prev').onclick=function(){show(i-1)};
+  document.getElementById('next').onclick=function(){show(i+1)};
+  all.onclick=function(){setMode(!deck.classList.contains('mode'))};
+  document.addEventListener('keydown',function(e){if(!deck.classList.contains('mode'))return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();show(i+1)}
+    if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();show(i-1)}});
+})();
+</script>
+</body>
+</html>
