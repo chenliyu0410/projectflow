@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import sys
 
 import cv2
@@ -87,8 +88,8 @@ def main():
             box["P2"] = ev.ovis_box_state(ovis_boxes.get(box["crop"], {}).get("text", ""))
             box["P3"] = box["P1"]
             # Whole-page output: a box symbol written right before the caption printed beside the box (全部, 有, 其 ...).
-            hit = [s for s in ev.CHECK_SYMBOLS if f"{s}{box['caption']}" in text.replace(" ", "")]
-            box["P2-page"] = ("checked" if ev.CHECK_SYMBOLS[hit[0]] else "unchecked") if hit else "unknown"
+            hit = re.search("([" + "".join(ev.CHECK_SYMBOLS) + "])" + re.escape(box["caption"]), text.replace(" ", ""))  # first in text order
+            box["P2-page"] = ("checked" if ev.CHECK_SYMBOLS[hit.group(1)] else "unchecked") if hit else "unknown"
     summary = {}
     for method in ("P0", "P1", "P2-page", "P2", "P3"):
         fields = [ev.score_text(f["truth"], f[method]) for r in rows.values() for f in r["fields"].values() if method in f]
@@ -103,9 +104,15 @@ def main():
             "box_unsure": sum(b[method] == "unsure" for b in boxes),
             "box_unknown": sum(b[method] == "unknown" for b in boxes),
         }
+        # Single digits ("1", "2") are found anywhere on a page, which flatters the lenient whole-page scoring; split by length.
+        for name, keep in (("long", lambda t: len(form_ocr.normalize(t)) >= 4), ("short", lambda t: len(form_ocr.normalize(t)) < 4)):
+            part = [ev.score_text(f["truth"], f[method]) for r in rows.values() for f in r["fields"].values()
+                    if method in f and keep(f["truth"])]
+            summary[method][f"acc_{name}"] = round(float(np.mean([x["acc"] for x in part])), 4) if part else None
     (args.out / "result.json").write_text(json.dumps({"summary": summary, "pages": rows}, ensure_ascii=False, indent=1), encoding="utf-8")
     for method, s in summary.items():
-        print(f"{method:8s} fields {s['fields']} acc {s['acc']:.1%} exact {s['exact']:.1%} | boxes {s['box_correct']}/{s['boxes']} correct, "
+        print(f"{method:8s} fields {s['fields']} acc {s['acc']:.1%} (>=4 chars {s['acc_long']:.1%}, <4 chars {s['acc_short']:.1%}) "
+              f"exact {s['exact']:.1%} | boxes {s['box_correct']}/{s['boxes']} correct, "
               f"{s['box_unsure']} unsure, {s['box_unknown']} unknown")
 
 

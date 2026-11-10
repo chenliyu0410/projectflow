@@ -14,7 +14,6 @@ Methods (see docs/superpowers/plans/2026-11-10-ocr-handwriting-forms.md):
 Only reads the samples; writes to --out. Pages named tune-* may be used to choose thresholds; report the test-* pages.
 """
 import argparse
-from collections import defaultdict
 from html import escape
 import json
 import os
@@ -44,7 +43,9 @@ except ImportError:  # scoring still works; Simplified output would just count a
 
 
 def score_text(truth, predicted):
-    t, p = form_ocr.normalize(truth), form_ocr.normalize(to_traditional(predicted))
+    """Both sides go through s2t, so a Simplified answer (XFUND) and Simplified output compare as the same characters.
+    "mapped" (1-CER >= 50%) is a loose "read roughly right" share, not a measure of field mapping."""
+    t, p = form_ocr.normalize(to_traditional(truth)), form_ocr.normalize(to_traditional(predicted))
     return {"acc": round(ocr_metrics.accuracy(t, p), 4), "exact": t == p, "mapped": ocr_metrics.accuracy(t, p) >= 0.5}
 
 # ---------------------------------------------------------------- RapidOCR
@@ -179,17 +180,18 @@ def symbol_checkboxes(markdown, template):
 
 
 def ovis_box_state(answer):
-    """OvisOCR2 is an OCR model: asked yes/no about a box crop it mostly transcribes the box itself (☑, ☐, ☒), sometimes
-    followed by yes/no. Read the first symbol; else a lone yes or no; anything else (both, or other text) is unsure."""
+    """OvisOCR2 is an OCR model: asked yes/no about a box crop it mostly transcribes the box itself (☑, ☐, ☒), and with
+    only 4 new tokens it often starts a second turn ("yes / no", "☑ / No"). Its first answer counts: a box symbol, an
+    X/V mark, or a leading yes/no; anything else is unsure. (Rule set after seeing the output formats on all pages.)"""
     text = answer.strip()
     if text[:1] in CHECK_SYMBOLS:
         return "checked" if CHECK_SYMBOLS[text[0]] else "unchecked"
     if text[:1] in ("X", "x", "V", "v"):
         return "checked"
-    lower = text.lower()
-    if lower.startswith("yes") and "no" not in lower:
+    first = text.split()[0].lower() if text.split() else ""
+    if first.startswith("yes"):
         return "checked"
-    if lower.startswith("no") and "yes" not in lower:
+    if first.startswith("no"):
         return "unchecked"
     return "unsure"
 
@@ -214,48 +216,57 @@ def evaluate(args):
         pages = pages[:args.limit]
     crops_dir = args.out / "crops"
     crops_dir.mkdir(parents=True, exist_ok=True)
-    rows, seconds = [], defaultdict(list)
+    rows = []
     field_crops, box_crops = [], []
+    ocr.engine()(np.full((32, 32, 3), 255, np.uint8))  # load the model before any timing
     for path in pages:
         truth = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
         template = templates[truth["template"]]
         image = cv2.imread(str(path))
         labels = {f["id"]: f["label"] for f in template["fields"]}
         captions = [c["label"] for c in template["checkboxes"]] + [p["text"] for p in template["printed"] if not p.get("label")]
-        pred = {}
+        pred, seconds = {}, {}
 
         started = time.perf_counter()
         boxes = page_boxes(image, "current")
         pred["P0"] = {"fields": form_ocr.pair_fields(boxes, labels, captions), "checkboxes": {}}
-        seconds["P0"].append(time.perf_counter() - started)
+        seconds["P0"] = time.perf_counter() - started
 
         started = time.perf_counter()
         boxes = page_boxes(image, "clean")
         pred["P1-free"] = {"fields": form_ocr.pair_fields(boxes, labels, captions),
                            "checkboxes": match_free_checkboxes(image, boxes, template)}
-        seconds["P1-free"].append(time.perf_counter() - started)
+        seconds["P1-free"] = time.perf_counter() - started
 
         started = time.perf_counter()
         aligned, ok = form_ocr.align(image, template)
-        fields, states = {}, {}
+        fields, states, pieces = {}, {}, {}
         page_dir = crops_dir / path.stem
         page_dir.mkdir(exist_ok=True)
         for field in template["fields"]:
             x0, y0, x1, y1 = field["box"]
-            piece = form_ocr.crop(aligned, [x0 + 4, y0 + 4, x1 - 4, y1 - 4], pad=0)
-            fields[field["id"]] = form_ocr.normalize(read_field(piece))
-            cv2.imwrite(str(page_dir / f"field-{field['id']}.png"), piece)
-            field_crops.append(page_dir / f"field-{field['id']}.png")
+            pieces[field["id"]] = form_ocr.crop(aligned, [x0 + 4, y0 + 4, x1 - 4, y1 - 4], pad=0)
+        prepared = time.perf_counter() - started  # alignment and cropping, shared by P1, P2 and P3
+        started = time.perf_counter()
         for box in template["checkboxes"]:
             states[box["id"]] = form_ocr.checkbox_state(aligned, box["box"])
+        ink_rule = time.perf_counter() - started
+        started = time.perf_counter()
+        for field_id, piece in pieces.items():
+            fields[field_id] = form_ocr.normalize(read_field(piece))
+        seconds["P1"] = prepared + ink_rule + time.perf_counter() - started
+        seconds["_prepared"], seconds["_ink"] = prepared, ink_rule
+        for field_id, piece in pieces.items():
+            cv2.imwrite(str(page_dir / f"field-{field_id}.png"), piece)
+            field_crops.append(page_dir / f"field-{field_id}.png")
+        for box in template["checkboxes"]:
             cv2.imwrite(str(page_dir / f"box-{box['id']}.png"), form_ocr.crop(aligned, box["box"], pad=14))
             box_crops.append(page_dir / f"box-{box['id']}.png")
         pred["P1"] = {"fields": fields, "checkboxes": {k: v[0] for k, v in states.items()}, "scores": {k: v[1] for k, v in states.items()},
                       "aligned": ok}
-        seconds["P1"].append(time.perf_counter() - started)
         cv2.imwrite(str(page_dir / "aligned.jpg"), aligned)
         rows.append({"page": path.stem, "split": truth["split"], "template": truth["template"], "level": truth["level"],
-                     "truth": truth, "pred": pred})
+                     "truth": truth, "pred": pred, "seconds": seconds})
         print(f"{path.stem}: aligned={ok}", flush=True)
 
     ovis_pages = run_ovis(args, pages, "page", "page")
@@ -270,7 +281,7 @@ def evaluate(args):
         page = ovis_pages.get(str(path), {"text": "", "seconds": 0})
         row["pred"]["P2-page"] = {"fields": form_ocr.pair_fields(html_table_boxes(page["text"]), labels, captions),
                                   "checkboxes": symbol_checkboxes(page["text"], template), "raw": page["text"]}
-        seconds["P2-page"].append(page["seconds"])
+        row["seconds"]["P2-page"] = page["seconds"]
         page_dir = crops_dir / row["page"]
         fields = {f["id"]: form_ocr.normalize(ovis_fields.get(str(page_dir / f"field-{f['id']}.png"), {}).get("text", ""))
                   for f in template["fields"]}
@@ -279,12 +290,14 @@ def evaluate(args):
             states[box["id"]] = ovis_box_state(ovis_boxes.get(str(page_dir / f"box-{box['id']}.png"), {}).get("text", ""))
         row["pred"]["P2"] = {"fields": fields, "checkboxes": states}
         row["pred"]["P3"] = {"fields": fields, "checkboxes": row["pred"]["P1"]["checkboxes"]}
-        crop_seconds = sum(ovis_fields.get(str(page_dir / f"field-{f['id']}.png"), {}).get("seconds", 0) for f in template["fields"])
-        crop_seconds += sum(ovis_boxes.get(str(page_dir / f"box-{b['id']}.png"), {}).get("seconds", 0) for b in template["checkboxes"])
-        seconds["P2"].append(crop_seconds + float(np.mean(seconds["P1"])))  # alignment and cropping on CPU, reading on GPU
-        seconds["P3"].append(seconds["P2"][-1] - sum(ovis_boxes.get(str(page_dir / f"box-{b['id']}.png"), {}).get("seconds", 0)
-                                                       for b in template["checkboxes"]))
-    return rows, {m: round(float(np.mean(v)), 2) for m, v in seconds.items() if v}
+        # GPU seconds are model.generate() only (image preprocessing in the processor is not counted).
+        field_gpu = sum(ovis_fields.get(str(page_dir / f"field-{f['id']}.png"), {}).get("seconds", 0) for f in template["fields"])
+        box_gpu = sum(ovis_boxes.get(str(page_dir / f"box-{b['id']}.png"), {}).get("seconds", 0) for b in template["checkboxes"])
+        row["seconds"]["P2"] = row["seconds"]["_prepared"] + field_gpu + box_gpu
+        row["seconds"]["P3"] = row["seconds"]["_prepared"] + field_gpu + row["seconds"]["_ink"]
+    test = [r for r in rows if r["split"] == "test"] or rows  # report test pages only
+    return rows, {m: round(float(np.mean([r["seconds"][m] for r in test if m in r["seconds"]])), 2)
+                  for m in METHODS if any(m in r["seconds"] for r in test)}
 
 # ---------------------------------------------------------------- scoring and report
 
@@ -335,7 +348,7 @@ def pct(value):
 def report(rows, seconds, table, tune, out, samples):
     names = {"P0": "P0 現行（整頁 RapidOCR）", "P1-free": "P1-free 不用版型（去線、整頁辨識、位置配對、找方框）",
              "P1": "P1 座標定位＋RapidOCR", "P2-page": "P2-page OvisOCR2 整頁端到端", "P2": "P2 座標定位＋OvisOCR2", "P3": "P3 組合：OvisOCR2 讀欄位＋筆跡比例判斷勾選"}
-    head = "<tr><th>做法</th><th>手寫欄位 1−CER</th><th>欄位完全正確</th><th>欄位對應正確</th><th>工整／普通／潦草 1−CER</th>" \
+    head = "<tr><th>做法</th><th>手寫欄位 1−CER</th><th>欄位完全正確</th><th>大致讀對（1−CER≥50%）</th><th>工整／普通／潦草 1−CER</th>" \
            "<th>沒看過的版型 1−CER</th><th>勾選正確</th><th>需人工確認</th><th>無法判斷</th><th>每頁秒數</th></tr>"
     body = "".join(
         f"<tr><td>{names[m]}</td><td>{pct(t['acc'])}</td><td>{pct(t['exact'])}</td><td>{pct(t['mapped'])}</td>"

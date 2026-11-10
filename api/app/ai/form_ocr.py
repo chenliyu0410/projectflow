@@ -65,6 +65,11 @@ def align(image, template):
     xs = [v for x0, _, x1, _ in template["lines"] for v in (x0, x1)]
     ys = [v for _, y0, _, y1 in template["lines"] for v in (y0, y1)]
     target = np.float32([[min(xs), min(ys)], [max(xs), min(ys)], [max(xs), max(ys)], [min(xs), max(ys)]])
+    found_w = (np.linalg.norm(quad[1] - quad[0]) + np.linalg.norm(quad[2] - quad[3])) / 2
+    found_h = (np.linalg.norm(quad[3] - quad[0]) + np.linalg.norm(quad[2] - quad[1])) / 2
+    expected = (max(xs) - min(xs)) / max(1, max(ys) - min(ys))
+    if not 0.7 <= (found_w / max(found_h, 1)) / expected <= 1.4:  # a border of the wrong shape is a wrong match
+        return cv2.resize(image, (width, height)), False
     matrix = cv2.getPerspectiveTransform(quad, target)
     warped = cv2.warpPerspective(image, matrix, (width, height), flags=cv2.INTER_CUBIC, borderValue=(255, 255, 255))
     return warped, True
@@ -140,25 +145,28 @@ def checkbox_state(image, box):
     Strokes that start inside the box and leave it (a tick drawn too big or off-centre) count in full; marks that never
     enter the box (a stray line under it, writing beside it) do not.
     """
-    x0, y0, x1, y1 = box
-    side = max(8, x1 - x0)
+    x0, y0, x1, y1 = (int(round(v)) for v in box)
+    width, height = max(8, x1 - x0), max(8, y1 - y0)
+    side = min(width, height)
     margin = int(side * 0.8)
     region = crop(image, box, pad=margin)
     gray = _gray(region)
-    ink = _ink(gray, block=max(15, (side * 4) | 1), offset=18)
+    ink = _ink(gray, block=max(15, (max(width, height) * 4) | 1), offset=18)
     inset = max(3, int(side * 0.12))
-    ox, oy = margin + inset, margin + inset
+    # The padded crop is clipped at the page edge, so place the box by how much margin was really kept.
+    ox, oy = x0 - max(0, x0 - margin) + inset, y0 - max(0, y0 - margin) + inset
+    inner_w, inner_h = width - 2 * inset, height - 2 * inset
     interior = np.zeros_like(ink)
-    interior[oy:oy + side - 2 * inset, ox:ox + side - 2 * inset] = 255
-    raw_share = ((interior > 0) & (ink > 0)).sum() / float((side - 2 * inset) ** 2)
+    interior[oy:oy + inner_h, ox:ox + inner_w] = 255
+    area = float(inner_w * inner_h)
+    raw_share = ((interior > 0) & (ink > 0)).sum() / area
     if raw_share >= 0.45:  # filled in: removing "lines" below would erase the fill itself
         return "checked", round(float(raw_share), 4)
-    ink = cv2.subtract(ink, cv2.bitwise_or(_line_mask(ink, True, side * 0.9), _line_mask(ink, False, side * 0.9)))
+    ink = cv2.subtract(ink, cv2.bitwise_or(_line_mask(ink, True, width * 0.9), _line_mask(ink, False, height * 0.9)))
     count, labels = cv2.connectedComponents(ink)
     touching = set(np.unique(labels[(interior > 0) & (ink > 0)])) - {0}
     inside = ((interior > 0) & (ink > 0)).sum()
     attached = np.isin(labels, list(touching)).sum() - inside if touching else 0
-    area = float((side - 2 * inset) ** 2)
     score = (inside + 0.5 * attached) / area
     if score >= CHECKED_AT:
         return "checked", round(score, 4)
@@ -169,7 +177,13 @@ def checkbox_state(image, box):
 
 def _is_label(text, label):
     text, label = normalize(text), normalize(label)
-    return bool(label) and (text.startswith(label) or difflib.SequenceMatcher(None, text, label).ratio() >= 0.67)
+    if not label:
+        return False
+    if text.startswith(label):
+        return True
+    if label in text:  # the label inside a longer word (合格 in 不合格) is a different word
+        return False
+    return difflib.SequenceMatcher(None, text, label).ratio() >= 0.67  # tolerate OCR slips in the printed label
 
 
 def pair_fields(boxes, labels, stop=()):

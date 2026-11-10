@@ -127,6 +127,41 @@ def test_pair_fields_takes_the_text_right_of_or_below_each_label():
     assert pairs == {"borrower": "陳冠廷", "dept": "品保課", "purpose": "客戶稽核要帶去", "missing": ""}
 
 
+def test_wide_box_uses_its_own_height():
+    page = np.full((240, 300, 3), 255, np.uint8)
+    box = [100, 100, 160, 124]  # 60 x 24, not square
+    cv2.rectangle(page, (100, 100), (160, 124), (20, 20, 20), 2)
+    assert form_ocr.checkbox_state(page, box)[0] == "unchecked"
+    cv2.line(page, (110, 112), (150, 113), (40, 60, 150), 3)
+    cv2.line(page, (112, 108), (148, 118), (40, 60, 150), 3)
+    assert form_ocr.checkbox_state(page, box)[0] == "checked"
+
+
+def test_box_at_the_page_edge_is_read_in_place():
+    page = np.full((200, 200, 3), 255, np.uint8)
+    box = [2, 2, 28, 28]  # the padded crop is clipped at the top-left corner
+    cv2.rectangle(page, (2, 2), (28, 28), (20, 20, 20), 2)
+    cv2.rectangle(page, (60, 60), (120, 120), (40, 60, 150), -1)  # ink elsewhere must not leak in
+    assert form_ocr.checkbox_state(page, box)[0] == "unchecked"
+    cv2.polylines(page, [np.array([[5, 15], [12, 25], [30, 0]])], False, (40, 60, 150), 3)
+    assert form_ocr.checkbox_state(page, box)[0] == "checked"
+
+
+def test_align_rejects_a_border_with_the_wrong_shape():
+    """A wide table found where the template expects a tall one is a wrong match, not a page to warp."""
+    template = {"size": [600, 800], "lines": [[100, 50, 500, 50], [100, 750, 500, 750], [100, 50, 100, 750], [500, 50, 500, 750]]}
+    photo = np.full((800, 800, 3), 240, np.uint8)
+    cv2.rectangle(photo, (50, 300), (750, 500), (20, 20, 20), 2)
+    cv2.line(photo, (400, 300), (400, 500), (20, 20, 20), 2)
+    assert not form_ocr.align(photo, template)[1]
+
+
+def test_label_match_does_not_confuse_opposites():
+    assert not form_ocr._is_label("不合格", "合格")
+    assert form_ocr._is_label("合格", "合格")
+    assert form_ocr._is_label("借用人：", "借用人")
+
+
 def test_normalize_for_scoring():
     assert form_ocr.normalize(" 115．11．３ ") == "115.11.3"
     assert form_ocr.normalize("借用人：陳冠廷") == "借用人陳冠廷"
