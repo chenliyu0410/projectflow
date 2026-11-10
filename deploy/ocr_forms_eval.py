@@ -346,15 +346,18 @@ def pct(value):
 
 
 def report(rows, seconds, table, tune, out, samples):
-    names = {"P0": "P0 現行（整頁 RapidOCR）", "P1-free": "P1-free 不用版型（去線、整頁辨識、位置配對、找方框）",
+    names = {"P0": "P0 現行（整頁 RapidOCR）", "P1-free": "P1-free 不用版型座標（去線、整頁辨識、位置配對、找方框）",
              "P1": "P1 座標定位＋RapidOCR", "P2-page": "P2-page OvisOCR2 整頁端到端", "P2": "P2 座標定位＋OvisOCR2", "P3": "P3 組合：OvisOCR2 讀欄位＋筆跡比例判斷勾選"}
     head = "<tr><th>做法</th><th>手寫欄位 1−CER</th><th>欄位完全正確</th><th>大致讀對（1−CER≥50%）</th><th>工整／普通／潦草 1−CER</th>" \
-           "<th>沒看過的版型 1−CER</th><th>勾選正確</th><th>需人工確認</th><th>無法判斷</th><th>每頁秒數</th></tr>"
-    body = "".join(
-        f"<tr><td>{names[m]}</td><td>{pct(t['acc'])}</td><td>{pct(t['exact'])}</td><td>{pct(t['mapped'])}</td>"
-        f"<td>{' ／ '.join(pct(t['by_level'][lv]) for lv in ('neat', 'normal', 'messy'))}</td><td>{pct(t['held_out_acc'])}</td>"
-        f"<td>{pct(t['box_acc'])}</td><td>{pct(t['box_unsure'])}</td><td>{pct(t['box_unknown'])}</td><td>{seconds.get(m, '—')}</td></tr>"
-        for m, t in table.items())
+           "<th>沒看過的版型 1−CER</th><th>勾選正確</th><th>需人工確認</th><th>沒輸出／沒找到</th><th>默默判錯</th><th>每頁秒數</th></tr>"
+
+    def row(m, t, sec):
+        wrong = 1 - (t["box_acc"] or 0) - (t["box_unsure"] or 0) - (t["box_unknown"] or 0)
+        return (f"<tr><td>{names[m]}</td><td>{pct(t['acc'])}</td><td>{pct(t['exact'])}</td><td>{pct(t['mapped'])}</td>"
+                f"<td>{' ／ '.join(pct(t['by_level'][lv]) for lv in ('neat', 'normal', 'messy'))}</td><td>{pct(t['held_out_acc'])}</td>"
+                f"<td>{pct(t['box_acc'])}</td><td>{pct(t['box_unsure'])}</td><td>{pct(t['box_unknown'])}</td>"
+                f"<td>{pct(max(0.0, wrong)) if t['box_unknown'] != 1 else '—'}</td><td>{sec}</td></tr>")
+    body = "".join(row(m, t, seconds.get(m, "—")) for m, t in table.items())
     marks = sorted({k for t in table.values() for k in t["box_by_mark"]})
     mark_names = {"check": "打勾", "cross": "打叉", "fill": "塗滿", "outside": "勾出框外", "faint": "很淡", "empty": "空白", "stray": "旁邊有雜筆"}
     mark_rows = "".join(f"<tr><td>{names[m]}</td>" + "".join(f"<td>{pct(t['box_by_mark'].get(k))}</td>" for k in marks) + "</tr>"
@@ -375,7 +378,7 @@ th{{background:#f3f1ea}}.m{{color:#666;font-size:13px}}</style>
 <p class="m">測試集 {sum(r['split'] == 'test' for r in rows)} 頁（其中「新人報到資料表」10 頁的版型完全沒拿來調參數）；樣本是用南臺科大真人手寫字合成的虛構繁中表單，數字與勾選標記為程式畫的筆跡，再加手機翻拍劣化。對照：現有乾淨樣本的 1−CER 是 91.7%（docs/ocr-pipeline-report.md）。</p>
 <h2>總表（測試集）</h2><table>{head}{body}</table>
 <h2>勾選框：各種標記的正確率（測試集）</h2><table><tr><th>做法</th>{''.join(f'<th>{mark_names.get(k, k)}</th>' for k in marks)}</tr>{mark_rows}</table>
-<h2>調整集（只用來選門檻）</h2><table>{head}{''.join(f"<tr><td>{names[m]}</td><td>{pct(t['acc'])}</td><td>{pct(t['exact'])}</td><td>{pct(t['mapped'])}</td><td>{' ／ '.join(pct(t['by_level'][lv]) for lv in ('neat', 'normal', 'messy'))}</td><td>{pct(t['held_out_acc'])}</td><td>{pct(t['box_acc'])}</td><td>{pct(t['box_unsure'])}</td><td>{pct(t['box_unknown'])}</td><td>—</td></tr>" for m, t in tune.items())}</table>
+<h2>調整集（只用來選門檻）</h2><table>{head}{''.join(row(m, t, '—') for m, t in tune.items())}</table>
 <h2>潦草欄位實例（測試集，P0 做法下的潦草頁）</h2><table><tr><th>原圖（對齊後切出）</th><th>正確答案</th>{''.join(f'<th>{m}</th>' for m in table)}</tr>{''.join(examples)}</table>
 </html>"""
     (out / "report.html").write_text(html, encoding="utf-8")
