@@ -54,16 +54,16 @@ def main():
         image = cv2.imread(str(args.truth.parent / page["image"]))
         page_text = ev.reading_order(ev.page_boxes(image, "current"))
         row = {"page_text_P0": page_text, "fields": {}, "boxes": {}}
-        for field in page["fields"]:
+        for index, field in enumerate(page["fields"]):
             piece = form_ocr.crop(image, field["box"])
-            name = args.out / "crops" / f"{key}-field-{field['id']}.png"
+            name = args.out / "crops" / f"{key}-field-{index:02d}.png"  # ASCII: cv2.imwrite cannot write non-ASCII paths on Windows
             name.parent.mkdir(parents=True, exist_ok=True)
             cv2.imwrite(str(name), piece)
             field_crops.append(name)
             row["fields"][field["id"]] = {"truth": field["truth"], "P0": best_stretch(field["truth"], page_text),
                                           "P1": form_ocr.normalize(ev.read_field(piece)), "crop": str(name)}
-        for box in page["checkboxes"]:
-            name = args.out / "crops" / f"{key}-box-{box['id']}.png"
+        for index, box in enumerate(page["checkboxes"]):
+            name = args.out / "crops" / f"{key}-box-{index:02d}.png"
             cv2.imwrite(str(name), form_ocr.crop(image, box["box"], pad=14))
             box_crops.append(name)
             state, score = form_ocr.checkbox_state(image, box["box"])
