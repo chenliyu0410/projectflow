@@ -67,7 +67,8 @@ def main():
             cv2.imwrite(str(name), form_ocr.crop(image, box["box"], pad=14))
             box_crops.append(name)
             state, score = form_ocr.checkbox_state(image, box["box"])
-            row["boxes"][box["id"]] = {"truth": box["checked"], "P0": "unknown", "P1": state, "P1_score": score, "crop": str(name)}
+            row["boxes"][box["id"]] = {"truth": box["checked"], "caption": box["caption"], "P0": "unknown", "P1": state,
+                                       "P1_score": score, "crop": str(name)}
         rows[key] = row
     ovis = argparse.Namespace(out=args.out, ovis_python=args.ovis_python, ovis_model=args.ovis_model)
     ovis_pages = ev.run_ovis(ovis, [args.truth.parent / p["image"] for p in pages.values()], "page", "page")
@@ -84,7 +85,8 @@ def main():
         for box_id, box in row["boxes"].items():
             answer = ovis_boxes.get(box["crop"], {}).get("text", "").lower()
             box["P2"] = "checked" if answer.startswith("yes") else "unchecked" if answer.startswith("no") else "unsure"
-            hit = [s for s, v in ev.CHECK_SYMBOLS.items() if f"{s}{box_id[:2]}" in text.replace(" ", "")]
+            # Whole-page output: a box symbol written right before the caption printed beside the box (全部, 有, 其 ...).
+            hit = [s for s in ev.CHECK_SYMBOLS if f"{s}{box['caption']}" in text.replace(" ", "")]
             box["P2-page"] = ("checked" if ev.CHECK_SYMBOLS[hit[0]] else "unchecked") if hit else "unknown"
     summary = {}
     for method in ("P0", "P1", "P2-page", "P2"):

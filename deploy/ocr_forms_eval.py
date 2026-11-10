@@ -165,10 +165,15 @@ def html_table_boxes(markdown):
 def symbol_checkboxes(markdown, template):
     """Checkbox states only if OvisOCR2 wrote a box symbol right before the caption; otherwise unknown."""
     found = {}
+    segments = re.findall(r"<tr>.*?</tr>", markdown, flags=re.S) + markdown.splitlines()
     for box in template["checkboxes"]:
-        hit = re.search(r"([☑✓✔■☒√☐□])\s*" + re.escape(box["label"]), markdown)
-        if hit:
-            found[box["id"]] = "checked" if CHECK_SYMBOLS[hit.group(1)] else "unchecked"
+        # Several rows share a caption (合格 on every line of a checklist): look inside the row that carries the box's row label.
+        rows = [s for s in segments if box["group"] in s] or [markdown]
+        for row in rows:
+            hit = re.search(r"([☑✓✔■☒√☐□])\s*" + re.escape(box["label"]), row)  # "☑不合格" never matches 合格
+            if hit:
+                found[box["id"]] = "checked" if CHECK_SYMBOLS[hit.group(1)] else "unchecked"
+                break
     return found
 
 
