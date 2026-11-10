@@ -82,14 +82,15 @@ def main():
         for field in row["fields"].values():
             field["P2-page"] = best_stretch(field["truth"], text)
             field["P2"] = form_ocr.normalize(ovis_fields.get(field["crop"], {}).get("text", ""))
+            field["P3"] = field["P2"]  # P3 = OvisOCR2 on fields + ink rule on boxes (no new parameters)
         for box_id, box in row["boxes"].items():
-            answer = ovis_boxes.get(box["crop"], {}).get("text", "").lower()
-            box["P2"] = "checked" if answer.startswith("yes") else "unchecked" if answer.startswith("no") else "unsure"
+            box["P2"] = ev.ovis_box_state(ovis_boxes.get(box["crop"], {}).get("text", ""))
+            box["P3"] = box["P1"]
             # Whole-page output: a box symbol written right before the caption printed beside the box (全部, 有, 其 ...).
             hit = [s for s in ev.CHECK_SYMBOLS if f"{s}{box['caption']}" in text.replace(" ", "")]
             box["P2-page"] = ("checked" if ev.CHECK_SYMBOLS[hit[0]] else "unchecked") if hit else "unknown"
     summary = {}
-    for method in ("P0", "P1", "P2-page", "P2"):
+    for method in ("P0", "P1", "P2-page", "P2", "P3"):
         fields = [ev.score_text(f["truth"], f[method]) for r in rows.values() for f in r["fields"].values() if method in f]
         boxes = [b for r in rows.values() for b in r["boxes"].values() if method in b]
         if not fields:

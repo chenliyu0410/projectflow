@@ -10,6 +10,7 @@ Methods (see docs/superpowers/plans/2026-11-10-ocr-handwriting-forms.md):
   P1        template: page aligned to the form, each field cropped, cleaned and read by RapidOCR; checkbox ink measured
   P2-page   OvisOCR2 on the whole page (end to end); values paired from its table output
   P2        template crops (same as P1) read by OvisOCR2; checkbox crops asked "is it marked?"
+  P3        combination of measured parts, no new parameters: P2 field reading + P1 checkbox ink
 Only reads the samples; writes to --out. Pages named tune-* may be used to choose thresholds; report the test-* pages.
 """
 import argparse
@@ -31,7 +32,7 @@ from app.ai import form_ocr, ocr, ocr_metrics  # noqa: E402
 
 TEMPLATES = Path(__file__).resolve().parent / "ocr-eval/forms/templates"
 CHECK_SYMBOLS = {"☑": True, "✓": True, "✔": True, "■": True, "☒": True, "√": True, "☐": False, "□": False}
-METHODS = ["P0", "P1-free", "P1", "P2-page", "P2"]
+METHODS = ["P0", "P1-free", "P1", "P2-page", "P2", "P3"]
 
 try:
     import opencc
@@ -177,6 +178,22 @@ def symbol_checkboxes(markdown, template):
     return found
 
 
+def ovis_box_state(answer):
+    """OvisOCR2 is an OCR model: asked yes/no about a box crop it mostly transcribes the box itself (☑, ☐, ☒), sometimes
+    followed by yes/no. Read the first symbol; else a lone yes or no; anything else (both, or other text) is unsure."""
+    text = answer.strip()
+    if text[:1] in CHECK_SYMBOLS:
+        return "checked" if CHECK_SYMBOLS[text[0]] else "unchecked"
+    if text[:1] in ("X", "x", "V", "v"):
+        return "checked"
+    lower = text.lower()
+    if lower.startswith("yes") and "no" not in lower:
+        return "checked"
+    if lower.startswith("no") and "yes" not in lower:
+        return "unchecked"
+    return "unsure"
+
+
 def run_ovis(args, images, prompt, name):
     if not args.ovis_python:
         return {}
@@ -259,12 +276,14 @@ def evaluate(args):
                   for f in template["fields"]}
         states = {}
         for box in template["checkboxes"]:
-            answer = ovis_boxes.get(str(page_dir / f"box-{box['id']}.png"), {}).get("text", "").lower()
-            states[box["id"]] = "checked" if answer.startswith("yes") else "unchecked" if answer.startswith("no") else "unsure"
+            states[box["id"]] = ovis_box_state(ovis_boxes.get(str(page_dir / f"box-{box['id']}.png"), {}).get("text", ""))
         row["pred"]["P2"] = {"fields": fields, "checkboxes": states}
+        row["pred"]["P3"] = {"fields": fields, "checkboxes": row["pred"]["P1"]["checkboxes"]}
         crop_seconds = sum(ovis_fields.get(str(page_dir / f"field-{f['id']}.png"), {}).get("seconds", 0) for f in template["fields"])
         crop_seconds += sum(ovis_boxes.get(str(page_dir / f"box-{b['id']}.png"), {}).get("seconds", 0) for b in template["checkboxes"])
         seconds["P2"].append(crop_seconds + float(np.mean(seconds["P1"])))  # alignment and cropping on CPU, reading on GPU
+        seconds["P3"].append(seconds["P2"][-1] - sum(ovis_boxes.get(str(page_dir / f"box-{b['id']}.png"), {}).get("seconds", 0)
+                                                       for b in template["checkboxes"]))
     return rows, {m: round(float(np.mean(v)), 2) for m, v in seconds.items() if v}
 
 # ---------------------------------------------------------------- scoring and report
@@ -315,7 +334,7 @@ def pct(value):
 
 def report(rows, seconds, table, tune, out, samples):
     names = {"P0": "P0 現行（整頁 RapidOCR）", "P1-free": "P1-free 不用版型（去線、整頁辨識、位置配對、找方框）",
-             "P1": "P1 座標定位＋RapidOCR", "P2-page": "P2-page OvisOCR2 整頁端到端", "P2": "P2 座標定位＋OvisOCR2"}
+             "P1": "P1 座標定位＋RapidOCR", "P2-page": "P2-page OvisOCR2 整頁端到端", "P2": "P2 座標定位＋OvisOCR2", "P3": "P3 組合：OvisOCR2 讀欄位＋筆跡比例判斷勾選"}
     head = "<tr><th>做法</th><th>手寫欄位 1−CER</th><th>欄位完全正確</th><th>欄位對應正確</th><th>工整／普通／潦草 1−CER</th>" \
            "<th>沒看過的版型 1−CER</th><th>勾選正確</th><th>需人工確認</th><th>無法判斷</th><th>每頁秒數</th></tr>"
     body = "".join(
